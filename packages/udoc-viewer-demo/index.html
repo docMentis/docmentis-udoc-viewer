@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>udoc-viewer Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            font-family: system-ui, -apple-system, sans-serif;
+            touch-action: manipulation;
+            -webkit-text-size-adjust: 100%;
+            text-size-adjust: 100%;
+        }
+        .demo-container {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Desktop: Left panel */
+        .demo-panel {
+            width: 280px;
+            background: #f0f5fa;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+        .demo-panel-section {
+            padding: 12px 16px;
+            border-bottom: 1px solid #d0dce8;
+        }
+        .demo-panel-section-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: #5580a0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+        .demo-btn {
+            display: block;
+            width: 100%;
+            padding: 10px 12px;
+            background: #5a8cb8;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            text-align: left;
+        }
+        .demo-btn:hover {
+            background: #4a78a0;
+        }
+        .demo-btn svg {
+            width: 16px;
+            height: 16px;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+        .document-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px;
+        }
+        .document-item {
+            display: block;
+            width: 100%;
+            padding: 8px 12px;
+            background: none;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            text-align: left;
+            color: #333;
+            margin-left: 12px;
+            width: calc(100% - 12px);
+        }
+        .document-item:hover {
+            background: #e0eaf2;
+        }
+        .document-item.active {
+            background: #5a8cb8;
+            color: white;
+        }
+        .category-header {
+            font-size: 12px;
+            font-weight: 600;
+            color: #4a6a88;
+            padding: 10px 12px 6px;
+            background: #e8f0f5;
+        }
+        .category-header:not(:has(+ .category-description)) {
+            border-bottom: 1px solid #d0dce8;
+        }
+        .category-header:not(:first-child) {
+            margin-top: 12px;
+        }
+        .category-description {
+            font-size: 11px;
+            color: #5580a0;
+            padding: 6px 12px 8px;
+            background: #e8f0f5;
+            border-bottom: 1px solid #d0dce8;
+        }
+
+        /* Viewer panel */
+        .viewer-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: #f0f5fa;
+        }
+        .viewer-wrapper {
+            flex: 1;
+            padding: 24px;
+            overflow: hidden;
+        }
+        #viewer {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+        }
+        #file-input {
+            display: none;
+        }
+
+        /* Mobile: Top bar (hidden on desktop) */
+        .demo-topbar {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: #f0f5fa;
+            border-bottom: 1px solid #d0dce8;
+            flex-shrink: 0;
+        }
+        .topbar-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            background: #5a8cb8;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            color: white;
+            transition: background 0.15s;
+        }
+        .topbar-btn:hover {
+            background: #4a78a0;
+        }
+        .topbar-btn svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+        }
+        .topbar-divider {
+            width: 1px;
+            height: 24px;
+            background: #d0dce8;
+            margin: 0 4px;
+        }
+
+        /* Document selector dropdown */
+        .doc-selector {
+            position: relative;
+            flex: 1;
+            min-width: 0;
+        }
+        .doc-selector-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            padding: 8px 12px;
+            background: white;
+            border: 1px solid #d0dce8;
+            border-radius: 6px;
+            cursor: pointer;
+            color: #3a5068;
+            font-size: 14px;
+            text-align: left;
+            transition: background 0.15s, border-color 0.15s;
+        }
+        .doc-selector-btn:hover {
+            background: #f0f5fa;
+            border-color: #a8c0d8;
+        }
+        .doc-selector-btn .doc-name {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .doc-selector-btn .chevron {
+            width: 16px;
+            height: 16px;
+            fill: #5580a0;
+            flex-shrink: 0;
+            transition: transform 0.2s;
+        }
+        .doc-selector.open .chevron {
+            transform: rotate(180deg);
+        }
+        .doc-dropdown {
+            display: none;
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            right: 0;
+            max-height: 400px;
+            overflow-y: auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+            z-index: 100;
+        }
+        .doc-selector.open .doc-dropdown {
+            display: block;
+        }
+        .doc-dropdown-category {
+            padding: 10px 12px 6px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #5580a0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: #f0f5fa;
+        }
+        .doc-dropdown-category:not(:first-child) {
+            border-top: 1px solid #d0dce8;
+        }
+        .doc-dropdown-desc {
+            padding: 4px 12px 8px;
+            font-size: 11px;
+            color: #5a8cb8;
+            background: #f0f5fa;
+        }
+        .doc-dropdown-item {
+            display: block;
+            width: 100%;
+            padding: 10px 12px;
+            border: none;
+            background: none;
+            text-align: left;
+            font-size: 14px;
+            color: #333;
+            cursor: pointer;
+            transition: background 0.1s;
+        }
+        .doc-dropdown-item:hover {
+            background: #f0f5fa;
+        }
+        .doc-dropdown-item.active {
+            background: #5a8cb8;
+            color: white;
+        }
+
+        /* Responsive: Mobile layout */
+        @media (max-width: 768px) {
+            .demo-container {
+                flex-direction: column;
+            }
+            .demo-panel {
+                display: none;
+            }
+            .demo-topbar {
+                display: flex;
+            }
+            .viewer-wrapper {
+                padding: 0;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .demo-topbar {
+                padding: 8px;
+                gap: 6px;
+            }
+            .doc-selector-btn {
+                padding: 8px 10px;
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <!-- Desktop: Left sidebar -->
+        <div class="demo-panel" id="demo-panel">
+            <div class="demo-panel-section" style="display: flex; gap: 8px;">
+                <button class="demo-btn" id="open-file-btn" style="flex: 1;">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h6l2 2h6a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2zM5 6v12h14V10h-6.83l-2-2H5z"/>
+                    </svg>
+                    Open File
+                </button>
+                <button class="demo-btn" id="open-url-btn" style="flex: 1;">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/>
+                    </svg>
+                    Open URL
+                </button>
+            </div>
+
+            <div class="demo-panel-section">
+                <div class="demo-panel-section-title">Sample Documents</div>
+            </div>
+            <div class="document-list" id="document-list"></div>
+
+        </div>
+
+        <!-- Viewer area -->
+        <div class="viewer-panel">
+            <!-- Mobile: Top bar -->
+            <div class="demo-topbar">
+                <button class="topbar-btn" id="mobile-open-file-btn" title="Open File">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h6l2 2h6a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2zM5 6v12h14V10h-6.83l-2-2H5z"/>
+                    </svg>
+                </button>
+                <button class="topbar-btn" id="mobile-open-url-btn" title="Open URL">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/>
+                    </svg>
+                </button>
+                <div class="topbar-divider"></div>
+                <div class="doc-selector" id="doc-selector">
+                    <button class="doc-selector-btn" id="doc-selector-btn">
+                        <span class="doc-name" id="doc-name">Select a document</span>
+                        <svg class="chevron" viewBox="0 0 24 24">
+                            <path d="M7 10l5 5 5-5z"/>
+                        </svg>
+                    </button>
+                    <div class="doc-dropdown" id="doc-dropdown"></div>
+                </div>
+            </div>
+
+            <div class="viewer-wrapper">
+                <div id="viewer"></div>
+            </div>
+        </div>
+    </div>
+    <input type="file" id="file-input" accept=".pdf,.pptx,.jpg,.jpeg,.png,.gif,.bmp,.tiff,.tif,.webp,.ico,.pnm,.pbm,.pgm,.ppm,.tga,.hdr,.exr,.qoi">
+    <script type="module" src="./src/main.ts"></script>
+</body>
+</html>

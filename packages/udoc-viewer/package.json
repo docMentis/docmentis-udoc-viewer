@@ -1,0 +1,40 @@
+{
+  "name": "@docmentis/udoc-viewer",
+  "version": "0.4.4",
+  "type": "module",
+  "license": "MIT",
+  "description": "Universal document viewer for PDF and PPTX files",
+  "keywords": [
+    "pdf",
+    "viewer",
+    "document",
+    "wasm"
+  ],
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "import": "./dist/src/index.js"
+    },
+    "./worker": {
+      "types": "./dist/src/worker.d.ts",
+      "import": "./dist/src/worker.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "node scripts/build-styles.js && tsc && rm -rf dist/src/wasm && cp -r src/wasm dist/src/wasm",
+    "clean": "rm -rf dist",
+    "dev": "tsc --watch"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  }
+}

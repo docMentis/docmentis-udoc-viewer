@@ -1,0 +1,18 @@
+{
+  "name": "@docmentis/udoc-viewer-demo",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "clean": "rm -rf dist",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@docmentis/udoc-viewer": "*"
+  },
+  "devDependencies": {
+    "vite": "^6.0.3"
+  }
+}

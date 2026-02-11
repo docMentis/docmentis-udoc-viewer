@@ -1,0 +1,12 @@
+{
+  "name": "docmentis-udoc-viewer",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "copy-wasm": "rm -rf packages/udoc-viewer/src/wasm && cp -r ../docmentis-udoc/target/wasm packages/udoc-viewer/src/wasm",
+    "build": "npm run build --workspaces --if-present",
+    "clean": "npm run clean --workspaces --if-present"
+  }
+}
