@@ -1,8 +1,23 @@
 # @docmentis/udoc-viewer
 
-Universal Document Viewer built on top of a WebAssembly engine.
+A free, open-source, universal document viewer for the web. Render PDF, PPTX, and images with high fidelity — no server required.
 
-**Free. Unlimited. Forever.** Provided by [docMentis.com](https://docmentis.com).
+[![npm version](https://img.shields.io/npm/v/@docmentis/udoc-viewer)](https://www.npmjs.com/package/@docmentis/udoc-viewer)
+[![license](https://img.shields.io/npm/l/@docmentis/udoc-viewer)](./LICENSE)
+
+**[Live Demo](https://docmentis.com/viewer/demo)** · **[Guide](https://docmentis.com/viewer/guide)** · **[Report Issue](https://github.com/docmentis/udoc-viewer/issues)**
+
+---
+
+## Why udoc-viewer?
+
+Most web document viewers only handle PDF, rely on server-side rendering, or require expensive commercial licenses. udoc-viewer is different:
+
+- **Truly universal** — PDF, PowerPoint, and images in a single viewer, with more formats coming
+- **High fidelity** — powered by a custom Rust/WebAssembly rendering engine, not PDF.js
+- **Client-side only** — everything runs in the browser, no server round-trips
+- **Framework agnostic** — works with React, Vue, Angular, Svelte, or plain HTML
+- **Free for commercial use** — MIT-licensed wrapper, free WASM engine
 
 ## Supported Formats
 
@@ -10,17 +25,19 @@ Universal Document Viewer built on top of a WebAssembly engine.
 |--------|------------|
 | PDF | .pdf |
 | PPTX | .pptx |
-| Images | .jpg, .jpeg, .png, .gif, .bmp, .tif, .tiff, .webp, .ico, .tga, .ppm, .pgm, .pbm, .hdr, .exr, .qoi |
+| Images | .png, .jpg, .jpeg, .gif, .webp, .bmp, .tif, .tiff, .ico, .tga, .ppm, .pgm, .pbm, .hdr, .exr, .qoi |
 
-## Installation
+## Quick Start
+
+### Install
 
 ```bash
 npm install @docmentis/udoc-viewer
 ```
 
-## Quick Start
+### Basic Usage
 
-```typescript
+```js
 import { UDocClient } from '@docmentis/udoc-viewer';
 
 // Create a client (loads the WASM engine)
@@ -39,7 +56,62 @@ viewer.destroy();
 client.destroy();
 ```
 
-## Loading Documents
+### HTML
+
+```html
+<div id="viewer" style="width: 100%; height: 600px;"></div>
+
+<script type="module">
+  import { UDocClient } from '@docmentis/udoc-viewer';
+
+  const client = await UDocClient.create();
+  const viewer = await client.createViewer({ container: '#viewer' });
+  await viewer.load('/path/to/document.pdf');
+</script>
+```
+
+### React
+
+```jsx
+import { useEffect, useRef } from 'react';
+import { UDocClient } from '@docmentis/udoc-viewer';
+
+function DocumentViewer({ src }) {
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    let client, viewer;
+
+    (async () => {
+      client = await UDocClient.create();
+      viewer = await client.createViewer({
+        container: containerRef.current,
+      });
+      await viewer.load(src);
+    })();
+
+    return () => {
+      viewer?.destroy();
+      client?.destroy();
+    };
+  }, [src]);
+
+  return <div ref={containerRef} style={{ width: '100%', height: '600px' }} />;
+}
+```
+
+## Features
+
+- 📄 **Multi-format rendering** — PDF, PPTX, and images in one unified viewer
+- 🎯 **High-fidelity output** — custom Rust rendering engine compiled to WebAssembly
+- 🔍 **Zoom & navigation** — toolbar with zoom controls, page thumbnails, and keyboard navigation
+- 📱 **Responsive** — works on desktop and mobile browsers
+- 🌊 **Streaming** — pages render progressively as the document loads
+- 🔒 **Private** — documents never leave the browser; no server upload required
+
+## API Reference
+
+### Loading Documents
 
 The viewer accepts multiple document sources:
 
@@ -57,7 +129,7 @@ await viewer.load(new Uint8Array(buffer));
 viewer.close();
 ```
 
-## Password-Protected Documents
+### Password-Protected Documents
 
 When a password-protected document is loaded in UI mode, the viewer automatically prompts the user to enter the password. For headless mode, you can handle it programmatically:
 
@@ -72,7 +144,7 @@ if (await viewer.needsPassword()) {
 }
 ```
 
-## Client Options
+### Client Options
 
 ```typescript
 const client = await UDocClient.create({
@@ -82,7 +154,7 @@ const client = await UDocClient.create({
 });
 ```
 
-## Viewer Options
+### Viewer Options
 
 ```typescript
 const viewer = await client.createViewer({
@@ -129,7 +201,7 @@ const viewer = await client.createViewer({
 });
 ```
 
-## Navigation
+### Navigation
 
 ```typescript
 // Get current page (1-based)
@@ -142,7 +214,7 @@ viewer.goToPage(5);
 viewer.goToDestination(destination);
 ```
 
-## Document Information
+### Document Information
 
 ```typescript
 // Check if document is loaded
@@ -166,7 +238,7 @@ if (viewer.isLoaded) {
 }
 ```
 
-## Headless Rendering
+### Headless Rendering
 
 Render pages to images without UI:
 
@@ -195,7 +267,7 @@ const dataUrl = await viewer.renderPage(0, {
 const thumb = await viewer.renderThumbnail(0, { scale: 1 });
 ```
 
-## Document Export
+### Document Export
 
 ```typescript
 // Export document as raw bytes
@@ -205,7 +277,7 @@ const bytes = await viewer.toBytes();
 await viewer.download('document.pdf');
 ```
 
-## Document Composition
+### Document Composition
 
 Compose new documents by cherry-picking and rotating pages:
 
@@ -223,7 +295,7 @@ const bytes = await newDoc.toBytes();
 await newDoc.download('composed.pdf');
 ```
 
-## Document Utilities
+### Document Utilities
 
 ```typescript
 // Split a document by its outline (table of contents)
@@ -247,7 +319,7 @@ const compressed = await client.compress(source);
 const decompressed = await client.decompress(source);
 ```
 
-## Events
+### Events
 
 ```typescript
 // Document loaded
@@ -274,8 +346,38 @@ viewer.on('error', ({ error, phase }) => {
 unsubscribe();
 ```
 
+## How It Works
+
+udoc-viewer uses a custom document processing engine written in Rust, compiled to WebAssembly. Documents are parsed and rendered entirely in the browser with near-native performance — no PDF.js, no iframe hacks, no server-side conversion.
+
+The JavaScript wrapper (`@docmentis/udoc-viewer`) is MIT-licensed and open source. The WASM rendering engine is free to use, including in commercial applications. See [LICENSE](./LICENSE) for details.
+
+## Browser Support
+
+| Browser | Supported |
+|---------|-----------|
+| Chrome / Edge | ✅ 80+ |
+| Firefox | ✅ 80+ |
+| Safari | ✅ 15+ |
+
+Requires WebAssembly support.
+
+## Contributing
+
+We welcome bug reports, feature requests, and pull requests.
+
+- **Issues**: [github.com/docmentis/udoc-viewer/issues](https://github.com/docmentis/udoc-viewer/issues)
+- **Discussions**: [github.com/docmentis/udoc-viewer/discussions](https://github.com/docmentis/udoc-viewer/discussions)
+
 ## License
 
 The JavaScript/TypeScript source code is licensed under the [MIT License](../../LICENSE).
 
 The WebAssembly binary (`src/wasm/udoc_bg.wasm`) is distributed under the [docMentis WASM Runtime License](src/wasm/LICENSE) -- free to use with the docMentis Viewer in commercial and non-commercial applications.
+
+## Links
+
+- 🌐 [docmentis.com](https://docmentis.com)
+- 📦 [npm package](https://www.npmjs.com/package/@docmentis/udoc-viewer)
+- 📂 [GitHub](https://github.com/docmentis/udoc-viewer)
+- 💬 [Report an issue](https://github.com/docmentis/udoc-viewer/issues)
