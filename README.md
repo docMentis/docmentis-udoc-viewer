@@ -5,7 +5,7 @@ A free, open-source, universal document viewer for the web. Render PDF, PPTX, an
 [![npm version](https://img.shields.io/npm/v/@docmentis/udoc-viewer)](https://www.npmjs.com/package/@docmentis/udoc-viewer)
 [![license](https://img.shields.io/npm/l/@docmentis/udoc-viewer)](./LICENSE)
 
-**[Live Demo](https://docmentis.com/viewer/demo)** · **[Guide](https://docmentis.com/viewer/guide)** · **[Report Issue](https://github.com/docmentis/udoc-viewer/issues)**
+**[Live Demo](https://docmentis.com/viewer/demo)** · **[Guide](https://docmentis.com/viewer/guide)** · **[Report Issue](https://github.com/docmentis/docmentis-udoc-viewer/issues)**
 
 ---
 
@@ -162,8 +162,8 @@ npm run copy-wasm
 
 We welcome bug reports, feature requests, and pull requests.
 
-- **Issues**: [github.com/docmentis/udoc-viewer/issues](https://github.com/docmentis/udoc-viewer/issues)
-- **Discussions**: [github.com/docmentis/udoc-viewer/discussions](https://github.com/docmentis/udoc-viewer/discussions)
+- **Issues**: [github.com/docmentis/docmentis-udoc-viewer/issues](https://github.com/docmentis/docmentis-udoc-viewer/issues)
+- **Discussions**: [github.com/docmentis/docmentis-udoc-viewer/discussions](https://github.com/docmentis/docmentis-udoc-viewer/discussions)
 
 ## License
 
@@ -175,5 +175,5 @@ The WebAssembly binary (`packages/udoc-viewer/src/wasm/udoc_bg.wasm`) is distrib
 
 - 🌐 [docmentis.com](https://docmentis.com)
 - 📦 [npm package](https://www.npmjs.com/package/@docmentis/udoc-viewer)
-- 📂 [GitHub](https://github.com/docmentis/udoc-viewer)
-- 💬 [Report an issue](https://github.com/docmentis/udoc-viewer/issues)
+- 📂 [GitHub](https://github.com/docmentis/docmentis-udoc-viewer)
+- 💬 [Report an issue](https://github.com/docmentis/docmentis-udoc-viewer/issues)

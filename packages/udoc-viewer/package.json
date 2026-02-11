@@ -7,11 +7,11 @@
   "homepage": "https://docmentis.com/viewer/guide",
   "repository": {
     "type": "git",
-    "url": "https://github.com/docmentis/udoc-viewer.git",
+    "url": "https://github.com/docmentis/docmentis-udoc-viewer.git",
     "directory": "packages/udoc-viewer"
   },
   "bugs": {
-    "url": "https://github.com/docmentis/udoc-viewer/issues"
+    "url": "https://github.com/docmentis/docmentis-udoc-viewer/issues"
   },
   "keywords": [
     "pdf",
