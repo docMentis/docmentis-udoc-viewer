@@ -276,4 +276,6 @@ unsubscribe();
 
 ## License
 
-MIT
+The JavaScript/TypeScript source code is licensed under the [MIT License](../../LICENSE).
+
+The WebAssembly binary (`src/wasm/udoc_bg.wasm`) is distributed under the [docMentis WASM Runtime License](src/wasm/LICENSE) -- free to use with the docMentis Viewer in commercial and non-commercial applications.
