@@ -1,0 +1,104 @@
+docMentis WASM Runtime License
+
+Version 1.0
+
+Copyright (c) 2026 docMentis
+All rights reserved.
+
+1. Definitions
+
+"Software" means the docMentis WebAssembly ("WASM") runtime and all
+associated binary artifacts distributed by docMentis.
+
+"Viewer" means the open-source JavaScript/TypeScript viewer published by
+docMentis that loads and interacts with the Software.
+
+"You" means the individual or legal entity using the Software.
+
+"Derivative Work" means any modification, adaptation, or work based on
+the Software.
+
+2. License Grant
+
+Subject to the terms of this License, docMentis grants You a non-exclusive,
+worldwide, royalty-free license to:
+
+  (a) Use the Software solely in conjunction with the docMentis Viewer;
+  (b) Redistribute the unmodified Software as bundled with the Viewer;
+  (c) Use the Software in commercial or non-commercial applications.
+
+This License does not grant You any rights to the Software's source code.
+
+3. Restrictions
+
+You may not, directly or indirectly:
+
+  (a) Reverse engineer, decompile, disassemble, or otherwise attempt to
+      derive the source code of the Software;
+  (b) Modify, patch, translate, or create Derivative Works of the Software;
+  (c) Use the Software independently of the docMentis Viewer;
+  (d) Sell, sublicense, rent, lease, or otherwise commercially distribute
+      the Software on a standalone basis;
+  (e) Use the Software to build or operate a competing document viewer,
+      document processing library, or document SaaS platform;
+  (f) Remove or obscure any copyright, license, or attribution notices.
+
+4. SaaS and Hosting Limitation
+
+You may use the Software in a hosted or SaaS environment only as part of an
+application that embeds the docMentis Viewer for end-user document viewing.
+
+Using the Software as part of a document processing service, API product, or
+competing hosted offering requires a separate commercial license from
+docMentis.
+
+5. Ownership
+
+The Software is licensed, not sold.
+
+docMentis retains all right, title, and interest in and to the Software,
+including all intellectual property rights therein.
+
+No rights are granted except as expressly stated in this License.
+
+6. Attribution
+
+When redistributing the Software with the Viewer, You must retain all
+copyright and license notices included by docMentis.
+
+7. Termination
+
+This License is effective until terminated.
+
+docMentis may terminate this License immediately if You violate any of its
+terms. Upon termination, You must cease all use and redistribution of the
+Software.
+
+8. Disclaimer of Warranty
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
+
+9. Limitation of Liability
+
+IN NO EVENT SHALL DOCMENTIS BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING
+FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.
+
+10. Future Licensing
+
+docMentis may offer alternative licensing terms, including commercial
+licenses, enterprise agreements, or source-available options, in the future.
+
+11. Governing Law
+
+This License shall be governed by and construed in accordance with the laws
+of the State of California, USA, without regard to its conflict of law
+principles.
+
+12. Contact
+
+For licensing questions or commercial agreements:
+Email: licensing@docmentis.com

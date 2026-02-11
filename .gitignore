@@ -144,8 +144,5 @@ vite.config.ts.timestamp-*
 # VSCode
 .vscode/
 
-# WASM build output (copied from docmentis-udoc via `npm run copy-wasm`)
-packages/udoc-viewer/src/wasm/
-
 # Generated styles (by build-styles.js)
 packages/udoc-viewer/src/ui/viewer/styles-inline.ts
