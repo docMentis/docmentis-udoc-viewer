@@ -14,17 +14,13 @@ interface SampleCategory {
 
 const sampleCategories: SampleCategory[] = [
     {
-        name: 'Sample',
-        documents: [
-            { name: 'Sample PDF', path: './pdf/sample.pdf' },
-        ],
-    },
-    {
         name: 'NASA',
         description: 'Public-domain NASA publications.',
         documents: [
-            { name: 'Earth Art', path: './pdf/nasa-earth-art.pdf' },
+            { name: 'Hubble Fact Sheet: Mission Operations', path: './pdf/nasa-hubble-fact-sheet-mission-operations.pdf' },
+            { name: 'Hubble Fact Sheet: Gyroscopes', path: './pdf/nasa-hubble-fact-sheet-gyroscopes.pdf' },
             { name: 'Hubble Focus: Black Holes', path: './pdf/nasa-hubble-focus-black-holes-ebook.pdf' },
+            { name: 'Earth Art', path: './pdf/nasa-earth-art.pdf' },        
         ],
     },
     {
