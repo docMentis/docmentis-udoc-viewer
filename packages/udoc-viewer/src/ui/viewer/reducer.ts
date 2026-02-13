@@ -1,4 +1,5 @@
 import type { ViewerState } from "./state";
+import { initialState } from "./state";
 import type { Action } from "./actions";
 import { destinationToNavigationTarget } from "./navigation";
 
@@ -15,7 +16,17 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
                 doc: action.doc,
                 page: 1,
                 pageCount: action.pageCount,
-                pageInfos: action.pageInfos
+                pageInfos: action.pageInfos,
+                // Reset view mode to defaults
+                scrollMode: initialState.scrollMode,
+                layoutMode: initialState.layoutMode,
+                zoomMode: initialState.zoomMode,
+                zoom: initialState.zoom,
+                effectiveZoom: initialState.effectiveZoom,
+                pageRotation: initialState.pageRotation,
+                spacingMode: initialState.spacingMode,
+                pageSpacing: initialState.pageSpacing,
+                spreadSpacing: initialState.spreadSpacing,
             };
         }
         case "UPDATE_PAGE_SIZES": {
