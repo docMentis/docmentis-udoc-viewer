@@ -48,8 +48,12 @@ export function createStore<S, A>(
     let lastNext: S | null = null;
 
     function notify(prev: S, next: S): void {
-        for (const fn of renderSubs) fn(prev, next);
-        for (const fn of effectSubs) fn(prev, next);
+        for (const fn of renderSubs) {
+            try { fn(prev, next); } catch (e) { console.error("Render subscriber error:", e); }
+        }
+        for (const fn of effectSubs) {
+            try { fn(prev, next); } catch (e) { console.error("Effect subscriber error:", e); }
+        }
     }
 
     function scheduleNotify(prev: S, next: S): void {

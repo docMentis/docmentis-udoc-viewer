@@ -28,11 +28,20 @@ export function createEffects(
 ): { destroy: () => void } {
     const unsubscribers: Array<() => void> = [];
 
+    // Generation counter to detect stale async operations after document switches.
+    // Incremented on every document change; closures capture the current value
+    // and bail out if it no longer matches.
+    let docGeneration = 0;
+
     // Note: Cache invalidation is handled by UDocViewer.close() when switching documents.
     // Rendering is handled by Viewport/Spread components with properly computed scale.
 
     // Outline loading effect: load outline on-demand when outline panel is opened
     unsubscribers.push(store.subscribeEffect(async (prev, next) => {
+        // Bump generation on document change so stale async work is discarded
+        if (prev.doc !== next.doc) docGeneration++;
+        const gen = docGeneration;
+
         // Load outline when:
         // 1. Panel changes to "outline" AND outline not loaded AND not loading
         // 2. Document changes while outline panel is open AND outline not loaded
@@ -46,8 +55,10 @@ export function createEffects(
             store.dispatch({ type: "LOAD_OUTLINE" });
             try {
                 const outline = await engine.getOutline(next.doc!);
+                if (gen !== docGeneration) return; // stale
                 store.dispatch({ type: "SET_OUTLINE", outline });
             } catch (error) {
+                if (gen !== docGeneration) return; // stale
                 console.error("Failed to load outline", error);
                 store.dispatch({ type: "SET_OUTLINE", outline: [] });
             }
@@ -78,9 +89,11 @@ export function createEffects(
 
         // Defer annotation loading to let render requests go first
         const doc = next.doc;
+        const gen = docGeneration;
         annotationLoadTimeout = setTimeout(async () => {
             annotationLoadTimeout = null;
             for (const pageIndex of pagesToActuallyLoad) {
+                if (gen !== docGeneration) return; // document changed, discard
                 // Re-check state in case it changed during the delay
                 const currentState = store.getState();
                 if (currentState.pageAnnotations.has(pageIndex)) continue;
@@ -89,8 +102,10 @@ export function createEffects(
                 store.dispatch({ type: "LOAD_PAGE_ANNOTATIONS", pageIndex });
                 try {
                     const annotations = await engine.getPageAnnotations(doc, pageIndex);
+                    if (gen !== docGeneration) return; // stale
                     store.dispatch({ type: "SET_PAGE_ANNOTATIONS", pageIndex, annotations });
                 } catch (error) {
+                    if (gen !== docGeneration) return; // stale
                     console.error(`Failed to load annotations for page ${pageIndex}`, error);
                     store.dispatch({ type: "SET_PAGE_ANNOTATIONS", pageIndex, annotations: [] });
                 }
@@ -131,9 +146,11 @@ export function createEffects(
 
         // Defer text loading to let render requests go first
         const doc = next.doc;
+        const gen = docGeneration;
         textLoadTimeout = setTimeout(async () => {
             textLoadTimeout = null;
             for (const pageIndex of pagesToActuallyLoad) {
+                if (gen !== docGeneration) return; // document changed, discard
                 // Re-check state in case it changed during the delay
                 const currentState = store.getState();
                 if (currentState.pageText.has(pageIndex)) continue;
@@ -142,8 +159,10 @@ export function createEffects(
                 store.dispatch({ type: "LOAD_PAGE_TEXT", pageIndex });
                 try {
                     const text = await engine.getPageText(doc, pageIndex);
+                    if (gen !== docGeneration) return; // stale
                     store.dispatch({ type: "SET_PAGE_TEXT", pageIndex, text });
                 } catch (error) {
+                    if (gen !== docGeneration) return; // stale
                     console.error(`Failed to load text for page ${pageIndex}`, error);
                     store.dispatch({ type: "SET_PAGE_TEXT", pageIndex, text: [] });
                 }
@@ -170,8 +189,11 @@ export function createEffects(
 
         if (!commentsJustOpened && !docLoadedWithCommentsOpen) return;
 
+        const gen = docGeneration;
+
         // Load annotations for all pages
         for (let pageIndex = 0; pageIndex < next.pageCount; pageIndex++) {
+            if (gen !== docGeneration) return; // document changed, discard
             // Skip if already loaded or loading
             if (next.pageAnnotations.has(pageIndex)) continue;
             if (next.annotationsLoading.has(pageIndex)) continue;
@@ -179,8 +201,10 @@ export function createEffects(
             store.dispatch({ type: "LOAD_PAGE_ANNOTATIONS", pageIndex });
             try {
                 const annotations = await engine.getPageAnnotations(next.doc, pageIndex);
+                if (gen !== docGeneration) return; // stale
                 store.dispatch({ type: "SET_PAGE_ANNOTATIONS", pageIndex, annotations });
             } catch (error) {
+                if (gen !== docGeneration) return; // stale
                 console.error(`Failed to load annotations for page ${pageIndex}`, error);
                 store.dispatch({ type: "SET_PAGE_ANNOTATIONS", pageIndex, annotations: [] });
             }

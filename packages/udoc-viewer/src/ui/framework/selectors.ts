@@ -43,7 +43,7 @@ export type Selector<S, T> = (state: S) => T;
 /** Shallow object equality for small selector slices. */
 export function shallowEqual<T extends Record<string, unknown>>(a: T, b: T): boolean {
     for (const k in a) if (a[k] !== b[k]) return false;
-    for (const k in b) if (a[k] !== b[k]) return false;
+    for (const k in b) if (!(k in a)) return false;
     return true;
 }
 

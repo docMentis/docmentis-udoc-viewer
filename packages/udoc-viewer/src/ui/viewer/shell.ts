@@ -75,9 +75,15 @@ export function mountViewerShell(
     layout.append(toolbarSlot, bodySlot);
     root.appendChild(layout);
 
-    const mergedInitialState: ViewerState = overrides
-        ? { ...initialState, ...overrides }
-        : initialState;
+    // Always create fresh mutable collections to prevent sharing across viewers
+    const mergedInitialState: ViewerState = {
+        ...initialState,
+        pageAnnotations: new Map(),
+        annotationsLoading: new Set(),
+        pageText: new Map(),
+        textLoading: new Set(),
+        ...overrides,
+    };
 
     const store = createStore<ViewerState, Action>(reducer, mergedInitialState, { batched: true });
 
@@ -111,9 +117,10 @@ export function mountViewerShell(
     });
 
     // Handle panel overlay click to close panels (for mobile)
-    panelOverlay.addEventListener("click", () => {
+    const handleOverlayClick = () => {
         store.dispatch({ type: "CLOSE_PANEL" });
-    });
+    };
+    panelOverlay.addEventListener("click", handleOverlayClick);
 
     // Subscribe to panel state to toggle udoc-panel-open class
     const unsubPanelClass = store.subscribeRender((prev, next) => {
@@ -129,6 +136,7 @@ export function mountViewerShell(
     }
 
     function destroy(): void {
+        panelOverlay.removeEventListener("click", handleOverlayClick);
         unsubPanelClass();
         effects.destroy();
         toolbar.destroy();

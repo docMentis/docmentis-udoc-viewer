@@ -204,6 +204,9 @@ export class WorkerClient {
    */
   async unloadPdf(documentId: string): Promise<boolean> {
     this.pageInfoCache.delete(documentId);
+    this.performanceCounters.delete(documentId);
+    this.invalidateRenderCache(documentId);
+    this.cancelRenders(documentId);
     const response = (await this.send({ type: "unloadPdf", documentId })) as { removed: boolean };
     return response.removed;
   }
