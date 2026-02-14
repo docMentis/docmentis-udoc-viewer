@@ -607,11 +607,22 @@ export class UDocClient {
 
     let bytes: Uint8Array;
     if (typeof source === "string") {
-      const response = await fetch(source);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch ${source}: ${response.statusText}`);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60_000);
+      try {
+        const response = await fetch(source, { signal: controller.signal });
+        if (!response.ok) {
+          throw new Error(`Failed to fetch ${source}: ${response.statusText}`);
+        }
+        bytes = new Uint8Array(await response.arrayBuffer());
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") {
+          throw new Error(`Fetch timed out for ${source}`);
+        }
+        throw error;
+      } finally {
+        clearTimeout(timeoutId);
       }
-      bytes = new Uint8Array(await response.arrayBuffer());
     } else if (source instanceof File) {
       bytes = new Uint8Array(await source.arrayBuffer());
     } else {

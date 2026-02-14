@@ -327,7 +327,7 @@ export function createSpread(data: SpreadData) {
 
                 slotEl.renderKey = key;
             } catch (error) {
-                if ((error as Error).message !== "Request cancelled") {
+                if (!(error instanceof Error && error.message === "Request cancelled")) {
                     console.error(`Spread render failed for page ${slotEl.pageNumber}:`, error);
                 }
             } finally {

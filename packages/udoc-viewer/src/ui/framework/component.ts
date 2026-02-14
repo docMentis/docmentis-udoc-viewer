@@ -69,10 +69,15 @@ export abstract class Component<P = {}, S = {}> {
 
     /** Clean up listeners/subscriptions and remove root. */
     destroy(): void {
-        this.onUnmount();
-        for (const off of this.cleanups) off();
-        this.cleanups = [];
-        this.el.remove();
+        try {
+            this.onUnmount();
+        } finally {
+            for (const off of this.cleanups) {
+                try { off(); } catch (e) { console.error("Component cleanup error:", e); }
+            }
+            this.cleanups = [];
+            this.el.remove();
+        }
     }
 
     protected onMount(): void {}

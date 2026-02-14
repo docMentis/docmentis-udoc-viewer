@@ -88,6 +88,8 @@ export function createViewModeMenu() {
 
     let unsub: (() => void) | null = null;
     const unsubEvents: Array<() => void> = [];
+    /** Listeners created inside buildDropdown; cleared on each rebuild */
+    let dropdownListeners: Array<() => void> = [];
     let storeRef: Store<ViewerState, Action> | null = null;
     let isOpen = false;
 
@@ -138,7 +140,7 @@ export function createViewModeMenu() {
             btn.appendChild(iconSpan);
 
             if (!sectionOptions.disabled) {
-                unsubEvents.push(
+                dropdownListeners.push(
                     on(btn, "click", (e: MouseEvent) => {
                         e.stopPropagation();
                         onSelect(opt.value);
@@ -154,6 +156,10 @@ export function createViewModeMenu() {
     }
 
     function buildDropdown(slice: ViewModeSlice): void {
+        // Clean up listeners from previous build
+        for (const off of dropdownListeners) off();
+        dropdownListeners = [];
+
         // Clear existing content
         dropdown.innerHTML = "";
 
@@ -242,6 +248,8 @@ export function createViewModeMenu() {
 
     function destroy(): void {
         if (unsub) unsub();
+        for (const off of dropdownListeners) off();
+        dropdownListeners = [];
         for (const off of unsubEvents) off();
         el.remove();
     }
