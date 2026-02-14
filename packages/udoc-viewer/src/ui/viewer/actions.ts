@@ -1,4 +1,4 @@
-import type { PanelTab, ScrollMode, LayoutMode, ZoomMode, PageRotation, SpacingMode, PageInfo } from "./state";
+import type { PanelTab, ScrollMode, LayoutMode, ZoomMode, PageRotation, SpacingMode, PageInfo, ViewModeDefaults } from "./state";
 import type { Destination, OutlineItem } from "./navigation";
 import type { Annotation } from "./annotation";
 import type { TextRun } from "./text";
@@ -7,7 +7,7 @@ export type Action =
     // Lifecycle
     | { type: "__INIT__" }
     // Document
-    | { type: "SET_DOC"; doc: { id: string }; pageCount: number; pageInfos: readonly PageInfo[] }
+    | { type: "SET_DOC"; doc: { id: string }; pageCount: number; pageInfos: readonly PageInfo[]; viewDefaults?: ViewModeDefaults }
     | { type: "UPDATE_PAGE_SIZES"; pageInfos: readonly PageInfo[] }
     | { type: "CLEAR_DOC" }
     | { type: "SET_PAGE"; page: number }

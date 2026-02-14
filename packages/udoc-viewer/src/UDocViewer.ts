@@ -12,6 +12,7 @@ import type { Destination, OutlineItem } from "./ui/viewer/navigation.js";
 import type { Annotation } from "./ui/viewer/annotation/index.js";
 export type { Annotation } from "./ui/viewer/annotation/index.js";
 import type { TextRun } from "./ui/viewer/text/index.js";
+import { getFormatDefaults, type DocumentFormat, type ViewModeDefaults } from "./ui/viewer/state.js";
 import {
   PerformanceCounter,
   NoOpPerformanceCounter,
@@ -138,6 +139,8 @@ export class UDocViewer {
   private eventHandlers = new Map<keyof ViewerEventMap, Set<EventHandler<keyof ViewerEventMap>>>();
   private _performanceCounter: IPerformanceCounter;
   private googleFontsEnabled: boolean;
+  private viewOverrides: ViewModeDefaults;
+  private currentFormat: DocumentFormat | null = null;
 
   /**
    * @internal
@@ -146,6 +149,7 @@ export class UDocViewer {
   constructor(workerClient: WorkerClient, options: ViewerOptions = {}) {
     this.workerClient = workerClient;
     this.googleFontsEnabled = options.googleFonts ?? true;
+    this.viewOverrides = this.buildViewModeOverrides(options);
 
     // Initialize performance counter
     if (options.enablePerformanceCounter) {
@@ -194,6 +198,23 @@ export class UDocViewer {
     return overrides;
   }
 
+  private buildViewModeOverrides(options: ViewerOptions): ViewModeDefaults {
+    const overrides: ViewModeDefaults = {};
+
+    if (options.scrollMode !== undefined) overrides.scrollMode = options.scrollMode;
+    if (options.layoutMode !== undefined) overrides.layoutMode = options.layoutMode;
+    if (options.zoomMode !== undefined) overrides.zoomMode = options.zoomMode;
+    if (options.zoom !== undefined) overrides.zoom = options.zoom;
+    if (options.pageSpacing !== undefined) overrides.pageSpacing = options.pageSpacing;
+    if (options.spreadSpacing !== undefined) overrides.spreadSpacing = options.spreadSpacing;
+
+    return overrides;
+  }
+
+  private computeViewDefaults(format: DocumentFormat): ViewModeDefaults {
+    return { ...getFormatDefaults(format), ...this.viewOverrides };
+  }
+
   // ===========================================================================
   // Document Loading
   // ===========================================================================
@@ -223,6 +244,7 @@ export class UDocViewer {
 
       // Detect format and load appropriately
       const format = detectDocumentFormat(bytes, filename);
+      this.currentFormat = format;
       const loadId = this._performanceCounter.markStart(
         format === "image" ? "loadImage" : format === "pptx" ? "loadPptx" : "loadPdf"
       );
@@ -255,7 +277,8 @@ export class UDocViewer {
             type: "SET_DOC",
             doc: { id: this.documentId },
             pageCount: 0,
-            pageInfos: []
+            pageInfos: [],
+            viewDefaults: this.computeViewDefaults(format),
           });
           this.uiShell.dispatch({ type: "SET_NEEDS_PASSWORD", needsPassword: true });
         }
@@ -273,7 +296,8 @@ export class UDocViewer {
           type: "SET_DOC",
           doc: { id: this.documentId },
           pageCount: this._pageCount,
-          pageInfos: this._pageInfo
+          pageInfos: this._pageInfo,
+          viewDefaults: this.computeViewDefaults(format),
         });
         this._performanceCounter.markEnd(initUiId);
       }
@@ -372,7 +396,8 @@ export class UDocViewer {
             type: "SET_DOC",
             doc: { id: this.documentId! },
             pageCount: this._pageCount,
-            pageInfos: this._pageInfo
+            pageInfos: this._pageInfo,
+            viewDefaults: this.currentFormat ? this.computeViewDefaults(this.currentFormat) : undefined,
           });
         }
 

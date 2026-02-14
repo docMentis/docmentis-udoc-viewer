@@ -11,22 +11,23 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
         // Document
         case "SET_DOC": {
             if (state.doc === action.doc) return state;
+            const vd = action.viewDefaults;
             return {
                 ...state,
                 doc: action.doc,
                 page: 1,
                 pageCount: action.pageCount,
                 pageInfos: action.pageInfos,
-                // Reset view mode to defaults
-                scrollMode: initialState.scrollMode,
-                layoutMode: initialState.layoutMode,
-                zoomMode: initialState.zoomMode,
-                zoom: initialState.zoom,
-                effectiveZoom: initialState.effectiveZoom,
-                pageRotation: initialState.pageRotation,
-                spacingMode: initialState.spacingMode,
-                pageSpacing: initialState.pageSpacing,
-                spreadSpacing: initialState.spreadSpacing,
+                // Reset view mode to defaults (format-specific if provided)
+                scrollMode: vd?.scrollMode ?? initialState.scrollMode,
+                layoutMode: vd?.layoutMode ?? initialState.layoutMode,
+                zoomMode: vd?.zoomMode ?? initialState.zoomMode,
+                zoom: vd?.zoom ?? initialState.zoom,
+                effectiveZoom: vd?.effectiveZoom !== undefined ? vd.effectiveZoom : initialState.effectiveZoom,
+                pageRotation: vd?.pageRotation ?? initialState.pageRotation,
+                spacingMode: vd?.spacingMode ?? initialState.spacingMode,
+                pageSpacing: vd?.pageSpacing ?? initialState.pageSpacing,
+                spreadSpacing: vd?.spreadSpacing ?? initialState.spreadSpacing,
             };
         }
         case "UPDATE_PAGE_SIZES": {

@@ -26,6 +26,33 @@ export type ZoomMode = "fit-spread-width" | "fit-spread-height" | "fit-spread" |
 export type PageRotation = 0 | 90 | 180 | 270;
 export type SpacingMode = "all" | "none" | "spread-only" | "page-only";
 
+/** Document format as detected during loading */
+export type DocumentFormat = "pdf" | "pptx" | "image";
+
+/** Subset of view mode state that can be overridden per format */
+export interface ViewModeDefaults {
+    scrollMode?: ScrollMode;
+    layoutMode?: LayoutMode;
+    zoomMode?: ZoomMode;
+    zoom?: number;
+    effectiveZoom?: number | null;
+    pageRotation?: PageRotation;
+    spacingMode?: SpacingMode;
+    pageSpacing?: number;
+    spreadSpacing?: number;
+}
+
+/** Returns format-specific view mode defaults */
+export function getFormatDefaults(format: DocumentFormat): ViewModeDefaults {
+    switch (format) {
+        case "pdf":
+            return { scrollMode: "continuous", zoomMode: "custom", zoom: 1 };
+        case "pptx":
+        case "image":
+            return { scrollMode: "spread", zoomMode: "fit-spread" };
+    }
+}
+
 /** Default zoom steps for zoom in/out actions */
 export const DEFAULT_ZOOM_STEPS = [0.1, 0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 3, 4, 5] as const;
 
