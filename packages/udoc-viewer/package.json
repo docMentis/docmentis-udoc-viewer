@@ -49,8 +49,6 @@
     "build": "node scripts/build-styles.js && tsc && rm -rf dist/src/wasm && cp -r src/wasm dist/src/wasm",
     "clean": "rm -rf dist",
     "dev": "tsc --watch",
-    "preversion": "npm run clean && npm run build",
-    "postversion": "git push && git push --tags",
     "prepublishOnly": "npm run build"
   },
   "devDependencies": {

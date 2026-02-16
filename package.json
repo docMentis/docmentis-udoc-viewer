@@ -9,8 +9,9 @@
     "dev": "npm run dev --workspace packages/udoc-viewer-demo",
     "build": "npm run build --workspaces --if-present",
     "clean": "npm run clean --workspaces --if-present",
-    "release-patch": "npm version patch --workspace packages/udoc-viewer",
-    "release-minor": "npm version minor --workspace packages/udoc-viewer",
-    "release-major": "npm version major --workspace packages/udoc-viewer"
+    "release": "npm run clean --workspace packages/udoc-viewer && npm run build --workspace packages/udoc-viewer && sh -c 'npm version \"$0\" --workspace packages/udoc-viewer --no-git-tag-version && VERSION=$(node -p \"require(\\\"./packages/udoc-viewer/package.json\\\").version\") && git add packages/udoc-viewer/package.json package-lock.json && git commit -m \"v${VERSION}\" && git tag \"v${VERSION}\" && git push && git push --tags'",
+    "release-patch": "npm run release -- patch",
+    "release-minor": "npm run release -- minor",
+    "release-major": "npm run release -- major"
   }
 }
