@@ -1077,9 +1077,9 @@ export function createViewport() {
                 const spreadEl = spreadComp.getElement();
                 spreadEl.style.position = "absolute";
                 spreadEl.style.top = `${layout.top}px`;
-                spreadEl.style.width = `${layout.width}px`;
+                spreadEl.style.width = `${containerSize.width}px`;
                 spreadEl.style.height = `${layout.height}px`;
-                spreadEl.style.left = `${getCenteredOffset(containerSize.width, layout.width)}px`;
+                spreadEl.style.left = "0px";
                 spreadEl.style.transform = "none";
 
                 // Skip render during resize animation (renders debounced separately)
@@ -1157,9 +1157,9 @@ export function createViewport() {
         const spreadEl = spreadComp.getElement();
         spreadEl.style.position = "absolute";
         spreadEl.style.top = `${top}px`;
-        spreadEl.style.width = `${layout.width}px`;
+        spreadEl.style.width = `${containerSize.width}px`;
         spreadEl.style.height = `${layout.height}px`;
-        spreadEl.style.left = `${getCenteredOffset(containerSize.width, layout.width)}px`;
+        spreadEl.style.left = "0px";
         spreadEl.style.transform = "none";
 
         // Skip render during resize animation (renders debounced separately)

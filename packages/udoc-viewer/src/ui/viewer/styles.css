@@ -55,8 +55,16 @@
 .udoc-viewer-root .udoc-spread {
     display: flex;
     flex-direction: row;
-    justify-content: flex-start;
+    justify-content: center;
+    align-items: center;
     flex-shrink: 0;
+}
+
+.udoc-viewer-root .udoc-spread__wrapper {
+    display: flex;
+    flex-direction: row;
+    flex-shrink: 0;
+    /* gap is set dynamically by Spread.ts based on pageSpacing */
 }
 
 .udoc-viewer-root .udoc-spread--hidden {

@@ -96,13 +96,18 @@ export function createSpread(data: SpreadData) {
     el.className = "udoc-spread";
     el.dataset.spreadIndex = String(data.index);
 
+    // Wrapper groups page slots for seamless connection and CSS centering
+    const wrapper = document.createElement("div");
+    wrapper.className = "udoc-spread__wrapper";
+    el.appendChild(wrapper);
+
     const slotElements: PageSlotElement[] = [];
     let mounted = false;
 
     for (const slot of data.slots) {
         const slotEl = createSlotElement(slot);
         slotElements.push(slotEl);
-        el.appendChild(slotEl.container);
+        wrapper.appendChild(slotEl.container);
     }
 
     function createSlotElement(pageNumber: PageSlot): PageSlotElement {
@@ -184,7 +189,7 @@ export function createSpread(data: SpreadData) {
         const userRotation = normalizeRotation(options.rotation);
 
         const gapCss = toCssPixels(toDevicePixels(options.pageSpacing, dpr), dpr);
-        el.style.gap = `${gapCss}px`;
+        wrapper.style.gap = `${gapCss}px`;
 
         let referenceSize: SlotSize | null = null;
         for (const slotEl of slotElements) {
