@@ -51,17 +51,30 @@ export function createLoadingOverlay() {
     overlay.appendChild(content);
 
     let unsubRender: (() => void) | null = null;
+    let showTimer: ReturnType<typeof setTimeout> | null = null;
+    const SHOW_DELAY_MS = 300;
 
     function mount(container: HTMLElement, store: Store<ViewerState, Action>): void {
         container.appendChild(overlay);
 
         unsubRender = store.subscribeRender((prev, next) => {
-            // Show/hide overlay
+            // Show/hide overlay (with delay before showing)
             const wasVisible = prev.isDownloading;
             const isVisible = next.isDownloading;
 
             if (wasVisible !== isVisible) {
-                overlay.style.display = isVisible ? "flex" : "none";
+                if (isVisible) {
+                    showTimer = setTimeout(() => {
+                        overlay.style.display = "flex";
+                        showTimer = null;
+                    }, SHOW_DELAY_MS);
+                } else {
+                    if (showTimer !== null) {
+                        clearTimeout(showTimer);
+                        showTimer = null;
+                    }
+                    overlay.style.display = "none";
+                }
             }
 
             // Update progress
@@ -97,6 +110,10 @@ export function createLoadingOverlay() {
     }
 
     function destroy(): void {
+        if (showTimer !== null) {
+            clearTimeout(showTimer);
+            showTimer = null;
+        }
         if (unsubRender) {
             unsubRender();
             unsubRender = null;
