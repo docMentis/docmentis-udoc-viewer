@@ -14,20 +14,28 @@ interface SampleCategory {
 
 const sampleCategories: SampleCategory[] = [
     {
-        name: 'NASA',
-        description: 'Public-domain NASA publications.',
+        name: 'PDF',
+        description: 'NASA documents are public-domain. PDF Reference is hosted by Adobe via its public website.',
         documents: [
             { name: 'Hubble Fact Sheet: Mission Operations', path: './pdf/nasa-hubble-fact-sheet-mission-operations.pdf' },
-            { name: 'Hubble Fact Sheet: Gyroscopes', path: './pdf/nasa-hubble-fact-sheet-gyroscopes.pdf' },
             { name: 'Hubble Focus: Black Holes', path: './pdf/nasa-hubble-focus-black-holes-ebook.pdf' },
-            { name: 'Earth Art', path: './pdf/nasa-earth-art.pdf' },        
+            { name: 'Earth Art', path: './pdf/nasa-earth-art.pdf' },
+            { name: 'PDF Reference 1.7', path: 'https://opensource.adobe.com/dc-acrobat-sdk-docs/pdfstandards/PDF32000_2008.pdf' },
         ],
     },
     {
-        name: 'PDF Specification',
-        description: 'Hosted by Adobe and accessed via its public website.',
+        name: 'PPTX',
         documents: [
-            { name: 'PDF Reference 1.7', path: 'https://opensource.adobe.com/dc-acrobat-sdk-docs/pdfstandards/PDF32000_2008.pdf' },
+            { name: 'James Webb Space Telescope', path: './james-webb-space-telescope.pptx' },
+        ],
+    },
+    {
+        name: 'Image',
+        description: 'Public-domain NASA/JWST images.',
+        documents: [
+            { name: 'Cosmic Cliffs in Carina Nebula', path: './cosmic-cliffs-carina-nebula.png' },
+            { name: 'Pillars of Creation', path: './pillars-of-creation.png' },
+            { name: "Stephan's Quintet", path: './stephans-quintet.png' },
         ],
     },
 ];
