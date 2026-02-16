@@ -46,7 +46,7 @@ export interface ViewModeDefaults {
 export function getFormatDefaults(format: DocumentFormat): ViewModeDefaults {
     switch (format) {
         case "pdf":
-            return { scrollMode: "continuous", zoomMode: "custom", zoom: 1 };
+            return { scrollMode: "continuous", zoomMode: "fit-spread-width-max" };
         case "pptx":
         case "image":
             return { scrollMode: "spread", zoomMode: "fit-spread" };
