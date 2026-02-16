@@ -250,13 +250,16 @@ export class UDocClient {
       : WorkerClient.create();
 
     // Initialize WASM in the worker.
-    // Always resolve the WASM URL on the main thread where import.meta.url
-    // has a proper origin. Workers loaded from blob URLs (Turbopack, Webpack)
-    // cannot resolve root-relative paths like /_next/static/media/...,
-    // causing "Failed to parse URL" errors.
-    const wasmUrl = options.baseUrl
+    // Resolve the WASM URL on the main thread and ensure it's absolute.
+    // Bundlers (Turbopack, Webpack) produce root-relative URLs (/_next/...)
+    // which can't be resolved inside blob workers. We must prepend the origin
+    // to make them absolute before passing to the worker.
+    let wasmUrl = options.baseUrl
       ? new URL("udoc_bg.wasm", options.baseUrl).href
       : new URL("./wasm/udoc_bg.wasm", import.meta.url).href;
+    if (wasmUrl.startsWith("/") && typeof globalThis.location !== "undefined") {
+      wasmUrl = globalThis.location.origin + wasmUrl;
+    }
     await workerClient.init(wasmUrl);
 
     const client = new UDocClient(workerClient, options);
