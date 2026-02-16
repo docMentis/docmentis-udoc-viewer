@@ -16,13 +16,13 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           registry-url: https://registry.npmjs.org
+
+      - run: npm install -g npm@latest
 
       - run: npm ci
 
       - run: npm run build --workspace packages/udoc-viewer
 
       - run: npm publish --workspace packages/udoc-viewer --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
