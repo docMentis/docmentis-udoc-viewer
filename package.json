@@ -8,6 +8,9 @@
     "copy-wasm": "rm -rf packages/udoc-viewer/src/wasm && cp -r ../docmentis-udoc/target/wasm packages/udoc-viewer/src/wasm",
     "dev": "npm run dev --workspace packages/udoc-viewer-demo",
     "build": "npm run build --workspaces --if-present",
-    "clean": "npm run clean --workspaces --if-present"
+    "clean": "npm run clean --workspaces --if-present",
+    "release-patch": "npm version patch --workspace packages/udoc-viewer",
+    "release-minor": "npm version minor --workspace packages/udoc-viewer",
+    "release-major": "npm version major --workspace packages/udoc-viewer"
   }
 }
