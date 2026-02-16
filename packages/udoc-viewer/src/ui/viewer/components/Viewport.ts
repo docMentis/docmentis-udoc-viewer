@@ -293,6 +293,7 @@ function computeScale(
     const targetHeight = Math.max(0, snappedViewportHeight - verticalSpacing + 1);
 
     switch (slice.zoomMode) {
+        case "fit-spread-width-max":
         case "fit-spread-width": {
             // Calculate scale assuming full viewport width (no scrollbar)
             const fullWidthScale = baseViewportWidth / maxWidth;
@@ -324,13 +325,17 @@ function computeScale(
                 needsScrollbar = scaledMaxHeight + verticalSpacing > snappedViewportHeight;
             }
 
+            let scale: number;
             if (needsScrollbar && scrollbar.width > 0) {
                 // Scrollbar will be needed, calculate scale with reduced viewport width
                 const adjustedWidth = baseViewportWidth - scrollbar.width;
-                return adjustedWidth / maxWidth;
+                scale = adjustedWidth / maxWidth;
+            } else {
+                // No scrollbar needed, use full width
+                scale = fullWidthScale;
             }
-            // No scrollbar needed, use full width
-            return fullWidthScale;
+            // For fit-spread-width-max, cap at 100% (never enlarge beyond natural size)
+            return slice.zoomMode === "fit-spread-width-max" ? Math.min(scale, 1) : scale;
         }
         case "fit-spread-height":
             // Content fits height by design, no vertical scrollbar needed

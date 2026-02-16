@@ -22,7 +22,7 @@ export function isLeftPanelTab(tab: PanelTab): tab is LeftPanelTab {
 
 export type ScrollMode = "spread" | "continuous";
 export type LayoutMode = "single-page" | "double-page" | "double-page-odd-right" | "double-page-odd-left";
-export type ZoomMode = "fit-spread-width" | "fit-spread-height" | "fit-spread" | "custom";
+export type ZoomMode = "fit-spread-width" | "fit-spread-width-max" | "fit-spread-height" | "fit-spread" | "custom";
 export type PageRotation = 0 | 90 | 180 | 270;
 export type SpacingMode = "all" | "none" | "spread-only" | "page-only";
 
