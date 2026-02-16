@@ -777,6 +777,7 @@ export function createViewport() {
             clearSpreads();
             container.style.height = "";
             container.style.width = "";
+            container.style.minWidth = "";
             scrollArea.style.overflowX = "hidden";
             scrollArea.style.overflowY = "hidden";
             layoutState = null;
@@ -877,11 +878,22 @@ export function createViewport() {
 
     function applyContinuousLayout(metrics: ViewportMetrics, state: LayoutState): void {
         container.style.display = "block";
-        const width = snapToDevice(Math.max(metrics.innerWidth, state.contentWidth));
         const height = snapToDevice(Math.max(metrics.innerHeight, state.contentHeight));
-        container.style.width = `${width}px`;
         container.style.height = `${height}px`;
-        containerSize = { width, height };
+
+        // Use min-width for horizontal overflow instead of explicit width.
+        // This lets the container width respond to viewport resize via CSS
+        // (no flash), while still allowing horizontal scroll when content overflows.
+        const contentWidth = snapToDevice(state.contentWidth);
+        if (contentWidth > metrics.innerWidth) {
+            container.style.minWidth = `${contentWidth}px`;
+            container.style.width = "";
+            containerSize = { width: contentWidth, height };
+        } else {
+            container.style.minWidth = "";
+            container.style.width = "";
+            containerSize = { width: snapToDevice(metrics.innerWidth), height };
+        }
     }
 
     function applySingleLayout(
@@ -895,11 +907,19 @@ export function createViewport() {
         const spreadWidth = layout ? layout.width : 0;
         const spreadHeight = layout ? layout.height : 0;
         const snappedSpreadSpacing = snapToDevice(slice.spreadSpacing);
-        const width = snapToDevice(Math.max(metrics.innerWidth, spreadWidth));
         const height = snapToDevice(Math.max(metrics.innerHeight, spreadHeight + snappedSpreadSpacing * 2));
-        container.style.width = `${width}px`;
         container.style.height = `${height}px`;
-        containerSize = { width, height };
+
+        const contentWidth = snapToDevice(spreadWidth);
+        if (contentWidth > metrics.innerWidth) {
+            container.style.minWidth = `${contentWidth}px`;
+            container.style.width = "";
+            containerSize = { width: contentWidth, height };
+        } else {
+            container.style.minWidth = "";
+            container.style.width = "";
+            containerSize = { width: snapToDevice(metrics.innerWidth), height };
+        }
     }
 
     function syncEffectiveZoom(slice: ViewportSlice, state: LayoutState | null): void {
@@ -1074,12 +1094,15 @@ export function createViewport() {
 
                 // Set spread position and dimensions from layout.
                 // Layout values are pre-snapped with cumulative consistency.
+                // Use left:0 + right:0 instead of explicit width so the spread
+                // fills the container via CSS (responds to resize without JS lag).
                 const spreadEl = spreadComp.getElement();
                 spreadEl.style.position = "absolute";
                 spreadEl.style.top = `${layout.top}px`;
-                spreadEl.style.width = `${containerSize.width}px`;
                 spreadEl.style.height = `${layout.height}px`;
                 spreadEl.style.left = "0px";
+                spreadEl.style.right = "0px";
+                spreadEl.style.width = "";
                 spreadEl.style.transform = "none";
 
                 // Skip render during resize animation (renders debounced separately)
@@ -1157,9 +1180,10 @@ export function createViewport() {
         const spreadEl = spreadComp.getElement();
         spreadEl.style.position = "absolute";
         spreadEl.style.top = `${top}px`;
-        spreadEl.style.width = `${containerSize.width}px`;
         spreadEl.style.height = `${layout.height}px`;
         spreadEl.style.left = "0px";
+        spreadEl.style.right = "0px";
+        spreadEl.style.width = "";
         spreadEl.style.transform = "none";
 
         // Skip render during resize animation (renders debounced separately)
