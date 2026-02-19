@@ -19,6 +19,8 @@ import type {
   WorkerResponse,
 } from "./worker.js";
 
+import { WORKER_INLINE } from "./worker-inline.js";
+
 export type { Composition, ComposePick, ExtractedFont, ExtractedImage, FontDescriptor, OutlineSection, SplitByOutlineResult };
 
 export type { LicenseResult };
@@ -109,11 +111,21 @@ export class WorkerClient {
   }
 
   /**
-   * Create a WorkerClient using the bundled worker.
-   * Uses a pattern that vite can statically analyze for proper bundling.
+   * Create a WorkerClient using the inline bundled worker.
+   * Creates a blob worker from the build-time inlined source code,
+   * avoiding import.meta.url for universal bundler compatibility.
+   *
+   * Falls back to module worker via import.meta.url when WORKER_INLINE
+   * is empty (e.g. running from TypeScript source in Vite dev mode).
    */
   static create(): WorkerClient {
-    // This pattern allows vite to statically analyze and bundle the worker
+    if (WORKER_INLINE) {
+      const blob = new Blob([WORKER_INLINE], { type: "text/javascript" });
+      const url = URL.createObjectURL(blob);
+      const worker = new Worker(url);
+      return new WorkerClient(worker);
+    }
+    // Dev mode fallback: Vite/bundlers can resolve the worker from source
     const worker = new Worker(new URL("./worker.js", import.meta.url), { type: "module" });
     return new WorkerClient(worker);
   }

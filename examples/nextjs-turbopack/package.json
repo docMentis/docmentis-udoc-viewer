@@ -6,7 +6,7 @@
     "dev": "next dev --turbopack"
   },
   "dependencies": {
-    "@docmentis/udoc-viewer": "latest",
+    "@docmentis/udoc-viewer": "^0.5.12",
     "next": "16.1.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"

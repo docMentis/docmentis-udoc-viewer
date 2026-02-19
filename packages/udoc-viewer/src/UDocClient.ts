@@ -14,7 +14,6 @@ import type {
   SplitByOutlineResult,
 } from "./worker/index.js";
 import { UDocViewer } from "./UDocViewer.js";
-import pkg from "../package.json" with { type: "json" };
 import type { ScrollMode, LayoutMode, ZoomMode, PanelTab } from "./ui/viewer/state.js";
 import type { PerformanceLogCallback } from "./performance/index.js";
 
@@ -219,9 +218,9 @@ export type { Composition, ComposePick, ExtractedFont, ExtractedImage, SplitByOu
  */
 export class UDocClient {
   /**
-   * SDK version string.
+   * SDK version string (replaced at build time).
    */
-  static readonly version: string = pkg.version;
+  static readonly version: string = "__VERSION__";
 
   private workerClient: WorkerClient;
   private options: ClientOptions;
@@ -250,15 +249,20 @@ export class UDocClient {
       : WorkerClient.create();
 
     // Initialize WASM in the worker.
-    // Resolve the WASM URL on the main thread and ensure it's absolute.
-    // Bundlers (Turbopack, Webpack) produce root-relative URLs (/_next/...)
-    // which can't be resolved inside blob workers. We must prepend the origin
-    // to make them absolute before passing to the worker.
-    let wasmUrl = options.baseUrl
-      ? new URL("udoc_bg.wasm", options.baseUrl).href
-      : new URL("./wasm/udoc_bg.wasm", import.meta.url).href;
-    if (wasmUrl.startsWith("/") && typeof globalThis.location !== "undefined") {
-      wasmUrl = globalThis.location.origin + wasmUrl;
+    // Try local resolution first (via dynamic import of meta-url.js which uses
+    // import.meta.url — works in bundler environments like Vite/Webpack/Turbopack).
+    // Falls back to jsDelivr CDN for environments that don't support import.meta
+    // (e.g. StackBlitz). Users can always override with baseUrl.
+    let wasmUrl: string;
+    if (options.baseUrl) {
+      wasmUrl = new URL("udoc_bg.wasm", options.baseUrl).href;
+    } else {
+      try {
+        const meta = await import("./meta-url.js");
+        wasmUrl = meta.wasmUrl;
+      } catch {
+        wasmUrl = `https://cdn.jsdelivr.net/npm/@docmentis/udoc-viewer@${UDocClient.version}/dist/src/wasm/udoc_bg.wasm`;
+      }
     }
     await workerClient.init(wasmUrl);
 
