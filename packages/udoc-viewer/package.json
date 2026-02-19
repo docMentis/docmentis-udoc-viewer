@@ -46,12 +46,13 @@
     "node": ">=18"
   },
   "scripts": {
-    "build": "node scripts/build-styles.js && tsc && rm -rf dist/src/wasm && cp -r src/wasm dist/src/wasm",
+    "build": "node scripts/build-styles.js && tsc && rm -rf dist/src/wasm && cp -r src/wasm dist/src/wasm && node scripts/bundle-worker.js",
     "clean": "rm -rf dist",
     "dev": "tsc --watch",
     "prepublishOnly": "npm run build"
   },
   "devDependencies": {
+    "esbuild": "^0.25.0",
     "typescript": "^5.7.2"
   }
 }
