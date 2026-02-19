@@ -100,6 +100,20 @@ function DocumentViewer({ src }) {
 }
 ```
 
+## Examples
+
+Full working examples for every major framework are in the [`examples/`](../../examples/) directory:
+
+| Example | Stack |
+|---------|-------|
+| [vanilla](../../examples/vanilla/) | TypeScript + Vite |
+| [react-vite](../../examples/react-vite/) | React + Vite |
+| [vue-vite](../../examples/vue-vite/) | Vue + Vite |
+| [svelte-vite](../../examples/svelte-vite/) | Svelte 5 + Vite |
+| [angular](../../examples/angular/) | Angular 19 |
+| [nextjs-webpack](../../examples/nextjs-webpack/) | Next.js + Webpack |
+| [nextjs-turbopack](../../examples/nextjs-turbopack/) | Next.js + Turbopack |
+
 ## Features
 
 - 📄 **Multi-format rendering** — PDF, PPTX, and images in one unified viewer
