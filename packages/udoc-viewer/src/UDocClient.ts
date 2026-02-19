@@ -249,22 +249,36 @@ export class UDocClient {
       : WorkerClient.create();
 
     // Initialize WASM in the worker.
-    // Try local resolution first (via dynamic import of meta-url.js which uses
-    // import.meta.url — works in bundler environments like Vite/Webpack/Turbopack).
-    // Falls back to jsDelivr CDN for environments that don't support import.meta
-    // (e.g. StackBlitz). Users can always override with baseUrl.
-    let wasmUrl: string;
+    // Build a list of candidate WASM URLs in priority order, then try each
+    // until one succeeds. This handles environments where import.meta.url
+    // resolves but the WASM file isn't at the expected path (e.g. Vite
+    // pre-bundling, Angular esbuild).
+    const cdnUrl = `https://cdn.jsdelivr.net/npm/@docmentis/udoc-viewer@${UDocClient.version}/dist/src/wasm/udoc_bg.wasm`;
+    const wasmUrls: string[] = [];
+
     if (options.baseUrl) {
-      wasmUrl = new URL("udoc_bg.wasm", options.baseUrl).href;
+      wasmUrls.push(new URL("udoc_bg.wasm", options.baseUrl).href);
     } else {
       try {
         const meta = await import("./meta-url.js");
-        wasmUrl = meta.wasmUrl;
+        wasmUrls.push(meta.wasmUrl);
       } catch {
-        wasmUrl = `https://cdn.jsdelivr.net/npm/@docmentis/udoc-viewer@${UDocClient.version}/dist/src/wasm/udoc_bg.wasm`;
+        // import.meta.url not available (e.g. StackBlitz)
+      }
+      wasmUrls.push(cdnUrl);
+    }
+
+    let lastError: unknown;
+    for (const wasmUrl of wasmUrls) {
+      try {
+        await workerClient.init(wasmUrl);
+        lastError = null;
+        break;
+      } catch (e) {
+        lastError = e;
       }
     }
-    await workerClient.init(wasmUrl);
+    if (lastError) throw lastError;
 
     const client = new UDocClient(workerClient, options);
 

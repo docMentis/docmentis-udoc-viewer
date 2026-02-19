@@ -1,4 +1,8 @@
 node_modules
+dist
 .next
+.angular
+.svelte-kit
 next-env.d.ts
 *.tsbuildinfo
+bun.lock
