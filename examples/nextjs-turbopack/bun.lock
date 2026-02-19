@@ -19,7 +19,7 @@
     },
   },
   "packages": {
-    "@docmentis/udoc-viewer": ["@docmentis/udoc-viewer@0.5.10", "", {}, "sha512-gyCLSVIv0pAX4tXscp/ftbnsq8THUkG8q9db7bDNFzws6D1RYCol8CHmDWslAm8zX427M9z7JJrjM/WqHgLcEA=="],
+    "@docmentis/udoc-viewer": ["@docmentis/udoc-viewer@0.5.11", "", {}, "sha512-+mDWORmy2el8FtLn1tH2Zphk6raWICl9yYM3nA1Rz9xyT2tvhMsC4mhwbN3Xy+KgRLv24OAmZyw6zUJ/KsZPjg=="],
 
     "@emnapi/runtime": ["@emnapi/runtime@1.8.1", "", { "dependencies": { "tslib": "^2.4.0" } }, "sha512-mehfKSMWjjNol8659Z8KxEMrdSJDDot5SXMq00dM8BN4o+CLNXQ0xH2V7EchNHV4RmbZLmmPdEaXZc5H2FXmDg=="],
 

@@ -14,6 +14,7 @@
  */
 
 import { build } from "esbuild";
+import { readFileSync, writeFileSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 
@@ -28,5 +29,18 @@ await build({
   outfile: distWorker,
   allowOverwrite: true,
 });
+
+// Fix the WASM URL fallback path.
+// The wasm-bindgen glue code contains `new URL("udoc_bg.wasm", import.meta.url)`
+// which originally lived in wasm/udoc.js (next to the .wasm file). After bundling
+// into worker/worker.js, the relative path is wrong. Bundlers like Turbopack
+// statically analyze this pattern and fail if the path doesn't resolve.
+// Fix: adjust the path from worker/ back to wasm/.
+let code = readFileSync(distWorker, "utf-8");
+code = code.replace(
+  'new URL("udoc_bg.wasm", import.meta.url)',
+  'new URL("../wasm/udoc_bg.wasm", import.meta.url)'
+);
+writeFileSync(distWorker, code);
 
 console.log("Bundled dist/src/worker/worker.js (self-contained)");
