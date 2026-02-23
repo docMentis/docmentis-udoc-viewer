@@ -190,14 +190,16 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
         }
         case "ZOOM_IN": {
             const steps = state.zoomSteps;
-            const nextStep = steps.find(s => s > state.zoom) ?? steps[steps.length - 1];
-            if (state.zoom === nextStep) return state;
+            const currentZoom = state.effectiveZoom ?? state.zoom;
+            const nextStep = steps.find(s => s > currentZoom + 1e-9) ?? steps[steps.length - 1];
+            if (currentZoom >= nextStep - 1e-9 && state.zoomMode === "custom") return state;
             return { ...state, zoom: nextStep, zoomMode: "custom" };
         }
         case "ZOOM_OUT": {
             const steps = state.zoomSteps;
-            const prevStep = [...steps].reverse().find(s => s < state.zoom) ?? steps[0];
-            if (state.zoom === prevStep) return state;
+            const currentZoom = state.effectiveZoom ?? state.zoom;
+            const prevStep = [...steps].reverse().find(s => s < currentZoom - 1e-9) ?? steps[0];
+            if (currentZoom <= prevStep + 1e-9 && state.zoomMode === "custom") return state;
             return { ...state, zoom: prevStep, zoomMode: "custom" };
         }
         case "SET_PAGE_ROTATION": {
