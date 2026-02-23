@@ -196,7 +196,7 @@ self.onmessage = async (event: MessageEvent<WorkerRequest & { _id?: number }>) =
   try {
     switch (request.type) {
       case "init": {
-        await init(request.wasmUrl);
+        await init(request.wasmUrl ? { module_or_path: request.wasmUrl } : undefined);
         udoc = new UDoc();
         respond({ type: "init", success: true });
         break;
