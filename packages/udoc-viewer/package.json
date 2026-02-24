@@ -49,10 +49,15 @@
     "build": "node scripts/build-styles.js && tsc && rm -rf dist/src/wasm && cp -r src/wasm dist/src/wasm && node scripts/bundle-worker.js",
     "clean": "rm -rf dist",
     "dev": "tsc --watch",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "devDependencies": {
     "esbuild": "^0.25.0",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "vitest": "^2.0.0",
+    "@vitest/coverage-v8": "^2.0.0"
   }
 }
