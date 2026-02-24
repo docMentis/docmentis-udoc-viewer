@@ -60,9 +60,9 @@ export default tseslint.config(
         },
     },
 
-    // Vite config files (Node environment)
+    // Vite/Vitest config files (Node environment)
     {
-        files: ["**/vite.config.ts"],
+        files: ["**/vite.config.ts", "**/vitest.config.ts"],
         languageOptions: {
             globals: {
                 ...globals.node,
