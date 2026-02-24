@@ -180,10 +180,12 @@ npm run copy-wasm
 
 ## Contributing
 
-We welcome bug reports, feature requests, and pull requests.
+We welcome bug reports, feature requests, and pull requests. Please read the [Contributing Guide](CONTRIBUTING.md) before submitting a PR.
 
+- **Contributing Guide**: [CONTRIBUTING.md](CONTRIBUTING.md)
 - **Issues**: [github.com/docmentis/docmentis-udoc-viewer/issues](https://github.com/docmentis/docmentis-udoc-viewer/issues)
 - **Discussions**: [github.com/docmentis/docmentis-udoc-viewer/discussions](https://github.com/docmentis/docmentis-udoc-viewer/discussions)
+- **Security**: [SECURITY.md](SECURITY.md)
 
 ## License
 

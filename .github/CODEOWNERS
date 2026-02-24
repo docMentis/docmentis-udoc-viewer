@@ -1,0 +1,8 @@
+# Default owners for all files
+* @xeranic
+
+# SDK package
+packages/udoc-viewer/ @xeranic
+
+# CI/CD
+.github/ @xeranic
