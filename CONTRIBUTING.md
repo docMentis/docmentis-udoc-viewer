@@ -123,6 +123,8 @@ The JavaScript/TypeScript wrapper and all surrounding code are open source (MIT)
 
 The WASM binary (`packages/udoc-viewer/src/wasm/`) is built from a separate private repository and is **not** modifiable through this repo. If you encounter a rendering issue that appears to originate in the WASM engine, please open an issue and we will investigate.
 
+PRs that remove or circumvent the attribution branding will not be accepted. Branding removal is available through a [commercial license](mailto:licensing@docmentis.com).
+
 ## Code Style
 
 - **TypeScript** — all source code is TypeScript with `strict` mode enabled.
