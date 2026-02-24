@@ -84,9 +84,7 @@ export type DestinationDisplay =
     | { type: "fitBV"; left?: number };
 
 /** Link action type. */
-export type LinkAction =
-    | { actionType: "goTo"; destination: Destination }
-    | { actionType: "uri"; uri: string };
+export type LinkAction = { actionType: "goTo"; destination: Destination } | { actionType: "uri"; uri: string };
 
 /** Link annotation that navigates to a destination or opens a URI. */
 export interface LinkAnnotation extends BaseAnnotation {
@@ -135,14 +133,7 @@ export interface SquigglyAnnotation extends BaseAnnotation {
 // =============================================================================
 
 /** Icon type for text (sticky note) annotations. */
-export type TextAnnotationIcon =
-    | "Comment"
-    | "Key"
-    | "Note"
-    | "Help"
-    | "NewParagraph"
-    | "Paragraph"
-    | "Insert";
+export type TextAnnotationIcon = "Comment" | "Key" | "Note" | "Help" | "NewParagraph" | "Paragraph" | "Insert";
 
 /** Text justification. */
 export type TextJustification = "left" | "center" | "right";

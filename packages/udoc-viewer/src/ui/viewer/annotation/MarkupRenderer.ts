@@ -1,23 +1,13 @@
 /**
  * Renderer for markup annotations: highlight, underline, strikeOut, squiggly.
  */
-import type {
-    HighlightAnnotation,
-    UnderlineAnnotation,
-    StrikeOutAnnotation,
-    SquigglyAnnotation,
-    Quad
-} from "./types";
+import type { HighlightAnnotation, UnderlineAnnotation, StrikeOutAnnotation, SquigglyAnnotation, Quad } from "./types";
 import { colorToRgba, colorToRgb } from "./utils";
 
 /**
  * Render a highlight annotation.
  */
-export function renderHighlight(
-    layer: HTMLElement,
-    annotation: HighlightAnnotation,
-    scale: number
-): HTMLElement {
+export function renderHighlight(layer: HTMLElement, annotation: HighlightAnnotation, scale: number): HTMLElement {
     const container = document.createElement("div");
     container.className = "udoc-annotation udoc-annotation--highlight";
     container.style.position = "absolute";
@@ -37,11 +27,7 @@ export function renderHighlight(
 /**
  * Render an underline annotation.
  */
-export function renderUnderline(
-    layer: HTMLElement,
-    annotation: UnderlineAnnotation,
-    scale: number
-): HTMLElement {
+export function renderUnderline(layer: HTMLElement, annotation: UnderlineAnnotation, scale: number): HTMLElement {
     const container = document.createElement("div");
     container.className = "udoc-annotation udoc-annotation--underline";
     container.style.position = "absolute";
@@ -61,11 +47,7 @@ export function renderUnderline(
 /**
  * Render a strikeout annotation.
  */
-export function renderStrikeOut(
-    layer: HTMLElement,
-    annotation: StrikeOutAnnotation,
-    scale: number
-): HTMLElement {
+export function renderStrikeOut(layer: HTMLElement, annotation: StrikeOutAnnotation, scale: number): HTMLElement {
     const container = document.createElement("div");
     container.className = "udoc-annotation udoc-annotation--strikeout";
     container.style.position = "absolute";
@@ -85,11 +67,7 @@ export function renderStrikeOut(
 /**
  * Render a squiggly annotation.
  */
-export function renderSquiggly(
-    layer: HTMLElement,
-    annotation: SquigglyAnnotation,
-    scale: number
-): HTMLElement {
+export function renderSquiggly(layer: HTMLElement, annotation: SquigglyAnnotation, scale: number): HTMLElement {
     const container = document.createElement("div");
     container.className = "udoc-annotation udoc-annotation--squiggly";
     container.style.position = "absolute";
@@ -114,15 +92,13 @@ function createQuadElement(
     quad: Quad,
     scale: number,
     color: { r: number; g: number; b: number } | undefined,
-    opacity: number
+    opacity: number,
 ): HTMLElement {
     const el = document.createElement("div");
     el.className = "udoc-annotation__quad";
 
     // Convert quad points to CSS clip-path polygon
-    const points = quad.points
-        .map(p => `${p.x * scale}px ${p.y * scale}px`)
-        .join(", ");
+    const points = quad.points.map((p) => `${p.x * scale}px ${p.y * scale}px`).join(", ");
 
     el.style.position = "absolute";
     el.style.inset = "0";
@@ -136,7 +112,7 @@ function createUnderlineElement(
     quad: Quad,
     scale: number,
     color: { r: number; g: number; b: number } | undefined,
-    opacity: number
+    opacity: number,
 ): HTMLElement {
     const el = document.createElement("div");
     el.className = "udoc-annotation__line";
@@ -162,7 +138,7 @@ function createStrikeOutElement(
     quad: Quad,
     scale: number,
     color: { r: number; g: number; b: number } | undefined,
-    opacity: number
+    opacity: number,
 ): HTMLElement {
     const el = document.createElement("div");
     el.className = "udoc-annotation__line";
@@ -187,7 +163,7 @@ function createSquigglyElement(
     quad: Quad,
     scale: number,
     color: { r: number; g: number; b: number } | undefined,
-    opacity: number
+    opacity: number,
 ): HTMLElement {
     const el = document.createElement("div");
     el.className = "udoc-annotation__squiggly";

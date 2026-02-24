@@ -31,7 +31,7 @@ function selectThumbnailSlice(state: ViewerState): ThumbnailSlice {
         pageCount: state.pageCount,
         pageInfos: state.pageInfos,
         currentPage: state.page,
-        dpi: state.dpi
+        dpi: state.dpi,
     };
 }
 
@@ -84,7 +84,7 @@ export function createThumbnailPanel() {
             pageNumber,
             renderKey: "",
             pendingKey: null,
-            renderToken: 0
+            renderToken: 0,
         };
     }
 
@@ -124,10 +124,7 @@ export function createThumbnailPanel() {
             (entries) => {
                 for (const entry of entries) {
                     if (entry.isIntersecting) {
-                        const pageNumber = parseInt(
-                            (entry.target as HTMLElement).dataset.page || "0",
-                            10
-                        );
+                        const pageNumber = parseInt((entry.target as HTMLElement).dataset.page || "0", 10);
                         if (pageNumber > 0) {
                             requestThumbnailRender(pageNumber);
                         }
@@ -137,8 +134,8 @@ export function createThumbnailPanel() {
             {
                 root: el,
                 rootMargin: "100px 0px",
-                threshold: 0
-            }
+                threshold: 0,
+            },
         );
 
         for (const item of thumbnailItems) {
@@ -209,7 +206,7 @@ export function createThumbnailPanel() {
                 docId: currentSlice.docId,
                 page: pageNumber,
                 type: "thumbnail",
-                scale: renderScale
+                scale: renderScale,
             });
 
             if (!mounted || item.renderToken !== token) {
@@ -250,12 +247,13 @@ export function createThumbnailPanel() {
         // Use instant scroll to avoid triggering renders for all intermediate thumbnails
         item.container.scrollIntoView({
             behavior: "instant",
-            block: "nearest"
+            block: "nearest",
         });
     }
 
     function applyState(slice: ThumbnailSlice): void {
-        const docChanged = !currentSlice ||
+        const docChanged =
+            !currentSlice ||
             slice.docId !== currentSlice.docId ||
             slice.pageCount !== currentSlice.pageCount ||
             slice.pageInfos !== currentSlice.pageInfos;
@@ -270,11 +268,7 @@ export function createThumbnailPanel() {
         currentSlice = slice;
     }
 
-    function mount(
-        container: HTMLElement,
-        store: Store<ViewerState, Action>,
-        rm: WorkerClient
-    ): void {
+    function mount(container: HTMLElement, store: Store<ViewerState, Action>, rm: WorkerClient): void {
         container.appendChild(el);
         mounted = true;
         storeRef = store;
@@ -283,12 +277,7 @@ export function createThumbnailPanel() {
         // Apply initial state (currentSlice is null, so docChanged will be true)
         applyState(selectThumbnailSlice(store.getState()));
 
-        unsubRender = subscribeSelector(
-            store,
-            selectThumbnailSlice,
-            applyState,
-            { equality: shallowEqual }
-        );
+        unsubRender = subscribeSelector(store, selectThumbnailSlice, applyState, { equality: shallowEqual });
     }
 
     function destroy(): void {

@@ -1,4 +1,5 @@
-import { UDocClient, UDocViewer, type PerformanceLogEntry } from '@docmentis/udoc-viewer';
+import type { UDocViewer } from "@docmentis/udoc-viewer";
+import { UDocClient, type PerformanceLogEntry } from "@docmentis/udoc-viewer";
 // Styles are auto-injected by the library
 
 interface SampleDocument {
@@ -14,46 +15,50 @@ interface SampleCategory {
 
 const sampleCategories: SampleCategory[] = [
     {
-        name: 'PDF',
-        description: 'NASA documents are public-domain. PDF Reference is hosted by Adobe via its public website.',
+        name: "PDF",
+        description: "NASA documents are public-domain. PDF Reference is hosted by Adobe via its public website.",
         documents: [
-            { name: 'Hubble Fact Sheet: Mission Operations', path: './pdf/nasa-hubble-fact-sheet-mission-operations.pdf' },
-            { name: 'Hubble Focus: Black Holes', path: './pdf/nasa-hubble-focus-black-holes-ebook.pdf' },
-            { name: 'Earth Art', path: './pdf/nasa-earth-art.pdf' },
-            { name: 'PDF Reference 1.7', path: 'https://opensource.adobe.com/dc-acrobat-sdk-docs/pdfstandards/PDF32000_2008.pdf' },
+            {
+                name: "Hubble Fact Sheet: Mission Operations",
+                path: "./pdf/nasa-hubble-fact-sheet-mission-operations.pdf",
+            },
+            { name: "Hubble Focus: Black Holes", path: "./pdf/nasa-hubble-focus-black-holes-ebook.pdf" },
+            { name: "Earth Art", path: "./pdf/nasa-earth-art.pdf" },
+            {
+                name: "PDF Reference 1.7",
+                path: "https://opensource.adobe.com/dc-acrobat-sdk-docs/pdfstandards/PDF32000_2008.pdf",
+            },
         ],
     },
     {
-        name: 'PPTX',
-        documents: [
-            { name: 'James Webb Space Telescope', path: './james-webb-space-telescope.pptx' },
-        ],
+        name: "PPTX",
+        documents: [{ name: "James Webb Space Telescope", path: "./james-webb-space-telescope.pptx" }],
     },
     {
-        name: 'Image',
-        description: 'Public-domain NASA/JWST images.',
+        name: "Image",
+        description: "Public-domain NASA/JWST images.",
         documents: [
-            { name: 'Cosmic Cliffs in Carina Nebula', path: './cosmic-cliffs-carina-nebula.png' },
-            { name: 'Pillars of Creation', path: './pillars-of-creation.png' },
-            { name: "Stephan's Quintet", path: './stephans-quintet.png' },
+            { name: "Cosmic Cliffs in Carina Nebula", path: "./cosmic-cliffs-carina-nebula.png" },
+            { name: "Pillars of Creation", path: "./pillars-of-creation.png" },
+            { name: "Stephan's Quintet", path: "./stephans-quintet.png" },
         ],
     },
 ];
 
 // DOM elements - Desktop
-const fileInput = document.getElementById('file-input') as HTMLInputElement;
-const openFileBtn = document.getElementById('open-file-btn')!;
-const openUrlBtn = document.getElementById('open-url-btn')!;
-const documentList = document.getElementById('document-list')!;
-const viewerContainer = document.getElementById('viewer')!;
+const fileInput = document.getElementById("file-input") as HTMLInputElement;
+const openFileBtn = document.getElementById("open-file-btn")!;
+const openUrlBtn = document.getElementById("open-url-btn")!;
+const documentList = document.getElementById("document-list")!;
+const viewerContainer = document.getElementById("viewer")!;
 
 // DOM elements - Mobile
-const mobileOpenFileBtn = document.getElementById('mobile-open-file-btn')!;
-const mobileOpenUrlBtn = document.getElementById('mobile-open-url-btn')!;
-const docSelector = document.getElementById('doc-selector')!;
-const docSelectorBtn = document.getElementById('doc-selector-btn')!;
-const docDropdown = document.getElementById('doc-dropdown')!;
-const docNameEl = document.getElementById('doc-name')!;
+const mobileOpenFileBtn = document.getElementById("mobile-open-file-btn")!;
+const mobileOpenUrlBtn = document.getElementById("mobile-open-url-btn")!;
+const docSelector = document.getElementById("doc-selector")!;
+const docSelectorBtn = document.getElementById("doc-selector-btn")!;
+const docDropdown = document.getElementById("doc-dropdown")!;
+const docNameEl = document.getElementById("doc-name")!;
 
 // State
 let viewer: UDocViewer | null = null;
@@ -64,8 +69,7 @@ let activeDesktopDocItem: HTMLButtonElement | null = null;
 let activeMobileDocItem: HTMLButtonElement | null = null;
 
 function formatPerformanceEntry(entry: PerformanceLogEntry): string {
-    const ctx = entry.context?.pageIndex !== undefined
-        ? ` page=${entry.context.pageIndex + 1}` : '';
+    const ctx = entry.context?.pageIndex !== undefined ? ` page=${entry.context.pageIndex + 1}` : "";
     if (entry.phase === "start") {
         return `[${entry.timestamp.toFixed(0)}ms] START ${entry.type}${ctx}`;
     } else {
@@ -82,7 +86,8 @@ async function createViewer() {
     // Create new viewer
     if (!client) {
         client = await UDocClient.create({
-            license: "eyJ2IjoxLCJpZCI6ImxpY19lMjcyMDFjMyIsImQiOlsiKi5kb2NtZW50aXMuY29tIl0sImYiOlsiY29tcG9zZSJdLCJsIjp7Im1heF9wYWdlcyI6MTAwMDAsIm1heF9kb2N1bWVudHMiOjEwMCwibWF4X2ZpbGVfc2l6ZV9tYiI6NTAwfSwiZSI6MTgwMDY2MjM5OSwiaSI6MTc2OTA1NTM1NSwibyI6IkRvY21lbnRpcyJ9.CG0Vf4kHRKRdniEDTf_y_wbZDqdKu0Q5Ez81xvpy_JBiWPRC-5k42hBjlWmwoZTo4mVai8K1-vDaH0WTH3QCCQ",
+            license:
+                "eyJ2IjoxLCJpZCI6ImxpY19lMjcyMDFjMyIsImQiOlsiKi5kb2NtZW50aXMuY29tIl0sImYiOlsiY29tcG9zZSJdLCJsIjp7Im1heF9wYWdlcyI6MTAwMDAsIm1heF9kb2N1bWVudHMiOjEwMCwibWF4X2ZpbGVfc2l6ZV9tYiI6NTAwfSwiZSI6MTgwMDY2MjM5OSwiaSI6MTc2OTA1NTM1NSwibyI6IkRvY21lbnRpcyJ9.CG0Vf4kHRKRdniEDTf_y_wbZDqdKu0Q5Ez81xvpy_JBiWPRC-5k42hBjlWmwoZTo4mVai8K1-vDaH0WTH3QCCQ",
         });
     }
     viewer = await client.createViewer({
@@ -102,24 +107,29 @@ async function createViewer() {
 function updateActiveStates(desktopBtn: HTMLButtonElement | null, mobileBtn: HTMLButtonElement | null) {
     // Update desktop active state
     if (activeDesktopDocItem) {
-        activeDesktopDocItem.classList.remove('active');
+        activeDesktopDocItem.classList.remove("active");
     }
     if (desktopBtn) {
-        desktopBtn.classList.add('active');
+        desktopBtn.classList.add("active");
     }
     activeDesktopDocItem = desktopBtn;
 
     // Update mobile active state
     if (activeMobileDocItem) {
-        activeMobileDocItem.classList.remove('active');
+        activeMobileDocItem.classList.remove("active");
     }
     if (mobileBtn) {
-        mobileBtn.classList.add('active');
+        mobileBtn.classList.add("active");
     }
     activeMobileDocItem = mobileBtn;
 }
 
-async function loadDocument(path: string, name: string, desktopBtn: HTMLButtonElement | null, mobileBtn: HTMLButtonElement | null) {
+async function loadDocument(
+    path: string,
+    name: string,
+    desktopBtn: HTMLButtonElement | null,
+    mobileBtn: HTMLButtonElement | null,
+) {
     currentDocPath = path;
     currentDocName = name;
 
@@ -136,13 +146,13 @@ async function loadDocument(path: string, name: string, desktopBtn: HTMLButtonEl
 }
 
 function closeDocDropdown() {
-    docSelector.classList.remove('open');
+    docSelector.classList.remove("open");
 }
 
 function toggleDocDropdown() {
-    const isOpen = docSelector.classList.contains('open');
+    const isOpen = docSelector.classList.contains("open");
     if (!isOpen) {
-        docSelector.classList.add('open');
+        docSelector.classList.add("open");
     } else {
         closeDocDropdown();
     }
@@ -154,26 +164,26 @@ const documentButtonPairs: Map<string, { desktop: HTMLButtonElement; mobile: HTM
 function populateDocumentLists() {
     for (const category of sampleCategories) {
         // Desktop: Add category header
-        const desktopHeader = document.createElement('div');
-        desktopHeader.className = 'category-header';
+        const desktopHeader = document.createElement("div");
+        desktopHeader.className = "category-header";
         desktopHeader.textContent = category.name;
         documentList.appendChild(desktopHeader);
 
         // Mobile: Add category header
-        const mobileHeader = document.createElement('div');
-        mobileHeader.className = 'doc-dropdown-category';
+        const mobileHeader = document.createElement("div");
+        mobileHeader.className = "doc-dropdown-category";
         mobileHeader.textContent = category.name;
         docDropdown.appendChild(mobileHeader);
 
         // Add category description if present
         if (category.description) {
-            const desktopDesc = document.createElement('div');
-            desktopDesc.className = 'category-description';
+            const desktopDesc = document.createElement("div");
+            desktopDesc.className = "category-description";
             desktopDesc.textContent = category.description;
             documentList.appendChild(desktopDesc);
 
-            const mobileDesc = document.createElement('div');
-            mobileDesc.className = 'doc-dropdown-desc';
+            const mobileDesc = document.createElement("div");
+            mobileDesc.className = "doc-dropdown-desc";
             mobileDesc.textContent = category.description;
             docDropdown.appendChild(mobileDesc);
         }
@@ -181,21 +191,25 @@ function populateDocumentLists() {
         // Add documents in this category
         for (const doc of category.documents) {
             // Desktop button
-            const desktopBtn = document.createElement('button');
-            desktopBtn.className = 'document-item';
+            const desktopBtn = document.createElement("button");
+            desktopBtn.className = "document-item";
             desktopBtn.textContent = doc.name;
 
             // Mobile button
-            const mobileBtn = document.createElement('button');
-            mobileBtn.className = 'doc-dropdown-item';
+            const mobileBtn = document.createElement("button");
+            mobileBtn.className = "doc-dropdown-item";
             mobileBtn.textContent = doc.name;
 
             // Store the pair
             documentButtonPairs.set(doc.path, { desktop: desktopBtn, mobile: mobileBtn });
 
             // Wire up click handlers
-            desktopBtn.addEventListener('click', () => { void loadDocument(doc.path, doc.name, desktopBtn, mobileBtn); });
-            mobileBtn.addEventListener('click', () => { void loadDocument(doc.path, doc.name, desktopBtn, mobileBtn); });
+            desktopBtn.addEventListener("click", () => {
+                void loadDocument(doc.path, doc.name, desktopBtn, mobileBtn);
+            });
+            mobileBtn.addEventListener("click", () => {
+                void loadDocument(doc.path, doc.name, desktopBtn, mobileBtn);
+            });
 
             documentList.appendChild(desktopBtn);
             docDropdown.appendChild(mobileBtn);
@@ -208,10 +222,10 @@ function openFile() {
 }
 
 async function openUrl() {
-    const url = prompt('Enter document URL:');
+    const url = prompt("Enter document URL:");
     if (url) {
         currentDocPath = url;
-        currentDocName = url.split('/').pop() || url;
+        currentDocName = url.split("/").pop() || url;
         updateActiveStates(null, null);
         docNameEl.textContent = currentDocName;
         await viewer?.load(url);
@@ -220,28 +234,32 @@ async function openUrl() {
 
 function setupEventListeners() {
     // Desktop: File buttons
-    openFileBtn.addEventListener('click', openFile);
-    openUrlBtn.addEventListener('click', () => { void openUrl(); });
+    openFileBtn.addEventListener("click", openFile);
+    openUrlBtn.addEventListener("click", () => {
+        void openUrl();
+    });
 
     // Mobile: File buttons
-    mobileOpenFileBtn.addEventListener('click', openFile);
-    mobileOpenUrlBtn.addEventListener('click', () => { void openUrl(); });
+    mobileOpenFileBtn.addEventListener("click", openFile);
+    mobileOpenUrlBtn.addEventListener("click", () => {
+        void openUrl();
+    });
 
     // Mobile: Document selector dropdown
-    docSelectorBtn.addEventListener('click', (e) => {
+    docSelectorBtn.addEventListener("click", (e) => {
         e.stopPropagation();
         toggleDocDropdown();
     });
 
     // Close dropdown when clicking outside
-    document.addEventListener('click', (e) => {
+    document.addEventListener("click", (e) => {
         if (!docSelector.contains(e.target as Node)) {
             closeDocDropdown();
         }
     });
 
     // File input change
-    fileInput.addEventListener('change', async () => {
+    fileInput.addEventListener("change", async () => {
         const file = fileInput.files?.[0];
         if (file) {
             currentDocPath = null;
@@ -249,7 +267,7 @@ function setupEventListeners() {
             updateActiveStates(null, null);
             docNameEl.textContent = file.name;
             await viewer?.load(file);
-            fileInput.value = '';
+            fileInput.value = "";
         }
     });
 }

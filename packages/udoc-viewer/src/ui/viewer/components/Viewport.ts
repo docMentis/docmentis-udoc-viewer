@@ -8,10 +8,10 @@ import {
     type ZoomMode,
     type PageRotation,
     type PageInfo,
-    type SpacingMode
+    type SpacingMode,
 } from "../state";
 import type { Action } from "../actions";
-import type { NavigationTarget } from "../navigation";
+import type { NavigationTarget, Destination } from "../navigation";
 import { showAnnotationPopup, closeAnnotationPopup, type Annotation } from "../annotation";
 import type { TextRun } from "../text";
 import type { WorkerClient } from "../../../worker/index.js";
@@ -23,7 +23,7 @@ import {
     getSpreadPrimaryPage,
     getSpreadDimensions,
     type Spread,
-    type SpreadLayout
+    type SpreadLayout,
 } from "../layout/spreadLayout";
 import { createSpread, type SpreadComponent } from "./Spread";
 import { createFloatingToolbar } from "./FloatingToolbar";
@@ -143,7 +143,7 @@ function readInsets(style: CSSStyleDeclaration): Insets {
         top: parsePixel(style.paddingTop),
         right: parsePixel(style.paddingRight),
         bottom: parsePixel(style.paddingBottom),
-        left: parsePixel(style.paddingLeft)
+        left: parsePixel(style.paddingLeft),
     };
 }
 
@@ -152,7 +152,7 @@ function addInsets(a: Insets, b: Insets): Insets {
         top: a.top + b.top,
         right: a.right + b.right,
         bottom: a.bottom + b.bottom,
-        left: a.left + b.left
+        left: a.left + b.left,
     };
 }
 
@@ -170,7 +170,7 @@ function readViewportMetrics(scrollArea: HTMLElement, container: HTMLElement): V
         height,
         innerWidth,
         innerHeight,
-        padding
+        padding,
     };
 }
 
@@ -248,7 +248,7 @@ function computeScale(
     slice: ViewportSlice,
     metrics: ViewportMetrics,
     spreads: Spread[],
-    scrollbarVisible: boolean
+    scrollbarVisible: boolean,
 ): number {
     if (slice.zoomMode === "custom") return slice.zoom;
     if (metrics.innerWidth <= 0 || metrics.innerHeight <= 0) return slice.zoom;
@@ -257,14 +257,7 @@ function computeScale(
     let maxWidth = 0;
     let maxHeight = 0;
     for (const spread of spreads) {
-        const dims = getSpreadDimensions(
-            spread,
-            slice.pageInfos,
-            1,
-            slice.pageSpacing,
-            slice.dpi,
-            slice.pageRotation
-        );
+        const dims = getSpreadDimensions(spread, slice.pageInfos, 1, slice.pageSpacing, slice.dpi, slice.pageRotation);
         maxWidth = Math.max(maxWidth, dims.width);
         maxHeight = Math.max(maxHeight, dims.height);
     }
@@ -313,7 +306,7 @@ function computeScale(
                         fullWidthScale,
                         slice.pageSpacing,
                         slice.dpi,
-                        slice.pageRotation
+                        slice.pageRotation,
                     );
                     totalHeight += dims.height;
                 }
@@ -348,11 +341,7 @@ function computeScale(
     }
 }
 
-function buildLayout(
-    slice: ViewportSlice,
-    metrics: ViewportMetrics,
-    scrollbarVisible: boolean
-): LayoutState {
+function buildLayout(slice: ViewportSlice, metrics: ViewportMetrics, scrollbarVisible: boolean): LayoutState {
     const spreads = calculateSpreads(slice.pageCount, slice.layoutMode);
     const scale = computeScale(slice, metrics, spreads, scrollbarVisible);
     const layout = calculateSpreadLayouts(
@@ -362,7 +351,7 @@ function buildLayout(
         slice.pageSpacing,
         slice.spreadSpacing,
         slice.dpi,
-        slice.pageRotation
+        slice.pageRotation,
     );
 
     return {
@@ -370,7 +359,7 @@ function buildLayout(
         layouts: layout.layouts,
         contentWidth: layout.contentWidth,
         contentHeight: layout.contentHeight,
-        scale
+        scale,
     };
 }
 
@@ -378,7 +367,7 @@ function computeViewportUpdate(
     prevSlice: ViewportSlice | null,
     nextSlice: ViewportSlice,
     prevMetrics: ViewportMetrics | null,
-    nextMetrics: ViewportMetrics
+    nextMetrics: ViewportMetrics,
 ): ViewportUpdatePlan {
     const metricsChanged = !prevMetrics || !metricsEqual(prevMetrics, nextMetrics);
 
@@ -418,7 +407,7 @@ function computeViewportUpdate(
         layoutChanged,
         shouldClearSpreads,
         shouldRestorePosition,
-        shouldScrollToPage
+        shouldScrollToPage,
     };
 }
 
@@ -528,7 +517,7 @@ export function createViewport() {
         attributes: true,
         childList: true,
         characterData: true,
-        subtree: true
+        subtree: true,
     });
 
     // Periodic integrity check (catches CSS-based hiding)
@@ -545,7 +534,7 @@ export function createViewport() {
                 attributes: true,
                 childList: true,
                 characterData: true,
-                subtree: true
+                subtree: true,
             });
         }
         // Reset any inline style tampering
@@ -569,7 +558,7 @@ export function createViewport() {
     let lastSlice: ViewportSlice | null = null;
     let lastMetrics: ViewportMetrics | null = null;
     let layoutState: LayoutState | null = null;
-    let spreadComponents = new Map<number, SpreadComponent>();
+    const spreadComponents = new Map<number, SpreadComponent>();
     let layoutDirty = false;
     let lastVisibleRange: { start: number; end: number } = { start: 0, end: -1 };
     let containerSize = { width: 0, height: 0 };
@@ -596,12 +585,17 @@ export function createViewport() {
         currentSlice = selectViewport(store.getState());
         scheduleUpdate();
 
-        unsubRender = subscribeSelector(store, selectViewport, (slice) => {
-            currentSlice = slice;
-            scheduleUpdate();
-        }, {
-            equality: viewportSliceEqual
-        });
+        unsubRender = subscribeSelector(
+            store,
+            selectViewport,
+            (slice) => {
+                currentSlice = slice;
+                scheduleUpdate();
+            },
+            {
+                equality: viewportSliceEqual,
+            },
+        );
 
         unsubScroll = on(scrollArea, "scroll", () => {
             if (!currentSlice || !layoutState) return;
@@ -682,9 +676,16 @@ export function createViewport() {
                 if (!actionData) return;
 
                 try {
-                    const action = JSON.parse(actionData) as { actionType: string; destination?: unknown; uri?: string };
+                    const action = JSON.parse(actionData) as {
+                        actionType: string;
+                        destination?: unknown;
+                        uri?: string;
+                    };
                     if (action.actionType === "goTo" && action.destination) {
-                        store.dispatch({ type: "NAVIGATE_TO_DESTINATION", destination: action.destination as import("../navigation").Destination });
+                        store.dispatch({
+                            type: "NAVIGATE_TO_DESTINATION",
+                            destination: action.destination as Destination,
+                        });
                     } else if (action.actionType === "uri" && action.uri) {
                         window.open(action.uri, "_blank", "noopener");
                     }
@@ -712,7 +713,9 @@ export function createViewport() {
             // Debounce rapid wheel events
             if (wheelCooldown) return;
             wheelCooldown = true;
-            setTimeout(() => { wheelCooldown = false; }, 150);
+            setTimeout(() => {
+                wheelCooldown = false;
+            }, 150);
 
             const currentSpreadIndex = findSpreadForPage(layoutState.spreads, currentSlice.page);
 
@@ -853,7 +856,7 @@ export function createViewport() {
         lastSlice = slice;
     }
 
-    function updateOverflow(slice: ViewportSlice, metrics: ViewportMetrics): void {
+    function updateOverflow(_slice: ViewportSlice, _metrics: ViewportMetrics): void {
         const epsilon = 1;
         const scrollWidth = scrollArea.scrollWidth;
         const scrollHeight = scrollArea.scrollHeight;
@@ -862,7 +865,7 @@ export function createViewport() {
         const scrollbar = getScrollbarSize();
 
         // Apply hysteresis to avoid scrollbar-induced resize loops near 1px thresholds.
-        const assumeY = lastOverflowY ?? (scrollHeight - clientHeight > epsilon);
+        const assumeY = lastOverflowY ?? scrollHeight - clientHeight > epsilon;
         const availableWidth = clientWidth + (assumeY ? scrollbar.width : 0);
         const deltaX = scrollWidth - availableWidth;
         const needsX = resolveOverflowState(lastOverflowX, deltaX, epsilon);
@@ -896,11 +899,7 @@ export function createViewport() {
         }
     }
 
-    function applySingleLayout(
-        slice: ViewportSlice,
-        metrics: ViewportMetrics,
-        state: LayoutState
-    ): void {
+    function applySingleLayout(slice: ViewportSlice, metrics: ViewportMetrics, state: LayoutState): void {
         container.style.display = "block";
         const spreadIndex = findSpreadForPage(state.spreads, slice.page);
         const layout = state.layouts[spreadIndex];
@@ -924,7 +923,7 @@ export function createViewport() {
 
     function syncEffectiveZoom(slice: ViewportSlice, state: LayoutState | null): void {
         if (!storeRef) return;
-        const nextZoom = slice.zoomMode === "custom" ? null : state?.scale ?? null;
+        const nextZoom = slice.zoomMode === "custom" ? null : (state?.scale ?? null);
         const current = storeRef.getState().effectiveZoom;
         if (nextZoom === null) {
             if (current === null) return;
@@ -939,10 +938,7 @@ export function createViewport() {
      * Updates the tracked viewport top position based on current scroll state.
      * This captures which page is at the viewport top and how far into it we are.
      */
-    function updateViewportTopPosition(
-        slice: ViewportSlice,
-        state: LayoutState
-    ): void {
+    function updateViewportTopPosition(slice: ViewportSlice, state: LayoutState): void {
         if (state.layouts.length === 0 || state.spreads.length === 0) {
             viewportTopPosition = null;
             return;
@@ -987,7 +983,7 @@ export function createViewport() {
                 viewportTopPosition = {
                     page: getSpreadPrimaryPage(spread),
                     offset: offsetFromSpreadTop, // negative value
-                    inSpacing: true
+                    inSpacing: true,
                 };
                 return;
             }
@@ -1000,7 +996,7 @@ export function createViewport() {
                 viewportTopPosition = {
                     page: getSpreadPrimaryPage(spread),
                     offset: offsetRatio,
-                    inSpacing: false
+                    inSpacing: false,
                 };
                 return;
             }
@@ -1015,7 +1011,7 @@ export function createViewport() {
     function restoreViewportPosition(
         position: ViewportTopPosition,
         metrics: ViewportMetrics,
-        state: LayoutState
+        state: LayoutState,
     ): void {
         const spreadIndex = findSpreadForPage(state.spreads, position.page);
         const layout = state.layouts[spreadIndex];
@@ -1036,32 +1032,21 @@ export function createViewport() {
         scrollArea.scrollTop = clamp(targetScrollTop, 0, maxScrollTop);
     }
 
-    function updateVisibleSpreads(
-        slice: ViewportSlice,
-        metrics: ViewportMetrics,
-        state: LayoutState
-    ): void {
+    function updateVisibleSpreads(slice: ViewportSlice, metrics: ViewportMetrics, state: LayoutState): void {
         if (!workerClient || !slice.docId) return;
         if (state.layouts.length === 0) return;
 
         const scrollTop = scrollArea.scrollTop;
-        const visibleRange = findVisibleSpreadRange(
-            state.layouts,
-            scrollTop,
-            metrics.innerHeight,
-            RENDER_BUFFER
-        );
+        const visibleRange = findVisibleSpreadRange(state.layouts, scrollTop, metrics.innerHeight, RENDER_BUFFER);
 
-        const rangeChanged =
-            visibleRange.start !== lastVisibleRange.start ||
-            visibleRange.end !== lastVisibleRange.end;
+        const rangeChanged = visibleRange.start !== lastVisibleRange.start || visibleRange.end !== lastVisibleRange.end;
 
         const layoutOptions = {
             pageInfos: slice.pageInfos,
             scale: state.scale,
             dpi: slice.dpi,
             rotation: slice.pageRotation,
-            pageSpacing: slice.pageSpacing
+            pageSpacing: slice.pageSpacing,
         };
 
         if (layoutDirty || rangeChanged) {
@@ -1075,7 +1060,7 @@ export function createViewport() {
             const renderOptions = {
                 docId: slice.docId,
                 scale: state.scale,
-                dpi: slice.dpi
+                dpi: slice.dpi,
             };
 
             for (let i = visibleRange.start; i <= visibleRange.end; i++) {
@@ -1137,11 +1122,7 @@ export function createViewport() {
         updateCurrentPageFromScroll(scrollTop, metrics.innerHeight, state);
     }
 
-    function showSingleSpread(
-        slice: ViewportSlice,
-        _metrics: ViewportMetrics,
-        state: LayoutState
-    ): void {
+    function showSingleSpread(slice: ViewportSlice, _metrics: ViewportMetrics, state: LayoutState): void {
         if (!workerClient || !slice.docId) return;
 
         const spreadIndex = findSpreadForPage(state.spreads, slice.page);
@@ -1168,7 +1149,7 @@ export function createViewport() {
             scale: state.scale,
             dpi: slice.dpi,
             rotation: slice.pageRotation,
-            pageSpacing: slice.pageSpacing
+            pageSpacing: slice.pageSpacing,
         };
 
         spreadComp.updateLayout(layoutOptions);
@@ -1191,19 +1172,14 @@ export function createViewport() {
             spreadComp.render(workerClient, {
                 docId: slice.docId,
                 scale: state.scale,
-                dpi: slice.dpi
+                dpi: slice.dpi,
             });
 
             // Prerender adjacent pages for smooth page flipping
             const dpr = getDevicePixelRatio();
             const pointsToPixels = getPointsToPixels(slice.dpi);
             const renderScale = pointsToPixels * state.scale * dpr;
-            workerClient.prerenderAdjacentPages(
-                slice.docId,
-                slice.page,
-                renderScale,
-                slice.pageInfos.length
-            );
+            workerClient.prerenderAdjacentPages(slice.docId, slice.page, renderScale, slice.pageInfos.length);
         }
 
         lastVisibleRange = { start: spreadIndex, end: spreadIndex };
@@ -1233,11 +1209,7 @@ export function createViewport() {
         return spread ? getSpreadPrimaryPage(spread) : null;
     }
 
-    function updateCurrentPageFromScroll(
-        scrollTop: number,
-        viewportHeight: number,
-        state: LayoutState
-    ): void {
+    function updateCurrentPageFromScroll(scrollTop: number, viewportHeight: number, state: LayoutState): void {
         if (!storeRef) return;
         const viewportCenter = scrollTop + viewportHeight / 2;
         const primaryPage = findFocusPage(viewportCenter, state);
@@ -1363,6 +1335,6 @@ function selectViewport(state: ViewerState): ViewportSlice {
         spreadSpacing: state.spreadSpacing,
         pageAnnotations: state.pageAnnotations,
         highlightedAnnotation: state.highlightedAnnotation,
-        pageText: state.pageText
+        pageText: state.pageText,
     };
 }

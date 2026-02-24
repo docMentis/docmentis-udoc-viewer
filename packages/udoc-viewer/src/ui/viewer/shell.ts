@@ -42,7 +42,7 @@ export function mountViewerShell(
     root: HTMLElement,
     engine: EngineAdapter,
     workerClient: WorkerClient,
-    overrides?: InitialStateOverrides
+    overrides?: InitialStateOverrides,
 ): ViewerShell {
     const layout = document.createElement("div");
     layout.className = "udoc-viewer-root";
@@ -113,7 +113,7 @@ export function mountViewerShell(
     passwordDialog.mount(viewportSlot, store, {
         onSubmit: (password: string) => {
             callbacks.onPasswordSubmit?.(password);
-        }
+        },
     });
 
     // Handle panel overlay click to close panels (for mobile)
@@ -153,6 +153,6 @@ export function mountViewerShell(
         dispatch: store.dispatch,
         getState: store.getState,
         setCallbacks,
-        destroy
+        destroy,
     };
 }

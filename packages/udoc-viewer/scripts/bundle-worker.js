@@ -26,12 +26,12 @@ const distWorker = join(distDir, "worker/worker.js");
 // esbuild "empty-import-meta" warning and eliminate the dead-code fallback
 // in wasm-bindgen glue that references import.meta.url.
 await build({
-  entryPoints: [distWorker],
-  bundle: true,
-  format: "iife",
-  outfile: distWorker,
-  allowOverwrite: true,
-  define: { "import.meta.url": '"about:blank"' },
+    entryPoints: [distWorker],
+    bundle: true,
+    format: "iife",
+    outfile: distWorker,
+    allowOverwrite: true,
+    define: { "import.meta.url": '"about:blank"' },
 });
 
 // --- Step 2: Read bundled worker for inline embedding ---

@@ -9,7 +9,7 @@ import type { AnnotationColor, Point, Rect } from "./types";
 export function colorToRgba(
     color: AnnotationColor | undefined,
     opacity: number,
-    defaultColor = "rgba(255, 255, 0, 0.3)"
+    defaultColor = "rgba(255, 255, 0, 0.3)",
 ): string {
     if (!color) return defaultColor;
     const r = Math.round(color.r * 255);
@@ -21,10 +21,7 @@ export function colorToRgba(
 /**
  * Convert annotation color to CSS rgb() string.
  */
-export function colorToRgb(
-    color: AnnotationColor | undefined,
-    defaultColor = "rgb(0, 0, 0)"
-): string {
+export function colorToRgb(color: AnnotationColor | undefined, defaultColor = "rgb(0, 0, 0)"): string {
     if (!color) return defaultColor;
     const r = Math.round(color.r * 255);
     const g = Math.round(color.g * 255);
@@ -38,7 +35,7 @@ export function colorToRgb(
 export function scalePoint(point: Point, scale: number): Point {
     return {
         x: point.x * scale,
-        y: point.y * scale
+        y: point.y * scale,
     };
 }
 
@@ -50,7 +47,7 @@ export function scaleBounds(bounds: Rect, scale: number): Rect {
         x: bounds.x * scale,
         y: bounds.y * scale,
         width: bounds.width * scale,
-        height: bounds.height * scale
+        height: bounds.height * scale,
     };
 }
 
@@ -83,9 +80,7 @@ export function createSvgOverlay(): SVGSVGElement {
 /**
  * Create SVG namespace element helper.
  */
-export function createSvgElement<K extends keyof SVGElementTagNameMap>(
-    tagName: K
-): SVGElementTagNameMap[K] {
+export function createSvgElement<K extends keyof SVGElementTagNameMap>(tagName: K): SVGElementTagNameMap[K] {
     return document.createElementNS("http://www.w3.org/2000/svg", tagName);
 }
 

@@ -20,7 +20,7 @@ export function emit<T>(el: Element, name: string, detail?: T): void {
 export function on<K extends keyof HTMLElementEventMap>(
     el: Element,
     type: K,
-    handler: (ev: HTMLElementEventMap[K]) => void
+    handler: (ev: HTMLElementEventMap[K]) => void,
 ): () => void {
     el.addEventListener(type, handler as EventListener);
     return () => el.removeEventListener(type, handler as EventListener);

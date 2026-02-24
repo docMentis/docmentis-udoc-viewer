@@ -10,65 +10,64 @@
  * Returns a cleanup function to remove event listeners.
  */
 export function attachSelectionController(layer: HTMLDivElement): () => void {
-  let isSelecting = false;
-  let lastValidRange: Range | null = null;
+    let isSelecting = false;
+    let lastValidRange: Range | null = null;
 
-  function handleMouseDown(e: MouseEvent): void {
-    if (e.button !== 0) return;
+    function handleMouseDown(e: MouseEvent): void {
+        if (e.button !== 0) return;
 
-    isSelecting = true;
-    lastValidRange = null;
-  }
-
-  function handleMouseMove(e: MouseEvent): void {
-    if (!isSelecting || e.buttons !== 1) {
-      return;
+        isSelecting = true;
+        lastValidRange = null;
     }
 
-    const selection = document.getSelection();
-    if (!selection || selection.rangeCount === 0) return;
-
-    // Check if we're over a text span
-    const target = document.elementFromPoint(e.clientX, e.clientY);
-    const isOverSpan = target?.classList.contains("udoc-text-span");
-
-    if (isOverSpan) {
-      // Save the current valid selection
-      try {
-        lastValidRange = selection.getRangeAt(0).cloneRange();
-      } catch {
-        // Ignore errors
-      }
-    } else if (lastValidRange) {
-      // In a gap - restore last valid selection to prevent collapse/reversal
-      try {
-        const currentRange = selection.getRangeAt(0);
-        // Only restore if the selection has collapsed or changed unexpectedly
-        if (selection.isCollapsed ||
-            (currentRange.toString().length < lastValidRange.toString().length * 0.5)) {
-          selection.removeAllRanges();
-          selection.addRange(lastValidRange.cloneRange());
+    function handleMouseMove(e: MouseEvent): void {
+        if (!isSelecting || e.buttons !== 1) {
+            return;
         }
-      } catch {
-        // Ignore errors
-      }
+
+        const selection = document.getSelection();
+        if (!selection || selection.rangeCount === 0) return;
+
+        // Check if we're over a text span
+        const target = document.elementFromPoint(e.clientX, e.clientY);
+        const isOverSpan = target?.classList.contains("udoc-text-span");
+
+        if (isOverSpan) {
+            // Save the current valid selection
+            try {
+                lastValidRange = selection.getRangeAt(0).cloneRange();
+            } catch {
+                // Ignore errors
+            }
+        } else if (lastValidRange) {
+            // In a gap - restore last valid selection to prevent collapse/reversal
+            try {
+                const currentRange = selection.getRangeAt(0);
+                // Only restore if the selection has collapsed or changed unexpectedly
+                if (selection.isCollapsed || currentRange.toString().length < lastValidRange.toString().length * 0.5) {
+                    selection.removeAllRanges();
+                    selection.addRange(lastValidRange.cloneRange());
+                }
+            } catch {
+                // Ignore errors
+            }
+        }
     }
-  }
 
-  function handleMouseUp(): void {
-    isSelecting = false;
-    lastValidRange = null;
-  }
+    function handleMouseUp(): void {
+        isSelecting = false;
+        lastValidRange = null;
+    }
 
-  // Attach listeners
-  layer.addEventListener("mousedown", handleMouseDown);
-  document.addEventListener("mousemove", handleMouseMove);
-  document.addEventListener("mouseup", handleMouseUp);
+    // Attach listeners
+    layer.addEventListener("mousedown", handleMouseDown);
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
 
-  // Return cleanup function
-  return () => {
-    layer.removeEventListener("mousedown", handleMouseDown);
-    document.removeEventListener("mousemove", handleMouseMove);
-    document.removeEventListener("mouseup", handleMouseUp);
-  };
+    // Return cleanup function
+    return () => {
+        layer.removeEventListener("mousedown", handleMouseDown);
+        document.removeEventListener("mousemove", handleMouseMove);
+        document.removeEventListener("mouseup", handleMouseUp);
+    };
 }

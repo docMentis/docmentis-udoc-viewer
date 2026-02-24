@@ -1426,7 +1426,9 @@
     border: 1px solid #ddd;
     border-radius: 8px;
     background: #fff;
-    transition: border-color 0.15s, box-shadow 0.15s;
+    transition:
+        border-color 0.15s,
+        box-shadow 0.15s;
 }
 
 .udoc-viewer-root .udoc-password-input-wrapper:focus-within {

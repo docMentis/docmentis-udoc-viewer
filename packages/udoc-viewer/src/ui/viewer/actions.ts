@@ -1,4 +1,13 @@
-import type { PanelTab, ScrollMode, LayoutMode, ZoomMode, PageRotation, SpacingMode, PageInfo, ViewModeDefaults } from "./state";
+import type {
+    PanelTab,
+    ScrollMode,
+    LayoutMode,
+    ZoomMode,
+    PageRotation,
+    SpacingMode,
+    PageInfo,
+    ViewModeDefaults,
+} from "./state";
 import type { Destination, OutlineItem } from "./navigation";
 import type { Annotation } from "./annotation";
 import type { TextRun } from "./text";
@@ -7,7 +16,13 @@ export type Action =
     // Lifecycle
     | { type: "__INIT__" }
     // Document
-    | { type: "SET_DOC"; doc: { id: string }; pageCount: number; pageInfos: readonly PageInfo[]; viewDefaults?: ViewModeDefaults }
+    | {
+          type: "SET_DOC";
+          doc: { id: string };
+          pageCount: number;
+          pageInfos: readonly PageInfo[];
+          viewDefaults?: ViewModeDefaults;
+      }
     | { type: "UPDATE_PAGE_SIZES"; pageInfos: readonly PageInfo[] }
     | { type: "CLEAR_DOC" }
     | { type: "SET_PAGE"; page: number }
@@ -52,7 +67,11 @@ export type Action =
     | { type: "SET_LEFT_PANEL_WIDTH"; width: number | null }
     | { type: "SET_RIGHT_PANEL_WIDTH"; width: number | null }
     // Annotation highlight
-    | { type: "HIGHLIGHT_ANNOTATION"; pageIndex: number; bounds: { x: number; y: number; width: number; height: number } }
+    | {
+          type: "HIGHLIGHT_ANNOTATION";
+          pageIndex: number;
+          bounds: { x: number; y: number; width: number; height: number };
+      }
     | { type: "CLEAR_ANNOTATION_HIGHLIGHT" }
     // Fullscreen
     | { type: "SET_FULLSCREEN"; isFullscreen: boolean }

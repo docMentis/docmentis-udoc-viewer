@@ -3,13 +3,7 @@ import { subscribeSelector } from "../../framework/selectors";
 import { on } from "../../framework/events";
 import type { ViewerState, ZoomMode } from "../state";
 import type { Action } from "../actions";
-import {
-    ICON_CHEVRON_LEFT,
-    ICON_CHEVRON_RIGHT,
-    ICON_CHEVRON_DOWN,
-    ICON_ZOOM_IN,
-    ICON_ZOOM_OUT
-} from "../icons";
+import { ICON_CHEVRON_LEFT, ICON_CHEVRON_RIGHT, ICON_CHEVRON_DOWN, ICON_ZOOM_IN, ICON_ZOOM_OUT } from "../icons";
 import { createViewModeMenu } from "./ViewModeMenu";
 
 interface FloatingToolbarSlice {
@@ -188,7 +182,7 @@ export function createFloatingToolbar() {
                 // Reset to current page on blur
                 const state = store.getState();
                 pageInput.value = String(state.page);
-            })
+            }),
         );
 
         // Zoom dropdown state
@@ -228,9 +222,8 @@ export function createFloatingToolbar() {
                         store.dispatch({ type: "SET_ZOOM", zoom: value / 100 });
                     } else {
                         // Reset to current zoom
-                        const displayZoom = state.zoomMode === "custom"
-                            ? state.zoom
-                            : (state.effectiveZoom ?? state.zoom);
+                        const displayZoom =
+                            state.zoomMode === "custom" ? state.zoom : (state.effectiveZoom ?? state.zoom);
                         zoomInput.value = formatZoomPercent(displayZoom);
                     }
                     zoomInput.blur();
@@ -243,11 +236,9 @@ export function createFloatingToolbar() {
             on(zoomInput, "blur", () => {
                 // Reset to current zoom on blur
                 const state = store.getState();
-                const displayZoom = state.zoomMode === "custom"
-                    ? state.zoom
-                    : (state.effectiveZoom ?? state.zoom);
+                const displayZoom = state.zoomMode === "custom" ? state.zoom : (state.effectiveZoom ?? state.zoom);
                 zoomInput.value = formatZoomPercent(displayZoom);
-            })
+            }),
         );
 
         // Zoom chevron toggle
@@ -255,7 +246,7 @@ export function createFloatingToolbar() {
             on(zoomChevron, "click", (e: MouseEvent) => {
                 e.stopPropagation();
                 toggleZoomDropdown();
-            })
+            }),
         );
 
         // Close on outside click
@@ -279,7 +270,7 @@ export function createFloatingToolbar() {
         const ZOOM_MODE_OPTIONS: Array<{ mode: ZoomMode; label: string }> = [
             { mode: "fit-spread-width", label: "Fit Width" },
             { mode: "fit-spread-height", label: "Fit Height" },
-            { mode: "fit-spread", label: "Fit Page" }
+            { mode: "fit-spread", label: "Fit Page" },
         ];
 
         const buildZoomDropdown = (slice: FloatingToolbarSlice) => {
@@ -360,7 +351,7 @@ export function createFloatingToolbar() {
 
         // Subscribe to changes
         unsub = subscribeSelector(store, selectSlice, applyState, {
-            equality: sliceEqual
+            equality: sliceEqual,
         });
     }
 
@@ -381,6 +372,6 @@ function selectSlice(state: ViewerState): FloatingToolbarSlice {
         zoom: state.zoom,
         zoomMode: state.zoomMode,
         effectiveZoom: state.effectiveZoom,
-        zoomSteps: state.zoomSteps
+        zoomSteps: state.zoomSteps,
     };
 }

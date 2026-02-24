@@ -14,7 +14,7 @@ function selectOutlineSlice(state: ViewerState): OutlineSlice {
     return {
         outline: state.outline,
         outlineLoading: state.outlineLoading,
-        currentPage: state.page
+        currentPage: state.page,
     };
 }
 
@@ -25,16 +25,12 @@ export function createOutlinePanel() {
     let storeRef: Store<ViewerState, Action> | null = null;
     let currentSlice: OutlineSlice | null = null;
     /** Track collapsed items by path (collapsed if in set) */
-    let collapsedItems = new Set<string>();
+    const collapsedItems = new Set<string>();
 
     let unsubRender: (() => void) | null = null;
     const unsubEvents: Array<() => void> = [];
 
-    function createOutlineItemElement(
-        item: OutlineItem,
-        path: string,
-        depth: number
-    ): HTMLElement {
+    function createOutlineItemElement(item: OutlineItem, path: string, depth: number): HTMLElement {
         const container = document.createElement("div");
         container.className = "udoc-outline-item";
         container.dataset.path = path;
@@ -93,7 +89,7 @@ export function createOutlinePanel() {
                 if (storeRef) {
                     storeRef.dispatch({
                         type: "NAVIGATE_TO_DESTINATION",
-                        destination: dest
+                        destination: dest,
                     });
                 }
             };
@@ -162,7 +158,8 @@ export function createOutlinePanel() {
     }
 
     function applyState(slice: OutlineSlice): void {
-        const outlineChanged = !currentSlice ||
+        const outlineChanged =
+            !currentSlice ||
             slice.outline !== currentSlice.outline ||
             slice.outlineLoading !== currentSlice.outlineLoading;
 
@@ -184,22 +181,14 @@ export function createOutlinePanel() {
         currentSlice = slice;
     }
 
-    function mount(
-        container: HTMLElement,
-        store: Store<ViewerState, Action>
-    ): void {
+    function mount(container: HTMLElement, store: Store<ViewerState, Action>): void {
         container.appendChild(el);
         storeRef = store;
 
         // Apply initial state
         applyState(selectOutlineSlice(store.getState()));
 
-        unsubRender = subscribeSelector(
-            store,
-            selectOutlineSlice,
-            applyState,
-            { equality: shallowEqual }
-        );
+        unsubRender = subscribeSelector(store, selectOutlineSlice, applyState, { equality: shallowEqual });
     }
 
     function destroy(): void {

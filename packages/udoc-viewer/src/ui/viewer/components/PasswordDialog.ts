@@ -108,11 +108,7 @@ export function createPasswordDialog() {
         }
     });
 
-    function mount(
-        container: HTMLElement,
-        store: Store<ViewerState, Action>,
-        cb: PasswordDialogCallbacks
-    ): void {
+    function mount(container: HTMLElement, store: Store<ViewerState, Action>, cb: PasswordDialogCallbacks): void {
         container.appendChild(overlay);
         callbacks = cb;
 

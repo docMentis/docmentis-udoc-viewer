@@ -4,13 +4,7 @@ import type { ViewerState, LeftPanelTab } from "../state";
 import { isLeftPanelTab } from "../state";
 import type { Action } from "../actions";
 import type { WorkerClient } from "../../../worker/index.js";
-import {
-    ICON_THUMBNAIL,
-    ICON_OUTLINE,
-    ICON_BOOKMARK,
-    ICON_LAYERS,
-    ICON_ATTACHMENT
-} from "../icons";
+import { ICON_THUMBNAIL, ICON_OUTLINE, ICON_BOOKMARK, ICON_LAYERS, ICON_ATTACHMENT } from "../icons";
 import { createThumbnailPanel, type ThumbnailPanelComponent } from "./ThumbnailPanel";
 import { createOutlinePanel, type OutlinePanelComponent } from "./OutlinePanel";
 
@@ -149,11 +143,7 @@ export function createLeftPanel() {
         unsubEvents.push(() => resizeHandle.removeEventListener("pointerdown", onPointerDown));
     }
 
-    function mount(
-        container: HTMLElement,
-        store: Store<ViewerState, Action>,
-        workerClient: WorkerClient
-    ): void {
+    function mount(container: HTMLElement, store: Store<ViewerState, Action>, workerClient: WorkerClient): void {
         container.appendChild(el);
         storeRef = store;
         workerClientRef = workerClient;
@@ -174,16 +164,12 @@ export function createLeftPanel() {
         const initialSlice = selectLeftPanel(store.getState());
         applyState(initialSlice);
         unsubRender = subscribeSelector(store, selectLeftPanel, applyState, {
-            equality: shallowEqual
+            equality: shallowEqual,
         });
 
         // Subscribe to active tab changes for content
         applyContent(initialSlice.activeTab);
-        unsubContent = subscribeSelector(
-            store,
-            (state) => selectLeftPanel(state).activeTab,
-            applyContent
-        );
+        unsubContent = subscribeSelector(store, (state) => selectLeftPanel(state).activeTab, applyContent);
     }
 
     function destroy(): void {
@@ -214,6 +200,6 @@ function selectLeftPanel(state: ViewerState): LeftPanelSlice {
     return {
         open: isLeftTab,
         activeTab: isLeftTab ? panel : null,
-        width: state.leftPanelWidth
+        width: state.leftPanelWidth,
     };
 }

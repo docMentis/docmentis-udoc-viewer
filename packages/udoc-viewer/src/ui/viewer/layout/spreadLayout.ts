@@ -53,7 +53,7 @@ function calculateSinglePageSpreads(pageCount: number): Spread[] {
     for (let i = 0; i < pageCount; i++) {
         spreads.push({
             index: i,
-            slots: [i + 1]
+            slots: [i + 1],
         });
     }
     return spreads;
@@ -73,7 +73,7 @@ function calculateDoublePageSpreads(pageCount: number): Spread[] {
         const rightPage = page + 1 <= pageCount ? page + 1 : null;
         spreads.push({
             index: spreadIndex++,
-            slots: [leftPage, rightPage]
+            slots: [leftPage, rightPage],
         });
     }
     return spreads;
@@ -91,7 +91,7 @@ function calculateDoublePageOddRightSpreads(pageCount: number): Spread[] {
     // First spread: cover page on right
     spreads.push({
         index: 0,
-        slots: [null, 1]
+        slots: [null, 1],
     });
 
     // Remaining spreads: pairs starting from page 2
@@ -101,7 +101,7 @@ function calculateDoublePageOddRightSpreads(pageCount: number): Spread[] {
         const rightPage = page + 1 <= pageCount ? page + 1 : null;
         spreads.push({
             index: spreadIndex++,
-            slots: [leftPage, rightPage]
+            slots: [leftPage, rightPage],
         });
     }
     return spreads;
@@ -120,7 +120,7 @@ function calculateDoublePageOddLeftSpreads(pageCount: number): Spread[] {
     // First spread: cover page on left
     spreads.push({
         index: 0,
-        slots: [1, null]
+        slots: [1, null],
     });
 
     // Remaining spreads: [odd, previous even] pairs
@@ -129,7 +129,7 @@ function calculateDoublePageOddLeftSpreads(pageCount: number): Spread[] {
         const evenPage = oddPage - 1;
         spreads.push({
             index: spreadIndex++,
-            slots: [oddPage, evenPage]
+            slots: [oddPage, evenPage],
         });
     }
 
@@ -137,7 +137,7 @@ function calculateDoublePageOddLeftSpreads(pageCount: number): Spread[] {
     if (pageCount % 2 === 0) {
         spreads.push({
             index: spreadIndex,
-            slots: [null, pageCount]
+            slots: [null, pageCount],
         });
     }
 
@@ -259,7 +259,7 @@ export function calculateSpreadLayouts(
     pageSpacing: number,
     spreadSpacing: number,
     dpi: number,
-    rotation: PageRotation
+    rotation: PageRotation,
 ): SpreadLayoutResult {
     // Snap all layout values to device pixels to ensure adjacent spreads align.
     // We use CUMULATIVE snapping: each spread's top is calculated from the
@@ -271,22 +271,14 @@ export function calculateSpreadLayouts(
     let maxWidthDevice = 0;
 
     for (const spread of spreads) {
-        const { width, height } = getSpreadDimensionsDevice(
-            spread,
-            pageInfos,
-            scale,
-            pageSpacing,
-            dpi,
-            rotation,
-            dpr
-        );
+        const { width, height } = getSpreadDimensionsDevice(spread, pageInfos, scale, pageSpacing, dpi, rotation, dpr);
 
         layouts.push({
             index: spread.index,
             slots: spread.slots,
             top: toCssPixels(currentTopDevice, dpr),
             width: toCssPixels(width, dpr),
-            height: toCssPixels(height, dpr)
+            height: toCssPixels(height, dpr),
         });
 
         // Next spread's top = this spread's bottom + spacing
@@ -295,15 +287,12 @@ export function calculateSpreadLayouts(
         maxWidthDevice = Math.max(maxWidthDevice, width);
     }
 
-    const contentHeight =
-        spreads.length > 0
-            ? toCssPixels(currentTopDevice, dpr)
-            : 0;
+    const contentHeight = spreads.length > 0 ? toCssPixels(currentTopDevice, dpr) : 0;
 
     return {
         layouts,
         contentWidth: toCssPixels(maxWidthDevice, dpr),
-        contentHeight
+        contentHeight,
     };
 }
 
@@ -317,21 +306,13 @@ export function getSpreadDimensions(
     scale: number,
     pageSpacing: number,
     dpi: number,
-    rotation: PageRotation
+    rotation: PageRotation,
 ): SpreadDimensions {
     const dpr = getDevicePixelRatio();
-    const deviceDims = getSpreadDimensionsDevice(
-        spread,
-        pageInfos,
-        scale,
-        pageSpacing,
-        dpi,
-        rotation,
-        dpr
-    );
+    const deviceDims = getSpreadDimensionsDevice(spread, pageInfos, scale, pageSpacing, dpi, rotation, dpr);
     return {
         width: toCssPixels(deviceDims.width, dpr),
-        height: toCssPixels(deviceDims.height, dpr)
+        height: toCssPixels(deviceDims.height, dpr),
     };
 }
 
@@ -342,7 +323,7 @@ function getSpreadDimensionsDevice(
     pageSpacing: number,
     dpi: number,
     rotation: PageRotation,
-    dpr: number
+    dpr: number,
 ): SpreadDimensionsDevice {
     const pointsToPixels = getPointsToPixels(dpi);
     let totalWidth = 0;
@@ -415,7 +396,7 @@ export function findVisibleSpreadRange(
     layouts: SpreadLayout[],
     scrollTop: number,
     viewportHeight: number,
-    buffer: number = 1
+    buffer: number = 1,
 ): { start: number; end: number } {
     if (layouts.length === 0) {
         return { start: 0, end: -1 };

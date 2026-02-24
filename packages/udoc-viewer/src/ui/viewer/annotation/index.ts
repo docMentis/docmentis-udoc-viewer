@@ -36,7 +36,7 @@ export type {
     TextJustification,
     CaretSymbol,
     LineEnding,
-    BorderStyle
+    BorderStyle,
 } from "./types";
 
 // Utilities
@@ -48,15 +48,10 @@ export {
     applyBoundsStyle,
     createSvgOverlay,
     createSvgElement,
-    boundsMatch
+    boundsMatch,
 } from "./utils";
 
 // Render functions
-export {
-    renderAnnotation,
-    renderAnnotationsToLayer,
-    closeAnnotationPopup,
-    showAnnotationPopup
-} from "./render";
+export { renderAnnotation, renderAnnotationsToLayer, closeAnnotationPopup, showAnnotationPopup } from "./render";
 
 export type { ShowPopupCallback } from "./render";

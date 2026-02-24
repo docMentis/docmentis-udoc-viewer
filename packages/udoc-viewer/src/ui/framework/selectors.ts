@@ -55,7 +55,7 @@ export function subscribeSelector<S, A, T>(
     store: Store<S, A>,
     selector: Selector<S, T>,
     listener: (next: T, prev: T) => void,
-    options: { equality?: Equality<T>; phase?: "render" | "effect" } = {}
+    options: { equality?: Equality<T>; phase?: "render" | "effect" } = {},
 ): () => void {
     const equality = options.equality ?? Object.is;
     let prevSlice = selector(store.getState());
@@ -68,7 +68,5 @@ export function subscribeSelector<S, A, T>(
         listener(nextSlice, prev);
     };
 
-    return options.phase === "effect"
-        ? store.subscribeEffect(handler)
-        : store.subscribeRender(handler);
+    return options.phase === "effect" ? store.subscribeEffect(handler) : store.subscribeRender(handler);
 }

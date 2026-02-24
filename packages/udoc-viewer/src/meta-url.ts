@@ -5,6 +5,6 @@
 
 let _wasmUrl = new URL("./wasm/udoc_bg.wasm", import.meta.url).href;
 if (_wasmUrl.startsWith("/") && typeof globalThis.location !== "undefined") {
-  _wasmUrl = globalThis.location.origin + _wasmUrl;
+    _wasmUrl = globalThis.location.origin + _wasmUrl;
 }
 export const wasmUrl = _wasmUrl;

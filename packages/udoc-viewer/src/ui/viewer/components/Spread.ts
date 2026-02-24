@@ -82,7 +82,6 @@ function combineRotation(documentRotation: PageRotation, userRotation: PageRotat
     return normalizeRotation(combined as PageRotation);
 }
 
-
 function formatCssSize(value: number): string {
     return `${value.toFixed(3)}px`;
 }
@@ -158,7 +157,7 @@ export function createSpread(data: SpreadData) {
                 lastHighlightedBounds: null,
                 lastTextRuns: null,
                 lastTextScale: 0,
-                cleanupSelectionController
+                cleanupSelectionController,
             };
         }
 
@@ -179,7 +178,7 @@ export function createSpread(data: SpreadData) {
             lastHighlightedBounds: null,
             lastTextRuns: null,
             lastTextScale: 0,
-            cleanupSelectionController: null
+            cleanupSelectionController: null,
         };
     }
 
@@ -198,22 +197,20 @@ export function createSpread(data: SpreadData) {
             if (pageInfo) {
                 referenceSize = {
                     width: pageInfo.width * pointsToPixels * options.scale,
-                    height: pageInfo.height * pointsToPixels * options.scale
+                    height: pageInfo.height * pointsToPixels * options.scale,
                 };
                 break;
             }
         }
 
         for (const slotEl of slotElements) {
-            const pageInfo = slotEl.pageNumber === null
-                ? null
-                : options.pageInfos[slotEl.pageNumber - 1];
+            const pageInfo = slotEl.pageNumber === null ? null : options.pageInfos[slotEl.pageNumber - 1];
 
             const baseSize = pageInfo
                 ? {
-                    width: pageInfo.width * pointsToPixels * options.scale,
-                    height: pageInfo.height * pointsToPixels * options.scale
-                }
+                      width: pageInfo.width * pointsToPixels * options.scale,
+                      height: pageInfo.height * pointsToPixels * options.scale,
+                  }
                 : referenceSize;
 
             if (!baseSize) {
@@ -266,15 +263,13 @@ export function createSpread(data: SpreadData) {
                 slotEl.annotationLayer.style.height = formatCssSize(slotEl.cssHeight);
                 slotEl.annotationLayer.style.left = formatCssSize(centerLeft);
                 slotEl.annotationLayer.style.top = formatCssSize(centerTop);
-                slotEl.annotationLayer.style.transform = effectiveRotation === 0 ? "none" : `rotate(${effectiveRotation}deg)`;
+                slotEl.annotationLayer.style.transform =
+                    effectiveRotation === 0 ? "none" : `rotate(${effectiveRotation}deg)`;
             }
         }
     }
 
-    async function render(
-        workerClient: WorkerClient,
-        options: SpreadRenderOptions
-    ): Promise<void> {
+    async function render(workerClient: WorkerClient, options: SpreadRenderOptions): Promise<void> {
         const dpr = getDevicePixelRatio();
         const pointsToPixels = getPointsToPixels(options.dpi);
         const renderScale = pointsToPixels * options.scale * dpr;
@@ -297,7 +292,7 @@ export function createSpread(data: SpreadData) {
                     docId: options.docId,
                     page: slotEl.pageNumber,
                     type: "page",
-                    scale: renderScale
+                    scale: renderScale,
                 });
 
                 if (!mounted || slotEl.renderToken !== token) {
@@ -372,7 +367,7 @@ export function createSpread(data: SpreadData) {
     function updateAnnotations(
         annotations: Map<number, Annotation[]>,
         options: SpreadLayoutOptions,
-        highlightedAnnotation?: HighlightedAnnotation | null
+        highlightedAnnotation?: HighlightedAnnotation | null,
     ): void {
         const pointsToPixels = getPointsToPixels(options.dpi);
         const scale = pointsToPixels * options.scale;
@@ -385,9 +380,8 @@ export function createSpread(data: SpreadData) {
             const pageAnnotations = annotations.get(pageIndex);
 
             // Check if this page has a highlighted annotation
-            const highlightBounds = highlightedAnnotation?.pageIndex === pageIndex
-                ? highlightedAnnotation.bounds
-                : null;
+            const highlightBounds =
+                highlightedAnnotation?.pageIndex === pageIndex ? highlightedAnnotation.bounds : null;
 
             // Skip if annotations, scale, and highlight haven't changed
             // Use epsilon comparison for scale to prevent oscillation from floating-point drift
@@ -408,10 +402,7 @@ export function createSpread(data: SpreadData) {
         }
     }
 
-    function updateTextLayer(
-        textContent: Map<number, TextRun[]>,
-        options: SpreadLayoutOptions
-    ): void {
+    function updateTextLayer(textContent: Map<number, TextRun[]>, options: SpreadLayoutOptions): void {
         const pointsToPixels = getPointsToPixels(options.dpi);
         const scale = pointsToPixels * options.scale;
 
@@ -447,7 +438,7 @@ export function createSpread(data: SpreadData) {
         updateAnnotations,
         updateTextLayer,
         getElement,
-        getData
+        getData,
     };
 }
 

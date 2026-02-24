@@ -18,7 +18,7 @@ import {
     ICON_SPACING_ALL,
     ICON_SPACING_NONE,
     ICON_SPACING_SPREAD,
-    ICON_SPACING_PAGE
+    ICON_SPACING_PAGE,
 } from "../icons";
 
 interface ViewModeSlice {
@@ -45,28 +45,28 @@ interface MenuOption<T> {
 
 const SCROLL_OPTIONS: MenuOption<ScrollMode>[] = [
     { value: "spread", icon: ICON_SCROLL_SPREAD, label: "Spread" },
-    { value: "continuous", icon: ICON_SCROLL_CONTINUOUS, label: "Continuous" }
+    { value: "continuous", icon: ICON_SCROLL_CONTINUOUS, label: "Continuous" },
 ];
 
 const LAYOUT_OPTIONS: MenuOption<LayoutMode>[] = [
     { value: "single-page", icon: ICON_LAYOUT_SINGLE, label: "Single" },
     { value: "double-page", icon: ICON_LAYOUT_DOUBLE, label: "Double" },
     { value: "double-page-odd-right", icon: ICON_LAYOUT_DOUBLE_ODD_RIGHT, label: "Cover Right" },
-    { value: "double-page-odd-left", icon: ICON_LAYOUT_DOUBLE_ODD_LEFT, label: "Cover Left" }
+    { value: "double-page-odd-left", icon: ICON_LAYOUT_DOUBLE_ODD_LEFT, label: "Cover Left" },
 ];
 
 const ROTATION_OPTIONS: MenuOption<PageRotation>[] = [
     { value: 0, icon: ICON_ROTATE_0, label: "0°" },
     { value: 90, icon: ICON_ROTATE_90, label: "90°" },
     { value: 180, icon: ICON_ROTATE_180, label: "180°" },
-    { value: 270, icon: ICON_ROTATE_270, label: "270°" }
+    { value: 270, icon: ICON_ROTATE_270, label: "270°" },
 ];
 
 const SPACING_OPTIONS: MenuOption<SpacingMode>[] = [
     { value: "all", icon: ICON_SPACING_ALL, label: "All" },
     { value: "none", icon: ICON_SPACING_NONE, label: "None" },
     { value: "spread-only", icon: ICON_SPACING_SPREAD, label: "Spread" },
-    { value: "page-only", icon: ICON_SPACING_PAGE, label: "Page" }
+    { value: "page-only", icon: ICON_SPACING_PAGE, label: "Page" },
 ];
 
 export function createViewModeMenu() {
@@ -104,7 +104,7 @@ export function createViewModeMenu() {
         options: MenuOption<T>[],
         currentValue: T,
         onSelect: (value: T) => void,
-        sectionOptions: SectionOptions = {}
+        sectionOptions: SectionOptions = {},
     ): HTMLElement {
         const section = document.createElement("div");
         section.className = "udoc-view-mode-menu__section";
@@ -144,7 +144,7 @@ export function createViewModeMenu() {
                     on(btn, "click", (e: MouseEvent) => {
                         e.stopPropagation();
                         onSelect(opt.value);
-                    })
+                    }),
                 );
             }
 
@@ -167,28 +167,28 @@ export function createViewModeMenu() {
         dropdown.appendChild(
             createSection("Scroll", SCROLL_OPTIONS, slice.scrollMode, (mode) => {
                 storeRef?.dispatch({ type: "SET_SCROLL_MODE", mode });
-            })
+            }),
         );
 
         // Layout mode section
         dropdown.appendChild(
             createSection("Layout", LAYOUT_OPTIONS, slice.layoutMode, (mode) => {
                 storeRef?.dispatch({ type: "SET_LAYOUT_MODE", mode });
-            })
+            }),
         );
 
         // Page rotation section
         dropdown.appendChild(
             createSection("Rotation", ROTATION_OPTIONS, slice.pageRotation, (rotation) => {
                 storeRef?.dispatch({ type: "SET_PAGE_ROTATION", rotation });
-            })
+            }),
         );
 
         // Spacing section
         dropdown.appendChild(
             createSection("Spacing", SPACING_OPTIONS, slice.spacingMode, (mode) => {
                 storeRef?.dispatch({ type: "SET_SPACING_MODE", mode });
-            })
+            }),
         );
     }
 
@@ -210,10 +210,12 @@ export function createViewModeMenu() {
         storeRef = store;
 
         // Toggle button click
-        unsubEvents.push(on(toggleBtn, "click", (e: MouseEvent) => {
-            e.stopPropagation();
-            toggleDropdown();
-        }));
+        unsubEvents.push(
+            on(toggleBtn, "click", (e: MouseEvent) => {
+                e.stopPropagation();
+                toggleDropdown();
+            }),
+        );
 
         // Close on outside click
         const handleOutsideClick = (e: MouseEvent) => {
@@ -242,7 +244,7 @@ export function createViewModeMenu() {
 
         // Subscribe to changes
         unsub = subscribeSelector(store, selectSlice, applyState, {
-            equality: sliceEqual
+            equality: sliceEqual,
         });
     }
 
@@ -262,6 +264,6 @@ function selectSlice(state: ViewerState): ViewModeSlice {
         scrollMode: state.scrollMode,
         layoutMode: state.layoutMode,
         pageRotation: state.pageRotation,
-        spacingMode: state.spacingMode
+        spacingMode: state.spacingMode,
     };
 }

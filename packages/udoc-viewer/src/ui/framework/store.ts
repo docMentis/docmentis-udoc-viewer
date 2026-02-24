@@ -36,7 +36,7 @@ export interface Store<S, A> {
 export function createStore<S, A>(
     reducer: Reducer<S, A>,
     initialState: S,
-    options: { batched?: boolean } = {}
+    options: { batched?: boolean } = {},
 ): Store<S, A> {
     let state = initialState;
     const renderSubs = new Set<Subscriber<S>>();
@@ -49,10 +49,18 @@ export function createStore<S, A>(
 
     function notify(prev: S, next: S): void {
         for (const fn of renderSubs) {
-            try { fn(prev, next); } catch (e) { console.error("Render subscriber error:", e); }
+            try {
+                fn(prev, next);
+            } catch (e) {
+                console.error("Render subscriber error:", e);
+            }
         }
         for (const fn of effectSubs) {
-            try { fn(prev, next); } catch (e) { console.error("Effect subscriber error:", e); }
+            try {
+                fn(prev, next);
+            } catch (e) {
+                console.error("Effect subscriber error:", e);
+            }
         }
     }
 

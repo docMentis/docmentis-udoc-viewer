@@ -21,17 +21,17 @@ Most web document viewers only handle PDF, rely on server-side rendering, or req
 
 ## Packages
 
-| Package | Description |
-|---------|-------------|
-| [@docmentis/udoc-viewer](packages/udoc-viewer/) | Document viewer SDK (npm package) |
-| [@docmentis/udoc-viewer-demo](packages/udoc-viewer-demo/) | Demo application |
+| Package                                                   | Description                       |
+| --------------------------------------------------------- | --------------------------------- |
+| [@docmentis/udoc-viewer](packages/udoc-viewer/)           | Document viewer SDK (npm package) |
+| [@docmentis/udoc-viewer-demo](packages/udoc-viewer-demo/) | Demo application                  |
 
 ## Supported Formats
 
-| Format | Extensions |
-|--------|------------|
-| PDF | .pdf |
-| PPTX | .pptx |
+| Format | Extensions                                                                                        |
+| ------ | ------------------------------------------------------------------------------------------------- |
+| PDF    | .pdf                                                                                              |
+| PPTX   | .pptx                                                                                             |
 | Images | .png, .jpg, .jpeg, .gif, .webp, .bmp, .tif, .tiff, .ico, .tga, .ppm, .pgm, .pbm, .hdr, .exr, .qoi |
 
 ## Quick Start
@@ -45,18 +45,18 @@ npm install @docmentis/udoc-viewer
 ### Basic Usage
 
 ```js
-import { UDocClient } from '@docmentis/udoc-viewer';
+import { UDocClient } from "@docmentis/udoc-viewer";
 
 // Create a client (loads the WASM engine)
 const client = await UDocClient.create();
 
 // Create a viewer attached to a container element
 const viewer = await client.createViewer({
-  container: '#viewer',
+    container: "#viewer",
 });
 
 // Load a document
-await viewer.load('https://example.com/document.pdf');
+await viewer.load("https://example.com/document.pdf");
 
 // Clean up when done
 viewer.destroy();
@@ -69,41 +69,41 @@ client.destroy();
 <div id="viewer" style="width: 100%; height: 600px;"></div>
 
 <script type="module">
-  import { UDocClient } from '@docmentis/udoc-viewer';
+    import { UDocClient } from "@docmentis/udoc-viewer";
 
-  const client = await UDocClient.create();
-  const viewer = await client.createViewer({ container: '#viewer' });
-  await viewer.load('/path/to/document.pdf');
+    const client = await UDocClient.create();
+    const viewer = await client.createViewer({ container: "#viewer" });
+    await viewer.load("/path/to/document.pdf");
 </script>
 ```
 
 ### React
 
 ```jsx
-import { useEffect, useRef } from 'react';
-import { UDocClient } from '@docmentis/udoc-viewer';
+import { useEffect, useRef } from "react";
+import { UDocClient } from "@docmentis/udoc-viewer";
 
 function DocumentViewer({ src }) {
-  const containerRef = useRef(null);
+    const containerRef = useRef(null);
 
-  useEffect(() => {
-    let client, viewer;
+    useEffect(() => {
+        let client, viewer;
 
-    (async () => {
-      client = await UDocClient.create();
-      viewer = await client.createViewer({
-        container: containerRef.current,
-      });
-      await viewer.load(src);
-    })();
+        (async () => {
+            client = await UDocClient.create();
+            viewer = await client.createViewer({
+                container: containerRef.current,
+            });
+            await viewer.load(src);
+        })();
 
-    return () => {
-      viewer?.destroy();
-      client?.destroy();
-    };
-  }, [src]);
+        return () => {
+            viewer?.destroy();
+            client?.destroy();
+        };
+    }, [src]);
 
-  return <div ref={containerRef} style={{ width: '100%', height: '600px' }} />;
+    return <div ref={containerRef} style={{ width: "100%", height: "600px" }} />;
 }
 ```
 
@@ -111,14 +111,14 @@ function DocumentViewer({ src }) {
 
 Working examples for every major framework:
 
-| Example | Stack | Run |
-|---------|-------|-----|
-| [vanilla](examples/vanilla/) | TypeScript + Vite | `npm run dev` |
-| [react-vite](examples/react-vite/) | React + Vite | `npm run dev` |
-| [vue-vite](examples/vue-vite/) | Vue + Vite | `npm run dev` |
-| [svelte-vite](examples/svelte-vite/) | Svelte 5 + Vite | `npm run dev` |
-| [angular](examples/angular/) | Angular 19 | `npm run dev` |
-| [nextjs-webpack](examples/nextjs-webpack/) | Next.js + Webpack | `npm run dev` |
+| Example                                        | Stack               | Run           |
+| ---------------------------------------------- | ------------------- | ------------- |
+| [vanilla](examples/vanilla/)                   | TypeScript + Vite   | `npm run dev` |
+| [react-vite](examples/react-vite/)             | React + Vite        | `npm run dev` |
+| [vue-vite](examples/vue-vite/)                 | Vue + Vite          | `npm run dev` |
+| [svelte-vite](examples/svelte-vite/)           | Svelte 5 + Vite     | `npm run dev` |
+| [angular](examples/angular/)                   | Angular 19          | `npm run dev` |
+| [nextjs-webpack](examples/nextjs-webpack/)     | Next.js + Webpack   | `npm run dev` |
 | [nextjs-turbopack](examples/nextjs-turbopack/) | Next.js + Turbopack | `npm run dev` |
 
 ```bash
@@ -144,14 +144,13 @@ The JavaScript wrapper (`@docmentis/udoc-viewer`) is MIT-licensed and open sourc
 
 ## Browser Support
 
-| Browser | Supported |
-|---------|-----------|
-| Chrome / Edge | ✅ 80+ |
-| Firefox | ✅ 80+ |
-| Safari | ✅ 15+ |
+| Browser       | Supported |
+| ------------- | --------- |
+| Chrome / Edge | ✅ 80+    |
+| Firefox       | ✅ 80+    |
+| Safari        | ✅ 15+    |
 
 Requires WebAssembly support.
-
 
 ## Development
 

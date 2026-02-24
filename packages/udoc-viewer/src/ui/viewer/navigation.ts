@@ -74,10 +74,7 @@ export interface NavigationTarget {
  * @param pageCount - Total number of pages (for clamping)
  * @returns NavigationTarget for internal use
  */
-export function destinationToNavigationTarget(
-    dest: Destination,
-    pageCount: number
-): NavigationTarget {
+export function destinationToNavigationTarget(dest: Destination, pageCount: number): NavigationTarget {
     // Convert 0-based pageIndex to 1-based page
     const page = Math.max(1, Math.min(dest.pageIndex + 1, Math.max(1, pageCount)));
 
@@ -88,7 +85,7 @@ export function destinationToNavigationTarget(
             if (dest.display.top !== undefined || dest.display.left !== undefined) {
                 target.scrollTo = {
                     x: dest.display.left,
-                    y: dest.display.top
+                    y: dest.display.top,
                 };
             }
             if (dest.display.zoom !== undefined && dest.display.zoom > 0) {

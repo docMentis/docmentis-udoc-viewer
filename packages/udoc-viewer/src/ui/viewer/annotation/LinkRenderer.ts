@@ -7,11 +7,7 @@ import { applyBoundsStyle } from "./utils";
 /**
  * Render a link annotation.
  */
-export function renderLink(
-    layer: HTMLElement,
-    annotation: LinkAnnotation,
-    scale: number
-): HTMLElement {
+export function renderLink(layer: HTMLElement, annotation: LinkAnnotation, scale: number): HTMLElement {
     const el = document.createElement("div");
     el.className = "udoc-annotation udoc-annotation--link";
     applyBoundsStyle(el, annotation.bounds, scale);

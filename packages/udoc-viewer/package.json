@@ -1,58 +1,58 @@
 {
-  "name": "@docmentis/udoc-viewer",
-  "version": "0.5.17",
-  "type": "module",
-  "license": "MIT",
-  "description": "Free, open-source, universal document viewer for the web. Render PDF, PPTX, and images with high fidelity — no server required.",
-  "homepage": "https://docmentis.com/viewer/guide",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/docMentis/docmentis-udoc-viewer.git",
-    "directory": "packages/udoc-viewer"
-  },
-  "bugs": {
-    "url": "https://github.com/docMentis/docmentis-udoc-viewer/issues"
-  },
-  "keywords": [
-    "pdf",
-    "pptx",
-    "powerpoint",
-    "viewer",
-    "document",
-    "document-viewer",
-    "pdf-viewer",
-    "wasm",
-    "webassembly",
-    "image-viewer",
-    "client-side"
-  ],
-  "main": "dist/src/index.js",
-  "types": "dist/src/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/src/index.d.ts",
-      "import": "./dist/src/index.js"
+    "name": "@docmentis/udoc-viewer",
+    "version": "0.5.17",
+    "type": "module",
+    "license": "MIT",
+    "description": "Free, open-source, universal document viewer for the web. Render PDF, PPTX, and images with high fidelity — no server required.",
+    "homepage": "https://docmentis.com/viewer/guide",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/docMentis/docmentis-udoc-viewer.git",
+        "directory": "packages/udoc-viewer"
     },
-    "./worker": {
-      "types": "./dist/src/worker.d.ts",
-      "import": "./dist/src/worker.js"
+    "bugs": {
+        "url": "https://github.com/docMentis/docmentis-udoc-viewer/issues"
+    },
+    "keywords": [
+        "pdf",
+        "pptx",
+        "powerpoint",
+        "viewer",
+        "document",
+        "document-viewer",
+        "pdf-viewer",
+        "wasm",
+        "webassembly",
+        "image-viewer",
+        "client-side"
+    ],
+    "main": "dist/src/index.js",
+    "types": "dist/src/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/src/index.d.ts",
+            "import": "./dist/src/index.js"
+        },
+        "./worker": {
+            "types": "./dist/src/worker.d.ts",
+            "import": "./dist/src/worker.js"
+        }
+    },
+    "files": [
+        "dist"
+    ],
+    "sideEffects": false,
+    "engines": {
+        "node": ">=18"
+    },
+    "scripts": {
+        "build": "node scripts/build-styles.js && tsc && rm -rf dist/src/wasm && cp -r src/wasm dist/src/wasm && node scripts/bundle-worker.js",
+        "clean": "rm -rf dist",
+        "dev": "tsc --watch",
+        "prepublishOnly": "npm run build"
+    },
+    "devDependencies": {
+        "esbuild": "^0.25.0",
+        "typescript": "^5.7.2"
     }
-  },
-  "files": [
-    "dist"
-  ],
-  "sideEffects": false,
-  "engines": {
-    "node": ">=18"
-  },
-  "scripts": {
-    "build": "node scripts/build-styles.js && tsc && rm -rf dist/src/wasm && cp -r src/wasm dist/src/wasm && node scripts/bundle-worker.js",
-    "clean": "rm -rf dist",
-    "dev": "tsc --watch",
-    "prepublishOnly": "npm run build"
-  },
-  "devDependencies": {
-    "esbuild": "^0.25.0",
-    "typescript": "^5.7.2"
-  }
 }

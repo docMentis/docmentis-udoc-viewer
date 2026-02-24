@@ -27,9 +27,6 @@ import type { WorkerClient } from "./worker/index.js";
  * // Render - fonts are fetched automatically as needed
  * ```
  */
-export async function enableGoogleFonts(
-  workerClient: WorkerClient,
-  documentId: string
-): Promise<void> {
-  await workerClient.enableGoogleFonts(documentId);
+export async function enableGoogleFonts(workerClient: WorkerClient, documentId: string): Promise<void> {
+    await workerClient.enableGoogleFonts(documentId);
 }

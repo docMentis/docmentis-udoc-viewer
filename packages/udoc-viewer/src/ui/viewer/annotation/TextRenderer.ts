@@ -1,13 +1,7 @@
 /**
  * Renderer for text annotations: text (sticky note), freeText, stamp, caret.
  */
-import type {
-    TextAnnotation,
-    FreeTextAnnotation,
-    StampAnnotation,
-    CaretAnnotation,
-    MarkupMetadata
-} from "./types";
+import type { TextAnnotation, FreeTextAnnotation, StampAnnotation, CaretAnnotation, MarkupMetadata } from "./types";
 import { colorToRgb, scaleBounds, createSvgOverlay, createSvgElement } from "./utils";
 
 /** Fixed icon size for sticky note annotations (in CSS pixels). */
@@ -17,11 +11,7 @@ const STICKY_NOTE_ICON_SIZE = 18;
 const DEFAULT_STICKY_NOTE_COLOR = { r: 1, g: 0.8, b: 0.2 };
 
 /** Callback for showing annotation popup. */
-export type ShowPopupCallback = (
-    anchor: HTMLElement,
-    metadata: MarkupMetadata,
-    color: string
-) => void;
+export type ShowPopupCallback = (anchor: HTMLElement, metadata: MarkupMetadata, color: string) => void;
 
 /**
  * Create SVG icon for sticky note with specified color.
@@ -49,7 +39,7 @@ export function renderText(
     layer: HTMLElement,
     annotation: TextAnnotation,
     scale: number,
-    onShowPopup?: ShowPopupCallback
+    onShowPopup?: ShowPopupCallback,
 ): HTMLElement {
     const el = document.createElement("div");
     el.className = "udoc-annotation udoc-annotation--text";
@@ -71,7 +61,7 @@ export function renderText(
     el.dataset.annotationType = "text";
     el.dataset.annotation = JSON.stringify({
         contents: annotation.contents,
-        metadata: annotation.metadata
+        metadata: annotation.metadata,
     });
 
     // Set tooltip as fallback
@@ -96,11 +86,7 @@ export function renderText(
 /**
  * Render a free text annotation.
  */
-export function renderFreeText(
-    layer: HTMLElement,
-    annotation: FreeTextAnnotation,
-    scale: number
-): HTMLElement {
+export function renderFreeText(layer: HTMLElement, annotation: FreeTextAnnotation, scale: number): HTMLElement {
     const scaled = scaleBounds(annotation.bounds, scale);
     const color = colorToRgb(annotation.color, "rgb(0, 0, 0)");
     const borderColor = colorToRgb(annotation.borderColor, "transparent");
@@ -114,7 +100,7 @@ export function renderFreeText(
     el.style.height = `${scaled.height}px`;
     el.style.color = color;
     el.style.border = `1px solid ${borderColor}`;
-    el.style.fontSize = `${12 * (scale / 96 * 72)}px`; // Approximate font scaling
+    el.style.fontSize = `${12 * ((scale / 96) * 72)}px`; // Approximate font scaling
     el.style.fontFamily = "Helvetica, Arial, sans-serif";
     el.style.textAlign = annotation.justification || "left";
     el.style.overflow = "hidden";
@@ -158,11 +144,7 @@ export function renderFreeText(
 /**
  * Render a stamp annotation.
  */
-export function renderStamp(
-    layer: HTMLElement,
-    annotation: StampAnnotation,
-    scale: number
-): HTMLElement {
+export function renderStamp(layer: HTMLElement, annotation: StampAnnotation, scale: number): HTMLElement {
     const scaled = scaleBounds(annotation.bounds, scale);
     const color = colorToRgb(annotation.color, "rgb(255, 0, 0)");
 
@@ -206,11 +188,7 @@ const CARET_ICON_SIZE = 12;
 /**
  * Render a caret annotation.
  */
-export function renderCaret(
-    layer: HTMLElement,
-    annotation: CaretAnnotation,
-    scale: number
-): Element {
+export function renderCaret(layer: HTMLElement, annotation: CaretAnnotation, scale: number): Element {
     const svg = createSvgOverlay();
     const color = colorToRgb(annotation.color, "rgb(0, 128, 255)");
     const opacity = annotation.opacity ?? 1;
@@ -246,7 +224,7 @@ export function renderCaret(
         const path = createSvgElement("path");
         path.setAttribute(
             "d",
-            `M ${centerX - caretWidth / 2} ${bottomY} L ${centerX} ${bottomY - caretHeight} L ${centerX + caretWidth / 2} ${bottomY}`
+            `M ${centerX - caretWidth / 2} ${bottomY} L ${centerX} ${bottomY - caretHeight} L ${centerX + caretWidth / 2} ${bottomY}`,
         );
         path.setAttribute("stroke", color);
         path.setAttribute("stroke-width", String(Math.max(2, 2 * zoomFactor)));

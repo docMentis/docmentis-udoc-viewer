@@ -1,9 +1,9 @@
 ---
 name: Bug Report
 about: Report a bug to help us improve udoc-viewer
-title: ''
+title: ""
 labels: bug
-assignees: ''
+assignees: ""
 ---
 
 ## Description
@@ -35,6 +35,7 @@ assignees: ''
 ## Document Info
 
 <!-- If the issue is related to rendering a specific document: -->
+
 - **Format**: (e.g., PDF, PPTX, PNG)
 - **File size**: (approximate)
 - **Can you share the file?**: Yes / No

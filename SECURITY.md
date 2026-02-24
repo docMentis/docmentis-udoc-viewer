@@ -30,7 +30,7 @@ This policy covers the JavaScript/TypeScript source code in this repository and 
 We provide security fixes for the latest release only.
 
 | Version | Supported |
-|---------|-----------|
+| ------- | --------- |
 | Latest  | Yes       |
 | Older   | No        |
 

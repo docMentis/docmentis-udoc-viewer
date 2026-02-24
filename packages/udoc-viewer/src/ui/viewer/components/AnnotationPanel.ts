@@ -10,7 +10,7 @@
  */
 
 import type { Store } from "../../framework/store";
-import { subscribeSelector, shallowEqual } from "../../framework/selectors";
+import { subscribeSelector } from "../../framework/selectors";
 import type { ViewerState } from "../state";
 import type { Action } from "../actions";
 import type { Annotation } from "../annotation";
@@ -40,7 +40,7 @@ type AnnotationPanelSlice = {
  * Filter annotations to only those with metadata (comments).
  */
 function filterAnnotationsWithMetadata(annotations: Annotation[]): Annotation[] {
-    return annotations.filter(annotation => {
+    return annotations.filter((annotation) => {
         const meta = annotation.metadata;
         return meta && (meta.author || meta.contents || meta.subject);
     });
@@ -88,8 +88,6 @@ export function createAnnotationPanel() {
 
     let unsubRender: (() => void) | null = null;
     let storeRef: Store<ViewerState, Action> | null = null;
-    let cachedSlice: AnnotationPanelSlice | null = null;
-
     function renderPlaceholder(): void {
         el.innerHTML = `
             <div class="udoc-annotation-panel__placeholder">
@@ -108,16 +106,12 @@ export function createAnnotationPanel() {
         `;
     }
 
-    function renderCommentItem(
-        container: HTMLElement,
-        annotation: Annotation,
-        pageIndex: number,
-        depth: number
-    ): void {
+    function renderCommentItem(container: HTMLElement, annotation: Annotation, pageIndex: number, depth: number): void {
         const item = document.createElement("div");
-        item.className = depth > 0
-            ? `udoc-comment-item udoc-comment-reply udoc-comment-depth-${Math.min(depth, 3)}`
-            : "udoc-comment-item";
+        item.className =
+            depth > 0
+                ? `udoc-comment-item udoc-comment-reply udoc-comment-depth-${Math.min(depth, 3)}`
+                : "udoc-comment-item";
 
         // Icon
         const icon = document.createElement("div");
@@ -181,7 +175,7 @@ export function createAnnotationPanel() {
                 storeRef.dispatch({
                     type: "HIGHLIGHT_ANNOTATION",
                     pageIndex,
-                    bounds: annotation.bounds
+                    bounds: annotation.bounds,
                 });
             }
         });
@@ -290,8 +284,6 @@ export function createAnnotationPanel() {
     }
 
     function applyState(slice: AnnotationPanelSlice): void {
-        // Skip if unchanged (deep comparison for Map is expensive, so rely on selector memoization)
-        cachedSlice = slice;
         render(slice);
     }
 
@@ -301,7 +293,7 @@ export function createAnnotationPanel() {
 
         applyState(selectAnnotationPanel(store.getState()));
         unsubRender = subscribeSelector(store, selectAnnotationPanel, applyState, {
-            equality: annotationPanelEqual
+            equality: annotationPanelEqual,
         });
     }
 
@@ -319,15 +311,14 @@ function selectAnnotationPanel(state: ViewerState): AnnotationPanelSlice {
     const isOpen = isCommentsTab;
 
     // Check if we have annotations for all pages
-    const allAnnotationsLoaded = state.doc !== null &&
-        state.pageCount > 0 &&
-        state.pageAnnotations.size >= state.pageCount;
+    const allAnnotationsLoaded =
+        state.doc !== null && state.pageCount > 0 && state.pageAnnotations.size >= state.pageCount;
 
     return {
         isOpen,
         isCommentsTab,
         annotationsByPage: state.pageAnnotations,
-        allAnnotationsLoaded
+        allAnnotationsLoaded,
     };
 }
 

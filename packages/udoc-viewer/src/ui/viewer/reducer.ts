@@ -49,7 +49,7 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
                 pageAnnotations: new Map(),
                 annotationsLoading: new Set(),
                 pageText: new Map(),
-                textLoading: new Set()
+                textLoading: new Set(),
             };
         }
         case "SET_PAGE": {
@@ -103,7 +103,7 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
             return {
                 ...state,
                 pageAnnotations: newAnnotations,
-                annotationsLoading: newLoading
+                annotationsLoading: newLoading,
             };
         }
         case "CLEAR_ANNOTATIONS": {
@@ -111,7 +111,7 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
             return {
                 ...state,
                 pageAnnotations: new Map(),
-                annotationsLoading: new Set()
+                annotationsLoading: new Set(),
             };
         }
 
@@ -131,7 +131,7 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
             return {
                 ...state,
                 pageText: newText,
-                textLoading: newLoading
+                textLoading: newLoading,
             };
         }
         case "CLEAR_TEXT": {
@@ -139,7 +139,7 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
             return {
                 ...state,
                 pageText: new Map(),
-                textLoading: new Set()
+                textLoading: new Set(),
             };
         }
 
@@ -147,7 +147,11 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
         case "NAVIGATE_TO_PAGE": {
             const page = clamp(action.page, 1, Math.max(1, state.pageCount || 1));
             const target = { page };
-            if (state.navigationTarget?.page === page && !state.navigationTarget.scrollTo && !state.navigationTarget.zoom) {
+            if (
+                state.navigationTarget?.page === page &&
+                !state.navigationTarget.scrollTo &&
+                !state.navigationTarget.zoom
+            ) {
                 return state;
             }
             return { ...state, navigationTarget: target };
@@ -191,14 +195,14 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
         case "ZOOM_IN": {
             const steps = state.zoomSteps;
             const currentZoom = state.effectiveZoom ?? state.zoom;
-            const nextStep = steps.find(s => s > currentZoom + 1e-9) ?? steps[steps.length - 1];
+            const nextStep = steps.find((s) => s > currentZoom + 1e-9) ?? steps[steps.length - 1];
             if (currentZoom >= nextStep - 1e-9 && state.zoomMode === "custom") return state;
             return { ...state, zoom: nextStep, zoomMode: "custom" };
         }
         case "ZOOM_OUT": {
             const steps = state.zoomSteps;
             const currentZoom = state.effectiveZoom ?? state.zoom;
-            const prevStep = [...steps].reverse().find(s => s < currentZoom - 1e-9) ?? steps[0];
+            const prevStep = [...steps].reverse().find((s) => s < currentZoom - 1e-9) ?? steps[0];
             if (currentZoom <= prevStep + 1e-9 && state.zoomMode === "custom") return state;
             return { ...state, zoom: prevStep, zoomMode: "custom" };
         }
@@ -219,6 +223,7 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
                 case "page-only":
                     return { ...state, spacingMode: action.mode, pageSpacing: 20, spreadSpacing: 0 };
             }
+            break;
         }
 
         // Spacing
@@ -258,8 +263,8 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
                 ...state,
                 highlightedAnnotation: {
                     pageIndex: action.pageIndex,
-                    bounds: action.bounds
-                }
+                    bounds: action.bounds,
+                },
             };
         }
         case "CLEAR_ANNOTATION_HIGHLIGHT": {
@@ -279,7 +284,7 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
                 ...state,
                 isDownloading: true,
                 downloadLoaded: action.loaded,
-                downloadTotal: action.total
+                downloadTotal: action.total,
             };
         }
         case "CLEAR_DOWNLOAD_PROGRESS": {
@@ -288,7 +293,7 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
                 ...state,
                 isDownloading: false,
                 downloadLoaded: 0,
-                downloadTotal: 0
+                downloadTotal: 0,
             };
         }
 

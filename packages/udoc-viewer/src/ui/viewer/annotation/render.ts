@@ -22,7 +22,7 @@ import type {
     RedactAnnotation,
     LinkAnnotation,
     Rect,
-    MarkupMetadata
+    MarkupMetadata,
 } from "./types";
 import { boundsMatch, applyBoundsStyle } from "./utils";
 import * as MarkupRenderer from "./MarkupRenderer";
@@ -70,7 +70,7 @@ export function renderAnnotation(
     layer: HTMLElement,
     annotation: Annotation,
     scale: number,
-    onShowPopup?: TextRenderer.ShowPopupCallback
+    onShowPopup?: TextRenderer.ShowPopupCallback,
 ): Element | null {
     switch (annotation.type) {
         // Link
@@ -122,11 +122,7 @@ export function renderAnnotation(
 /**
  * Create a generic placeholder for unknown annotation types.
  */
-function createGenericAnnotation(
-    layer: HTMLElement,
-    annotation: Annotation,
-    scale: number
-): HTMLElement {
+function createGenericAnnotation(layer: HTMLElement, annotation: Annotation, scale: number): HTMLElement {
     const el = document.createElement("div");
     el.className = `udoc-annotation udoc-annotation--${annotation.type}`;
     applyBoundsStyle(el, annotation.bounds, scale);
@@ -142,7 +138,7 @@ export function renderAnnotationsToLayer(
     annotations: Annotation[],
     scale: number,
     highlightBounds?: Rect | null,
-    onShowPopup?: TextRenderer.ShowPopupCallback
+    onShowPopup?: TextRenderer.ShowPopupCallback,
 ): void {
     // Skip if no annotations to render
     if (annotations.length === 0) {
@@ -191,7 +187,7 @@ export function closeAnnotationPopup(): void {
 export function showAnnotationPopup(
     annotation: { metadata?: MarkupMetadata; contents?: string },
     anchorEl: HTMLElement,
-    container: HTMLElement
+    container: HTMLElement,
 ): void {
     // Close any existing popup
     closeAnnotationPopup();

@@ -102,7 +102,7 @@ export function createRightPanel() {
         // Subscribe to state changes
         applyState(selectRightPanel(store.getState()));
         unsubRender = subscribeSelector(store, selectRightPanel, applyState, {
-            equality: shallowEqual
+            equality: shallowEqual,
         });
     }
 
@@ -123,6 +123,6 @@ function selectRightPanel(state: ViewerState): RightPanelSlice {
     return {
         open: isRightTab,
         activeTab: isRightTab ? panel : null,
-        width: state.rightPanelWidth
+        width: state.rightPanelWidth,
     };
 }

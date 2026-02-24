@@ -10,18 +10,13 @@ import type {
     InkAnnotation,
     RedactAnnotation,
     LineEnding,
-    Quad
 } from "./types";
 import { colorToRgb, scaleBounds, createSvgOverlay, createSvgElement } from "./utils";
 
 /**
  * Render a line annotation with optional line endings.
  */
-export function renderLine(
-    layer: HTMLElement,
-    annotation: LineAnnotation,
-    scale: number
-): Element {
+export function renderLine(layer: HTMLElement, annotation: LineAnnotation, scale: number): Element {
     const svg = createSvgOverlay();
     const color = colorToRgb(annotation.color, "rgb(0, 0, 0)");
     const interiorColor = colorToRgb(annotation.interiorColor, color);
@@ -50,7 +45,16 @@ export function renderLine(
 
     // Draw line endings
     const angle = Math.atan2(endY - startY, endX - startX);
-    drawLineEnding(g, startX, startY, annotation.startEnding || "None", angle + Math.PI, strokeWidth, color, interiorColor);
+    drawLineEnding(
+        g,
+        startX,
+        startY,
+        annotation.startEnding || "None",
+        angle + Math.PI,
+        strokeWidth,
+        color,
+        interiorColor,
+    );
     drawLineEnding(g, endX, endY, annotation.endEnding || "None", angle, strokeWidth, color, interiorColor);
 
     svg.appendChild(g);
@@ -69,7 +73,7 @@ function drawLineEnding(
     angle: number,
     strokeWidth: number,
     color: string,
-    interiorColor: string
+    interiorColor: string,
 ): void {
     if (ending === "None") return;
 
@@ -204,16 +208,10 @@ function drawLineEnding(
 /**
  * Render a square/rectangle annotation.
  */
-export function renderSquare(
-    layer: HTMLElement,
-    annotation: SquareAnnotation,
-    scale: number
-): Element {
+export function renderSquare(layer: HTMLElement, annotation: SquareAnnotation, scale: number): Element {
     const svg = createSvgOverlay();
     const color = colorToRgb(annotation.color, "rgb(0, 0, 0)");
-    const interiorColor = annotation.interiorColor
-        ? colorToRgb(annotation.interiorColor, "none")
-        : "none";
+    const interiorColor = annotation.interiorColor ? colorToRgb(annotation.interiorColor, "none") : "none";
     const strokeWidth = (annotation.borderWidth ?? 1) * scale;
     const opacity = annotation.opacity ?? 1;
 
@@ -242,16 +240,10 @@ export function renderSquare(
 /**
  * Render a circle/ellipse annotation.
  */
-export function renderCircle(
-    layer: HTMLElement,
-    annotation: CircleAnnotation,
-    scale: number
-): Element {
+export function renderCircle(layer: HTMLElement, annotation: CircleAnnotation, scale: number): Element {
     const svg = createSvgOverlay();
     const color = colorToRgb(annotation.color, "rgb(0, 0, 0)");
-    const interiorColor = annotation.interiorColor
-        ? colorToRgb(annotation.interiorColor, "none")
-        : "none";
+    const interiorColor = annotation.interiorColor ? colorToRgb(annotation.interiorColor, "none") : "none";
     const strokeWidth = (annotation.borderWidth ?? 1) * scale;
     const opacity = annotation.opacity ?? 1;
 
@@ -285,30 +277,24 @@ export function renderCircle(
 /**
  * Render a polygon annotation (closed shape).
  */
-export function renderPolygon(
-    layer: HTMLElement,
-    annotation: PolygonAnnotation,
-    scale: number
-): Element {
+export function renderPolygon(layer: HTMLElement, annotation: PolygonAnnotation, scale: number): Element {
     if (!annotation.vertices || annotation.vertices.length < 3) {
         return document.createElement("div");
     }
 
     const svg = createSvgOverlay();
     const color = colorToRgb(annotation.color, "rgb(0, 0, 0)");
-    const interiorColor = annotation.interiorColor
-        ? colorToRgb(annotation.interiorColor, "none")
-        : "none";
+    const interiorColor = annotation.interiorColor ? colorToRgb(annotation.interiorColor, "none") : "none";
     const strokeWidth = (annotation.borderWidth ?? 1) * scale;
     const opacity = annotation.opacity ?? 1;
 
-    const scaledPoints = annotation.vertices.map(p => ({
+    const scaledPoints = annotation.vertices.map((p) => ({
         x: p.x * scale,
-        y: p.y * scale
+        y: p.y * scale,
     }));
 
     const polygon = createSvgElement("polygon");
-    polygon.setAttribute("points", scaledPoints.map(p => `${p.x},${p.y}`).join(" "));
+    polygon.setAttribute("points", scaledPoints.map((p) => `${p.x},${p.y}`).join(" "));
     polygon.setAttribute("fill", interiorColor);
     polygon.setAttribute("stroke", color);
     polygon.setAttribute("stroke-width", String(strokeWidth));
@@ -322,11 +308,7 @@ export function renderPolygon(
 /**
  * Render a polyline annotation (open path).
  */
-export function renderPolyLine(
-    layer: HTMLElement,
-    annotation: PolyLineAnnotation,
-    scale: number
-): Element {
+export function renderPolyLine(layer: HTMLElement, annotation: PolyLineAnnotation, scale: number): Element {
     if (!annotation.vertices || annotation.vertices.length < 2) {
         return document.createElement("div");
     }
@@ -336,13 +318,13 @@ export function renderPolyLine(
     const strokeWidth = (annotation.borderWidth ?? 1) * scale;
     const opacity = annotation.opacity ?? 1;
 
-    const scaledPoints = annotation.vertices.map(p => ({
+    const scaledPoints = annotation.vertices.map((p) => ({
         x: p.x * scale,
-        y: p.y * scale
+        y: p.y * scale,
     }));
 
     const polyline = createSvgElement("polyline");
-    polyline.setAttribute("points", scaledPoints.map(p => `${p.x},${p.y}`).join(" "));
+    polyline.setAttribute("points", scaledPoints.map((p) => `${p.x},${p.y}`).join(" "));
     polyline.setAttribute("fill", "none");
     polyline.setAttribute("stroke", color);
     polyline.setAttribute("stroke-width", String(strokeWidth));
@@ -356,11 +338,7 @@ export function renderPolyLine(
 /**
  * Render an ink (freehand) annotation.
  */
-export function renderInk(
-    layer: HTMLElement,
-    annotation: InkAnnotation,
-    scale: number
-): Element {
+export function renderInk(layer: HTMLElement, annotation: InkAnnotation, scale: number): Element {
     if (!annotation.inkList || annotation.inkList.length === 0) {
         return document.createElement("div");
     }
@@ -402,11 +380,7 @@ export function renderInk(
 /**
  * Render a redact annotation (marks content for removal).
  */
-export function renderRedact(
-    layer: HTMLElement,
-    annotation: RedactAnnotation,
-    scale: number
-): Element {
+export function renderRedact(layer: HTMLElement, annotation: RedactAnnotation, scale: number): Element {
     const svg = createSvgOverlay();
     const borderColor = colorToRgb(annotation.color, "rgb(255, 0, 0)");
     const fillColor = colorToRgb(annotation.interiorColor, "rgb(0, 0, 0)");
@@ -419,12 +393,12 @@ export function renderRedact(
     // If we have quads, draw each quad region
     if (annotation.quads && annotation.quads.length > 0) {
         for (const quad of annotation.quads) {
-            const scaledPoints = quad.points.map(p => ({
+            const scaledPoints = quad.points.map((p) => ({
                 x: p.x * scale,
-                y: p.y * scale
+                y: p.y * scale,
             }));
             const polygon = createSvgElement("polygon");
-            polygon.setAttribute("points", scaledPoints.map(p => `${p.x},${p.y}`).join(" "));
+            polygon.setAttribute("points", scaledPoints.map((p) => `${p.x},${p.y}`).join(" "));
             polygon.setAttribute("fill", fillColor);
             polygon.setAttribute("fill-opacity", "0.3");
             polygon.setAttribute("stroke", borderColor);

@@ -73,7 +73,11 @@ export abstract class Component<P = {}, S = {}> {
             this.onUnmount();
         } finally {
             for (const off of this.cleanups) {
-                try { off(); } catch (e) { console.error("Component cleanup error:", e); }
+                try {
+                    off();
+                } catch (e) {
+                    console.error("Component cleanup error:", e);
+                }
             }
             this.cleanups = [];
             this.el.remove();
