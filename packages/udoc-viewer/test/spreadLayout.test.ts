@@ -198,8 +198,6 @@ describe("findVisibleSpreadRange", () => {
 });
 
 describe("calculateSpreadLayouts", () => {
-    const originalWindow = global.window;
-
     beforeEach(() => {
         vi.stubGlobal("window", { devicePixelRatio: 1 });
     });
