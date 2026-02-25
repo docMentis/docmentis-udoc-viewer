@@ -12,9 +12,8 @@
         "strict": true,
         "esModuleInterop": true,
         "skipLibCheck": true,
-        "forceConsistentCasingInFileNames": true,
-        "types": ["vitest/globals"]
+        "forceConsistentCasingInFileNames": true
     },
-    "include": ["src", "test", "package.json"],
+    "include": ["src", "package.json"],
     "exclude": ["node_modules", "dist"]
 }
