@@ -665,6 +665,80 @@
     height: 20px;
 }
 
+/* Toolbar center section (inline controls when floating toolbar is hidden) */
+.udoc-viewer-root .udoc-toolbar__center {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: 1;
+    justify-content: center;
+}
+
+.udoc-viewer-root .udoc-toolbar__group {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.udoc-viewer-root .udoc-toolbar__divider {
+    width: 1px;
+    height: 20px;
+    background: #ddd;
+    margin: 0 4px;
+}
+
+.udoc-viewer-root .udoc-toolbar__btn--nav {
+    width: 28px;
+    height: 28px;
+}
+
+.udoc-viewer-root .udoc-toolbar__btn--nav svg {
+    width: 18px;
+    height: 18px;
+}
+
+.udoc-viewer-root .udoc-toolbar__page-info {
+    display: flex;
+    align-items: center;
+    font-size: 13px;
+    color: #555;
+}
+
+.udoc-viewer-root .udoc-toolbar__page-input {
+    width: 36px;
+    height: 24px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    text-align: center;
+    font-size: 13px;
+    padding: 0 2px;
+    background: #fff;
+    color: #333;
+}
+
+.udoc-viewer-root .udoc-toolbar__page-input:focus {
+    outline: none;
+    border-color: #999;
+}
+
+.udoc-viewer-root .udoc-toolbar__page-total {
+    font-size: 13px;
+    color: #777;
+    white-space: nowrap;
+}
+
+/* Zoom dropdown in toolbar: drops down instead of up */
+.udoc-viewer-root .udoc-zoom-dropdown--toolbar .udoc-zoom-dropdown__menu {
+    bottom: auto;
+    top: calc(100% + 8px);
+}
+
+/* View mode menu in toolbar: drops down instead of up */
+.udoc-viewer-root .udoc-toolbar__center .udoc-view-mode-menu__dropdown {
+    bottom: auto;
+    top: calc(100% + 8px);
+}
+
 /* Right Panel */
 .udoc-viewer-root .udoc-right-panel {
     position: relative;

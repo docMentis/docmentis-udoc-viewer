@@ -83,6 +83,7 @@ export function mountViewerShell(
         annotationsLoading: new Set(),
         pageText: new Map(),
         textLoading: new Set(),
+        disabledPanels: new Set(),
         ...overrides,
     };
 
@@ -124,11 +125,20 @@ export function mountViewerShell(
     panelOverlay.addEventListener("click", handleOverlayClick);
 
     // Subscribe to panel state to toggle udoc-panel-open class
+    // and toolbar slot visibility
     const unsubPanelClass = store.subscribeRender((prev, next) => {
         if ((prev.activePanel === null) !== (next.activePanel === null)) {
             layout.classList.toggle("udoc-panel-open", next.activePanel !== null);
         }
+        if (prev.toolbarVisible !== next.toolbarVisible) {
+            toolbarSlot.style.display = next.toolbarVisible ? "" : "none";
+        }
     });
+
+    // Apply initial toolbar visibility
+    if (!mergedInitialState.toolbarVisible) {
+        toolbarSlot.style.display = "none";
+    }
 
     store.dispatch({ type: "__INIT__" });
 

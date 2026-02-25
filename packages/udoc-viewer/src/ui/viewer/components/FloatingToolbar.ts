@@ -7,6 +7,7 @@ import { ICON_CHEVRON_LEFT, ICON_CHEVRON_RIGHT, ICON_CHEVRON_DOWN, ICON_ZOOM_IN,
 import { createViewModeMenu } from "./ViewModeMenu";
 
 interface FloatingToolbarSlice {
+    floatingToolbarVisible: boolean;
     page: number;
     pageCount: number;
     zoom: number;
@@ -17,6 +18,7 @@ interface FloatingToolbarSlice {
 
 function sliceEqual(a: FloatingToolbarSlice, b: FloatingToolbarSlice): boolean {
     return (
+        a.floatingToolbarVisible === b.floatingToolbarVisible &&
         a.page === b.page &&
         a.pageCount === b.pageCount &&
         a.zoom === b.zoom &&
@@ -330,6 +332,11 @@ export function createFloatingToolbar() {
         };
 
         const applyState = (slice: FloatingToolbarSlice) => {
+            // Visibility
+            el.style.display = slice.floatingToolbarVisible ? "" : "none";
+
+            if (!slice.floatingToolbarVisible) return;
+
             pageInput.value = String(slice.page);
             pageTotal.textContent = `\u00A0/ ${slice.pageCount}`;
 
@@ -367,6 +374,7 @@ export function createFloatingToolbar() {
 
 function selectSlice(state: ViewerState): FloatingToolbarSlice {
     return {
+        floatingToolbarVisible: state.floatingToolbarVisible,
         page: state.page,
         pageCount: state.pageCount,
         zoom: state.zoom,

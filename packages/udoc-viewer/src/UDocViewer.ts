@@ -12,7 +12,17 @@ import type { Destination, OutlineItem } from "./ui/viewer/navigation.js";
 import type { Annotation } from "./ui/viewer/annotation/index.js";
 export type { Annotation } from "./ui/viewer/annotation/index.js";
 import type { TextRun } from "./ui/viewer/text/index.js";
-import { getFormatDefaults, type DocumentFormat, type ViewModeDefaults } from "./ui/viewer/state.js";
+import {
+    getFormatDefaults,
+    type DocumentFormat,
+    type ViewModeDefaults,
+    type PanelTab,
+    type ScrollMode,
+    type LayoutMode,
+    type ZoomMode,
+    type PageRotation,
+    type SpacingMode,
+} from "./ui/viewer/state.js";
 import { PerformanceCounter, NoOpPerformanceCounter, type IPerformanceCounter } from "./performance/index.js";
 
 /**
@@ -103,6 +113,11 @@ export interface DownloadProgress {
 }
 
 /**
+ * UI component identifier for visibility events.
+ */
+export type UIComponent = "toolbar" | "floatingToolbar" | "leftPanel" | "rightPanel" | "fullscreen" | PanelTab;
+
+/**
  * Event map for viewer events.
  */
 export interface ViewerEventMap {
@@ -110,6 +125,9 @@ export interface ViewerEventMap {
     "document:close": Record<string, never>;
     "download:progress": DownloadProgress;
     error: { error: Error; phase: "fetch" | "parse" | "render" };
+    "page:change": { page: number; previousPage: number };
+    "ui:visibilityChange": { component: UIComponent; visible: boolean };
+    "panel:change": { panel: PanelTab | null; previousPanel: PanelTab | null };
 }
 
 type EventHandler<K extends keyof ViewerEventMap> = (payload: ViewerEventMap[K]) => void;
@@ -133,6 +151,7 @@ export class UDocViewer {
     private googleFontsEnabled: boolean;
     private viewOverrides: ViewModeDefaults;
     private currentFormat: DocumentFormat | null = null;
+    private storeUnsub: (() => void) | null = null;
 
     /**
      * @internal
@@ -169,6 +188,62 @@ export class UDocViewer {
             this.uiShell.setCallbacks({
                 onPasswordSubmit: (password: string) => this.handlePasswordSubmit(password),
             });
+
+            // Subscribe to store state changes to emit public events
+            this.storeUnsub = this.uiShell.store.subscribeEffect((prev, next) => {
+                if (prev.page !== next.page) {
+                    this.emit("page:change", { page: next.page, previousPage: prev.page });
+                }
+                if (prev.activePanel !== next.activePanel) {
+                    this.emit("panel:change", { panel: next.activePanel, previousPanel: prev.activePanel });
+                }
+                if (prev.toolbarVisible !== next.toolbarVisible) {
+                    this.emit("ui:visibilityChange", { component: "toolbar", visible: next.toolbarVisible });
+                }
+                if (prev.floatingToolbarVisible !== next.floatingToolbarVisible) {
+                    this.emit("ui:visibilityChange", {
+                        component: "floatingToolbar",
+                        visible: next.floatingToolbarVisible,
+                    });
+                }
+                if (prev.leftPanelVisible !== next.leftPanelVisible) {
+                    this.emit("ui:visibilityChange", {
+                        component: "leftPanel",
+                        visible: next.leftPanelVisible,
+                    });
+                }
+                if (prev.rightPanelVisible !== next.rightPanelVisible) {
+                    this.emit("ui:visibilityChange", {
+                        component: "rightPanel",
+                        visible: next.rightPanelVisible,
+                    });
+                }
+                if (prev.fullscreenButtonVisible !== next.fullscreenButtonVisible) {
+                    this.emit("ui:visibilityChange", {
+                        component: "fullscreen",
+                        visible: next.fullscreenButtonVisible,
+                    });
+                }
+                if (prev.disabledPanels !== next.disabledPanels) {
+                    // Emit events for panels whose disabled state changed
+                    const allPanels: PanelTab[] = [
+                        "thumbnail",
+                        "outline",
+                        "bookmarks",
+                        "layers",
+                        "attachments",
+                        "search",
+                        "comments",
+                    ];
+                    for (const panel of allPanels) {
+                        const wasDisabled = prev.disabledPanels.has(panel);
+                        const isDisabled = next.disabledPanels.has(panel);
+                        if (wasDisabled !== isDisabled) {
+                            this.emit("ui:visibilityChange", { component: panel, visible: !isDisabled });
+                        }
+                    }
+                }
+            });
         }
     }
 
@@ -192,6 +267,24 @@ export class UDocViewer {
         if (options.pageSpacing !== undefined) overrides.pageSpacing = options.pageSpacing;
         if (options.spreadSpacing !== undefined) overrides.spreadSpacing = options.spreadSpacing;
         if (options.activePanel !== undefined) overrides.activePanel = options.activePanel;
+        if (options.hideToolbar) overrides.toolbarVisible = false;
+        if (options.hideFloatingToolbar) overrides.floatingToolbarVisible = false;
+        if (options.disableFullscreen) overrides.fullscreenButtonVisible = false;
+        if (options.disableLeftPanel) overrides.leftPanelVisible = false;
+        if (options.disableRightPanel) overrides.rightPanelVisible = false;
+
+        // Collect individually disabled panels into the internal Set
+        const disabled: PanelTab[] = [];
+        if (options.disableThumbnails) disabled.push("thumbnail");
+        if (options.disableOutline) disabled.push("outline");
+        if (options.disableBookmarks) disabled.push("bookmarks");
+        if (options.disableLayers) disabled.push("layers");
+        if (options.disableAttachments) disabled.push("attachments");
+        if (options.disableSearch) disabled.push("search");
+        if (options.disableComments) disabled.push("comments");
+        if (disabled.length > 0) {
+            overrides.disabledPanels = new Set(disabled);
+        }
 
         return overrides;
     }
@@ -528,6 +621,259 @@ export class UDocViewer {
         this.uiShell.dispatch({ type: "NAVIGATE_TO_DESTINATION", destination });
     }
 
+    /**
+     * Navigate to the next page.
+     */
+    nextPage(): void {
+        this.ensureNotDestroyed();
+        this.ensureUiMode();
+        const state = this.uiShell!.getState();
+        if (state.page < state.pageCount) {
+            this.uiShell!.dispatch({ type: "NAVIGATE_TO_PAGE", page: state.page + 1 });
+        }
+    }
+
+    /**
+     * Navigate to the previous page.
+     */
+    previousPage(): void {
+        this.ensureNotDestroyed();
+        this.ensureUiMode();
+        const state = this.uiShell!.getState();
+        if (state.page > 1) {
+            this.uiShell!.dispatch({ type: "NAVIGATE_TO_PAGE", page: state.page - 1 });
+        }
+    }
+
+    // ===========================================================================
+    // Zoom
+    // ===========================================================================
+
+    /**
+     * Current zoom level (1 = 100%).
+     */
+    get zoom(): number {
+        if (this.uiShell) {
+            const state = this.uiShell.getState();
+            return state.zoomMode === "custom" ? state.zoom : (state.effectiveZoom ?? state.zoom);
+        }
+        return 1;
+    }
+
+    /**
+     * Current zoom mode.
+     */
+    get zoomMode(): ZoomMode {
+        if (this.uiShell) {
+            return this.uiShell.getState().zoomMode;
+        }
+        return "fit-spread-width";
+    }
+
+    /**
+     * Zoom in to the next zoom step.
+     */
+    zoomIn(): void {
+        this.ensureNotDestroyed();
+        this.ensureUiMode();
+        this.uiShell!.dispatch({ type: "ZOOM_IN" });
+    }
+
+    /**
+     * Zoom out to the previous zoom step.
+     */
+    zoomOut(): void {
+        this.ensureNotDestroyed();
+        this.ensureUiMode();
+        this.uiShell!.dispatch({ type: "ZOOM_OUT" });
+    }
+
+    /**
+     * Set zoom to a specific level (1 = 100%). Switches to custom zoom mode.
+     */
+    setZoom(zoom: number): void {
+        this.ensureNotDestroyed();
+        this.ensureUiMode();
+        this.uiShell!.dispatch({ type: "SET_ZOOM", zoom });
+    }
+
+    /**
+     * Set zoom mode.
+     */
+    setZoomMode(mode: ZoomMode): void {
+        this.ensureNotDestroyed();
+        this.ensureUiMode();
+        this.uiShell!.dispatch({ type: "SET_ZOOM_MODE", mode });
+    }
+
+    // ===========================================================================
+    // View Modes
+    // ===========================================================================
+
+    /** Current scroll mode. */
+    get scrollMode(): ScrollMode {
+        return this.uiShell?.getState().scrollMode ?? "continuous";
+    }
+
+    /** Current layout mode. */
+    get layoutMode(): LayoutMode {
+        return this.uiShell?.getState().layoutMode ?? "single-page";
+    }
+
+    /** Current page rotation in degrees. */
+    get pageRotation(): PageRotation {
+        return this.uiShell?.getState().pageRotation ?? 0;
+    }
+
+    /** Current spacing mode. */
+    get spacingMode(): SpacingMode {
+        return this.uiShell?.getState().spacingMode ?? "all";
+    }
+
+    /** Whether the viewer is in fullscreen mode. */
+    get isFullscreen(): boolean {
+        return this.uiShell?.getState().isFullscreen ?? false;
+    }
+
+    /**
+     * Set scroll mode.
+     */
+    setScrollMode(mode: ScrollMode): void {
+        this.ensureNotDestroyed();
+        this.ensureUiMode();
+        this.uiShell!.dispatch({ type: "SET_SCROLL_MODE", mode });
+    }
+
+    /**
+     * Set page layout mode.
+     */
+    setLayoutMode(mode: LayoutMode): void {
+        this.ensureNotDestroyed();
+        this.ensureUiMode();
+        this.uiShell!.dispatch({ type: "SET_LAYOUT_MODE", mode });
+    }
+
+    /**
+     * Set page rotation.
+     */
+    setPageRotation(rotation: PageRotation): void {
+        this.ensureNotDestroyed();
+        this.ensureUiMode();
+        this.uiShell!.dispatch({ type: "SET_PAGE_ROTATION", rotation });
+    }
+
+    /**
+     * Set spacing mode.
+     */
+    setSpacingMode(mode: SpacingMode): void {
+        this.ensureNotDestroyed();
+        this.ensureUiMode();
+        this.uiShell!.dispatch({ type: "SET_SPACING_MODE", mode });
+    }
+
+    /**
+     * Enter or exit fullscreen mode.
+     */
+    setFullscreen(fullscreen: boolean): void {
+        this.ensureNotDestroyed();
+        this.ensureUiMode();
+        this.uiShell!.dispatch({ type: "SET_FULLSCREEN", isFullscreen: fullscreen });
+        // Also toggle the actual browser fullscreen
+        const root = this.container?.querySelector(".udoc-viewer-root") as HTMLElement | null;
+        if (root) {
+            if (fullscreen && !document.fullscreenElement) {
+                root.requestFullscreen().catch(() => {});
+            } else if (!fullscreen && document.fullscreenElement) {
+                document.exitFullscreen().catch(() => {});
+            }
+        }
+    }
+
+    // ===========================================================================
+    // UI Component Visibility
+    // ===========================================================================
+
+    /**
+     * Show or hide the top toolbar.
+     */
+    setToolbarVisible(visible: boolean): void {
+        this.ensureNotDestroyed();
+        this.ensureUiMode();
+        this.uiShell!.dispatch({ type: "SET_TOOLBAR_VISIBLE", visible });
+    }
+
+    /**
+     * Show or hide the floating toolbar (page navigation, zoom, view mode controls).
+     */
+    setFloatingToolbarVisible(visible: boolean): void {
+        this.ensureNotDestroyed();
+        this.ensureUiMode();
+        this.uiShell!.dispatch({ type: "SET_FLOATING_TOOLBAR_VISIBLE", visible });
+    }
+
+    /**
+     * Enable or disable the fullscreen button.
+     */
+    setFullscreenEnabled(enabled: boolean): void {
+        this.ensureNotDestroyed();
+        this.ensureUiMode();
+        this.uiShell!.dispatch({ type: "SET_FULLSCREEN_BUTTON_VISIBLE", visible: enabled });
+    }
+
+    /**
+     * Enable or disable the entire left panel area.
+     * When disabled, the left panel is hidden and all left panel tabs are inaccessible.
+     */
+    setLeftPanelEnabled(enabled: boolean): void {
+        this.ensureNotDestroyed();
+        this.ensureUiMode();
+        this.uiShell!.dispatch({ type: "SET_LEFT_PANEL_VISIBLE", visible: enabled });
+    }
+
+    /**
+     * Enable or disable the entire right panel area.
+     * When disabled, the right panel is hidden and all right panel tabs are inaccessible.
+     */
+    setRightPanelEnabled(enabled: boolean): void {
+        this.ensureNotDestroyed();
+        this.ensureUiMode();
+        this.uiShell!.dispatch({ type: "SET_RIGHT_PANEL_VISIBLE", visible: enabled });
+    }
+
+    /**
+     * Enable or disable a specific panel tab.
+     * Disabled panels are removed from the UI and cannot be opened.
+     * If the panel is currently open and being disabled, it will be closed.
+     */
+    setPanelEnabled(panel: PanelTab, enabled: boolean): void {
+        this.ensureNotDestroyed();
+        this.ensureUiMode();
+        this.uiShell!.dispatch({ type: "SET_PANEL_DISABLED", panel, disabled: !enabled });
+    }
+
+    /**
+     * Open a specific panel.
+     * Has no effect if the panel is disabled via `setPanelEnabled()` or a `disable*` option.
+     */
+    openPanel(panel: PanelTab): void {
+        this.ensureNotDestroyed();
+        this.ensureUiMode();
+        this.uiShell!.dispatch({ type: "TOGGLE_PANEL", panel });
+        // If it was already open, TOGGLE_PANEL closed it. Re-open.
+        if (this.uiShell!.getState().activePanel !== panel) {
+            this.uiShell!.dispatch({ type: "TOGGLE_PANEL", panel });
+        }
+    }
+
+    /**
+     * Close the currently open panel.
+     */
+    closePanel(): void {
+        this.ensureNotDestroyed();
+        this.ensureUiMode();
+        this.uiShell!.dispatch({ type: "CLOSE_PANEL" });
+    }
+
     // ===========================================================================
     // Page Rendering
     // ===========================================================================
@@ -702,6 +1048,10 @@ export class UDocViewer {
         if (this.destroyed) return;
 
         this.destroyed = true;
+        if (this.storeUnsub) {
+            this.storeUnsub();
+            this.storeUnsub = null;
+        }
         if (this.uiShell) {
             this.uiShell.destroy();
             this.uiShell = null;
@@ -902,6 +1252,12 @@ export class UDocViewer {
         this.ensureNotDestroyed();
         if (!this.documentId) {
             throw new Error("No document loaded");
+        }
+    }
+
+    private ensureUiMode(): void {
+        if (!this.uiShell) {
+            throw new Error("This method requires UI mode (container must be provided)");
         }
     }
 }

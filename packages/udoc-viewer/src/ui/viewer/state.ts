@@ -147,6 +147,20 @@ export interface ViewerState {
     /** Right panel width in pixels (null = use CSS default) */
     rightPanelWidth: number | null;
 
+    // Component visibility
+    /** Whether the top toolbar is visible */
+    toolbarVisible: boolean;
+    /** Whether the floating toolbar (page nav + zoom) is visible */
+    floatingToolbarVisible: boolean;
+    /** Whether the left panel area is visible */
+    leftPanelVisible: boolean;
+    /** Whether the right panel area is visible */
+    rightPanelVisible: boolean;
+    /** Set of panel tabs that are disabled (removed from the UI) */
+    disabledPanels: ReadonlySet<PanelTab>;
+    /** Whether the fullscreen button is visible in the toolbar */
+    fullscreenButtonVisible: boolean;
+
     // Annotation highlight (for click-to-highlight from comments panel)
     /** Currently highlighted annotation (null = none) */
     highlightedAnnotation: {
@@ -205,6 +219,13 @@ export const initialState: ViewerState = {
     activePanel: null,
     leftPanelWidth: null,
     rightPanelWidth: null,
+
+    toolbarVisible: true,
+    floatingToolbarVisible: true,
+    leftPanelVisible: true,
+    rightPanelVisible: true,
+    disabledPanels: new Set(),
+    fullscreenButtonVisible: true,
 
     highlightedAnnotation: null,
 

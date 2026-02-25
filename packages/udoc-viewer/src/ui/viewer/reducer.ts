@@ -1,5 +1,5 @@
 import type { ViewerState } from "./state";
-import { initialState } from "./state";
+import { initialState, isLeftPanelTab } from "./state";
 import type { Action } from "./actions";
 import { destinationToNavigationTarget } from "./navigation";
 
@@ -240,6 +240,11 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
 
         // UI
         case "TOGGLE_PANEL": {
+            // Prevent opening a panel if its side is disabled
+            if (isLeftPanelTab(action.panel) && !state.leftPanelVisible) return state;
+            if (!isLeftPanelTab(action.panel) && !state.rightPanelVisible) return state;
+            // Prevent opening an individually disabled panel
+            if (state.disabledPanels.has(action.panel)) return state;
             const newPanel = state.activePanel === action.panel ? null : action.panel;
             if (state.activePanel === newPanel) return state;
             return { ...state, activePanel: newPanel };
@@ -255,6 +260,52 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
         case "SET_RIGHT_PANEL_WIDTH": {
             if (state.rightPanelWidth === action.width) return state;
             return { ...state, rightPanelWidth: action.width };
+        }
+
+        // Component visibility
+        case "SET_TOOLBAR_VISIBLE": {
+            if (state.toolbarVisible === action.visible) return state;
+            return { ...state, toolbarVisible: action.visible };
+        }
+        case "SET_FLOATING_TOOLBAR_VISIBLE": {
+            if (state.floatingToolbarVisible === action.visible) return state;
+            return { ...state, floatingToolbarVisible: action.visible };
+        }
+        case "SET_LEFT_PANEL_VISIBLE": {
+            if (state.leftPanelVisible === action.visible) return state;
+            // Close active panel if it's a left tab and we're hiding the left panel
+            const activePanel =
+                !action.visible && state.activePanel !== null && isLeftPanelTab(state.activePanel)
+                    ? null
+                    : state.activePanel;
+            return { ...state, leftPanelVisible: action.visible, activePanel };
+        }
+        case "SET_RIGHT_PANEL_VISIBLE": {
+            if (state.rightPanelVisible === action.visible) return state;
+            // Close active panel if it's a right tab and we're hiding the right panel
+            const activePanel =
+                !action.visible && state.activePanel !== null && !isLeftPanelTab(state.activePanel)
+                    ? null
+                    : state.activePanel;
+            return { ...state, rightPanelVisible: action.visible, activePanel };
+        }
+        case "SET_FULLSCREEN_BUTTON_VISIBLE": {
+            if (state.fullscreenButtonVisible === action.visible) return state;
+            return { ...state, fullscreenButtonVisible: action.visible };
+        }
+        case "SET_PANEL_DISABLED": {
+            const alreadyDisabled = state.disabledPanels.has(action.panel);
+            if (alreadyDisabled === action.disabled) return state;
+            const newDisabled = new Set(state.disabledPanels);
+            if (action.disabled) {
+                newDisabled.add(action.panel);
+            } else {
+                newDisabled.delete(action.panel);
+            }
+            // If the currently active panel is being disabled, close it
+            const activePanel =
+                action.disabled && state.activePanel === action.panel ? null : state.activePanel;
+            return { ...state, disabledPanels: newDisabled, activePanel };
         }
 
         // Annotation highlight

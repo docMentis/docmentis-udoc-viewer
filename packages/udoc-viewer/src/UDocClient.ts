@@ -179,6 +179,80 @@ export interface ViewerOptions {
      * @default false
      */
     hideAttribution?: boolean;
+
+    /**
+     * Hide the top toolbar.
+     * @default false
+     */
+    hideToolbar?: boolean;
+
+    /**
+     * Hide the floating toolbar (page navigation, zoom, view mode controls).
+     * When hidden and the top toolbar is visible, the controls are moved into the top toolbar.
+     * @default false
+     */
+    hideFloatingToolbar?: boolean;
+
+    /**
+     * Disable the fullscreen button.
+     * @default false
+     */
+    disableFullscreen?: boolean;
+
+    /**
+     * Disable the entire left panel area (thumbnails, outline, bookmarks, layers, attachments).
+     * @default false
+     */
+    disableLeftPanel?: boolean;
+
+    /**
+     * Disable the entire right panel area (search, comments).
+     * @default false
+     */
+    disableRightPanel?: boolean;
+
+    /**
+     * Disable the thumbnail panel tab.
+     * Disabled panels are removed from the UI and cannot be opened.
+     * @default false
+     */
+    disableThumbnails?: boolean;
+
+    /**
+     * Disable the outline (table of contents) panel tab.
+     * @default false
+     */
+    disableOutline?: boolean;
+
+    /**
+     * Disable the bookmarks panel tab.
+     * @default false
+     */
+    disableBookmarks?: boolean;
+
+    /**
+     * Disable the layers panel tab.
+     * @default false
+     */
+    disableLayers?: boolean;
+
+    /**
+     * Disable the attachments panel tab.
+     * @default false
+     */
+    disableAttachments?: boolean;
+
+    /**
+     * Disable the search panel tab.
+     * @default false
+     */
+    disableSearch?: boolean;
+
+    /**
+     * Disable the comments panel tab.
+     * @default false
+     */
+    disableComments?: boolean;
 }
 
 /**

@@ -1,14 +1,18 @@
 import type { Store } from "../../framework/store";
-import { subscribeSelector, shallowEqual } from "../../framework/selectors";
+import { subscribeSelector } from "../../framework/selectors";
 import type { ViewerState, RightPanelTab } from "../state";
 import { isLeftPanelTab } from "../state";
 import type { Action } from "../actions";
 import { createAnnotationPanel } from "./AnnotationPanel";
 
+const RIGHT_TABS: RightPanelTab[] = ["search", "comments"];
+
 type RightPanelSlice = {
     open: boolean;
     activeTab: RightPanelTab | null;
     width: number | null;
+    panelVisible: boolean;
+    allDisabled: boolean;
 };
 
 export function createRightPanel() {
@@ -33,6 +37,9 @@ export function createRightPanel() {
     let storeRef: Store<ViewerState, Action> | null = null;
 
     function applyState(slice: RightPanelSlice): void {
+        // Hide entire panel area if disabled or all right tabs are disabled
+        el.style.display = !slice.panelVisible || slice.allDisabled ? "none" : "";
+
         el.classList.toggle("udoc-right-panel--closed", !slice.open);
 
         // Apply width from state (only when open)
@@ -102,7 +109,12 @@ export function createRightPanel() {
         // Subscribe to state changes
         applyState(selectRightPanel(store.getState()));
         unsubRender = subscribeSelector(store, selectRightPanel, applyState, {
-            equality: shallowEqual,
+            equality: (a, b) =>
+                a.open === b.open &&
+                a.activeTab === b.activeTab &&
+                a.width === b.width &&
+                a.panelVisible === b.panelVisible &&
+                a.allDisabled === b.allDisabled,
         });
     }
 
@@ -120,9 +132,12 @@ export function createRightPanel() {
 function selectRightPanel(state: ViewerState): RightPanelSlice {
     const panel = state.activePanel;
     const isRightTab = panel !== null && !isLeftPanelTab(panel);
+    const allDisabled = RIGHT_TABS.every((tab) => state.disabledPanels.has(tab));
     return {
         open: isRightTab,
         activeTab: isRightTab ? panel : null,
         width: state.rightPanelWidth,
+        panelVisible: state.rightPanelVisible,
+        allDisabled,
     };
 }

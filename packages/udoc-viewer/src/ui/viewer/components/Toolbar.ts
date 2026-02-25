@@ -1,7 +1,21 @@
 import type { Store } from "../../framework/store";
-import type { ViewerState } from "../state";
+import { subscribeSelector } from "../../framework/selectors";
+import { on } from "../../framework/events";
+import type { ViewerState, ZoomMode } from "../state";
 import type { Action } from "../actions";
-import { ICON_MENU, ICON_SEARCH, ICON_COMMENTS, ICON_FULLSCREEN, ICON_FULLSCREEN_EXIT } from "../icons";
+import {
+    ICON_MENU,
+    ICON_SEARCH,
+    ICON_COMMENTS,
+    ICON_FULLSCREEN,
+    ICON_FULLSCREEN_EXIT,
+    ICON_CHEVRON_LEFT,
+    ICON_CHEVRON_RIGHT,
+    ICON_CHEVRON_DOWN,
+    ICON_ZOOM_IN,
+    ICON_ZOOM_OUT,
+} from "../icons";
+import { createViewModeMenu } from "./ViewModeMenu";
 
 function createButton(className: string, label: string, iconSvg: string): HTMLButtonElement {
     const btn = document.createElement("button");
@@ -9,6 +23,56 @@ function createButton(className: string, label: string, iconSvg: string): HTMLBu
     btn.setAttribute("aria-label", label);
     btn.innerHTML = iconSvg;
     return btn;
+}
+
+/** Format zoom as percentage string, preserving 1 decimal when present */
+function formatZoomPercent(zoom: number): string {
+    const percent = Math.round(zoom * 1000) / 10;
+    return percent % 1 === 0 ? `${percent}%` : `${percent.toFixed(1)}%`;
+}
+
+interface ToolbarSlice {
+    toolbarVisible: boolean;
+    floatingToolbarVisible: boolean;
+    fullscreenButtonVisible: boolean;
+    isFullscreen: boolean;
+    // Inline controls state (only used when floating toolbar is hidden)
+    page: number;
+    pageCount: number;
+    zoom: number;
+    zoomMode: ZoomMode;
+    effectiveZoom: number | null;
+    zoomSteps: readonly number[];
+}
+
+function sliceEqual(a: ToolbarSlice, b: ToolbarSlice): boolean {
+    return (
+        a.toolbarVisible === b.toolbarVisible &&
+        a.floatingToolbarVisible === b.floatingToolbarVisible &&
+        a.fullscreenButtonVisible === b.fullscreenButtonVisible &&
+        a.isFullscreen === b.isFullscreen &&
+        a.page === b.page &&
+        a.pageCount === b.pageCount &&
+        a.zoom === b.zoom &&
+        a.zoomMode === b.zoomMode &&
+        a.effectiveZoom === b.effectiveZoom &&
+        a.zoomSteps === b.zoomSteps
+    );
+}
+
+function selectSlice(state: ViewerState): ToolbarSlice {
+    return {
+        toolbarVisible: state.toolbarVisible,
+        floatingToolbarVisible: state.floatingToolbarVisible,
+        fullscreenButtonVisible: state.fullscreenButtonVisible,
+        isFullscreen: state.isFullscreen,
+        page: state.page,
+        pageCount: state.pageCount,
+        zoom: state.zoom,
+        zoomMode: state.zoomMode,
+        effectiveZoom: state.effectiveZoom,
+        zoomSteps: state.zoomSteps,
+    };
 }
 
 export function createToolbar() {
@@ -21,9 +85,94 @@ export function createToolbar() {
     const menuBtn = createButton("udoc-toolbar__btn--menu", "Menu", ICON_MENU);
     leftSection.appendChild(menuBtn);
 
-    // Spacer
-    const spacer = document.createElement("div");
-    spacer.className = "udoc-toolbar__spacer";
+    // Center section (inline controls — visible when floating toolbar is hidden)
+    const centerSection = document.createElement("div");
+    centerSection.className = "udoc-toolbar__center";
+    centerSection.style.display = "none";
+
+    // -- Page navigation
+    const navGroup = document.createElement("div");
+    navGroup.className = "udoc-toolbar__group";
+
+    const prevBtn = document.createElement("button");
+    prevBtn.className = "udoc-toolbar__btn udoc-toolbar__btn--nav";
+    prevBtn.innerHTML = ICON_CHEVRON_LEFT;
+    prevBtn.title = "Previous page";
+
+    const pageInfo = document.createElement("div");
+    pageInfo.className = "udoc-toolbar__page-info";
+
+    const pageInput = document.createElement("input");
+    pageInput.className = "udoc-toolbar__page-input";
+    pageInput.type = "text";
+    pageInput.inputMode = "numeric";
+
+    const pageTotal = document.createElement("span");
+    pageTotal.className = "udoc-toolbar__page-total";
+
+    pageInfo.append(pageInput, pageTotal);
+
+    const nextBtn = document.createElement("button");
+    nextBtn.className = "udoc-toolbar__btn udoc-toolbar__btn--nav";
+    nextBtn.innerHTML = ICON_CHEVRON_RIGHT;
+    nextBtn.title = "Next page";
+
+    navGroup.append(prevBtn, pageInfo, nextBtn);
+
+    // -- Divider
+    const divider1 = document.createElement("div");
+    divider1.className = "udoc-toolbar__divider";
+
+    // -- Zoom controls
+    const zoomGroup = document.createElement("div");
+    zoomGroup.className = "udoc-toolbar__group";
+
+    const zoomOutBtn = document.createElement("button");
+    zoomOutBtn.className = "udoc-toolbar__btn udoc-toolbar__btn--nav";
+    zoomOutBtn.innerHTML = ICON_ZOOM_OUT;
+    zoomOutBtn.title = "Zoom out";
+
+    // Zoom dropdown container
+    const zoomDropdownContainer = document.createElement("div");
+    zoomDropdownContainer.className = "udoc-zoom-dropdown udoc-zoom-dropdown--toolbar";
+
+    const zoomToggle = document.createElement("div");
+    zoomToggle.className = "udoc-zoom-dropdown__toggle";
+
+    const zoomInput = document.createElement("input");
+    zoomInput.className = "udoc-zoom-dropdown__input";
+    zoomInput.type = "text";
+    zoomInput.inputMode = "numeric";
+    zoomInput.title = "Zoom level";
+
+    const zoomChevron = document.createElement("button");
+    zoomChevron.className = "udoc-zoom-dropdown__chevron";
+    zoomChevron.innerHTML = ICON_CHEVRON_DOWN;
+    zoomChevron.title = "Zoom options";
+
+    zoomToggle.append(zoomInput, zoomChevron);
+
+    const zoomDropdown = document.createElement("div");
+    zoomDropdown.className = "udoc-zoom-dropdown__menu";
+    zoomDropdown.style.display = "none";
+
+    zoomDropdownContainer.append(zoomToggle, zoomDropdown);
+
+    const zoomInBtn = document.createElement("button");
+    zoomInBtn.className = "udoc-toolbar__btn udoc-toolbar__btn--nav";
+    zoomInBtn.innerHTML = ICON_ZOOM_IN;
+    zoomInBtn.title = "Zoom in";
+
+    zoomGroup.append(zoomOutBtn, zoomDropdownContainer, zoomInBtn);
+
+    // -- Divider
+    const divider2 = document.createElement("div");
+    divider2.className = "udoc-toolbar__divider";
+
+    // -- View mode menu
+    const viewModeMenu = createViewModeMenu();
+
+    centerSection.append(navGroup, divider1, zoomGroup, divider2, viewModeMenu.el);
 
     // Right section
     const rightSection = document.createElement("div");
@@ -33,10 +182,96 @@ export function createToolbar() {
     const fullscreenBtn = createButton("udoc-toolbar__btn--fullscreen", "Fullscreen", ICON_FULLSCREEN);
     rightSection.append(searchBtn, commentsBtn, fullscreenBtn);
 
-    el.append(leftSection, spacer, rightSection);
+    el.append(leftSection, centerSection, rightSection);
 
     const unsubEvents: Array<() => void> = [];
     let unsubRender: (() => void) | null = null;
+    let viewModeMounted = false;
+
+    // Zoom dropdown local state
+    let isZoomDropdownOpen = false;
+
+    const openZoomDropdown = () => {
+        if (!isZoomDropdownOpen) {
+            isZoomDropdownOpen = true;
+            zoomDropdown.style.display = "block";
+            zoomChevron.classList.add("udoc-zoom-dropdown__chevron--active");
+        }
+    };
+
+    const closeZoomDropdown = () => {
+        if (isZoomDropdownOpen) {
+            isZoomDropdownOpen = false;
+            zoomDropdown.style.display = "none";
+            zoomChevron.classList.remove("udoc-zoom-dropdown__chevron--active");
+        }
+    };
+
+    const ZOOM_MODE_OPTIONS: Array<{ mode: ZoomMode; label: string }> = [
+        { mode: "fit-spread-width", label: "Fit Width" },
+        { mode: "fit-spread-height", label: "Fit Height" },
+        { mode: "fit-spread", label: "Fit Page" },
+    ];
+
+    function getDisplayZoom(slice: ToolbarSlice): number {
+        if (slice.zoomMode === "custom") return slice.zoom;
+        return slice.effectiveZoom ?? slice.zoom;
+    }
+
+    function buildZoomDropdown(slice: ToolbarSlice, store: Store<ViewerState, Action>): void {
+        zoomDropdown.innerHTML = "";
+
+        // Zoom step options
+        const stepsSection = document.createElement("div");
+        stepsSection.className = "udoc-zoom-dropdown__section";
+
+        for (const step of slice.zoomSteps) {
+            const item = document.createElement("button");
+            item.className = "udoc-zoom-dropdown__item";
+            const stepPercent = Math.round(step * 100);
+            const currentPercent = Math.round(slice.zoom * 100);
+            if (slice.zoomMode === "custom" && stepPercent === currentPercent) {
+                item.classList.add("udoc-zoom-dropdown__item--active");
+            }
+            item.textContent = `${stepPercent}%`;
+            item.addEventListener("click", (e) => {
+                e.stopPropagation();
+                store.dispatch({ type: "SET_ZOOM", zoom: step });
+                closeZoomDropdown();
+            });
+            stepsSection.appendChild(item);
+        }
+        zoomDropdown.appendChild(stepsSection);
+
+        // Divider
+        const dividerEl = document.createElement("div");
+        dividerEl.className = "udoc-zoom-dropdown__divider";
+        zoomDropdown.appendChild(dividerEl);
+
+        // Zoom mode options
+        const modeSection = document.createElement("div");
+        modeSection.className = "udoc-zoom-dropdown__section";
+
+        for (const opt of ZOOM_MODE_OPTIONS) {
+            const item = document.createElement("button");
+            item.className = "udoc-zoom-dropdown__item";
+            if (slice.zoomMode === opt.mode) {
+                item.classList.add("udoc-zoom-dropdown__item--active");
+            }
+            item.textContent = opt.label;
+            item.addEventListener("click", (e) => {
+                e.stopPropagation();
+                const state = store.getState();
+                store.dispatch({ type: "SET_ZOOM_MODE", mode: opt.mode });
+                if (state.zoomMode === opt.mode) {
+                    store.dispatch({ type: "NAVIGATE_TO_PAGE", page: state.page });
+                }
+                closeZoomDropdown();
+            });
+            modeSection.appendChild(item);
+        }
+        zoomDropdown.appendChild(modeSection);
+    }
 
     function mount(container: HTMLElement, store: Store<ViewerState, Action>): void {
         container.appendChild(el);
@@ -68,13 +303,9 @@ export function createToolbar() {
             if (!root) return;
 
             if (!document.fullscreenElement) {
-                root.requestFullscreen().catch(() => {
-                    // Fullscreen request failed (e.g., not allowed by browser)
-                });
+                root.requestFullscreen().catch(() => {});
             } else {
-                document.exitFullscreen().catch(() => {
-                    // Exit fullscreen failed
-                });
+                document.exitFullscreen().catch(() => {});
             }
         };
         fullscreenBtn.addEventListener("click", onFullscreenClick);
@@ -89,18 +320,150 @@ export function createToolbar() {
         document.addEventListener("fullscreenchange", onFullscreenChange);
         unsubEvents.push(() => document.removeEventListener("fullscreenchange", onFullscreenChange));
 
-        // Subscribe to state to update fullscreen button icon
-        unsubRender = store.subscribeRender((prev, next) => {
-            if (prev.isFullscreen !== next.isFullscreen) {
-                fullscreenBtn.innerHTML = next.isFullscreen ? ICON_FULLSCREEN_EXIT : ICON_FULLSCREEN;
-                fullscreenBtn.setAttribute("aria-label", next.isFullscreen ? "Exit fullscreen" : "Fullscreen");
+        // Wire inline controls (page navigation)
+        unsubEvents.push(
+            on(prevBtn, "click", () => {
+                const state = store.getState();
+                if (state.page > 1) {
+                    store.dispatch({ type: "NAVIGATE_TO_PAGE", page: state.page - 1 });
+                }
+            }),
+            on(nextBtn, "click", () => {
+                const state = store.getState();
+                if (state.page < state.pageCount) {
+                    store.dispatch({ type: "NAVIGATE_TO_PAGE", page: state.page + 1 });
+                }
+            }),
+            on(pageInput, "keydown", (e: KeyboardEvent) => {
+                if (e.key === "Enter") {
+                    const value = parseInt(pageInput.value, 10);
+                    const state = store.getState();
+                    if (!isNaN(value) && value >= 1 && value <= state.pageCount) {
+                        store.dispatch({ type: "NAVIGATE_TO_PAGE", page: value });
+                    } else {
+                        pageInput.value = String(state.page);
+                    }
+                    pageInput.blur();
+                }
+            }),
+            on(pageInput, "blur", () => {
+                const state = store.getState();
+                pageInput.value = String(state.page);
+            }),
+        );
+
+        // Wire inline controls (zoom)
+        unsubEvents.push(
+            on(zoomOutBtn, "click", () => {
+                store.dispatch({ type: "ZOOM_OUT" });
+            }),
+            on(zoomInBtn, "click", () => {
+                store.dispatch({ type: "ZOOM_IN" });
+            }),
+            on(zoomInput, "keydown", (e: KeyboardEvent) => {
+                if (e.key === "Enter") {
+                    const value = parseFloat(zoomInput.value);
+                    const state = store.getState();
+                    if (!isNaN(value) && value >= 10 && value <= 500) {
+                        store.dispatch({ type: "SET_ZOOM", zoom: value / 100 });
+                    } else {
+                        const displayZoom =
+                            state.zoomMode === "custom" ? state.zoom : (state.effectiveZoom ?? state.zoom);
+                        zoomInput.value = formatZoomPercent(displayZoom);
+                    }
+                    zoomInput.blur();
+                }
+            }),
+            on(zoomInput, "focus", () => {
+                zoomInput.select();
+            }),
+            on(zoomInput, "blur", () => {
+                const state = store.getState();
+                const displayZoom = state.zoomMode === "custom" ? state.zoom : (state.effectiveZoom ?? state.zoom);
+                zoomInput.value = formatZoomPercent(displayZoom);
+            }),
+        );
+
+        // Zoom chevron toggle
+        unsubEvents.push(
+            on(zoomChevron, "click", (e: MouseEvent) => {
+                e.stopPropagation();
+                if (isZoomDropdownOpen) {
+                    closeZoomDropdown();
+                } else {
+                    openZoomDropdown();
+                }
+            }),
+        );
+
+        // Close zoom dropdown on outside click
+        const handleOutsideClick = (e: MouseEvent) => {
+            if (!zoomDropdownContainer.contains(e.target as Node)) {
+                closeZoomDropdown();
             }
+        };
+        document.addEventListener("click", handleOutsideClick);
+        unsubEvents.push(() => document.removeEventListener("click", handleOutsideClick));
+
+        // Close zoom dropdown on escape
+        const handleEscape = (e: KeyboardEvent) => {
+            if (e.key === "Escape") {
+                closeZoomDropdown();
+            }
+        };
+        document.addEventListener("keydown", handleEscape);
+        unsubEvents.push(() => document.removeEventListener("keydown", handleEscape));
+
+        // Subscribe to state changes
+        const applyState = (slice: ToolbarSlice) => {
+            // Toolbar visibility
+            el.style.display = slice.toolbarVisible ? "" : "none";
+
+            // Fullscreen button visibility and icon
+            fullscreenBtn.style.display = slice.fullscreenButtonVisible ? "" : "none";
+            fullscreenBtn.innerHTML = slice.isFullscreen ? ICON_FULLSCREEN_EXIT : ICON_FULLSCREEN;
+            fullscreenBtn.setAttribute("aria-label", slice.isFullscreen ? "Exit fullscreen" : "Fullscreen");
+
+            // Center section visibility (show when floating toolbar is hidden)
+            const showCenter = slice.toolbarVisible && !slice.floatingToolbarVisible;
+            centerSection.style.display = showCenter ? "flex" : "none";
+
+            // Mount view mode menu lazily on first show
+            if (showCenter && !viewModeMounted) {
+                viewModeMenu.mount(store);
+                viewModeMounted = true;
+            }
+
+            if (showCenter) {
+                // Update page navigation
+                pageInput.value = String(slice.page);
+                pageTotal.textContent = `\u00A0/ ${slice.pageCount}`;
+                prevBtn.disabled = slice.page <= 1;
+                nextBtn.disabled = slice.page >= slice.pageCount;
+
+                // Update zoom input (only if not focused)
+                if (document.activeElement !== zoomInput) {
+                    zoomInput.value = formatZoomPercent(getDisplayZoom(slice));
+                }
+
+                // Rebuild zoom dropdown
+                buildZoomDropdown(slice, store);
+            }
+        };
+
+        // Initial state
+        applyState(selectSlice(store.getState()));
+
+        // Subscribe to changes
+        unsubRender = subscribeSelector(store, selectSlice, applyState, {
+            equality: sliceEqual,
         });
     }
 
     function destroy(): void {
         if (unsubRender) unsubRender();
         for (const off of unsubEvents) off();
+        if (viewModeMounted) viewModeMenu.destroy();
         el.remove();
     }
 

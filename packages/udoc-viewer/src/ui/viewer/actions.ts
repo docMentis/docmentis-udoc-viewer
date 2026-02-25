@@ -66,6 +66,13 @@ export type Action =
     | { type: "CLOSE_PANEL" }
     | { type: "SET_LEFT_PANEL_WIDTH"; width: number | null }
     | { type: "SET_RIGHT_PANEL_WIDTH"; width: number | null }
+    // Component visibility
+    | { type: "SET_TOOLBAR_VISIBLE"; visible: boolean }
+    | { type: "SET_FLOATING_TOOLBAR_VISIBLE"; visible: boolean }
+    | { type: "SET_LEFT_PANEL_VISIBLE"; visible: boolean }
+    | { type: "SET_RIGHT_PANEL_VISIBLE"; visible: boolean }
+    | { type: "SET_PANEL_DISABLED"; panel: PanelTab; disabled: boolean }
+    | { type: "SET_FULLSCREEN_BUTTON_VISIBLE"; visible: boolean }
     // Annotation highlight
     | {
           type: "HIGHLIGHT_ANNOTATION";

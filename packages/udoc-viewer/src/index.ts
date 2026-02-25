@@ -21,7 +21,20 @@ export type {
     Annotation,
     ViewerEventMap,
     DownloadProgress,
+    UIComponent,
 } from "./UDocViewer.js";
+
+// View mode and panel types
+export type {
+    ScrollMode,
+    LayoutMode,
+    ZoomMode,
+    PageRotation,
+    SpacingMode,
+    PanelTab,
+    LeftPanelTab,
+    RightPanelTab,
+} from "./ui/viewer/state.js";
 
 // Worker internals (for advanced usage)
 export { WorkerClient } from "./worker/index.js";

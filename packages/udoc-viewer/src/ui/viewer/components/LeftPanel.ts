@@ -1,6 +1,6 @@
 import type { Store } from "../../framework/store";
-import { subscribeSelector, shallowEqual } from "../../framework/selectors";
-import type { ViewerState, LeftPanelTab } from "../state";
+import { subscribeSelector } from "../../framework/selectors";
+import type { ViewerState, LeftPanelTab, PanelTab } from "../state";
 import { isLeftPanelTab } from "../state";
 import type { Action } from "../actions";
 import type { WorkerClient } from "../../../worker/index.js";
@@ -26,6 +26,9 @@ type LeftPanelSlice = {
     open: boolean;
     activeTab: LeftPanelTab | null;
     width: number | null;
+    panelVisible: boolean;
+    disabledPanels: ReadonlySet<PanelTab>;
+    allDisabled: boolean;
 };
 
 export function createLeftPanel() {
@@ -68,6 +71,9 @@ export function createLeftPanel() {
     let workerClientRef: WorkerClient | null = null;
 
     function applyState(slice: LeftPanelSlice): void {
+        // Hide entire panel area if disabled or all left tabs are disabled
+        el.style.display = !slice.panelVisible || slice.allDisabled ? "none" : "";
+
         el.classList.toggle("udoc-left-panel--closed", !slice.open);
 
         // Apply width from state (only when open)
@@ -79,6 +85,8 @@ export function createLeftPanel() {
 
         for (const [tabId, btn] of tabButtons) {
             btn.classList.toggle("udoc-left-panel__tab--active", tabId === slice.activeTab);
+            // Hide individual tab buttons that are disabled
+            btn.style.display = slice.disabledPanels.has(tabId) ? "none" : "";
         }
     }
 
@@ -164,7 +172,13 @@ export function createLeftPanel() {
         const initialSlice = selectLeftPanel(store.getState());
         applyState(initialSlice);
         unsubRender = subscribeSelector(store, selectLeftPanel, applyState, {
-            equality: shallowEqual,
+            equality: (a, b) =>
+                a.open === b.open &&
+                a.activeTab === b.activeTab &&
+                a.width === b.width &&
+                a.panelVisible === b.panelVisible &&
+                a.disabledPanels === b.disabledPanels &&
+                a.allDisabled === b.allDisabled,
         });
 
         // Subscribe to active tab changes for content
@@ -197,9 +211,13 @@ export function createLeftPanel() {
 function selectLeftPanel(state: ViewerState): LeftPanelSlice {
     const panel = state.activePanel;
     const isLeftTab = panel !== null && isLeftPanelTab(panel);
+    const allDisabled = TABS.every((tab) => state.disabledPanels.has(tab.id));
     return {
         open: isLeftTab,
         activeTab: isLeftTab ? panel : null,
         width: state.leftPanelWidth,
+        panelVisible: state.leftPanelVisible,
+        disabledPanels: state.disabledPanels,
+        allDisabled,
     };
 }
