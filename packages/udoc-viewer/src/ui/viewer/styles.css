@@ -634,6 +634,10 @@
     gap: 4px;
 }
 
+.udoc-viewer-root .udoc-toolbar__right {
+    margin-left: auto;
+}
+
 .udoc-viewer-root .udoc-toolbar__spacer {
     flex: 1;
 }

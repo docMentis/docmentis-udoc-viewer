@@ -1,7 +1,8 @@
 import type { Store } from "../../framework/store";
 import { subscribeSelector } from "../../framework/selectors";
 import { on } from "../../framework/events";
-import type { ViewerState, ZoomMode } from "../state";
+import type { ViewerState, ZoomMode, PanelTab, LeftPanelTab } from "../state";
+import { isLeftPanelTab } from "../state";
 import type { Action } from "../actions";
 import {
     ICON_MENU,
@@ -31,11 +32,17 @@ function formatZoomPercent(zoom: number): string {
     return percent % 1 === 0 ? `${percent}%` : `${percent.toFixed(1)}%`;
 }
 
+const LEFT_TABS: LeftPanelTab[] = ["thumbnail", "outline", "bookmarks", "layers", "attachments"];
+
 interface ToolbarSlice {
     toolbarVisible: boolean;
     floatingToolbarVisible: boolean;
     fullscreenButtonVisible: boolean;
     isFullscreen: boolean;
+    // Panel button visibility
+    leftPanelVisible: boolean;
+    rightPanelVisible: boolean;
+    disabledPanels: ReadonlySet<PanelTab>;
     // Inline controls state (only used when floating toolbar is hidden)
     page: number;
     pageCount: number;
@@ -51,6 +58,9 @@ function sliceEqual(a: ToolbarSlice, b: ToolbarSlice): boolean {
         a.floatingToolbarVisible === b.floatingToolbarVisible &&
         a.fullscreenButtonVisible === b.fullscreenButtonVisible &&
         a.isFullscreen === b.isFullscreen &&
+        a.leftPanelVisible === b.leftPanelVisible &&
+        a.rightPanelVisible === b.rightPanelVisible &&
+        a.disabledPanels === b.disabledPanels &&
         a.page === b.page &&
         a.pageCount === b.pageCount &&
         a.zoom === b.zoom &&
@@ -66,6 +76,9 @@ function selectSlice(state: ViewerState): ToolbarSlice {
         floatingToolbarVisible: state.floatingToolbarVisible,
         fullscreenButtonVisible: state.fullscreenButtonVisible,
         isFullscreen: state.isFullscreen,
+        leftPanelVisible: state.leftPanelVisible,
+        rightPanelVisible: state.rightPanelVisible,
+        disabledPanels: state.disabledPanels,
         page: state.page,
         pageCount: state.pageCount,
         zoom: state.zoom,
@@ -276,9 +289,19 @@ export function createToolbar() {
     function mount(container: HTMLElement, store: Store<ViewerState, Action>): void {
         container.appendChild(el);
 
-        // Wire menu button to toggle thumbnails panel
+        // Wire menu button to toggle the first available left panel tab
         const onMenuClick = () => {
-            store.dispatch({ type: "TOGGLE_PANEL", panel: "thumbnail" });
+            const state = store.getState();
+            // If a left panel is already open, close it
+            if (state.activePanel !== null && isLeftPanelTab(state.activePanel)) {
+                store.dispatch({ type: "CLOSE_PANEL" });
+                return;
+            }
+            // Find first non-disabled left tab
+            const firstTab = LEFT_TABS.find((t) => !state.disabledPanels.has(t));
+            if (firstTab) {
+                store.dispatch({ type: "TOGGLE_PANEL", panel: firstTab });
+            }
         };
         menuBtn.addEventListener("click", onMenuClick);
         unsubEvents.push(() => menuBtn.removeEventListener("click", onMenuClick));
@@ -418,6 +441,18 @@ export function createToolbar() {
         const applyState = (slice: ToolbarSlice) => {
             // Toolbar visibility
             el.style.display = slice.toolbarVisible ? "" : "none";
+
+            // Menu button: hidden when left panel disabled or all left tabs disabled
+            const allLeftDisabled = LEFT_TABS.every((t) => slice.disabledPanels.has(t));
+            menuBtn.style.display = !slice.leftPanelVisible || allLeftDisabled ? "none" : "";
+
+            // Search button: hidden when right panel disabled or search individually disabled
+            searchBtn.style.display =
+                !slice.rightPanelVisible || slice.disabledPanels.has("search") ? "none" : "";
+
+            // Comments button: hidden when right panel disabled or comments individually disabled
+            commentsBtn.style.display =
+                !slice.rightPanelVisible || slice.disabledPanels.has("comments") ? "none" : "";
 
             // Fullscreen button visibility and icon
             fullscreenBtn.style.display = slice.fullscreenButtonVisible ? "" : "none";

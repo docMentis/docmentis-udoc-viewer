@@ -272,9 +272,93 @@ function setupEventListeners() {
     });
 }
 
+interface ToggleOption {
+    label: string;
+    onChange: (checked: boolean, v: UDocViewer) => void;
+}
+
+interface ToggleGroup {
+    title: string;
+    options: ToggleOption[];
+}
+
+const OPTION_GROUPS: ToggleGroup[] = [
+    {
+        title: "Toolbar",
+        options: [
+            { label: "Hide Toolbar", onChange: (c, v) => v.setToolbarVisible(!c) },
+            { label: "Hide Floating Toolbar", onChange: (c, v) => v.setFloatingToolbarVisible(!c) },
+            { label: "Disable Fullscreen", onChange: (c, v) => v.setFullscreenEnabled(!c) },
+        ],
+    },
+    {
+        title: "Left Panel",
+        options: [
+            { label: "Disable Left Panel", onChange: (c, v) => v.setLeftPanelEnabled(!c) },
+            { label: "Disable Thumbnails", onChange: (c, v) => v.setPanelEnabled("thumbnail", !c) },
+            { label: "Disable Outline", onChange: (c, v) => v.setPanelEnabled("outline", !c) },
+            { label: "Disable Bookmarks", onChange: (c, v) => v.setPanelEnabled("bookmarks", !c) },
+            { label: "Disable Layers", onChange: (c, v) => v.setPanelEnabled("layers", !c) },
+            { label: "Disable Attachments", onChange: (c, v) => v.setPanelEnabled("attachments", !c) },
+        ],
+    },
+    {
+        title: "Right Panel",
+        options: [
+            { label: "Disable Right Panel", onChange: (c, v) => v.setRightPanelEnabled(!c) },
+            { label: "Disable Search", onChange: (c, v) => v.setPanelEnabled("search", !c) },
+            { label: "Disable Comments", onChange: (c, v) => v.setPanelEnabled("comments", !c) },
+        ],
+    },
+];
+
+function setupOptionsPanel() {
+    const container = document.getElementById("options-section")!;
+
+    for (const group of OPTION_GROUPS) {
+        const groupEl = document.createElement("div");
+        groupEl.className = "options-group";
+
+        const title = document.createElement("div");
+        title.className = "options-group-title";
+        title.textContent = group.title;
+        groupEl.appendChild(title);
+
+        for (const opt of group.options) {
+            const row = document.createElement("div");
+            row.className = "option-row";
+
+            const label = document.createElement("label");
+            label.className = "option-label";
+            label.textContent = opt.label;
+
+            const toggle = document.createElement("label");
+            toggle.className = "option-toggle";
+
+            const input = document.createElement("input");
+            input.type = "checkbox";
+            input.addEventListener("change", () => {
+                if (viewer) {
+                    opt.onChange(input.checked, viewer);
+                }
+            });
+
+            const slider = document.createElement("span");
+            slider.className = "slider";
+
+            toggle.append(input, slider);
+            row.append(label, toggle);
+            groupEl.appendChild(row);
+        }
+
+        container.appendChild(groupEl);
+    }
+}
+
 async function main() {
     populateDocumentLists();
     setupEventListeners();
+    setupOptionsPanel();
 
     // Create initial viewer
     await createViewer();

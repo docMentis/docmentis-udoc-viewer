@@ -115,6 +115,70 @@
                 border-bottom: 1px solid #d0dce8;
             }
 
+            /* Options panel */
+            .options-section {
+                padding: 8px 12px;
+            }
+            .options-group {
+                margin-bottom: 8px;
+            }
+            .options-group-title {
+                font-size: 10px;
+                font-weight: 600;
+                color: #5580a0;
+                text-transform: uppercase;
+                letter-spacing: 0.4px;
+                margin-bottom: 4px;
+            }
+            .option-row {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 3px 0;
+            }
+            .option-label {
+                font-size: 12px;
+                color: #3a5068;
+                cursor: pointer;
+                user-select: none;
+            }
+            .option-toggle {
+                position: relative;
+                width: 32px;
+                height: 18px;
+                flex-shrink: 0;
+            }
+            .option-toggle input {
+                opacity: 0;
+                width: 0;
+                height: 0;
+            }
+            .option-toggle .slider {
+                position: absolute;
+                inset: 0;
+                background: #c0d0dc;
+                border-radius: 9px;
+                cursor: pointer;
+                transition: background 0.2s;
+            }
+            .option-toggle .slider::before {
+                content: "";
+                position: absolute;
+                width: 14px;
+                height: 14px;
+                left: 2px;
+                bottom: 2px;
+                background: white;
+                border-radius: 50%;
+                transition: transform 0.2s;
+            }
+            .option-toggle input:checked + .slider {
+                background: #5a8cb8;
+            }
+            .option-toggle input:checked + .slider::before {
+                transform: translateX(14px);
+            }
+
             /* Viewer panel */
             .viewer-panel {
                 flex: 1;
@@ -328,6 +392,11 @@
                     <div class="demo-panel-section-title">Sample Documents</div>
                 </div>
                 <div class="document-list" id="document-list"></div>
+
+                <div class="demo-panel-section">
+                    <div class="demo-panel-section-title">Viewer Options</div>
+                    <div class="options-section" id="options-section"></div>
+                </div>
             </div>
 
             <!-- Viewer area -->
