@@ -220,6 +220,20 @@ const viewer = await client.createViewer({
     // Hide the "Powered by docMentis" attribution link (default: false)
     // Requires a valid license with the "no_attribution" feature
     hideAttribution: true,
+
+    // UI visibility options (all default to false)
+    hideToolbar: false, // Hide the top toolbar
+    hideFloatingToolbar: false, // Hide the floating toolbar (page nav, zoom, view mode)
+    disableFullscreen: false, // Remove the fullscreen button
+    disableLeftPanel: false, // Disable the entire left panel area
+    disableRightPanel: false, // Disable the entire right panel area
+    disableThumbnails: false, // Disable the thumbnails tab
+    disableOutline: false, // Disable the outline tab
+    disableBookmarks: false, // Disable the bookmarks tab
+    disableLayers: false, // Disable the layers tab
+    disableAttachments: false, // Disable the attachments tab
+    disableSearch: false, // Disable the search panel
+    disableComments: false, // Disable the comments panel
 });
 ```
 
@@ -231,6 +245,10 @@ const page = viewer.currentPage;
 
 // Go to a specific page (1-based)
 viewer.goToPage(5);
+
+// Navigate to next/previous page
+viewer.nextPage();
+viewer.previousPage();
 
 // Navigate to a destination (from outline)
 viewer.goToDestination(destination);
@@ -341,6 +359,56 @@ const compressed = await client.compress(source);
 const decompressed = await client.decompress(source);
 ```
 
+### UI Visibility Control
+
+Show, hide, or disable UI components at runtime:
+
+```typescript
+// Toolbar visibility
+viewer.setToolbarVisible(false);
+viewer.setFloatingToolbarVisible(false);
+
+// Fullscreen button
+viewer.setFullscreenEnabled(false);
+
+// Disable entire panel areas
+viewer.setLeftPanelEnabled(false);
+viewer.setRightPanelEnabled(false);
+
+// Disable individual panel tabs
+// Panels: 'thumbnail', 'outline', 'bookmarks', 'layers', 'attachments', 'search', 'comments'
+viewer.setPanelEnabled("thumbnail", false);
+viewer.setPanelEnabled("search", false);
+
+// Open/close panels programmatically
+viewer.openPanel("outline");
+viewer.closePanel();
+```
+
+### Programmatic Viewer Control
+
+Control zoom, view modes, and fullscreen programmatically — useful when toolbars are hidden:
+
+```typescript
+// Zoom
+viewer.zoomIn();
+viewer.zoomOut();
+viewer.setZoom(1.5); // 150%
+viewer.setZoomMode("fit-spread-width");
+console.log(viewer.zoom); // current zoom level
+console.log(viewer.zoomMode); // current zoom mode
+
+// View modes
+viewer.setScrollMode("continuous"); // 'continuous' | 'spread'
+viewer.setLayoutMode("double-page"); // 'single-page' | 'double-page' | ...
+viewer.setPageRotation(90); // 0 | 90 | 180 | 270
+viewer.setSpacingMode("none"); // 'all' | 'none' | 'spread-only' | 'page-only'
+
+// Fullscreen
+viewer.setFullscreen(true);
+console.log(viewer.isFullscreen);
+```
+
 ### Events
 
 ```typescript
@@ -352,6 +420,21 @@ const unsubscribe = viewer.on("document:load", ({ pageCount }) => {
 // Document closed
 viewer.on("document:close", () => {
     console.log("Document closed");
+});
+
+// Page changed
+viewer.on("page:change", ({ page, previousPage }) => {
+    console.log(`Page ${previousPage} -> ${page}`);
+});
+
+// Panel opened/closed
+viewer.on("panel:change", ({ panel, previousPanel }) => {
+    console.log(`Panel: ${previousPanel} -> ${panel}`);
+});
+
+// UI component visibility changed
+viewer.on("ui:visibilityChange", ({ component, visible }) => {
+    console.log(`${component} is now ${visible ? "visible" : "hidden"}`);
 });
 
 // Download progress
