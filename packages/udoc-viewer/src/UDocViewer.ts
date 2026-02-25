@@ -138,7 +138,7 @@ export class UDocViewer {
      * @internal
      * Use `client.createViewer()` instead.
      */
-    constructor(workerClient: WorkerClient, options: ViewerOptions = {}) {
+    constructor(workerClient: WorkerClient, options: ViewerOptions = {}, showAttribution = true) {
         this.workerClient = workerClient;
         this.googleFontsEnabled = options.googleFonts ?? true;
         this.viewOverrides = this.buildViewModeOverrides(options);
@@ -157,7 +157,13 @@ export class UDocViewer {
         if (options.container) {
             this.container = this.resolveContainer(options.container);
             const overrides = this.buildStateOverrides(options);
-            this.uiShell = mountViewerShell(this.container, this.createEngineAdapter(), this.workerClient, overrides);
+            this.uiShell = mountViewerShell(
+                this.container,
+                this.createEngineAdapter(),
+                this.workerClient,
+                overrides,
+                showAttribution,
+            );
 
             // Set up password callback
             this.uiShell.setCallbacks({

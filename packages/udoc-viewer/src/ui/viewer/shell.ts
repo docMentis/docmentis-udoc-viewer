@@ -43,6 +43,7 @@ export function mountViewerShell(
     engine: EngineAdapter,
     workerClient: WorkerClient,
     overrides?: InitialStateOverrides,
+    showAttribution = true,
 ): ViewerShell {
     const layout = document.createElement("div");
     layout.className = "udoc-viewer-root";
@@ -93,7 +94,7 @@ export function mountViewerShell(
     const leftPanel = createLeftPanel();
     leftPanel.mount(leftPanelSlot, store, workerClient);
 
-    const viewport = createViewport();
+    const viewport = createViewport(showAttribution);
     viewport.mount(viewportSlot, store, workerClient);
 
     const rightPanel = createRightPanel();
