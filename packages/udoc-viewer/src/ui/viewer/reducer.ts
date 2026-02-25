@@ -303,8 +303,7 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
                 newDisabled.delete(action.panel);
             }
             // If the currently active panel is being disabled, close it
-            const activePanel =
-                action.disabled && state.activePanel === action.panel ? null : state.activePanel;
+            const activePanel = action.disabled && state.activePanel === action.panel ? null : state.activePanel;
             return { ...state, disabledPanels: newDisabled, activePanel };
         }
 

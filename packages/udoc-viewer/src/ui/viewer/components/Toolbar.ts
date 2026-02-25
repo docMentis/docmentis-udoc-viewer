@@ -447,12 +447,10 @@ export function createToolbar() {
             menuBtn.style.display = !slice.leftPanelVisible || allLeftDisabled ? "none" : "";
 
             // Search button: hidden when right panel disabled or search individually disabled
-            searchBtn.style.display =
-                !slice.rightPanelVisible || slice.disabledPanels.has("search") ? "none" : "";
+            searchBtn.style.display = !slice.rightPanelVisible || slice.disabledPanels.has("search") ? "none" : "";
 
             // Comments button: hidden when right panel disabled or comments individually disabled
-            commentsBtn.style.display =
-                !slice.rightPanelVisible || slice.disabledPanels.has("comments") ? "none" : "";
+            commentsBtn.style.display = !slice.rightPanelVisible || slice.disabledPanels.has("comments") ? "none" : "";
 
             // Fullscreen button visibility and icon
             fullscreenBtn.style.display = slice.fullscreenButtonVisible ? "" : "none";
