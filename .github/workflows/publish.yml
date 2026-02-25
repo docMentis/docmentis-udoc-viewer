@@ -23,6 +23,18 @@ jobs:
 
             - run: npm ci
 
+            - name: Generate styles
+              run: node packages/udoc-viewer/scripts/build-styles.js
+
+            - name: Typecheck
+              run: npm run typecheck
+
+            - name: Lint
+              run: npm run lint
+
+            - name: Format check
+              run: npm run format:check
+
             - run: npm run build --workspace packages/udoc-viewer
 
             - run: npm publish --workspace packages/udoc-viewer --provenance --access public
