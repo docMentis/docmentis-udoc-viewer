@@ -136,6 +136,20 @@ npm run dev
 - 🌊 **Streaming** — pages render progressively as the document loads
 - 🔒 **Private** — documents never leave the browser; no server upload required
 
+## Licensing
+
+udoc-viewer is free to use, including in commercial applications. A "Powered by docMentis" attribution link is shown by default. To remove it, pass a license key with the `no_attribution` feature:
+
+```typescript
+const client = await UDocClient.create({ license: "eyJ2Ijox..." });
+const viewer = await client.createViewer({
+    container: "#viewer",
+    hideAttribution: true,
+});
+```
+
+See the [package README](packages/udoc-viewer/README.md#licensing) for details.
+
 ## How It Works
 
 udoc-viewer uses a custom document processing engine written in Rust, compiled to WebAssembly. Documents are parsed and rendered entirely in the browser with near-native performance — no PDF.js, no iframe hacks, no server-side conversion.

@@ -171,6 +171,14 @@ export interface ViewerOptions {
      * @default true
      */
     googleFonts?: boolean;
+
+    /**
+     * Hide the "Powered by docMentis" attribution link.
+     * Requires a valid license with the "no_attribution" feature.
+     * Ignored without a qualifying license.
+     * @default false
+     */
+    hideAttribution?: boolean;
 }
 
 /**
@@ -321,7 +329,8 @@ export class UDocClient {
     async createViewer(options: ViewerOptions = {}): Promise<UDocViewer> {
         this.ensureNotDestroyed();
 
-        const viewer = new UDocViewer(this.workerClient, options);
+        const showAttribution = !(options.hideAttribution && this.hasFeature("no_attribution"));
+        const viewer = new UDocViewer(this.workerClient, options, showAttribution);
         this.viewers.add(viewer);
 
         return viewer;

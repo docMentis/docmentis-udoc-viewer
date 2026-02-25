@@ -411,7 +411,7 @@ function computeViewportUpdate(
     };
 }
 
-export function createViewport() {
+export function createViewport(showAttribution = true) {
     const el = document.createElement("div");
     el.className = "udoc-viewport";
 
@@ -423,127 +423,132 @@ export function createViewport() {
     container.className = "udoc-viewport__container";
     scrollArea.appendChild(container);
 
-    // Watermark with tamper protection - random class name on each instantiation
-    const wmClass = "_" + Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 10);
-    const wmHref = "https://docmentis.com";
-    const wmText = "Powered by docMentis";
-    const wmAttrs = { target: "_blank", rel: "noopener" };
+    // Attribution with tamper protection (skipped for licensed users)
+    let attrObserver: MutationObserver | null = null;
+    let attrIntegrityCheck: ReturnType<typeof setInterval> | null = null;
 
-    // Inject dynamic styles for the random class name
-    const wmStyle = document.createElement("style");
-    wmStyle.textContent = `
-        .${wmClass} {
-            position: absolute;
-            right: 18px;
-            bottom: 4px;
-            padding: 2px 6px;
-            font-size: 12px;
-            font-weight: 500;
-            color: rgba(0, 0, 0, 0.3);
-            text-decoration: none;
-            text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
-            z-index: 10;
-            transition: color 0.15s ease;
-        }
-        .${wmClass}:hover {
-            color: rgba(0, 0, 0, 0.6);
-        }
-        @media (max-width: 768px) {
-            .${wmClass} {
-                bottom: 48px;
-                right: 10px;
-                font-size: 11px;
+    if (showAttribution) {
+        const attrClass = "_" + Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 10);
+        const attrHref = "https://docmentis.com";
+        const attrText = "Powered by docMentis";
+        const attrLinkAttrs = { target: "_blank", rel: "noopener" };
+
+        // Inject dynamic styles for the random class name
+        const attrStyle = document.createElement("style");
+        attrStyle.textContent = `
+            .${attrClass} {
+                position: absolute;
+                right: 18px;
+                bottom: 4px;
+                padding: 2px 6px;
+                font-size: 12px;
+                font-weight: 500;
+                color: rgba(0, 0, 0, 0.3);
+                text-decoration: none;
+                text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
+                z-index: 10;
+                transition: color 0.15s ease;
             }
-        }
-    `;
-    el.appendChild(wmStyle);
+            .${attrClass}:hover {
+                color: rgba(0, 0, 0, 0.6);
+            }
+            @media (max-width: 768px) {
+                .${attrClass} {
+                    bottom: 48px;
+                    right: 10px;
+                    font-size: 11px;
+                }
+            }
+        `;
+        el.appendChild(attrStyle);
 
-    function createWatermark(): HTMLAnchorElement {
-        const wm = document.createElement("a");
-        wm.className = wmClass;
-        wm.href = wmHref;
-        wm.target = wmAttrs.target;
-        wm.rel = wmAttrs.rel;
-        wm.textContent = wmText;
-        return wm;
-    }
-
-    let watermark = createWatermark();
-    el.appendChild(watermark);
-
-    // Protect watermark against removal and modification
-    const wmObserver = new MutationObserver((mutations) => {
-        let needsRestore = false;
-
-        // Check if watermark was removed from DOM
-        if (!el.contains(watermark)) {
-            needsRestore = true;
+        function createAttribution(): HTMLAnchorElement {
+            const el2 = document.createElement("a");
+            el2.className = attrClass;
+            el2.href = attrHref;
+            el2.target = attrLinkAttrs.target;
+            el2.rel = attrLinkAttrs.rel;
+            el2.textContent = attrText;
+            return el2;
         }
 
-        // Check if style element was removed
-        if (!el.contains(wmStyle)) {
-            el.appendChild(wmStyle);
-        }
+        let attribution = createAttribution();
+        el.appendChild(attribution);
 
-        // Check for attribute tampering on the watermark itself
-        for (const mutation of mutations) {
-            if (mutation.target === watermark) {
-                if (mutation.type === "attributes") {
-                    needsRestore = true;
-                } else if (mutation.type === "characterData" || mutation.type === "childList") {
+        // Protect attribution against removal and modification
+        attrObserver = new MutationObserver((mutations) => {
+            let needsRestore = false;
+
+            // Check if attribution was removed from DOM
+            if (!el.contains(attribution)) {
+                needsRestore = true;
+            }
+
+            // Check if style element was removed
+            if (!el.contains(attrStyle)) {
+                el.appendChild(attrStyle);
+            }
+
+            // Check for attribute tampering on the attribution itself
+            for (const mutation of mutations) {
+                if (mutation.target === attribution) {
+                    if (mutation.type === "attributes") {
+                        needsRestore = true;
+                    } else if (mutation.type === "characterData" || mutation.type === "childList") {
+                        needsRestore = true;
+                    }
+                }
+                // Check if attribution's text content was changed
+                if (mutation.target.parentNode === attribution && mutation.type === "characterData") {
                     needsRestore = true;
                 }
             }
-            // Check if watermark's text content was changed
-            if (mutation.target.parentNode === watermark && mutation.type === "characterData") {
-                needsRestore = true;
+
+            if (needsRestore) {
+                // Remove old attribution if still in DOM but corrupted
+                if (el.contains(attribution)) {
+                    attribution.remove();
+                }
+                // Create fresh attribution
+                attribution = createAttribution();
+                el.appendChild(attribution);
             }
-        }
+        });
 
-        if (needsRestore) {
-            // Remove old watermark if still in DOM but corrupted
-            if (el.contains(watermark)) {
-                watermark.remove();
+        // Observe the parent for child removal and the attribution for attribute/content changes
+        attrObserver.observe(el, { childList: true, subtree: false });
+        attrObserver.observe(attribution, {
+            attributes: true,
+            childList: true,
+            characterData: true,
+            subtree: true,
+        });
+
+        // Periodic integrity check (catches CSS-based hiding)
+        attrIntegrityCheck = setInterval(() => {
+            // Restore style element if removed
+            if (!el.contains(attrStyle)) {
+                el.appendChild(attrStyle);
             }
-            // Create fresh watermark
-            watermark = createWatermark();
-            el.appendChild(watermark);
-        }
-    });
-
-    // Observe the parent for child removal and the watermark for attribute/content changes
-    wmObserver.observe(el, { childList: true, subtree: false });
-    wmObserver.observe(watermark, {
-        attributes: true,
-        childList: true,
-        characterData: true,
-        subtree: true,
-    });
-
-    // Periodic integrity check (catches CSS-based hiding)
-    const wmIntegrityCheck = setInterval(() => {
-        // Restore style element if removed
-        if (!el.contains(wmStyle)) {
-            el.appendChild(wmStyle);
-        }
-        // Restore watermark if removed
-        if (!el.contains(watermark)) {
-            watermark = createWatermark();
-            el.appendChild(watermark);
-            wmObserver.observe(watermark, {
-                attributes: true,
-                childList: true,
-                characterData: true,
-                subtree: true,
-            });
-        }
-        // Reset any inline style tampering
-        watermark.style.cssText = "";
-        watermark.removeAttribute("hidden");
-        if (watermark.className !== wmClass) {
-            watermark.className = wmClass;
-        }
-    }, 1000);
+            // Restore attribution if removed
+            if (!el.contains(attribution)) {
+                attribution = createAttribution();
+                el.appendChild(attribution);
+                attrObserver!.observe(attribution, {
+                    attributes: true,
+                    childList: true,
+                    characterData: true,
+                    subtree: true,
+                });
+            }
+            // Reset any inline style tampering
+            attribution.style.cssText = "";
+            attribution.removeAttribute("hidden");
+            if (attribution.className !== attrClass) {
+                attribution.className = attrClass;
+            }
+        }, 1000);
+    }
 
     const floatingToolbar = createFloatingToolbar();
 
@@ -1303,8 +1308,8 @@ export function createViewport() {
         if (updateRaf) cancelAnimationFrame(updateRaf);
         if (scrollRaf) cancelAnimationFrame(scrollRaf);
         if (renderDebounceTimer) clearTimeout(renderDebounceTimer);
-        wmObserver.disconnect();
-        clearInterval(wmIntegrityCheck);
+        if (attrObserver) attrObserver.disconnect();
+        if (attrIntegrityCheck) clearInterval(attrIntegrityCheck);
         floatingToolbar.destroy();
         clearSpreads();
         workerClient = null;
