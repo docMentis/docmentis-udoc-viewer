@@ -169,6 +169,10 @@ const client = await UDocClient.create({
     // Custom base URL for worker and WASM files (optional)
     // Expected files: {baseUrl}/worker.js and {baseUrl}/udoc_bg.wasm
     baseUrl: "https://cdn.example.com/udoc/",
+
+    // Enable anonymous usage telemetry (default: true)
+    // Set to false to disable. See the Telemetry section below for details.
+    telemetry: true,
 });
 ```
 
@@ -451,34 +455,6 @@ viewer.on("error", ({ error, phase }) => {
 unsubscribe();
 ```
 
-## Licensing
-
-udoc-viewer is free to use, including in commercial applications. A "Powered by docMentis" attribution link is shown by default.
-
-To remove the attribution, contact [licensing@docmentis.com](mailto:licensing@docmentis.com) to purchase a license, then pass it when creating the client:
-
-```typescript
-const client = await UDocClient.create({
-    license: "eyJ2Ijox...",
-});
-
-const viewer = await client.createViewer({
-    container: "#viewer",
-    hideAttribution: true,
-});
-```
-
-The `hideAttribution` option is only honored when the license includes the `no_attribution` feature. Without a valid license, the attribution link will remain visible.
-
-You can check license status programmatically:
-
-```typescript
-console.log(client.license);
-// { valid: true, tier: "licensed", features: ["no_attribution"], ... }
-
-console.log(client.hasFeature("no_attribution")); // true
-```
-
 ## How It Works
 
 udoc-viewer uses a custom document processing engine written in Rust, compiled to WebAssembly. Documents are parsed and rendered entirely in the browser with near-native performance — no PDF.js, no iframe hacks, no server-side conversion.
@@ -522,6 +498,34 @@ const client = await UDocClient.create({ telemetry: false });
 ```
 
 Data is sent to [PostHog](https://posthog.com) via the HTTP capture API using `navigator.sendBeacon` (with `fetch` fallback). No third-party SDK is loaded.
+
+## Licensing
+
+udoc-viewer is free to use, including in commercial applications. A "Powered by docMentis" attribution link is shown by default.
+
+To remove the attribution, contact [licensing@docmentis.com](mailto:licensing@docmentis.com) to purchase a license, then pass it when creating the client:
+
+```typescript
+const client = await UDocClient.create({
+    license: "eyJ2Ijox...",
+});
+
+const viewer = await client.createViewer({
+    container: "#viewer",
+    hideAttribution: true,
+});
+```
+
+The `hideAttribution` option is only honored when the license includes the `no_attribution` feature. Without a valid license, the attribution link will remain visible.
+
+You can check license status programmatically:
+
+```typescript
+console.log(client.license);
+// { valid: true, tier: "licensed", features: ["no_attribution"], ... }
+
+console.log(client.hasFeature("no_attribution")); // true
+```
 
 ## Contributing
 
