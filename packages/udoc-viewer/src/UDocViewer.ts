@@ -160,7 +160,13 @@ export class UDocViewer {
      * @internal
      * Use `client.createViewer()` instead.
      */
-    constructor(workerClient: WorkerClient, options: ViewerOptions = {}, showAttribution = true, telemetryEnabled = true, sdkVersion = "__VERSION__") {
+    constructor(
+        workerClient: WorkerClient,
+        options: ViewerOptions = {},
+        showAttribution = true,
+        telemetryEnabled = true,
+        sdkVersion = "__VERSION__",
+    ) {
         this.workerClient = workerClient;
         this.googleFontsEnabled = options.googleFonts ?? true;
         this.telemetryEnabled = telemetryEnabled;

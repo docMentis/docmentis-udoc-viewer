@@ -477,12 +477,12 @@ udoc-viewer collects anonymous, non-personally-identifiable usage data to help u
 
 **What we collect:**
 
-| Field            | Description                                         | Example       |
-| ---------------- | --------------------------------------------------- | ------------- |
-| `domain`         | Hostname of the embedding website                   | `example.com` |
-| `format`         | Document format                                     | `pdf`         |
+| Field            | Description                                            | Example       |
+| ---------------- | ------------------------------------------------------ | ------------- |
+| `domain`         | Hostname of the embedding website                      | `example.com` |
+| `format`         | Document format                                        | `pdf`         |
 | `size_bucket`    | File size in units of 100 KB (`floor(bytes / 100000)`) | `3`           |
-| `viewer_version` | SDK version string                                  | `0.5.19`      |
+| `viewer_version` | SDK version string                                     | `0.5.19`      |
 
 **What we do NOT collect:**
 

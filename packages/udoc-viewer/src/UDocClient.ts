@@ -417,7 +417,13 @@ export class UDocClient {
         this.ensureNotDestroyed();
 
         const showAttribution = !(options.hideAttribution && this.hasFeature("no_attribution"));
-        const viewer = new UDocViewer(this.workerClient, options, showAttribution, this.telemetryEnabled, UDocClient.version);
+        const viewer = new UDocViewer(
+            this.workerClient,
+            options,
+            showAttribution,
+            this.telemetryEnabled,
+            UDocClient.version,
+        );
         this.viewers.add(viewer);
 
         return viewer;
