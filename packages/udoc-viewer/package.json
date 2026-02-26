@@ -1,6 +1,6 @@
 {
     "name": "@docmentis/udoc-viewer",
-    "version": "0.5.20",
+    "version": "0.5.21",
     "type": "module",
     "license": "MIT",
     "description": "Free, open-source, universal document viewer for the web. Render PDF, PPTX, and images with high fidelity — no server required.",
