@@ -125,39 +125,6 @@ Full working examples for every major framework are in the [`examples/`](../../e
 
 ## API Reference
 
-### Loading Documents
-
-The viewer accepts multiple document sources:
-
-```typescript
-// From URL
-await viewer.load("https://example.com/document.pdf");
-
-// From File object (e.g., from file input)
-await viewer.load(file);
-
-// From raw bytes
-await viewer.load(new Uint8Array(buffer));
-
-// Close current document
-viewer.close();
-```
-
-### Password-Protected Documents
-
-When a password-protected document is loaded in UI mode, the viewer automatically prompts the user to enter the password. For headless mode, you can handle it programmatically:
-
-```typescript
-await viewer.load(source);
-
-if (await viewer.needsPassword()) {
-    const success = await viewer.authenticate("my-password");
-    if (!success) {
-        console.error("Incorrect password");
-    }
-}
-```
-
 ### Client Options
 
 ```typescript
@@ -241,6 +208,24 @@ const viewer = await client.createViewer({
 });
 ```
 
+### Loading Documents
+
+The viewer accepts multiple document sources:
+
+```typescript
+// From URL
+await viewer.load("https://example.com/document.pdf");
+
+// From File object (e.g., from file input)
+await viewer.load(file);
+
+// From raw bytes
+await viewer.load(new Uint8Array(buffer));
+
+// Close current document
+viewer.close();
+```
+
 ### Navigation
 
 ```typescript
@@ -282,33 +267,96 @@ if (viewer.isLoaded) {
 }
 ```
 
-### Headless Rendering
+### Programmatic Viewer Control
 
-Render pages to images without UI:
+Control zoom, view modes, and fullscreen programmatically — useful when toolbars are hidden:
 
 ```typescript
-// Create headless viewer (no container)
-const viewer = await client.createViewer();
-await viewer.load(pdfBytes);
+// Zoom
+viewer.zoomIn();
+viewer.zoomOut();
+viewer.setZoom(1.5); // 150%
+viewer.setZoomMode("fit-spread-width");
+console.log(viewer.zoom); // current zoom level
+console.log(viewer.zoomMode); // current zoom mode
 
-// Render page to ImageData (0-based page index)
-const imageData = await viewer.renderPage(0, { scale: 2 });
+// View modes
+viewer.setScrollMode("continuous"); // 'continuous' | 'spread'
+viewer.setLayoutMode("double-page"); // 'single-page' | 'double-page' | ...
+viewer.setPageRotation(90); // 0 | 90 | 180 | 270
+viewer.setSpacingMode("none"); // 'all' | 'none' | 'spread-only' | 'page-only'
 
-// Render to Blob
-const blob = await viewer.renderPage(0, {
-    format: "blob",
-    imageType: "image/png",
+// Fullscreen
+viewer.setFullscreen(true);
+console.log(viewer.isFullscreen);
+```
+
+### UI Visibility Control
+
+Show, hide, or disable UI components at runtime:
+
+```typescript
+// Toolbar visibility
+viewer.setToolbarVisible(false);
+viewer.setFloatingToolbarVisible(false);
+
+// Fullscreen button
+viewer.setFullscreenEnabled(false);
+
+// Disable entire panel areas
+viewer.setLeftPanelEnabled(false);
+viewer.setRightPanelEnabled(false);
+
+// Disable individual panel tabs
+// Panels: 'thumbnail', 'outline', 'bookmarks', 'layers', 'attachments', 'search', 'comments'
+viewer.setPanelEnabled("thumbnail", false);
+viewer.setPanelEnabled("search", false);
+
+// Open/close panels programmatically
+viewer.openPanel("outline");
+viewer.closePanel();
+```
+
+### Events
+
+```typescript
+// Document loaded
+const unsubscribe = viewer.on("document:load", ({ pageCount }) => {
+    console.log(`Loaded ${pageCount} pages`);
 });
 
-// Render to data URL
-const dataUrl = await viewer.renderPage(0, {
-    format: "data-url",
-    imageType: "image/jpeg",
-    quality: 0.9,
+// Document closed
+viewer.on("document:close", () => {
+    console.log("Document closed");
 });
 
-// Render thumbnail
-const thumb = await viewer.renderThumbnail(0, { scale: 1 });
+// Page changed
+viewer.on("page:change", ({ page, previousPage }) => {
+    console.log(`Page ${previousPage} -> ${page}`);
+});
+
+// Panel opened/closed
+viewer.on("panel:change", ({ panel, previousPanel }) => {
+    console.log(`Panel: ${previousPanel} -> ${panel}`);
+});
+
+// UI component visibility changed
+viewer.on("ui:visibilityChange", ({ component, visible }) => {
+    console.log(`${component} is now ${visible ? "visible" : "hidden"}`);
+});
+
+// Download progress
+viewer.on("download:progress", ({ loaded, total, percent }) => {
+    console.log(`Downloaded ${loaded}/${total} bytes (${percent}%)`);
+});
+
+// Error occurred
+viewer.on("error", ({ error, phase }) => {
+    console.error(`Error during ${phase}:`, error);
+});
+
+// Unsubscribe
+unsubscribe();
 ```
 
 ### Document Export
@@ -363,96 +411,48 @@ const compressed = await client.compress(source);
 const decompressed = await client.decompress(source);
 ```
 
-### UI Visibility Control
+### Headless Rendering
 
-Show, hide, or disable UI components at runtime:
+Render pages to images without UI:
 
 ```typescript
-// Toolbar visibility
-viewer.setToolbarVisible(false);
-viewer.setFloatingToolbarVisible(false);
+// Create headless viewer (no container)
+const viewer = await client.createViewer();
+await viewer.load(pdfBytes);
 
-// Fullscreen button
-viewer.setFullscreenEnabled(false);
+// Render page to ImageData (0-based page index)
+const imageData = await viewer.renderPage(0, { scale: 2 });
 
-// Disable entire panel areas
-viewer.setLeftPanelEnabled(false);
-viewer.setRightPanelEnabled(false);
+// Render to Blob
+const blob = await viewer.renderPage(0, {
+    format: "blob",
+    imageType: "image/png",
+});
 
-// Disable individual panel tabs
-// Panels: 'thumbnail', 'outline', 'bookmarks', 'layers', 'attachments', 'search', 'comments'
-viewer.setPanelEnabled("thumbnail", false);
-viewer.setPanelEnabled("search", false);
+// Render to data URL
+const dataUrl = await viewer.renderPage(0, {
+    format: "data-url",
+    imageType: "image/jpeg",
+    quality: 0.9,
+});
 
-// Open/close panels programmatically
-viewer.openPanel("outline");
-viewer.closePanel();
+// Render thumbnail
+const thumb = await viewer.renderThumbnail(0, { scale: 1 });
 ```
 
-### Programmatic Viewer Control
+### Password-Protected Documents
 
-Control zoom, view modes, and fullscreen programmatically — useful when toolbars are hidden:
-
-```typescript
-// Zoom
-viewer.zoomIn();
-viewer.zoomOut();
-viewer.setZoom(1.5); // 150%
-viewer.setZoomMode("fit-spread-width");
-console.log(viewer.zoom); // current zoom level
-console.log(viewer.zoomMode); // current zoom mode
-
-// View modes
-viewer.setScrollMode("continuous"); // 'continuous' | 'spread'
-viewer.setLayoutMode("double-page"); // 'single-page' | 'double-page' | ...
-viewer.setPageRotation(90); // 0 | 90 | 180 | 270
-viewer.setSpacingMode("none"); // 'all' | 'none' | 'spread-only' | 'page-only'
-
-// Fullscreen
-viewer.setFullscreen(true);
-console.log(viewer.isFullscreen);
-```
-
-### Events
+When a password-protected document is loaded in UI mode, the viewer automatically prompts the user to enter the password. For headless mode, you can handle it programmatically:
 
 ```typescript
-// Document loaded
-const unsubscribe = viewer.on("document:load", ({ pageCount }) => {
-    console.log(`Loaded ${pageCount} pages`);
-});
+await viewer.load(source);
 
-// Document closed
-viewer.on("document:close", () => {
-    console.log("Document closed");
-});
-
-// Page changed
-viewer.on("page:change", ({ page, previousPage }) => {
-    console.log(`Page ${previousPage} -> ${page}`);
-});
-
-// Panel opened/closed
-viewer.on("panel:change", ({ panel, previousPanel }) => {
-    console.log(`Panel: ${previousPanel} -> ${panel}`);
-});
-
-// UI component visibility changed
-viewer.on("ui:visibilityChange", ({ component, visible }) => {
-    console.log(`${component} is now ${visible ? "visible" : "hidden"}`);
-});
-
-// Download progress
-viewer.on("download:progress", ({ loaded, total, percent }) => {
-    console.log(`Downloaded ${loaded}/${total} bytes (${percent}%)`);
-});
-
-// Error occurred
-viewer.on("error", ({ error, phase }) => {
-    console.error(`Error during ${phase}:`, error);
-});
-
-// Unsubscribe
-unsubscribe();
+if (await viewer.needsPassword()) {
+    const success = await viewer.authenticate("my-password");
+    if (!success) {
+        console.error("Incorrect password");
+    }
+}
 ```
 
 ## How It Works
