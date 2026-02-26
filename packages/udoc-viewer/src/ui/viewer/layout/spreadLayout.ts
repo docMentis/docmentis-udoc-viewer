@@ -145,15 +145,38 @@ function calculateDoublePageOddLeftSpreads(pageCount: number): Spread[] {
 }
 
 /**
- * Find the spread index containing a specific page.
+ * Find the spread index containing a specific page using binary search.
  */
 export function findSpreadForPage(spreads: Spread[], page: number): number {
-    for (let i = 0; i < spreads.length; i++) {
-        const spread = spreads[i];
-        for (const slot of spread.slots) {
-            if (slot === page) return i;
+    if (spreads.length === 0) return 0;
+
+    let left = 0;
+    let right = spreads.length - 1;
+
+    while (left <= right) {
+        const mid = Math.floor((left + right) / 2);
+        const spread = spreads[mid];
+
+        const firstSlot = spread.slots[0];
+        const lastSlot = spread.slots[spread.slots.length - 1];
+
+        const minPage = firstSlot ?? spread.slots[1] ?? 1;
+        const maxPage = lastSlot ?? spread.slots[0] ?? 1;
+
+        if (page >= minPage && page <= maxPage) {
+            for (const slot of spread.slots) {
+                if (slot === page) return mid;
+            }
+            return mid;
+        }
+
+        if (page < minPage) {
+            right = mid - 1;
+        } else {
+            left = mid + 1;
         }
     }
+
     return 0;
 }
 
@@ -385,6 +408,7 @@ function snapSpacing(value: number): number {
 
 /**
  * Find visible spread indices based on scroll position and viewport height.
+ * Uses binary search for O(log n) complexity.
  *
  * @param layouts - Array of spread layouts
  * @param scrollTop - Current scroll position
@@ -404,31 +428,51 @@ export function findVisibleSpreadRange(
 
     const viewportBottom = scrollTop + viewportHeight;
 
-    // Find first visible spread
-    let start = 0;
-    for (let i = 0; i < layouts.length; i++) {
-        const layout = layouts[i];
+    const start = findFirstVisibleSpread(layouts, scrollTop);
+    const end = findLastVisibleSpread(layouts, viewportBottom, start);
+
+    return {
+        start: Math.max(0, start - buffer),
+        end: Math.min(layouts.length - 1, end + buffer),
+    };
+}
+
+function findFirstVisibleSpread(layouts: SpreadLayout[], scrollTop: number): number {
+    let left = 0;
+    let right = layouts.length - 1;
+    let result = 0;
+
+    while (left <= right) {
+        const mid = Math.floor((left + right) / 2);
+        const layout = layouts[mid];
+
         if (layout.top + layout.height >= scrollTop) {
-            start = i;
-            break;
+            result = mid;
+            right = mid - 1;
+        } else {
+            left = mid + 1;
         }
-        start = i;
     }
 
-    // Find last visible spread
-    let end = layouts.length - 1;
-    for (let i = start; i < layouts.length; i++) {
-        const layout = layouts[i];
-        if (layout.top > viewportBottom) {
-            end = i - 1;
-            break;
+    return result;
+}
+
+function findLastVisibleSpread(layouts: SpreadLayout[], viewportBottom: number, startFrom: number): number {
+    let left = startFrom;
+    let right = layouts.length - 1;
+    let result = startFrom;
+
+    while (left <= right) {
+        const mid = Math.floor((left + right) / 2);
+        const layout = layouts[mid];
+
+        if (layout.top <= viewportBottom) {
+            result = mid;
+            left = mid + 1;
+        } else {
+            right = mid - 1;
         }
-        end = i;
     }
 
-    // Apply buffer
-    start = Math.max(0, start - buffer);
-    end = Math.min(layouts.length - 1, end + buffer);
-
-    return { start, end };
+    return result;
 }
