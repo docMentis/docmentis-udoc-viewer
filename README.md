@@ -166,6 +166,34 @@ The JavaScript wrapper (`@docmentis/udoc-viewer`) is MIT-licensed and open sourc
 
 Requires WebAssembly support.
 
+## Telemetry
+
+udoc-viewer collects anonymous, non-personally-identifiable usage data to help us understand SDK adoption and prioritize format support. Telemetry fires once per document open.
+
+**What we collect:**
+
+| Field            | Description                                         | Example       |
+| ---------------- | --------------------------------------------------- | ------------- |
+| `domain`         | Hostname of the embedding website                   | `example.com` |
+| `format`         | Document format                                     | `pdf`         |
+| `size_bucket`    | File size in units of 100 KB (`floor(bytes / 100000)`) | `3`           |
+| `viewer_version` | SDK version string                                  | `0.5.19`      |
+
+**What we do NOT collect:**
+
+- Document content, filenames, or URLs
+- User identity, cookies, or session data
+- IP addresses (disabled at the collection endpoint)
+- Any other personally identifiable information
+
+**Opt out** by passing `telemetry: false` when creating the client:
+
+```js
+const client = await UDocClient.create({ telemetry: false });
+```
+
+Data is sent to [PostHog](https://posthog.com) via the HTTP capture API using `navigator.sendBeacon` (with `fetch` fallback). No third-party SDK is loaded.
+
 ## Development
 
 ```bash

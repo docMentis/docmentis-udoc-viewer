@@ -24,6 +24,7 @@ import {
     type SpacingMode,
 } from "./ui/viewer/state.js";
 import { PerformanceCounter, NoOpPerformanceCounter, type IPerformanceCounter } from "./performance/index.js";
+import { reportDocumentOpen } from "./telemetry.js";
 
 /**
  * Options for rendering a page.
@@ -152,14 +153,18 @@ export class UDocViewer {
     private viewOverrides: ViewModeDefaults;
     private currentFormat: DocumentFormat | null = null;
     private storeUnsub: (() => void) | null = null;
+    private telemetryEnabled: boolean;
+    private sdkVersion: string;
 
     /**
      * @internal
      * Use `client.createViewer()` instead.
      */
-    constructor(workerClient: WorkerClient, options: ViewerOptions = {}, showAttribution = true) {
+    constructor(workerClient: WorkerClient, options: ViewerOptions = {}, showAttribution = true, telemetryEnabled = true, sdkVersion = "__VERSION__") {
         this.workerClient = workerClient;
         this.googleFontsEnabled = options.googleFonts ?? true;
+        this.telemetryEnabled = telemetryEnabled;
+        this.sdkVersion = sdkVersion;
         this.viewOverrides = this.buildViewModeOverrides(options);
 
         // Initialize performance counter
@@ -394,6 +399,16 @@ export class UDocViewer {
             }
 
             this.emit("document:load", { pageCount: this._pageCount });
+
+            // Report telemetry (fire-and-forget, never throws)
+            if (this.telemetryEnabled) {
+                reportDocumentOpen({
+                    domain: typeof window !== "undefined" ? window.location.hostname : "unknown",
+                    format,
+                    size_bucket: Math.floor(bytes.length / 100_000),
+                    viewer_version: this.sdkVersion,
+                });
+            }
         } catch (error) {
             const phase = error instanceof TypeError ? "fetch" : "parse";
             this.emit("error", { error: error as Error, phase });

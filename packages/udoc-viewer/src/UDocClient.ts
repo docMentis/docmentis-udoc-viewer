@@ -83,6 +83,17 @@ export interface ClientOptions {
      * @default 'en'
      */
     locale?: string;
+
+    /**
+     * Enable anonymous usage telemetry.
+     *
+     * When enabled, a lightweight beacon is sent on each document open
+     * with: hostname, document format, file-size bucket (per 100 KB),
+     * and viewer version. No PII or document content is collected.
+     *
+     * @default true
+     */
+    telemetry?: boolean;
 }
 
 /**
@@ -308,6 +319,7 @@ export class UDocClient {
     private options: ClientOptions;
     private viewers: Set<UDocViewer> = new Set();
     private destroyed = false;
+    private telemetryEnabled: boolean;
     private licenseInfo: LicenseInfo = {
         valid: true,
         tier: "free",
@@ -318,6 +330,7 @@ export class UDocClient {
     private constructor(workerClient: WorkerClient, options: ClientOptions) {
         this.workerClient = workerClient;
         this.options = options;
+        this.telemetryEnabled = options.telemetry !== false;
     }
 
     /**
@@ -404,7 +417,7 @@ export class UDocClient {
         this.ensureNotDestroyed();
 
         const showAttribution = !(options.hideAttribution && this.hasFeature("no_attribution"));
-        const viewer = new UDocViewer(this.workerClient, options, showAttribution);
+        const viewer = new UDocViewer(this.workerClient, options, showAttribution, this.telemetryEnabled, UDocClient.version);
         this.viewers.add(viewer);
 
         return viewer;
