@@ -355,10 +355,19 @@ function setupOptionsPanel() {
     }
 }
 
+function setupOptionsToggle() {
+    const toggle = document.getElementById("options-toggle")!;
+    const panel = document.getElementById("options-panel")!;
+    toggle.addEventListener("click", () => {
+        panel.classList.toggle("collapsed");
+    });
+}
+
 async function main() {
     populateDocumentLists();
     setupEventListeners();
     setupOptionsPanel();
+    setupOptionsToggle();
 
     // Create initial viewer
     await createViewer();

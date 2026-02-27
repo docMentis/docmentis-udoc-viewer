@@ -116,6 +116,33 @@
             }
 
             /* Options panel */
+            .demo-panel-section.collapsible .demo-panel-section-title {
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                user-select: none;
+            }
+            .demo-panel-section.collapsible .demo-panel-section-title:hover {
+                color: #4a78a0;
+            }
+            .demo-panel-section.collapsible .section-chevron {
+                width: 14px;
+                height: 14px;
+                fill: currentColor;
+                transition: transform 0.2s;
+            }
+            .demo-panel-section.collapsible.collapsed .section-chevron {
+                transform: rotate(-90deg);
+            }
+            .demo-panel-section.collapsible .section-content {
+                overflow: hidden;
+                transition: max-height 0.25s ease;
+                max-height: 500px;
+            }
+            .demo-panel-section.collapsible.collapsed .section-content {
+                max-height: 0;
+            }
             .options-section {
                 padding: 8px 12px;
             }
@@ -393,9 +420,14 @@
                 </div>
                 <div class="document-list" id="document-list"></div>
 
-                <div class="demo-panel-section">
-                    <div class="demo-panel-section-title">Viewer Options</div>
-                    <div class="options-section" id="options-section"></div>
+                <div class="demo-panel-section collapsible collapsed" id="options-panel">
+                    <div class="demo-panel-section-title" id="options-toggle">
+                        Viewer Options
+                        <svg class="section-chevron" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z" /></svg>
+                    </div>
+                    <div class="section-content">
+                        <div class="options-section" id="options-section"></div>
+                    </div>
                 </div>
             </div>
 
