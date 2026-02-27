@@ -140,6 +140,10 @@ export interface ViewerState {
     pageSpacing: number;
     spreadSpacing: number;
 
+    // Thumbnail
+    /** Width of thumbnail images in CSS pixels */
+    thumbnailWidth: number;
+
     // UI
     activePanel: PanelTab | null;
     /** Left panel width in pixels (null = use CSS default) */
@@ -215,6 +219,7 @@ export const initialState: ViewerState = {
 
     pageSpacing: 20,
     spreadSpacing: 20,
+    thumbnailWidth: 150,
 
     activePanel: null,
     leftPanelWidth: null,

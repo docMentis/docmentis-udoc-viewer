@@ -1,12 +1,15 @@
 import { defineConfig } from "vite";
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
     base: "./",
     resolve: {
-        alias: {
-            // Point to source for HMR support during development
-            "@docmentis/udoc-viewer": new URL("../udoc-viewer/src/index.ts", import.meta.url).pathname,
-        },
+        alias:
+            mode === "development"
+                ? {
+                      // Point to source for HMR support during development
+                      "@docmentis/udoc-viewer": new URL("../udoc-viewer/src/index.ts", import.meta.url).pathname,
+                  }
+                : {},
     },
     server: {
         fs: {
@@ -14,4 +17,4 @@ export default defineConfig({
         },
     },
     publicDir: "public",
-});
+}));

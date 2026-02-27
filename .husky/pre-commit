@@ -1,0 +1,14 @@
+node packages/udoc-viewer/scripts/build-styles.js || exit 1
+echo "✓ Styles generated"
+
+npm run typecheck || exit 1
+echo "✓ Typecheck passed"
+
+npm run lint || exit 1
+echo "✓ Lint passed"
+
+npm run format:check || exit 1
+echo "✓ Format check passed"
+
+npm run build --workspace packages/udoc-viewer || exit 1
+echo "✓ Build passed"
