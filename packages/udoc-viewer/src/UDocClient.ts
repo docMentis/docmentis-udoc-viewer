@@ -149,6 +149,13 @@ export interface ViewerOptions {
     spreadSpacing?: number;
 
     /**
+     * Width of thumbnail images in the thumbnail panel, in CSS pixels.
+     * Height is derived automatically from the page aspect ratio.
+     * @default 150
+     */
+    thumbnailWidth?: number;
+
+    /**
      * Initially active panel, or null for no panel.
      * @default null
      */
