@@ -111,8 +111,9 @@ export function createThumbnailPanel() {
         // Setup intersection observer for lazy loading
         setupIntersectionObserver();
 
-        // Highlight current page
+        // Highlight current page and scroll it into view
         updateCurrentPageHighlight(slice.currentPage);
+        scrollActiveIntoView(slice.currentPage);
     }
 
     function setupIntersectionObserver(): void {
@@ -256,7 +257,8 @@ export function createThumbnailPanel() {
             !currentSlice ||
             slice.docId !== currentSlice.docId ||
             slice.pageCount !== currentSlice.pageCount ||
-            slice.pageInfos !== currentSlice.pageInfos;
+            slice.pageInfos !== currentSlice.pageInfos ||
+            slice.thumbnailWidth !== currentSlice.thumbnailWidth;
 
         if (docChanged) {
             buildThumbnailList(slice);
