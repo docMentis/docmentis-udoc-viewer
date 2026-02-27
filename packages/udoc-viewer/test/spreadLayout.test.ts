@@ -195,6 +195,31 @@ describe("findVisibleSpreadRange", () => {
         expect(result.start).toBe(3);
         expect(result.end).toBe(4);
     });
+
+    it("should handle single-spread documents", () => {
+        const singleLayout = [{ index: 0, slots: [1] as [number], top: 0, width: 100, height: 200 }];
+        expect(findVisibleSpreadRange(singleLayout, 0, 500)).toEqual({ start: 0, end: 0 });
+        expect(findVisibleSpreadRange(singleLayout, 100, 100, 0)).toEqual({ start: 0, end: 0 });
+    });
+
+    it("should handle all spreads visible (viewport larger than total content)", () => {
+        const totalHeight = layouts[layouts.length - 1].top + layouts[layouts.length - 1].height;
+        const result = findVisibleSpreadRange(layouts, 0, totalHeight + 1000);
+        expect(result.start).toBe(0);
+        expect(result.end).toBe(4);
+    });
+
+    it("should handle scroll position exactly at a spread boundary", () => {
+        expect(findVisibleSpreadRange(layouts, 220, 300, 0)).toEqual({ start: 1, end: 2 });
+        expect(findVisibleSpreadRange(layouts, 440, 300, 0)).toEqual({ start: 2, end: 3 });
+        expect(findVisibleSpreadRange(layouts, 660, 300, 0)).toEqual({ start: 3, end: 4 });
+    });
+
+    it("should handle very large buffer values relative to spread count", () => {
+        const result = findVisibleSpreadRange(layouts, 440, 200, 100);
+        expect(result.start).toBe(0);
+        expect(result.end).toBe(4);
+    });
 });
 
 describe("calculateSpreadLayouts", () => {
