@@ -215,6 +215,19 @@ export class WorkerClient {
     }
 
     /**
+     * Load a DOCX (Word) document.
+     * @returns The document ID.
+     */
+    async loadDocx(bytes: Uint8Array): Promise<string> {
+        const response = (await this.send({
+            type: "loadDocx",
+            id: "", // Not used, will be assigned by worker
+            bytes,
+        })) as { documentId: string };
+        return response.documentId;
+    }
+
+    /**
      * Unload a PDF document.
      * @returns True if the document was removed.
      */

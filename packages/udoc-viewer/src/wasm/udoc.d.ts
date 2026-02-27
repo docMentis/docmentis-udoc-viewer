@@ -390,6 +390,16 @@ export class UDoc {
    */
   get_limit(limit_name: string, _default: bigint): bigint;
   /**
+   * Load a DOCX document and return its ID.
+   *
+   * # Arguments
+   * * `bytes` - Raw DOCX file data
+   *
+   * # Returns
+   * A unique document ID that can be used to reference this document.
+   */
+  load_docx(bytes: Uint8Array): string;
+  /**
    * Load a PPTX (PowerPoint) document and return its ID.
    *
    * # Arguments
@@ -430,6 +440,7 @@ export interface InitOutput {
   readonly udoc_has_document: (a: number, b: number, c: number) => number;
   readonly udoc_has_feature: (a: number, b: number, c: number) => number;
   readonly udoc_license_status: (a: number, b: number) => void;
+  readonly udoc_load_docx: (a: number, b: number, c: number, d: number) => void;
   readonly udoc_load_image: (a: number, b: number, c: number, d: number) => void;
   readonly udoc_load_pdf: (a: number, b: number, c: number, d: number) => void;
   readonly udoc_load_pptx: (a: number, b: number, c: number, d: number) => void;

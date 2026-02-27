@@ -18,6 +18,7 @@ export const udoc_hasRegisteredFont: (a: number, b: number, c: number, d: number
 export const udoc_has_document: (a: number, b: number, c: number) => number;
 export const udoc_has_feature: (a: number, b: number, c: number) => number;
 export const udoc_license_status: (a: number, b: number) => void;
+export const udoc_load_docx: (a: number, b: number, c: number, d: number) => void;
 export const udoc_load_image: (a: number, b: number, c: number, d: number) => void;
 export const udoc_load_pdf: (a: number, b: number, c: number, d: number) => void;
 export const udoc_load_pptx: (a: number, b: number, c: number, d: number) => void;

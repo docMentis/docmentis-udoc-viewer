@@ -12,6 +12,7 @@ export type PerformanceEventType =
     | "loadPdf" // WASM loadPdf operation
     | "loadImage" // WASM loadImage operation
     | "loadPptx" // WASM loadPptx operation
+    | "loadDocx" // WASM loadDocx operation
     | "getPageCount" // Get document page count
     | "getPageInfo" // Get single page info
     | "getAllPageInfo" // Get all page info batch

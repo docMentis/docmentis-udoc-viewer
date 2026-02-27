@@ -350,15 +350,23 @@ export class UDocViewer {
             // Detect format and load appropriately
             const format = detectDocumentFormat(bytes, filename);
             this.currentFormat = format;
-            const loadId = this._performanceCounter.markStart(
-                format === "image" ? "loadImage" : format === "pptx" ? "loadPptx" : "loadPdf",
-            );
+            const loadLabel =
+                format === "image"
+                    ? "loadImage"
+                    : format === "pptx"
+                      ? "loadPptx"
+                      : format === "docx"
+                        ? "loadDocx"
+                        : "loadPdf";
+            const loadId = this._performanceCounter.markStart(loadLabel);
             this.documentId =
                 format === "image"
                     ? await this.workerClient.loadImage(bytes)
                     : format === "pptx"
                       ? await this.workerClient.loadPptx(bytes)
-                      : await this.workerClient.loadPdf(bytes);
+                      : format === "docx"
+                        ? await this.workerClient.loadDocx(bytes)
+                        : await this.workerClient.loadPdf(bytes);
             this._performanceCounter.markEnd(loadId);
 
             // Enable Google Fonts if requested
@@ -1356,7 +1364,7 @@ export class UDocViewer {
  * Detect document format based on magic bytes and filename.
  * Returns "pdf" for PDF files, "pptx" for PowerPoint files, "image" for supported image formats.
  */
-function detectDocumentFormat(bytes: Uint8Array, filename?: string): "pdf" | "pptx" | "image" {
+function detectDocumentFormat(bytes: Uint8Array, filename?: string): "pdf" | "pptx" | "docx" | "image" {
     // Check magic bytes first (most reliable)
     if (bytes.length >= 4) {
         // PDF: %PDF
@@ -1372,8 +1380,11 @@ function detectDocumentFormat(bytes: Uint8Array, filename?: string): "pdf" | "pp
                 if (ext === "pptx") {
                     return "pptx";
                 }
+                if (ext === "docx") {
+                    return "docx";
+                }
             }
-            // Default ZIP to PPTX for now (could add DOCX/XLSX later)
+            // Default ZIP to PPTX for now (could add XLSX later)
             return "pptx";
         }
 
@@ -1428,6 +1439,11 @@ function detectDocumentFormat(bytes: Uint8Array, filename?: string): "pdf" | "pp
         // PPTX extension
         if (ext === "pptx") {
             return "pptx";
+        }
+
+        // DOCX extension
+        if (ext === "docx") {
+            return "docx";
         }
 
         const imageExtensions = [

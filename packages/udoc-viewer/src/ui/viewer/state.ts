@@ -46,7 +46,7 @@ export type SpacingMode = "all" | "none" | "spread-only" | "page-only";
 export type ThemeMode = "light" | "dark" | "system";
 
 /** Document format as detected during loading */
-export type DocumentFormat = "pdf" | "pptx" | "image";
+export type DocumentFormat = "pdf" | "pptx" | "docx" | "image";
 
 /** Subset of view mode state that can be overridden per format */
 export interface ViewModeDefaults {
@@ -65,6 +65,7 @@ export interface ViewModeDefaults {
 export function getFormatDefaults(format: DocumentFormat): ViewModeDefaults {
     switch (format) {
         case "pdf":
+        case "docx":
             return { scrollMode: "continuous", zoomMode: "fit-spread-width-max" };
         case "pptx":
         case "image":

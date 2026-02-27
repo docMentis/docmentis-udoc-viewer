@@ -93,6 +93,7 @@ export type WorkerRequest =
     | { type: "loadPdf"; id: string; bytes: Uint8Array }
     | { type: "loadImage"; id: string; bytes: Uint8Array }
     | { type: "loadPptx"; id: string; bytes: Uint8Array }
+    | { type: "loadDocx"; id: string; bytes: Uint8Array }
     | { type: "unloadPdf"; documentId: string }
     | { type: "needsPassword"; documentId: string }
     | { type: "authenticate"; documentId: string; password: string }
@@ -134,6 +135,8 @@ export type WorkerResponse =
     | { type: "loadImage"; success: false; error: string }
     | { type: "loadPptx"; success: true; documentId: string }
     | { type: "loadPptx"; success: false; error: string }
+    | { type: "loadDocx"; success: true; documentId: string }
+    | { type: "loadDocx"; success: false; error: string }
     | { type: "unloadPdf"; success: true; removed: boolean }
     | { type: "unloadPdf"; success: false; error: string }
     | { type: "needsPassword"; success: true; needsPassword: boolean }
@@ -234,6 +237,13 @@ self.onmessage = async (event: MessageEvent<WorkerRequest & { _id?: number }>) =
                 ensureInitialized();
                 const documentId = udoc!.load_pptx(request.bytes);
                 respond({ type: "loadPptx", success: true, documentId });
+                break;
+            }
+
+            case "loadDocx": {
+                ensureInitialized();
+                const documentId = udoc!.load_docx(request.bytes);
+                respond({ type: "loadDocx", success: true, documentId });
                 break;
             }
 
