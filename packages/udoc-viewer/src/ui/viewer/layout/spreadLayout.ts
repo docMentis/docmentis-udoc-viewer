@@ -145,39 +145,44 @@ function calculateDoublePageOddLeftSpreads(pageCount: number): Spread[] {
 }
 
 /**
- * Find the spread index containing a specific page using binary search.
+ * Find the spread index containing a specific page using O(1) arithmetic.
+ * Since spread structure is fully deterministic from layout mode, we can compute
+ * the index directly without any search.
  */
 export function findSpreadForPage(spreads: Spread[], page: number): number {
     if (spreads.length === 0) return 0;
 
-    let left = 0;
-    let right = spreads.length - 1;
+    const firstSpread = spreads[0];
+    const lastSpread = spreads[spreads.length - 1];
 
-    while (left <= right) {
-        const mid = Math.floor((left + right) / 2);
-        const spread = spreads[mid];
+    // Check if page is outside document range
+    const maxPageInDoc = Math.max(...lastSpread.slots.filter((slot): slot is number => slot !== null));
+    if (page < 1 || page > maxPageInDoc) {
+        return 0;
+    }
 
-        const firstSlot = spread.slots[0];
-        const lastSlot = spread.slots[spread.slots.length - 1];
+    // Infer layout mode from the first spread's structure
+    let spreadIndex: number;
+    if (firstSpread.slots.length === 1) {
+        // single-page: [1], [2], [3], ...
+        spreadIndex = page - 1;
+    } else {
+        // Double-page modes: check first spread's pattern
+        const [slot0, slot1] = firstSpread.slots;
 
-        const minPage = firstSlot ?? spread.slots[1] ?? 1;
-        const maxPage = lastSlot ?? spread.slots[0] ?? 1;
-
-        if (page >= minPage && page <= maxPage) {
-            for (const slot of spread.slots) {
-                if (slot === page) return mid;
-            }
-            return mid;
-        }
-
-        if (page < minPage) {
-            right = mid - 1;
+        if (slot0 === null && slot1 === 1) {
+            // double-page-odd-right: [null, 1], [2, 3], [4, 5], ...
+            spreadIndex = Math.floor(page / 2);
+        } else if (slot0 === 1 && slot1 === null) {
+            // double-page-odd-left: [1, null], [3, 2], [5, 4], ...
+            spreadIndex = Math.floor(page / 2);
         } else {
-            left = mid + 1;
+            // double-page: [1, 2], [3, 4], [5, 6], ...
+            spreadIndex = Math.floor((page - 1) / 2);
         }
     }
 
-    return 0;
+    return spreadIndex;
 }
 
 /**
