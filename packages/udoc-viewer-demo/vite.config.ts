@@ -7,8 +7,7 @@ export default defineConfig(({ mode }) => ({
             mode === "development"
                 ? {
                       // Point to source for HMR support during development
-                      "@docmentis/udoc-viewer": new URL("../udoc-viewer/src/index.ts", import.meta.url)
-                          .pathname,
+                      "@docmentis/udoc-viewer": new URL("../udoc-viewer/src/index.ts", import.meta.url).pathname,
                   }
                 : {},
     },
