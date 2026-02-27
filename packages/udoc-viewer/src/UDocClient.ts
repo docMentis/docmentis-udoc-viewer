@@ -522,7 +522,13 @@ export class UDocClient {
         // Create viewers for the composed documents
         const viewers: UDocViewer[] = [];
         for (const docId of newDocIds) {
-            const viewer = new UDocViewer(this.workerClient, {});
+            const viewer = new UDocViewer(
+                this.workerClient,
+                {},
+                true,
+                this.telemetryEnabled,
+                UDocClient.version,
+            );
             await viewer.initializeFromDocId(docId);
             this.viewers.add(viewer);
             viewers.push(viewer);
@@ -572,7 +578,13 @@ export class UDocClient {
             // Create viewers for the split documents
             const viewers: UDocViewer[] = [];
             for (const newDocId of result.documentIds) {
-                const viewer = new UDocViewer(this.workerClient, {});
+                const viewer = new UDocViewer(
+                    this.workerClient,
+                    {},
+                    true,
+                    this.telemetryEnabled,
+                    UDocClient.version,
+                );
                 await viewer.initializeFromDocId(newDocId);
                 this.viewers.add(viewer);
                 viewers.push(viewer);
