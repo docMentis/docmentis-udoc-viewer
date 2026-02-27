@@ -571,6 +571,11 @@ export function createViewport(showAttribution = true) {
     let lastOverflowY: boolean | null = null;
     // Track the document position at viewport top edge for consistent positioning across mode switches
     let viewportTopPosition: ViewportTopPosition | null = null;
+    // After explicit navigation, remember the target page and scroll position so that
+    // updateCurrentPageFromScroll doesn't override it (needed when the viewport is at
+    // max scroll and the target page can't be scrolled to the top).
+    let navigationPage: number | null = null;
+    let navigationScrollTop: number | null = null;
 
     let updateRaf = 0;
     let scrollRaf = 0;
@@ -755,10 +760,11 @@ export function createViewport(showAttribution = true) {
             }
 
             if (next.scrollMode === "continuous") {
+                navigationPage = target.page;
                 scrollToTarget(target);
-            } else {
-                store.dispatch({ type: "SET_PAGE", page: target.page });
+                navigationScrollTop = scrollArea.scrollTop;
             }
+            store.dispatch({ type: "SET_PAGE", page: target.page });
 
             store.dispatch({ type: "CLEAR_NAVIGATION_TARGET" });
         });
@@ -1119,7 +1125,7 @@ export function createViewport(showAttribution = true) {
         }
 
         const viewportCenter = scrollTop + metrics.innerHeight / 2;
-        const focusPage = findFocusPage(viewportCenter, state);
+        const focusPage = findSpreadAtCenter(viewportCenter, state);
         if (focusPage !== null) {
             workerClient.boostPageRenderPriority(slice.docId, focusPage);
         }
@@ -1194,7 +1200,8 @@ export function createViewport(showAttribution = true) {
         }
     }
 
-    function findFocusPage(viewportCenter: number, state: LayoutState): number | null {
+    /** Find the spread whose center is closest to a given Y position (used for render priority). */
+    function findSpreadAtCenter(y: number, state: LayoutState): number | null {
         if (state.layouts.length === 0 || state.spreads.length === 0) return null;
 
         let closestIndex = 0;
@@ -1203,7 +1210,7 @@ export function createViewport(showAttribution = true) {
         for (let i = 0; i < state.layouts.length; i++) {
             const layout = state.layouts[i];
             const spreadCenter = layout.top + layout.height / 2;
-            const distance = Math.abs(spreadCenter - viewportCenter);
+            const distance = Math.abs(spreadCenter - y);
             if (distance < closestDistance) {
                 closestDistance = distance;
                 closestIndex = i;
@@ -1214,10 +1221,37 @@ export function createViewport(showAttribution = true) {
         return spread ? getSpreadPrimaryPage(spread) : null;
     }
 
-    function updateCurrentPageFromScroll(scrollTop: number, viewportHeight: number, state: LayoutState): void {
+    /** Find the topmost spread that is meaningfully visible at the viewport top edge.
+     *  A 1px threshold avoids selecting a page that only shows a sub-pixel sliver
+     *  due to device-pixel snapping in scrollToTarget. */
+    function findTopVisiblePage(scrollTop: number, state: LayoutState): number | null {
+        if (state.layouts.length === 0 || state.spreads.length === 0) return null;
+
+        for (let i = 0; i < state.layouts.length; i++) {
+            if (scrollTop + 1 < state.layouts[i].top + state.layouts[i].height) {
+                const spread = state.spreads[i];
+                return spread ? getSpreadPrimaryPage(spread) : null;
+            }
+        }
+
+        // Past the last spread – return last page
+        const lastSpread = state.spreads[state.spreads.length - 1];
+        return lastSpread ? getSpreadPrimaryPage(lastSpread) : null;
+    }
+
+    function updateCurrentPageFromScroll(scrollTop: number, _viewportHeight: number, state: LayoutState): void {
         if (!storeRef) return;
-        const viewportCenter = scrollTop + viewportHeight / 2;
-        const primaryPage = findFocusPage(viewportCenter, state);
+
+        let primaryPage: number | null;
+        if (navigationPage !== null && navigationScrollTop !== null && scrollTop === navigationScrollTop) {
+            // Scroll position unchanged since explicit navigation – keep that page.
+            primaryPage = navigationPage;
+        } else {
+            // User scrolled – clear override and detect from viewport top.
+            navigationPage = null;
+            navigationScrollTop = null;
+            primaryPage = findTopVisiblePage(scrollTop, state);
+        }
         if (primaryPage === null) return;
 
         const currentState = storeRef.getState();
