@@ -149,6 +149,13 @@ export interface ViewerOptions {
     spreadSpacing?: number;
 
     /**
+     * Width of thumbnail images in the thumbnail panel, in CSS pixels.
+     * Height is derived automatically from the page aspect ratio.
+     * @default 150
+     */
+    thumbnailWidth?: number;
+
+    /**
      * Initially active panel, or null for no panel.
      * @default null
      */
@@ -515,7 +522,7 @@ export class UDocClient {
         // Create viewers for the composed documents
         const viewers: UDocViewer[] = [];
         for (const docId of newDocIds) {
-            const viewer = new UDocViewer(this.workerClient, {});
+            const viewer = new UDocViewer(this.workerClient, {}, true, this.telemetryEnabled, UDocClient.version);
             await viewer.initializeFromDocId(docId);
             this.viewers.add(viewer);
             viewers.push(viewer);
@@ -565,7 +572,7 @@ export class UDocClient {
             // Create viewers for the split documents
             const viewers: UDocViewer[] = [];
             for (const newDocId of result.documentIds) {
-                const viewer = new UDocViewer(this.workerClient, {});
+                const viewer = new UDocViewer(this.workerClient, {}, true, this.telemetryEnabled, UDocClient.version);
                 await viewer.initializeFromDocId(newDocId);
                 this.viewers.add(viewer);
                 viewers.push(viewer);

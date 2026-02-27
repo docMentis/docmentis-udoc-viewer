@@ -174,6 +174,10 @@ const viewer = await client.createViewer({
     // Spacing between spreads in pixels (default: 20)
     spreadSpacing: 20,
 
+    // Width of thumbnail images in pixels (default: 150)
+    // Height is derived automatically from the page aspect ratio
+    thumbnailWidth: 150,
+
     // Initially active panel, or null for no panel (default: null)
     // Left panels: 'thumbnail', 'outline', 'bookmarks', 'layers', 'attachments'
     // Right panels: 'search', 'comments'

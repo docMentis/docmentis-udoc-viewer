@@ -277,6 +277,7 @@ export class UDocViewer {
         if (options.dpi !== undefined) overrides.dpi = options.dpi;
         if (options.pageSpacing !== undefined) overrides.pageSpacing = options.pageSpacing;
         if (options.spreadSpacing !== undefined) overrides.spreadSpacing = options.spreadSpacing;
+        if (options.thumbnailWidth !== undefined) overrides.thumbnailWidth = options.thumbnailWidth;
         if (options.activePanel !== undefined) overrides.activePanel = options.activePanel;
         if (options.hideToolbar) overrides.toolbarVisible = false;
         if (options.hideFloatingToolbar) overrides.floatingToolbarVisible = false;

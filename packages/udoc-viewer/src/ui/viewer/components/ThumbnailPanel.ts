@@ -6,8 +6,6 @@ import type { Action } from "../actions";
 import type { WorkerClient } from "../../../worker/index.js";
 import { getDevicePixelRatio } from "../layout";
 
-const THUMBNAIL_WIDTH = 150; // Fixed width in CSS pixels
-
 interface ThumbnailItem {
     container: HTMLDivElement;
     canvas: HTMLCanvasElement;
@@ -23,6 +21,7 @@ type ThumbnailSlice = {
     pageInfos: readonly PageInfo[];
     currentPage: number;
     dpi: number;
+    thumbnailWidth: number;
 };
 
 function selectThumbnailSlice(state: ViewerState): ThumbnailSlice {
@@ -32,6 +31,7 @@ function selectThumbnailSlice(state: ViewerState): ThumbnailSlice {
         pageInfos: state.pageInfos,
         currentPage: state.page,
         dpi: state.dpi,
+        thumbnailWidth: state.thumbnailWidth,
     };
 }
 
@@ -49,7 +49,7 @@ export function createThumbnailPanel() {
     let unsubRender: (() => void) | null = null;
     const unsubEvents: Array<() => void> = [];
 
-    function createThumbnailItem(pageNumber: number, pageInfo: PageInfo): ThumbnailItem {
+    function createThumbnailItem(pageNumber: number, pageInfo: PageInfo, thumbnailWidth: number): ThumbnailItem {
         const container = document.createElement("div");
         container.className = "udoc-thumbnail-item";
         container.dataset.page = String(pageNumber);
@@ -60,7 +60,7 @@ export function createThumbnailPanel() {
         // Set aspect ratio for responsive scaling
         const aspectRatio = pageInfo.width / pageInfo.height;
         canvas.style.aspectRatio = String(aspectRatio);
-        canvas.style.width = `${THUMBNAIL_WIDTH}px`;
+        canvas.style.width = `${thumbnailWidth}px`;
 
         container.appendChild(canvas);
 
@@ -103,7 +103,7 @@ export function createThumbnailPanel() {
         // Create thumbnail items for each page
         for (let i = 1; i <= slice.pageCount; i++) {
             const pageInfo = slice.pageInfos[i - 1] || defaultPageInfo;
-            const item = createThumbnailItem(i, pageInfo);
+            const item = createThumbnailItem(i, pageInfo, slice.thumbnailWidth);
             thumbnailItems.push(item);
             el.appendChild(item.container);
         }
@@ -192,7 +192,7 @@ export function createThumbnailPanel() {
 
         const dpr = getDevicePixelRatio();
         const pointsToPixels = getPointsToPixels(currentSlice.dpi);
-        const scale = THUMBNAIL_WIDTH / (pageInfo.width * pointsToPixels);
+        const scale = currentSlice.thumbnailWidth / (pageInfo.width * pointsToPixels);
         const renderScale = scale * pointsToPixels * dpr;
 
         const key = `${currentSlice.docId}:${pageNumber}:${renderScale.toFixed(4)}`;

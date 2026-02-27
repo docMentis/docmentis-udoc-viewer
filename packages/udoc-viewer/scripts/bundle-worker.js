@@ -52,11 +52,13 @@ let workerClientCode = readFileSync(workerClientPath, "utf-8");
 workerClientCode = workerClientCode.replaceAll("import.meta.url", '"about:blank"');
 writeFileSync(workerClientPath, workerClientCode);
 
-// --- Step 5: Replace __VERSION__ in UDocClient.js ---
+// --- Step 5: Replace __VERSION__ in UDocClient.js and UDocViewer.js ---
 const pkg = JSON.parse(readFileSync(join(__dirname, "../package.json"), "utf-8"));
-const clientPath = join(distDir, "UDocClient.js");
-let clientCode = readFileSync(clientPath, "utf-8");
-clientCode = clientCode.replaceAll('"__VERSION__"', JSON.stringify(pkg.version));
-writeFileSync(clientPath, clientCode);
+for (const file of ["UDocClient.js", "UDocViewer.js"]) {
+    const filePath = join(distDir, file);
+    let code = readFileSync(filePath, "utf-8");
+    code = code.replaceAll('"__VERSION__"', JSON.stringify(pkg.version));
+    writeFileSync(filePath, code);
+}
 
 console.log(`Bundled worker (inline + standalone), version ${pkg.version}`);
