@@ -138,8 +138,9 @@ export class UDoc {
   /**
    * Register a font from raw bytes.
    *
-   * Use this to register external fonts (e.g., fetched from Google Fonts)
-   * so they can be used for document rendering.
+   * The JS viewer calls `getRequiredFonts` to discover which fonts a
+   * document needs, fetches them from any source (CDN, local storage, etc.),
+   * and passes the raw bytes here so the engine can use them during rendering.
    *
    * # Arguments
    * * `id` - Document ID
@@ -147,22 +148,6 @@ export class UDoc {
    * * `bold` - Whether this is a bold variant
    * * `italic` - Whether this is an italic variant
    * * `bytes` - Raw font file data (TTF, OTF, WOFF, or WOFF2)
-   *
-   * # Example (JavaScript)
-   * ```js
-   * // Get required fonts
-   * const fonts = udoc.getRequiredFonts(docId);
-   *
-   * // Fetch and register each font
-   * for (const font of fonts) {
-   *     const url = `https://fonts.googleapis.com/css2?family=${font.typeface}`;
-   *     const fontBytes = await fetchFontBytes(url, font.bold, font.italic);
-   *     udoc.registerFont(docId, font.typeface, font.bold, font.italic, fontBytes);
-   * }
-   *
-   * // Now render with the registered fonts
-   * const pixels = udoc.renderPageToRgba(docId, 0, 800, 600);
-   * ```
    */
   registerFont(id: string, typeface: string, bold: boolean, italic: boolean, bytes: Uint8Array): void;
   /**
