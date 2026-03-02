@@ -965,6 +965,11 @@
     user-select: none;
     pointer-events: auto;
     z-index: 1;
+    /* Isolate compositing so overlapping span ::selection backgrounds
+       don't double-darken.  Selection is painted opaque inside the group,
+       then the whole layer is rendered at 30% opacity onto the page. */
+    isolation: isolate;
+    opacity: 0.3;
 }
 
 .udoc-viewer-root .udoc-text-span {
