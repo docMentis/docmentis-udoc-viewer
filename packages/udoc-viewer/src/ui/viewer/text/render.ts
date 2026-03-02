@@ -24,107 +24,11 @@ interface PendingSpan {
 }
 
 /**
- * Detect columns in text layout and sort runs in reading order.
- *
- * Algorithm:
- * 1. Find horizontal gaps that indicate column boundaries
- * 2. Group runs into columns based on X position ranges
- * 3. Sort within each column by Y (top to bottom), then X (left to right)
- * 4. Concatenate columns in left-to-right order
- *
- * @param runs - Processed runs with calculated positions
- * @returns Runs sorted in reading order (column by column)
- */
-function sortByReadingOrder(runs: ProcessedRun[]): ProcessedRun[] {
-    if (runs.length <= 1) return runs;
-
-    // Calculate average font size for threshold calculations
-    const avgFontSize = runs.reduce((sum, r) => sum + r.scaledFontSize, 0) / runs.length;
-
-    // Get bounding boxes for each run
-    interface RunBounds {
-        run: ProcessedRun;
-        left: number;
-        right: number;
-    }
-
-    const runBounds: RunBounds[] = runs.map((run) => {
-        const { glyphs } = run.run;
-        const lastGlyph = glyphs[glyphs.length - 1];
-        const textWidth = (lastGlyph.x + lastGlyph.advance) * run.effectiveScaleX;
-        return {
-            run,
-            left: run.x,
-            right: run.x + textWidth * (run.run.transform.scaleX > 0 ? 1 : -1),
-        };
-    });
-
-    // Find column boundaries by detecting large horizontal gaps
-    // Sort all runs by left edge to analyze gaps
-    const sortedByLeft = [...runBounds].sort((a, b) => a.left - b.left);
-
-    // Build column ranges by finding significant gaps
-    // A gap wider than 2x average font size suggests a column boundary
-    const columnGapThreshold = avgFontSize * 2;
-
-    // Find all unique X ranges (potential columns)
-    interface ColumnRange {
-        left: number;
-        right: number;
-        runs: ProcessedRun[];
-    }
-
-    const columns: ColumnRange[] = [];
-
-    for (const rb of sortedByLeft) {
-        // Find if this run belongs to an existing column
-        let foundColumn = false;
-        for (const col of columns) {
-            // Check if run overlaps or is close to this column's range
-            const overlaps = rb.left <= col.right + columnGapThreshold && rb.right >= col.left - columnGapThreshold;
-            if (overlaps) {
-                // Extend column range and add run
-                col.left = Math.min(col.left, rb.left);
-                col.right = Math.max(col.right, rb.right);
-                col.runs.push(rb.run);
-                foundColumn = true;
-                break;
-            }
-        }
-
-        if (!foundColumn) {
-            // Create new column
-            columns.push({
-                left: rb.left,
-                right: rb.right,
-                runs: [rb.run],
-            });
-        }
-    }
-
-    // Sort columns left to right
-    columns.sort((a, b) => a.left - b.left);
-
-    // Sort runs within each column by Y (top to bottom), then X (left to right)
-    for (const col of columns) {
-        col.runs.sort((a, b) => {
-            const yDiff = a.y - b.y;
-            const lineThreshold = Math.min(a.scaledFontSize, b.scaledFontSize) * 0.5;
-            if (Math.abs(yDiff) < lineThreshold) {
-                return a.x - b.x;
-            }
-            return yDiff;
-        });
-    }
-
-    // Concatenate all columns in order
-    return columns.flatMap((col) => col.runs);
-}
-
-/**
  * Render text runs to a text layer element.
  *
  * Creates positioned, invisible text spans that enable native browser selection.
+ * Text runs are rendered in the order provided (content stream order from the
+ * document), which preserves the correct reading order for multi-column layouts.
  *
  * @param layer - The text layer element to render into
  * @param textRuns - Text runs with position and font information
@@ -175,55 +79,64 @@ export function renderTextToLayer(
         return;
     }
 
-    // Detect columns and sort text in reading order
-    // This prevents selection from jumping between columns
-    const sortedRuns = sortByReadingOrder(processedRuns);
+    // Calculate span heights spatially.
+    // Group runs into lines by Y proximity, sort lines by Y, then set each
+    // line's height to cover the gap to the next line below.  This is done
+    // spatially so it works regardless of content stream order.
 
-    // Replace processedRuns with sorted order
-    processedRuns.length = 0;
-    processedRuns.push(...sortedRuns);
-
-    // Guard: if sorting resulted in empty array, clear layer and return
-    if (processedRuns.length === 0) {
-        layer.replaceChildren();
-        return;
+    // 1. Group runs into lines (runs whose Y values are within 0.5× font-size)
+    interface Line {
+        y: number; // representative Y (baseline) of the line
+        top: number; // y - ascent
+        fontSize: number; // max font size on the line
+        runs: ProcessedRun[];
+    }
+    const lines: Line[] = [];
+    // Sort a shallow copy by Y for grouping; original processedRuns order is preserved.
+    const byY = processedRuns.slice().sort((a, b) => a.y - b.y);
+    for (const run of byY) {
+        const threshold = run.scaledFontSize * 0.5;
+        const last = lines[lines.length - 1];
+        if (last && Math.abs(run.y - last.y) < threshold) {
+            last.runs.push(run);
+            last.fontSize = Math.max(last.fontSize, run.scaledFontSize);
+        } else {
+            lines.push({
+                y: run.y,
+                top: run.y - run.scaledFontSize * 0.8,
+                fontSize: run.scaledFontSize,
+                runs: [run],
+            });
+        }
     }
 
-    // Mark end-of-line runs and calculate span heights to fill gaps
+    // 2. For each line, compute height from its top to the next line's top.
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        let spanHeight: number;
+        if (i + 1 < lines.length) {
+            const nextTop = lines[i + 1].top;
+            const gap = nextTop - line.top;
+            // Clamp: at least 1.2× font size, at most 3× font size
+            // (prevents huge spans when lines are far apart, e.g. across columns)
+            spanHeight = Math.max(line.fontSize * 1.2, Math.min(gap, line.fontSize * 3));
+        } else {
+            spanHeight = line.fontSize * 1.5;
+        }
+        for (const run of line.runs) {
+            run.spanHeight = spanHeight;
+        }
+    }
+
+    // 3. Mark end-of-line in content stream order (for \n insertion when copying)
     for (let i = 0; i < processedRuns.length - 1; i++) {
         const current = processedRuns[i];
         const next = processedRuns[i + 1];
-        const lineThreshold = current.scaledFontSize * 0.5;
-
-        // If next run is on a different line, current is end of line
-        if (Math.abs(next.y - current.y) >= lineThreshold) {
+        if (Math.abs(next.y - current.y) >= current.scaledFontSize * 0.5) {
             current.isEndOfLine = true;
-            // Calculate height to cover gap to next line
-            // From current top (y - ascent) to next line's top (nextY - nextAscent)
-            const currentTop = current.y - current.scaledFontSize * 0.8;
-            const nextTop = next.y - next.scaledFontSize * 0.8;
-            const gapHeight = nextTop - currentTop;
-            // Use calculated gap or at least 1.2x font size
-            current.spanHeight = Math.max(gapHeight, current.scaledFontSize * 1.2);
         }
     }
-    // Last run is always end of line, use generous height
-    const lastRun = processedRuns[processedRuns.length - 1];
-    lastRun.isEndOfLine = true;
-    lastRun.spanHeight = lastRun.scaledFontSize * 1.5;
-
-    // For all runs on the same line, extend their height to match the end-of-line run
-    let lineEndIndex = 0;
-    for (let i = 0; i < processedRuns.length; i++) {
-        if (processedRuns[i].isEndOfLine) {
-            const lineHeight = processedRuns[i].spanHeight;
-            // Apply this height to all runs from lineEndIndex to i
-            for (let j = lineEndIndex; j <= i; j++) {
-                processedRuns[j].spanHeight = lineHeight;
-            }
-            lineEndIndex = i + 1;
-        }
-    }
+    processedRuns[processedRuns.length - 1].isEndOfLine = true;
 
     // Collect spans that need width scaling
     const pendingSpans: PendingSpan[] = [];
