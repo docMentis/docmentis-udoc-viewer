@@ -124,6 +124,18 @@ export function mountViewerShell(
     };
     panelOverlay.addEventListener("click", handleOverlayClick);
 
+    // Ctrl+F / Cmd+F to open search panel
+    const handleKeyDown = (e: KeyboardEvent) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === "f") {
+            e.preventDefault();
+            const state = store.getState();
+            if (state.activePanel !== "search") {
+                store.dispatch({ type: "TOGGLE_PANEL", panel: "search" });
+            }
+        }
+    };
+    layout.addEventListener("keydown", handleKeyDown);
+
     // Subscribe to panel state to toggle udoc-panel-open class
     // and toolbar slot visibility
     const unsubPanelClass = store.subscribeRender((prev, next) => {
@@ -147,6 +159,7 @@ export function mountViewerShell(
     }
 
     function destroy(): void {
+        layout.removeEventListener("keydown", handleKeyDown);
         panelOverlay.removeEventListener("click", handleOverlayClick);
         unsubPanelClass();
         effects.destroy();

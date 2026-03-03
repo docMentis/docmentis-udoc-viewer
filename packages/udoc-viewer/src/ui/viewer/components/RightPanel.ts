@@ -4,6 +4,7 @@ import type { ViewerState, RightPanelTab } from "../state";
 import { isLeftPanelTab } from "../state";
 import type { Action } from "../actions";
 import { createAnnotationPanel } from "./AnnotationPanel";
+import { createSearchPanel } from "./SearchPanel";
 
 const RIGHT_TABS: RightPanelTab[] = ["search", "comments"];
 
@@ -30,6 +31,7 @@ export function createRightPanel() {
     el.append(resizeHandle, content);
 
     // Child components
+    const searchPanel = createSearchPanel();
     const annotationPanel = createAnnotationPanel();
 
     let unsubRender: (() => void) | null = null;
@@ -103,7 +105,8 @@ export function createRightPanel() {
         // Setup resize handle
         setupResize();
 
-        // Mount annotation panel
+        // Mount panels
+        searchPanel.mount(content, store);
         annotationPanel.mount(content, store);
 
         // Subscribe to state changes
@@ -121,6 +124,7 @@ export function createRightPanel() {
     function destroy(): void {
         if (unsubRender) unsubRender();
         for (const off of unsubEvents) off();
+        searchPanel.destroy();
         annotationPanel.destroy();
         storeRef = null;
         el.remove();

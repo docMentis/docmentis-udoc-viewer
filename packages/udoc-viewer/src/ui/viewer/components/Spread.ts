@@ -4,6 +4,7 @@ import { getPointsToPixels, type PageRotation, type PageInfo } from "../state";
 import { getDevicePixelRatio, toCssPixels, toDevicePixels, snapToDevice } from "../layout";
 import { renderAnnotationsToLayer, type Annotation } from "../annotation";
 import { renderTextToLayer, attachSelectionController, type TextRun } from "../text";
+import type { SearchMatch } from "../state";
 
 export interface HighlightedAnnotation {
     pageIndex: number;
@@ -29,6 +30,7 @@ interface PageSlotElement {
     canvas: HTMLCanvasElement | null;
     textLayer: HTMLDivElement | null;
     annotationLayer: HTMLDivElement | null;
+    searchHighlightLayer: HTMLDivElement | null;
     pageNumber: PageSlot;
     renderKey: string;
     pendingKey: string | null;
@@ -47,6 +49,12 @@ interface PageSlotElement {
     lastTextScale: number;
     /** Cleanup function for text selection controller */
     cleanupSelectionController: (() => void) | null;
+    /** Last search matches rendered on this page (for change detection) */
+    lastSearchMatches: SearchMatch[] | null;
+    /** Last active search index */
+    lastSearchActiveIndex: number;
+    /** Last scale used for search highlight rendering */
+    lastSearchScale: number;
 }
 
 interface SlotSize {
@@ -141,11 +149,20 @@ export function createSpread(data: SpreadData) {
             annotationLayer.style.pointerEvents = "none";
             container.appendChild(annotationLayer);
 
+            // Search highlight layer (above annotation layer)
+            const searchHighlightLayer = document.createElement("div");
+            searchHighlightLayer.className = "udoc-spread__search-highlight-layer";
+            searchHighlightLayer.style.position = "absolute";
+            searchHighlightLayer.style.transformOrigin = "center";
+            searchHighlightLayer.style.pointerEvents = "none";
+            container.appendChild(searchHighlightLayer);
+
             return {
                 container,
                 canvas,
                 textLayer,
                 annotationLayer,
+                searchHighlightLayer,
                 pageNumber,
                 renderKey: "",
                 pendingKey: null,
@@ -158,6 +175,9 @@ export function createSpread(data: SpreadData) {
                 lastTextRuns: null,
                 lastTextScale: 0,
                 cleanupSelectionController,
+                lastSearchMatches: null,
+                lastSearchActiveIndex: -1,
+                lastSearchScale: 0,
             };
         }
 
@@ -167,6 +187,7 @@ export function createSpread(data: SpreadData) {
             canvas: null,
             textLayer: null,
             annotationLayer: null,
+            searchHighlightLayer: null,
             pageNumber: null,
             renderKey: "",
             pendingKey: null,
@@ -179,6 +200,9 @@ export function createSpread(data: SpreadData) {
             lastTextRuns: null,
             lastTextScale: 0,
             cleanupSelectionController: null,
+            lastSearchMatches: null,
+            lastSearchActiveIndex: -1,
+            lastSearchScale: 0,
         };
     }
 
@@ -264,6 +288,16 @@ export function createSpread(data: SpreadData) {
                 slotEl.annotationLayer.style.left = formatCssSize(centerLeft);
                 slotEl.annotationLayer.style.top = formatCssSize(centerTop);
                 slotEl.annotationLayer.style.transform =
+                    effectiveRotation === 0 ? "none" : `rotate(${effectiveRotation}deg)`;
+            }
+
+            // Update search highlight layer to match canvas position/transform
+            if (slotEl.searchHighlightLayer) {
+                slotEl.searchHighlightLayer.style.width = formatCssSize(slotEl.cssWidth);
+                slotEl.searchHighlightLayer.style.height = formatCssSize(slotEl.cssHeight);
+                slotEl.searchHighlightLayer.style.left = formatCssSize(centerLeft);
+                slotEl.searchHighlightLayer.style.top = formatCssSize(centerTop);
+                slotEl.searchHighlightLayer.style.transform =
                     effectiveRotation === 0 ? "none" : `rotate(${effectiveRotation}deg)`;
             }
         }
@@ -429,6 +463,54 @@ export function createSpread(data: SpreadData) {
         }
     }
 
+    function updateSearchHighlights(matches: SearchMatch[], activeIndex: number, options: SpreadLayoutOptions): void {
+        const pointsToPixels = getPointsToPixels(options.dpi);
+        const scale = pointsToPixels * options.scale;
+
+        for (const slotEl of slotElements) {
+            if (!slotEl.searchHighlightLayer || slotEl.pageNumber === null) continue;
+
+            const pageIndex = slotEl.pageNumber - 1;
+            const scaleUnchanged = Math.abs(scale - slotEl.lastSearchScale) < 0.0001;
+
+            // Skip if nothing changed
+            if (
+                matches === slotEl.lastSearchMatches &&
+                activeIndex === slotEl.lastSearchActiveIndex &&
+                scaleUnchanged
+            ) {
+                continue;
+            }
+
+            // Clear and re-render
+            slotEl.searchHighlightLayer.innerHTML = "";
+
+            for (let i = 0; i < matches.length; i++) {
+                const match = matches[i];
+                if (match.pageIndex !== pageIndex) continue;
+
+                const isActive = i === activeIndex;
+
+                for (const rect of match.rects) {
+                    const highlightEl = document.createElement("div");
+                    highlightEl.className = isActive
+                        ? "udoc-search-highlight udoc-search-highlight--active"
+                        : "udoc-search-highlight";
+                    highlightEl.style.position = "absolute";
+                    highlightEl.style.left = `${rect.x * scale}px`;
+                    highlightEl.style.top = `${rect.y * scale}px`;
+                    highlightEl.style.width = `${rect.width * scale}px`;
+                    highlightEl.style.height = `${rect.height * scale}px`;
+                    slotEl.searchHighlightLayer.appendChild(highlightEl);
+                }
+            }
+
+            slotEl.lastSearchMatches = matches;
+            slotEl.lastSearchActiveIndex = activeIndex;
+            slotEl.lastSearchScale = scale;
+        }
+    }
+
     return {
         el,
         mount,
@@ -437,6 +519,7 @@ export function createSpread(data: SpreadData) {
         updateLayout,
         updateAnnotations,
         updateTextLayer,
+        updateSearchHighlights,
         getElement,
         getData,
     };

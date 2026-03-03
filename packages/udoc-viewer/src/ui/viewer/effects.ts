@@ -2,6 +2,7 @@ import type { Store } from "../framework/store";
 import type { ViewerState } from "./state";
 import type { Action } from "./actions";
 import type { EngineAdapter } from "./shell";
+import { executeSearch } from "./search";
 
 /**
  * Determine which pages need content loaded (annotations, text).
@@ -247,6 +248,121 @@ export function createEffects(store: Store<ViewerState, Action>, engine: EngineA
         }
     };
     unsubscribers.push(cleanupHighlightTimer);
+
+    // Search text loading effect: load ALL page text when search panel is opened
+    // Follows the same pattern as the comments panel annotation loading effect.
+    unsubscribers.push(
+        store.subscribeEffect(async (prev, next) => {
+            if (!next.doc) return;
+
+            const searchJustOpened = next.activePanel === "search" && prev.activePanel !== "search";
+            const docLoadedWithSearchOpen = next.activePanel === "search" && prev.doc !== next.doc;
+
+            if (!searchJustOpened && !docLoadedWithSearchOpen) return;
+            if (next.searchTextLoaded || next.searchTextLoading) return;
+
+            const gen = docGeneration;
+            store.dispatch({ type: "SET_SEARCH_TEXT_LOADING", loading: true });
+
+            for (let pageIndex = 0; pageIndex < next.pageCount; pageIndex++) {
+                if (gen !== docGeneration) return;
+                const currentState = store.getState();
+                if (currentState.pageText.has(pageIndex)) continue;
+                if (currentState.textLoading.has(pageIndex)) continue;
+
+                store.dispatch({ type: "LOAD_PAGE_TEXT", pageIndex });
+                try {
+                    const text = await engine.getPageText(next.doc!, pageIndex);
+                    if (gen !== docGeneration) return;
+                    store.dispatch({ type: "SET_PAGE_TEXT", pageIndex, text });
+                } catch (error) {
+                    if (gen !== docGeneration) return;
+                    console.error(`Failed to load text for page ${pageIndex}`, error);
+                    store.dispatch({ type: "SET_PAGE_TEXT", pageIndex, text: [] });
+                }
+            }
+
+            if (gen !== docGeneration) return;
+            store.dispatch({ type: "SET_SEARCH_TEXT_LOADING", loading: false });
+            store.dispatch({ type: "SET_SEARCH_TEXT_LOADED", loaded: true });
+        }),
+    );
+
+    // Search execution effect: run search when query, case sensitivity, or text data changes
+    let searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+    unsubscribers.push(
+        store.subscribeEffect((prev, next) => {
+            if (next.activePanel !== "search") return;
+
+            // Only re-run search when search-relevant state actually changes
+            const searchInputChanged =
+                prev.searchQuery !== next.searchQuery ||
+                prev.searchCaseSensitive !== next.searchCaseSensitive ||
+                prev.pageText !== next.pageText ||
+                (prev.activePanel !== "search" && next.activePanel === "search");
+
+            if (!searchInputChanged) return;
+
+            // Debounce search execution
+            if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+
+            if (!next.searchQuery.trim()) {
+                // Clear immediately when query is empty
+                if (next.searchMatches.length > 0) {
+                    store.dispatch({ type: "SET_SEARCH_MATCHES", matches: [] });
+                }
+                return;
+            }
+
+            searchDebounceTimer = setTimeout(() => {
+                searchDebounceTimer = null;
+                const state = store.getState();
+                if (state.activePanel !== "search") return;
+                if (!state.searchQuery.trim()) return;
+
+                const matches = executeSearch(
+                    state.searchQuery,
+                    state.searchCaseSensitive,
+                    state.pageText,
+                    state.pageCount,
+                );
+                store.dispatch({ type: "SET_SEARCH_MATCHES", matches });
+            }, 300);
+        }),
+    );
+    unsubscribers.push(() => {
+        if (searchDebounceTimer) {
+            clearTimeout(searchDebounceTimer);
+            searchDebounceTimer = null;
+        }
+    });
+
+    // Search navigation effect: navigate to the page and position of the active match
+    unsubscribers.push(
+        store.subscribeEffect((prev, next) => {
+            if (next.searchActiveIndex === -1) return;
+            if (prev.searchActiveIndex === next.searchActiveIndex) return;
+            if (next.searchMatches.length === 0) return;
+
+            const match = next.searchMatches[next.searchActiveIndex];
+            if (!match) return;
+
+            // Navigate to the match position using a destination with XYZ display
+            // so the viewport scrolls to show the match, not just the page top
+            const rect = match.rects[0];
+            store.dispatch({
+                type: "NAVIGATE_TO_DESTINATION",
+                destination: {
+                    pageIndex: match.pageIndex,
+                    display: {
+                        type: "xyz",
+                        left: rect ? rect.x : undefined,
+                        top: rect ? rect.y : undefined,
+                    },
+                },
+            });
+        }),
+    );
 
     return {
         destroy: () => {

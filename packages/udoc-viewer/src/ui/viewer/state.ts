@@ -4,6 +4,24 @@ import type { TextRun } from "./text";
 import type { PageInfo } from "../../worker/index.js";
 
 // -----------------------------------------------------------------------------
+// Search types
+// -----------------------------------------------------------------------------
+
+/** A single search match with its location and geometry. */
+export interface SearchMatch {
+    /** 0-based page index. */
+    pageIndex: number;
+    /** Character offset within the concatenated page text. */
+    charOffset: number;
+    /** Length of the matched text. */
+    length: number;
+    /** Bounding rectangles for this match (in PDF points, for highlight rendering). */
+    rects: Array<{ x: number; y: number; width: number; height: number }>;
+    /** Context snippet: [before, match, after] text for display in result list. */
+    context: [string, string, string];
+}
+
+// -----------------------------------------------------------------------------
 // Panel types
 // -----------------------------------------------------------------------------
 
@@ -176,6 +194,20 @@ export interface ViewerState {
     /** Whether the viewer is in fullscreen mode */
     isFullscreen: boolean;
 
+    // Search
+    /** Current search query string */
+    searchQuery: string;
+    /** Whether search is case-sensitive */
+    searchCaseSensitive: boolean;
+    /** All search matches across all pages */
+    searchMatches: SearchMatch[];
+    /** Index of the currently active/focused match (-1 = none) */
+    searchActiveIndex: number;
+    /** Whether all page text has been loaded for search */
+    searchTextLoaded: boolean;
+    /** Whether search text is currently being loaded */
+    searchTextLoading: boolean;
+
     // Loading progress (for document download)
     /** Whether document is currently being downloaded */
     isDownloading: boolean;
@@ -235,6 +267,13 @@ export const initialState: ViewerState = {
     highlightedAnnotation: null,
 
     isFullscreen: false,
+
+    searchQuery: "",
+    searchCaseSensitive: false,
+    searchMatches: [],
+    searchActiveIndex: -1,
+    searchTextLoaded: false,
+    searchTextLoading: false,
 
     isDownloading: false,
     downloadLoaded: 0,

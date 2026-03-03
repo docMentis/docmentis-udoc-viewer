@@ -897,6 +897,57 @@ export class UDocViewer {
     }
 
     // ===========================================================================
+    // Search
+    // ===========================================================================
+
+    /**
+     * Search for text in the document.
+     * Opens the search panel and sets the search query.
+     *
+     * @param query - The text to search for
+     * @param options - Search options
+     */
+    search(query: string, options?: { caseSensitive?: boolean }): void {
+        this.ensureNotDestroyed();
+        this.ensureUiMode();
+        if (options?.caseSensitive !== undefined) {
+            this.uiShell!.dispatch({ type: "SET_SEARCH_CASE_SENSITIVE", caseSensitive: options.caseSensitive });
+        }
+        this.uiShell!.dispatch({ type: "SET_SEARCH_QUERY", query });
+        const state = this.uiShell!.getState();
+        if (state.activePanel !== "search") {
+            this.uiShell!.dispatch({ type: "TOGGLE_PANEL", panel: "search" });
+        }
+    }
+
+    /**
+     * Navigate to the next search match.
+     */
+    searchNext(): void {
+        this.ensureNotDestroyed();
+        this.ensureUiMode();
+        this.uiShell!.dispatch({ type: "SEARCH_NEXT" });
+    }
+
+    /**
+     * Navigate to the previous search match.
+     */
+    searchPrev(): void {
+        this.ensureNotDestroyed();
+        this.ensureUiMode();
+        this.uiShell!.dispatch({ type: "SEARCH_PREV" });
+    }
+
+    /**
+     * Clear the current search query and results.
+     */
+    clearSearch(): void {
+        this.ensureNotDestroyed();
+        this.ensureUiMode();
+        this.uiShell!.dispatch({ type: "CLEAR_SEARCH" });
+    }
+
+    // ===========================================================================
     // Page Rendering
     // ===========================================================================
 

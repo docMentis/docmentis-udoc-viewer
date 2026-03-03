@@ -9,6 +9,7 @@ import {
     type PageRotation,
     type PageInfo,
     type SpacingMode,
+    type SearchMatch,
 } from "../state";
 import type { Action } from "../actions";
 import type { NavigationTarget, Destination } from "../navigation";
@@ -52,6 +53,8 @@ interface ViewportSlice {
     pageAnnotations: Map<number, Annotation[]>;
     highlightedAnnotation: HighlightedAnnotation | null;
     pageText: Map<number, TextRun[]>;
+    searchMatches: SearchMatch[];
+    searchActiveIndex: number;
 }
 
 function viewportSliceEqual(a: ViewportSlice, b: ViewportSlice): boolean {
@@ -71,7 +74,9 @@ function viewportSliceEqual(a: ViewportSlice, b: ViewportSlice): boolean {
         a.spreadSpacing === b.spreadSpacing &&
         a.pageAnnotations === b.pageAnnotations &&
         a.highlightedAnnotation === b.highlightedAnnotation &&
-        a.pageText === b.pageText
+        a.pageText === b.pageText &&
+        a.searchMatches === b.searchMatches &&
+        a.searchActiveIndex === b.searchActiveIndex
     );
 }
 
@@ -1115,12 +1120,13 @@ export function createViewport(showAttribution = true) {
             }
         }
 
-        // Always update annotations and text on visible spreads (they may load after layout)
+        // Always update annotations, text, and search highlights on visible spreads (they may load after layout)
         for (let i = visibleRange.start; i <= visibleRange.end; i++) {
             const spreadComp = spreadComponents.get(i);
             if (spreadComp) {
                 spreadComp.updateAnnotations(slice.pageAnnotations, layoutOptions, slice.highlightedAnnotation);
                 spreadComp.updateTextLayer(slice.pageText, layoutOptions);
+                spreadComp.updateSearchHighlights(slice.searchMatches, slice.searchActiveIndex, layoutOptions);
             }
         }
 
@@ -1166,6 +1172,7 @@ export function createViewport(showAttribution = true) {
         spreadComp.updateLayout(layoutOptions);
         spreadComp.updateAnnotations(slice.pageAnnotations, layoutOptions, slice.highlightedAnnotation);
         spreadComp.updateTextLayer(slice.pageText, layoutOptions);
+        spreadComp.updateSearchHighlights(slice.searchMatches, slice.searchActiveIndex, layoutOptions);
 
         // Layout values are pre-snapped
         const top = getCenteredOffset(containerSize.height, layout.height);
@@ -1375,5 +1382,7 @@ function selectViewport(state: ViewerState): ViewportSlice {
         pageAnnotations: state.pageAnnotations,
         highlightedAnnotation: state.highlightedAnnotation,
         pageText: state.pageText,
+        searchMatches: state.searchMatches,
+        searchActiveIndex: state.searchActiveIndex,
     };
 }

@@ -50,6 +50,12 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
                 annotationsLoading: new Set(),
                 pageText: new Map(),
                 textLoading: new Set(),
+                searchQuery: "",
+                searchCaseSensitive: false,
+                searchMatches: [],
+                searchActiveIndex: -1,
+                searchTextLoaded: false,
+                searchTextLoading: false,
             };
         }
         case "SET_PAGE": {
@@ -326,6 +332,52 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
         case "SET_FULLSCREEN": {
             if (state.isFullscreen === action.isFullscreen) return state;
             return { ...state, isFullscreen: action.isFullscreen };
+        }
+
+        // Search
+        case "SET_SEARCH_QUERY": {
+            if (state.searchQuery === action.query) return state;
+            return { ...state, searchQuery: action.query, searchMatches: [], searchActiveIndex: -1 };
+        }
+        case "SET_SEARCH_CASE_SENSITIVE": {
+            if (state.searchCaseSensitive === action.caseSensitive) return state;
+            return { ...state, searchCaseSensitive: action.caseSensitive, searchMatches: [], searchActiveIndex: -1 };
+        }
+        case "SET_SEARCH_MATCHES": {
+            return {
+                ...state,
+                searchMatches: action.matches,
+                searchActiveIndex: action.matches.length > 0 ? 0 : -1,
+            };
+        }
+        case "SET_SEARCH_ACTIVE_INDEX": {
+            const index = action.index;
+            if (index < 0 || index >= state.searchMatches.length) return state;
+            if (state.searchActiveIndex === index) return state;
+            return { ...state, searchActiveIndex: index };
+        }
+        case "SEARCH_NEXT": {
+            if (state.searchMatches.length === 0) return state;
+            const next = (state.searchActiveIndex + 1) % state.searchMatches.length;
+            return { ...state, searchActiveIndex: next };
+        }
+        case "SEARCH_PREV": {
+            if (state.searchMatches.length === 0) return state;
+            const prev = (state.searchActiveIndex - 1 + state.searchMatches.length) % state.searchMatches.length;
+            return { ...state, searchActiveIndex: prev };
+        }
+        case "CLEAR_SEARCH": {
+            if (state.searchQuery === "" && state.searchMatches.length === 0 && state.searchActiveIndex === -1)
+                return state;
+            return { ...state, searchQuery: "", searchMatches: [], searchActiveIndex: -1 };
+        }
+        case "SET_SEARCH_TEXT_LOADING": {
+            if (state.searchTextLoading === action.loading) return state;
+            return { ...state, searchTextLoading: action.loading };
+        }
+        case "SET_SEARCH_TEXT_LOADED": {
+            if (state.searchTextLoaded === action.loaded) return state;
+            return { ...state, searchTextLoaded: action.loaded };
         }
 
         // Download progress

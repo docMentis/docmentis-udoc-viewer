@@ -7,6 +7,7 @@ import type {
     SpacingMode,
     PageInfo,
     ViewModeDefaults,
+    SearchMatch,
 } from "./state";
 import type { Destination, OutlineItem } from "./navigation";
 import type { Annotation } from "./annotation";
@@ -82,6 +83,16 @@ export type Action =
     | { type: "CLEAR_ANNOTATION_HIGHLIGHT" }
     // Fullscreen
     | { type: "SET_FULLSCREEN"; isFullscreen: boolean }
+    // Search
+    | { type: "SET_SEARCH_QUERY"; query: string }
+    | { type: "SET_SEARCH_CASE_SENSITIVE"; caseSensitive: boolean }
+    | { type: "SET_SEARCH_MATCHES"; matches: SearchMatch[] }
+    | { type: "SET_SEARCH_ACTIVE_INDEX"; index: number }
+    | { type: "SEARCH_NEXT" }
+    | { type: "SEARCH_PREV" }
+    | { type: "CLEAR_SEARCH" }
+    | { type: "SET_SEARCH_TEXT_LOADING"; loading: boolean }
+    | { type: "SET_SEARCH_TEXT_LOADED"; loaded: boolean }
     // Download progress
     | { type: "SET_DOWNLOAD_PROGRESS"; loaded: number; total: number }
     | { type: "CLEAR_DOWNLOAD_PROGRESS" };

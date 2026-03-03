@@ -1671,3 +1671,212 @@
     color: #666;
     text-align: center;
 }
+
+/* =============================================================================
+   Search Panel
+   ============================================================================= */
+
+.udoc-viewer-root .udoc-search-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    font-size: 13px;
+}
+
+.udoc-viewer-root .udoc-search-panel__header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 12px 12px 8px;
+}
+
+.udoc-viewer-root .udoc-search-panel__input-wrapper {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: #fff;
+    overflow: hidden;
+}
+
+.udoc-viewer-root .udoc-search-panel__input-wrapper:focus-within {
+    border-color: #0066cc;
+    box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.2);
+}
+
+.udoc-viewer-root .udoc-search-panel__input-icon {
+    display: flex;
+    align-items: center;
+    padding: 0 6px 0 8px;
+    color: #999;
+}
+
+.udoc-viewer-root .udoc-search-panel__input-icon svg {
+    width: 14px;
+    height: 14px;
+}
+
+.udoc-viewer-root .udoc-search-panel__input {
+    flex: 1;
+    border: none;
+    outline: none;
+    padding: 6px 8px 6px 0;
+    font-size: 13px;
+    min-width: 0;
+    background: transparent;
+}
+
+.udoc-viewer-root .udoc-search-panel__case {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: #fff;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    color: #666;
+    flex-shrink: 0;
+}
+
+.udoc-viewer-root .udoc-search-panel__case:hover {
+    background: #f0f0f0;
+}
+
+.udoc-viewer-root .udoc-search-panel__case--active {
+    background: #0066cc;
+    color: #fff;
+    border-color: #0066cc;
+}
+
+.udoc-viewer-root .udoc-search-panel__case--active:hover {
+    background: #0055b3;
+}
+
+.udoc-viewer-root .udoc-search-panel__nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 12px;
+    border-bottom: 1px solid #eee;
+    min-height: 32px;
+}
+
+.udoc-viewer-root .udoc-search-panel__status {
+    color: #666;
+    font-size: 12px;
+}
+
+.udoc-viewer-root .udoc-search-panel__nav-buttons {
+    display: flex;
+    gap: 2px;
+}
+
+.udoc-viewer-root .udoc-search-panel__nav-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    cursor: pointer;
+    color: #333;
+    padding: 0;
+}
+
+.udoc-viewer-root .udoc-search-panel__nav-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+.udoc-viewer-root .udoc-search-panel__nav-btn:hover {
+    background: rgba(0, 0, 0, 0.08);
+}
+
+.udoc-viewer-root .udoc-search-panel__nav-btn:disabled {
+    opacity: 0.3;
+    cursor: default;
+}
+
+.udoc-viewer-root .udoc-search-panel__nav-btn:disabled:hover {
+    background: transparent;
+}
+
+.udoc-viewer-root .udoc-search-panel__results {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0;
+}
+
+.udoc-viewer-root .udoc-search-result__page-header {
+    padding: 8px 12px 4px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    position: sticky;
+    top: 0;
+    background: #fff;
+    z-index: 1;
+}
+
+.udoc-viewer-root .udoc-search-result {
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: 12px;
+    line-height: 1.4;
+    color: #333;
+    border-left: 3px solid transparent;
+}
+
+.udoc-viewer-root .udoc-search-result:hover {
+    background: rgba(0, 0, 0, 0.04);
+}
+
+.udoc-viewer-root .udoc-search-result--active {
+    background: rgba(0, 102, 204, 0.08);
+    border-left-color: #0066cc;
+}
+
+.udoc-viewer-root .udoc-search-result__context {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+    color: #555;
+}
+
+.udoc-viewer-root .udoc-search-result__match {
+    background: rgba(255, 200, 0, 0.4);
+    color: #000;
+    border-radius: 2px;
+    padding: 0 1px;
+}
+
+/* =============================================================================
+   Search Highlights on Pages
+   ============================================================================= */
+
+.udoc-viewer-root .udoc-spread__search-highlight-layer {
+    position: absolute;
+    pointer-events: none;
+}
+
+.udoc-viewer-root .udoc-search-highlight {
+    background-color: rgba(255, 200, 0, 0.35);
+    mix-blend-mode: multiply;
+    border-radius: 1px;
+}
+
+.udoc-viewer-root .udoc-search-highlight--active {
+    background-color: rgba(255, 140, 0, 0.6);
+    outline: 2px solid rgba(255, 140, 0, 0.8);
+    outline-offset: 1px;
+}
