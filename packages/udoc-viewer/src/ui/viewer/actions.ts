@@ -8,6 +8,7 @@ import type {
     PageInfo,
     ViewModeDefaults,
     SearchMatch,
+    ThemeMode,
 } from "./state";
 import type { Destination, OutlineItem } from "./navigation";
 import type { Annotation } from "./annotation";
@@ -74,6 +75,7 @@ export type Action =
     | { type: "SET_RIGHT_PANEL_VISIBLE"; visible: boolean }
     | { type: "SET_PANEL_DISABLED"; panel: PanelTab; disabled: boolean }
     | { type: "SET_FULLSCREEN_BUTTON_VISIBLE"; visible: boolean }
+    | { type: "SET_THEME"; theme: ThemeMode }
     // Annotation highlight
     | {
           type: "HIGHLIGHT_ANNOTATION";

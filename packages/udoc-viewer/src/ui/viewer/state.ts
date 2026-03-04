@@ -43,6 +43,7 @@ export type LayoutMode = "single-page" | "double-page" | "double-page-odd-right"
 export type ZoomMode = "fit-spread-width" | "fit-spread-width-max" | "fit-spread-height" | "fit-spread" | "custom";
 export type PageRotation = 0 | 90 | 180 | 270;
 export type SpacingMode = "all" | "none" | "spread-only" | "page-only";
+export type ThemeMode = "light" | "dark" | "system";
 
 /** Document format as detected during loading */
 export type DocumentFormat = "pdf" | "pptx" | "image";
@@ -182,6 +183,8 @@ export interface ViewerState {
     disabledPanels: ReadonlySet<PanelTab>;
     /** Whether the fullscreen button is visible in the toolbar */
     fullscreenButtonVisible: boolean;
+    /** Current color theme mode */
+    theme: ThemeMode;
 
     // Annotation highlight (for click-to-highlight from comments panel)
     /** Currently highlighted annotation (null = none) */
@@ -263,6 +266,7 @@ export const initialState: ViewerState = {
     rightPanelVisible: true,
     disabledPanels: new Set(),
     fullscreenButtonVisible: true,
+    theme: "light",
 
     highlightedAnnotation: null,
 

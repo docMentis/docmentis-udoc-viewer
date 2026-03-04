@@ -14,7 +14,7 @@ import type {
     SplitByOutlineResult,
 } from "./worker/index.js";
 import { UDocViewer } from "./UDocViewer.js";
-import type { ScrollMode, LayoutMode, ZoomMode, PanelTab } from "./ui/viewer/state.js";
+import type { ScrollMode, LayoutMode, ZoomMode, PanelTab, ThemeMode } from "./ui/viewer/state.js";
 import type { PerformanceLogCallback } from "./performance/index.js";
 
 /**
@@ -271,6 +271,15 @@ export interface ViewerOptions {
      * @default false
      */
     disableComments?: boolean;
+
+    /**
+     * Color theme for the viewer UI.
+     * - 'light': Light theme (default)
+     * - 'dark': Dark theme
+     * - 'system': Follow operating system preference
+     * @default 'light'
+     */
+    theme?: ThemeMode;
 }
 
 /**

@@ -1,6 +1,6 @@
 import { createStore } from "../framework/store";
 import type { Store } from "../framework/store";
-import type { ViewerState, PageInfo } from "./state";
+import type { ViewerState, PageInfo, ThemeMode } from "./state";
 import type { Action } from "./actions";
 import type { OutlineItem } from "./navigation";
 import type { Annotation } from "./annotation";
@@ -136,14 +136,53 @@ export function mountViewerShell(
     };
     layout.addEventListener("keydown", handleKeyDown);
 
-    // Subscribe to panel state to toggle udoc-panel-open class
-    // and toolbar slot visibility
+    // Theme management
+    function resolveIsDark(theme: ThemeMode): boolean {
+        if (theme === "dark") return true;
+        if (theme === "light") return false;
+        return window.matchMedia("(prefers-color-scheme: dark)").matches;
+    }
+
+    function applyThemeClass(isDark: boolean): void {
+        layout.classList.toggle("udoc-viewer-dark", isDark);
+    }
+
+    let systemDarkQuery: MediaQueryList | null = null;
+    let systemDarkHandler: ((e: MediaQueryListEvent) => void) | null = null;
+
+    function setupSystemListener(): void {
+        systemDarkQuery = window.matchMedia("(prefers-color-scheme: dark)");
+        systemDarkHandler = (e) => applyThemeClass(e.matches);
+        systemDarkQuery.addEventListener("change", systemDarkHandler);
+    }
+
+    function cleanupSystemListener(): void {
+        if (systemDarkQuery && systemDarkHandler) {
+            systemDarkQuery.removeEventListener("change", systemDarkHandler);
+            systemDarkQuery = null;
+            systemDarkHandler = null;
+        }
+    }
+
+    // Apply initial theme
+    applyThemeClass(resolveIsDark(mergedInitialState.theme));
+    if (mergedInitialState.theme === "system") {
+        setupSystemListener();
+    }
+
+    // Subscribe to panel state to toggle udoc-panel-open class,
+    // toolbar slot visibility, and theme changes
     const unsubPanelClass = store.subscribeRender((prev, next) => {
         if ((prev.activePanel === null) !== (next.activePanel === null)) {
             layout.classList.toggle("udoc-panel-open", next.activePanel !== null);
         }
         if (prev.toolbarVisible !== next.toolbarVisible) {
             toolbarSlot.style.display = next.toolbarVisible ? "" : "none";
+        }
+        if (prev.theme !== next.theme) {
+            if (prev.theme === "system") cleanupSystemListener();
+            if (next.theme === "system") setupSystemListener();
+            applyThemeClass(resolveIsDark(next.theme));
         }
     });
 
@@ -159,6 +198,7 @@ export function mountViewerShell(
     }
 
     function destroy(): void {
+        cleanupSystemListener();
         layout.removeEventListener("keydown", handleKeyDown);
         panelOverlay.removeEventListener("click", handleOverlayClick);
         unsubPanelClass();

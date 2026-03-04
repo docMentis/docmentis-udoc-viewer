@@ -457,6 +457,13 @@ export function createViewport(showAttribution = true) {
             .${attrClass}:hover {
                 color: rgba(0, 0, 0, 0.6);
             }
+            .udoc-viewer-dark .${attrClass} {
+                color: rgba(255, 255, 255, 0.3);
+                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+            }
+            .udoc-viewer-dark .${attrClass}:hover {
+                color: rgba(255, 255, 255, 0.6);
+            }
             @media (max-width: 768px) {
                 .${attrClass} {
                     bottom: 48px;

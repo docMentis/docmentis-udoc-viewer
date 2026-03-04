@@ -299,6 +299,10 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
             if (state.fullscreenButtonVisible === action.visible) return state;
             return { ...state, fullscreenButtonVisible: action.visible };
         }
+        case "SET_THEME": {
+            if (state.theme === action.theme) return state;
+            return { ...state, theme: action.theme };
+        }
         case "SET_PANEL_DISABLED": {
             const alreadyDisabled = state.disabledPanels.has(action.panel);
             if (alreadyDisabled === action.disabled) return state;

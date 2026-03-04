@@ -34,6 +34,7 @@ export type {
     PanelTab,
     LeftPanelTab,
     RightPanelTab,
+    ThemeMode,
 } from "./ui/viewer/state.js";
 
 // Worker internals (for advanced usage)

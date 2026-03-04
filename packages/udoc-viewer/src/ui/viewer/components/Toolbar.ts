@@ -1,7 +1,7 @@
 import type { Store } from "../../framework/store";
 import { subscribeSelector } from "../../framework/selectors";
 import { on } from "../../framework/events";
-import type { ViewerState, ZoomMode, PanelTab, LeftPanelTab } from "../state";
+import type { ViewerState, ZoomMode, PanelTab, LeftPanelTab, ThemeMode } from "../state";
 import { isLeftPanelTab } from "../state";
 import type { Action } from "../actions";
 import {
@@ -15,6 +15,9 @@ import {
     ICON_CHEVRON_DOWN,
     ICON_ZOOM_IN,
     ICON_ZOOM_OUT,
+    ICON_THEME_LIGHT,
+    ICON_THEME_DARK,
+    ICON_THEME_SYSTEM,
 } from "../icons";
 import { createViewModeMenu } from "./ViewModeMenu";
 
@@ -39,6 +42,7 @@ interface ToolbarSlice {
     floatingToolbarVisible: boolean;
     fullscreenButtonVisible: boolean;
     isFullscreen: boolean;
+    theme: ThemeMode;
     // Panel button visibility
     leftPanelVisible: boolean;
     rightPanelVisible: boolean;
@@ -58,6 +62,7 @@ function sliceEqual(a: ToolbarSlice, b: ToolbarSlice): boolean {
         a.floatingToolbarVisible === b.floatingToolbarVisible &&
         a.fullscreenButtonVisible === b.fullscreenButtonVisible &&
         a.isFullscreen === b.isFullscreen &&
+        a.theme === b.theme &&
         a.leftPanelVisible === b.leftPanelVisible &&
         a.rightPanelVisible === b.rightPanelVisible &&
         a.disabledPanels === b.disabledPanels &&
@@ -76,6 +81,7 @@ function selectSlice(state: ViewerState): ToolbarSlice {
         floatingToolbarVisible: state.floatingToolbarVisible,
         fullscreenButtonVisible: state.fullscreenButtonVisible,
         isFullscreen: state.isFullscreen,
+        theme: state.theme,
         leftPanelVisible: state.leftPanelVisible,
         rightPanelVisible: state.rightPanelVisible,
         disabledPanels: state.disabledPanels,
@@ -192,8 +198,9 @@ export function createToolbar() {
     rightSection.className = "udoc-toolbar__right";
     const searchBtn = createButton("udoc-toolbar__btn--search", "Search", ICON_SEARCH);
     const commentsBtn = createButton("udoc-toolbar__btn--comments", "Comments", ICON_COMMENTS);
+    const themeBtn = createButton("udoc-toolbar__btn--theme", "Toggle theme", ICON_THEME_DARK);
     const fullscreenBtn = createButton("udoc-toolbar__btn--fullscreen", "Fullscreen", ICON_FULLSCREEN);
-    rightSection.append(searchBtn, commentsBtn, fullscreenBtn);
+    rightSection.append(searchBtn, commentsBtn, themeBtn, fullscreenBtn);
 
     el.append(leftSection, centerSection, rightSection);
 
@@ -319,6 +326,15 @@ export function createToolbar() {
         };
         commentsBtn.addEventListener("click", onCommentsClick);
         unsubEvents.push(() => commentsBtn.removeEventListener("click", onCommentsClick));
+
+        // Wire theme toggle button
+        const onThemeClick = () => {
+            const state = store.getState();
+            const nextTheme: ThemeMode = state.theme === "light" ? "dark" : state.theme === "dark" ? "system" : "light";
+            store.dispatch({ type: "SET_THEME", theme: nextTheme });
+        };
+        themeBtn.addEventListener("click", onThemeClick);
+        unsubEvents.push(() => themeBtn.removeEventListener("click", onThemeClick));
 
         // Wire fullscreen button
         const onFullscreenClick = () => {
@@ -451,6 +467,19 @@ export function createToolbar() {
 
             // Comments button: hidden when right panel disabled or comments individually disabled
             commentsBtn.style.display = !slice.rightPanelVisible || slice.disabledPanels.has("comments") ? "none" : "";
+
+            // Theme button icon and label
+            const themeIcon =
+                slice.theme === "light"
+                    ? ICON_THEME_DARK
+                    : slice.theme === "dark"
+                      ? ICON_THEME_SYSTEM
+                      : ICON_THEME_LIGHT;
+            const themeLabel =
+                slice.theme === "light" ? "Dark mode" : slice.theme === "dark" ? "System theme" : "Light mode";
+            themeBtn.innerHTML = themeIcon;
+            themeBtn.setAttribute("aria-label", themeLabel);
+            themeBtn.title = themeLabel;
 
             // Fullscreen button visibility and icon
             fullscreenBtn.style.display = slice.fullscreenButtonVisible ? "" : "none";

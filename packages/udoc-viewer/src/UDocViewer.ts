@@ -22,6 +22,7 @@ import {
     type ZoomMode,
     type PageRotation,
     type SpacingMode,
+    type ThemeMode,
 } from "./ui/viewer/state.js";
 import { PerformanceCounter, NoOpPerformanceCounter, type IPerformanceCounter } from "./performance/index.js";
 import { reportDocumentOpen } from "./telemetry.js";
@@ -284,6 +285,7 @@ export class UDocViewer {
         if (options.disableFullscreen) overrides.fullscreenButtonVisible = false;
         if (options.disableLeftPanel) overrides.leftPanelVisible = false;
         if (options.disableRightPanel) overrides.rightPanelVisible = false;
+        if (options.theme !== undefined) overrides.theme = options.theme;
 
         // Collect individually disabled panels into the internal Set
         const disabled: PanelTab[] = [];
@@ -840,6 +842,21 @@ export class UDocViewer {
         this.ensureNotDestroyed();
         this.ensureUiMode();
         this.uiShell!.dispatch({ type: "SET_FULLSCREEN_BUTTON_VISIBLE", visible: enabled });
+    }
+
+    /** Current theme mode. */
+    get theme(): ThemeMode {
+        return this.uiShell?.getState().theme ?? "light";
+    }
+
+    /**
+     * Set the viewer color theme.
+     * @param theme - 'light', 'dark', or 'system'
+     */
+    setTheme(theme: ThemeMode): void {
+        this.ensureNotDestroyed();
+        this.ensureUiMode();
+        this.uiShell!.dispatch({ type: "SET_THEME", theme });
     }
 
     /**

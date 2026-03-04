@@ -1,9 +1,180 @@
 .udoc-viewer-root {
+    /* === Theme Variables (Light) === */
+    --udoc-bg-viewport: #e0e0e0;
+    --udoc-bg-surface: #fff;
+    --udoc-bg-panel: #f5f5f5;
+    --udoc-bg-panel-tabs: #e8e8e8;
+    --udoc-bg-page-header: #f0f0f0;
+    --udoc-bg-reply: #fafafa;
+    --udoc-bg-input: #fff;
+    --udoc-bg-overlay: rgba(0, 0, 0, 0.5);
+    --udoc-bg-loading: rgba(224, 224, 224, 0.95);
+
+    --udoc-text-primary: rgba(0, 0, 0, 0.8);
+    --udoc-text-secondary: rgba(0, 0, 0, 0.7);
+    --udoc-text-tertiary: rgba(0, 0, 0, 0.6);
+    --udoc-text-muted: rgba(0, 0, 0, 0.5);
+    --udoc-text-faint: rgba(0, 0, 0, 0.4);
+    --udoc-text-disabled: rgba(0, 0, 0, 0.25);
+    --udoc-text-heading: #333;
+    --udoc-text-body: #555;
+    --udoc-text-label: #666;
+    --udoc-text-subtle: #888;
+    --udoc-text-placeholder: #999;
+    --udoc-text-on-primary: #fff;
+
+    --udoc-primary: #0066cc;
+    --udoc-primary-hover: #0052a3;
+    --udoc-primary-active-bg: rgba(0, 102, 204, 0.15);
+    --udoc-primary-active-bg-hover: rgba(0, 102, 204, 0.2);
+    --udoc-primary-subtle-bg: rgba(0, 102, 204, 0.1);
+    --udoc-primary-focus-ring: rgba(0, 102, 204, 0.2);
+    --udoc-primary-muted: rgba(0, 102, 204, 0.3);
+    --udoc-primary-disabled: #94a3b8;
+
+    --udoc-border: #ddd;
+    --udoc-border-input: #ccc;
+    --udoc-border-light: #eee;
+    --udoc-border-medium: #e0e0e0;
+
+    --udoc-hover-overlay: rgba(0, 0, 0, 0.08);
+    --udoc-active-overlay: rgba(0, 0, 0, 0.12);
+    --udoc-pressed-overlay: rgba(0, 0, 0, 0.15);
+    --udoc-subtle-hover: rgba(0, 0, 0, 0.05);
+    --udoc-faint-hover: rgba(0, 0, 0, 0.04);
+
+    --udoc-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+    --udoc-shadow-page: 0 2px 8px rgba(0, 0, 0, 0.15);
+    --udoc-shadow-toolbar: 0 2px 12px rgba(0, 0, 0, 0.15);
+    --udoc-shadow-dropdown: 0 4px 16px rgba(0, 0, 0, 0.2);
+    --udoc-shadow-dialog: 0 8px 32px rgba(0, 0, 0, 0.3);
+    --udoc-shadow-panel: 4px 0 20px rgba(0, 0, 0, 0.15);
+
+    --udoc-search-highlight: rgba(255, 200, 0, 0.35);
+    --udoc-search-highlight-active: rgba(255, 140, 0, 0.6);
+    --udoc-search-highlight-active-outline: rgba(255, 140, 0, 0.8);
+    --udoc-search-match-bg: rgba(255, 200, 0, 0.4);
+    --udoc-search-match-text: #000;
+    --udoc-search-result-active-bg: rgba(0, 102, 204, 0.08);
+
+    --udoc-text-selection: rgba(0, 120, 215, 0.3);
+
+    --udoc-annotation-bg: #ffffc0;
+    --udoc-annotation-header-bg: #f0f0c0;
+    --udoc-annotation-border: #d4d4a0;
+
+    --udoc-status-accepted-bg: #d4edda;
+    --udoc-status-accepted-text: #155724;
+    --udoc-status-rejected-bg: #f8d7da;
+    --udoc-status-rejected-text: #721c24;
+    --udoc-status-completed-bg: #cce5ff;
+    --udoc-status-completed-text: #004085;
+    --udoc-status-cancelled-bg: #e2e3e5;
+    --udoc-status-cancelled-text: #383d41;
+    --udoc-status-marked-bg: #fff3cd;
+    --udoc-status-marked-text: #856404;
+
+    --udoc-error-bg: #fef2f2;
+    --udoc-error-border: #fecaca;
+    --udoc-error-text: #dc2626;
+
+    --udoc-progress-track: #e5e7eb;
+    --udoc-progress-fill: #0066cc;
+
+    --udoc-scrollbar-thumb: rgba(0, 0, 0, 0.3);
+    --udoc-scrollbar-thumb-hover: rgba(0, 0, 0, 0.5);
+
     display: flex;
     flex-direction: column;
     height: 100%;
     container-type: inline-size;
     container-name: udoc-viewer;
+}
+
+.udoc-viewer-root.udoc-viewer-dark {
+    --udoc-bg-viewport: #1a1a1a;
+    --udoc-bg-surface: #2d2d2d;
+    --udoc-bg-panel: #252525;
+    --udoc-bg-panel-tabs: #1e1e1e;
+    --udoc-bg-page-header: #2a2a2a;
+    --udoc-bg-reply: #333;
+    --udoc-bg-input: #3a3a3a;
+    --udoc-bg-overlay: rgba(0, 0, 0, 0.7);
+    --udoc-bg-loading: rgba(30, 30, 30, 0.95);
+
+    --udoc-text-primary: rgba(255, 255, 255, 0.87);
+    --udoc-text-secondary: rgba(255, 255, 255, 0.7);
+    --udoc-text-tertiary: rgba(255, 255, 255, 0.6);
+    --udoc-text-muted: rgba(255, 255, 255, 0.5);
+    --udoc-text-faint: rgba(255, 255, 255, 0.38);
+    --udoc-text-disabled: rgba(255, 255, 255, 0.25);
+    --udoc-text-heading: #e0e0e0;
+    --udoc-text-body: #bbb;
+    --udoc-text-label: #aaa;
+    --udoc-text-subtle: #888;
+    --udoc-text-placeholder: #777;
+    --udoc-text-on-primary: #fff;
+
+    --udoc-primary: #4da6ff;
+    --udoc-primary-hover: #80bfff;
+    --udoc-primary-active-bg: rgba(77, 166, 255, 0.2);
+    --udoc-primary-active-bg-hover: rgba(77, 166, 255, 0.25);
+    --udoc-primary-subtle-bg: rgba(77, 166, 255, 0.12);
+    --udoc-primary-focus-ring: rgba(77, 166, 255, 0.25);
+    --udoc-primary-muted: rgba(77, 166, 255, 0.35);
+    --udoc-primary-disabled: #4a5568;
+
+    --udoc-border: #444;
+    --udoc-border-input: #555;
+    --udoc-border-light: #3a3a3a;
+    --udoc-border-medium: #404040;
+
+    --udoc-hover-overlay: rgba(255, 255, 255, 0.08);
+    --udoc-active-overlay: rgba(255, 255, 255, 0.12);
+    --udoc-pressed-overlay: rgba(255, 255, 255, 0.15);
+    --udoc-subtle-hover: rgba(255, 255, 255, 0.05);
+    --udoc-faint-hover: rgba(255, 255, 255, 0.04);
+
+    --udoc-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+    --udoc-shadow-page: 0 2px 8px rgba(0, 0, 0, 0.4);
+    --udoc-shadow-toolbar: 0 2px 12px rgba(0, 0, 0, 0.4);
+    --udoc-shadow-dropdown: 0 4px 16px rgba(0, 0, 0, 0.5);
+    --udoc-shadow-dialog: 0 8px 32px rgba(0, 0, 0, 0.6);
+    --udoc-shadow-panel: 4px 0 20px rgba(0, 0, 0, 0.4);
+
+    --udoc-search-highlight: rgba(255, 200, 0, 0.4);
+    --udoc-search-highlight-active: rgba(255, 140, 0, 0.65);
+    --udoc-search-highlight-active-outline: rgba(255, 140, 0, 0.85);
+    --udoc-search-match-bg: rgba(255, 200, 0, 0.3);
+    --udoc-search-match-text: #fff;
+    --udoc-search-result-active-bg: rgba(77, 166, 255, 0.12);
+
+    --udoc-text-selection: rgba(77, 166, 255, 0.35);
+
+    --udoc-annotation-bg: #4a4a20;
+    --udoc-annotation-header-bg: #3a3a18;
+    --udoc-annotation-border: #5a5a30;
+
+    --udoc-status-accepted-bg: #1a3a1a;
+    --udoc-status-accepted-text: #6fcf6f;
+    --udoc-status-rejected-bg: #3a1a1a;
+    --udoc-status-rejected-text: #f08080;
+    --udoc-status-completed-bg: #1a2a3a;
+    --udoc-status-completed-text: #80b8ff;
+    --udoc-status-cancelled-bg: #2a2a2a;
+    --udoc-status-cancelled-text: #aaa;
+    --udoc-status-marked-bg: #3a3520;
+    --udoc-status-marked-text: #d4b44a;
+
+    --udoc-error-bg: #3a1c1c;
+    --udoc-error-border: #6b2c2c;
+    --udoc-error-text: #f87171;
+
+    --udoc-progress-track: #404040;
+    --udoc-progress-fill: #4da6ff;
+
+    --udoc-scrollbar-thumb: rgba(255, 255, 255, 0.3);
+    --udoc-scrollbar-thumb-hover: rgba(255, 255, 255, 0.5);
 }
 
 .udoc-viewer-root .udoc-toolbar-slot {
@@ -34,7 +205,7 @@
     position: relative;
     width: 100%;
     height: 100%;
-    background: #e0e0e0;
+    background: var(--udoc-bg-viewport);
 }
 
 .udoc-viewer-root .udoc-viewport__scroll {
@@ -77,7 +248,7 @@
     align-items: center;
     justify-content: center;
     background: white;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    box-shadow: var(--udoc-shadow-page);
 }
 
 .udoc-viewer-root .udoc-viewport--seamless .udoc-spread__slot {
@@ -103,9 +274,9 @@
     align-items: center;
     gap: 4px;
     padding: 6px 10px;
-    background: #fff;
+    background: var(--udoc-bg-surface);
     border-radius: 8px;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: var(--udoc-shadow-toolbar);
     z-index: 100;
 }
 
@@ -118,7 +289,7 @@
 .udoc-viewer-root .udoc-floating-toolbar__divider {
     width: 1px;
     height: 20px;
-    background: rgba(0, 0, 0, 0.15);
+    background: var(--udoc-pressed-overlay);
     margin: 0 4px;
 }
 
@@ -132,20 +303,20 @@
     border: none;
     border-radius: 4px;
     background: transparent;
-    color: rgba(0, 0, 0, 0.7);
+    color: var(--udoc-text-secondary);
     cursor: pointer;
 }
 
 .udoc-viewer-root .udoc-floating-toolbar__btn:hover {
-    background: rgba(0, 0, 0, 0.08);
+    background: var(--udoc-hover-overlay);
 }
 
 .udoc-viewer-root .udoc-floating-toolbar__btn:active {
-    background: rgba(0, 0, 0, 0.15);
+    background: var(--udoc-pressed-overlay);
 }
 
 .udoc-viewer-root .udoc-floating-toolbar__btn:disabled {
-    color: rgba(0, 0, 0, 0.25);
+    color: var(--udoc-text-disabled);
     cursor: default;
 }
 
@@ -161,25 +332,25 @@
 .udoc-viewer-root .udoc-floating-toolbar__page-info {
     display: flex;
     align-items: center;
-    color: rgba(0, 0, 0, 0.8);
+    color: var(--udoc-text-primary);
     font-size: 13px;
 }
 
 .udoc-viewer-root .udoc-floating-toolbar__page-input {
     width: 36px;
     padding: 2px 4px;
-    border: 1px solid rgba(0, 0, 0, 0.15);
+    border: 1px solid var(--udoc-pressed-overlay);
     border-radius: 4px;
     background: transparent;
-    color: rgba(0, 0, 0, 0.8);
+    color: var(--udoc-text-primary);
     font-size: 13px;
     text-align: center;
 }
 
 .udoc-viewer-root .udoc-floating-toolbar__page-input:focus {
     outline: none;
-    border-color: rgba(0, 0, 0, 0.3);
-    background: white;
+    border-color: var(--udoc-scrollbar-thumb);
+    background: var(--udoc-bg-input);
 }
 
 .udoc-viewer-root .udoc-floating-toolbar__page-total {
@@ -188,13 +359,13 @@
 
 .udoc-viewer-root .udoc-floating-toolbar__zoom-level {
     min-width: 44px;
-    color: rgba(0, 0, 0, 0.8);
+    color: var(--udoc-text-primary);
     font-size: 13px;
     text-align: center;
 }
 
 .udoc-viewer-root .udoc-floating-toolbar__btn--active {
-    background: rgba(0, 0, 0, 0.12);
+    background: var(--udoc-active-overlay);
 }
 
 /* Zoom Dropdown */
@@ -210,14 +381,14 @@
     align-items: center;
     gap: 0;
     height: 100%;
-    border: 1px solid rgba(0, 0, 0, 0.15);
+    border: 1px solid var(--udoc-pressed-overlay);
     border-radius: 4px;
     background: transparent;
 }
 
 .udoc-viewer-root .udoc-zoom-dropdown__toggle:focus-within {
-    border-color: rgba(0, 0, 0, 0.3);
-    background: white;
+    border-color: var(--udoc-scrollbar-thumb);
+    background: var(--udoc-bg-input);
 }
 
 .udoc-viewer-root .udoc-zoom-dropdown__input {
@@ -226,7 +397,7 @@
     border: none;
     border-radius: 4px 0 0 4px;
     background: transparent;
-    color: rgba(0, 0, 0, 0.8);
+    color: var(--udoc-text-primary);
     font-size: 13px;
     text-align: center;
 }
@@ -241,20 +412,20 @@
     justify-content: center;
     padding: 2px 2px;
     border: none;
-    border-left: 1px solid rgba(0, 0, 0, 0.1);
+    border-left: 1px solid var(--udoc-subtle-hover);
     border-radius: 0 4px 4px 0;
     background: transparent;
-    color: rgba(0, 0, 0, 0.5);
+    color: var(--udoc-text-muted);
     cursor: pointer;
 }
 
 .udoc-viewer-root .udoc-zoom-dropdown__chevron:hover {
-    background: rgba(0, 0, 0, 0.08);
-    color: rgba(0, 0, 0, 0.7);
+    background: var(--udoc-hover-overlay);
+    color: var(--udoc-text-secondary);
 }
 
 .udoc-viewer-root .udoc-zoom-dropdown__chevron--active {
-    background: rgba(0, 0, 0, 0.12);
+    background: var(--udoc-active-overlay);
 }
 
 .udoc-viewer-root .udoc-zoom-dropdown__chevron svg {
@@ -268,9 +439,9 @@
     left: 50%;
     transform: translateX(-50%);
     padding: 6px;
-    background: #fff;
+    background: var(--udoc-bg-surface);
     border-radius: 8px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    box-shadow: var(--udoc-shadow-dropdown);
     min-width: 100px;
 }
 
@@ -281,7 +452,7 @@
 
 .udoc-viewer-root .udoc-zoom-dropdown__divider {
     height: 1px;
-    background: rgba(0, 0, 0, 0.1);
+    background: var(--udoc-subtle-hover);
     margin: 6px 0;
 }
 
@@ -292,7 +463,7 @@
     border: none;
     border-radius: 4px;
     background: transparent;
-    color: rgba(0, 0, 0, 0.8);
+    color: var(--udoc-text-primary);
     font-size: 13px;
     text-align: left;
     cursor: pointer;
@@ -300,16 +471,16 @@
 }
 
 .udoc-viewer-root .udoc-zoom-dropdown__item:hover {
-    background: rgba(0, 0, 0, 0.08);
+    background: var(--udoc-hover-overlay);
 }
 
 .udoc-viewer-root .udoc-zoom-dropdown__item--active {
-    background: rgba(0, 102, 204, 0.15);
-    color: #0066cc;
+    background: var(--udoc-primary-active-bg);
+    color: var(--udoc-primary);
 }
 
 .udoc-viewer-root .udoc-zoom-dropdown__item--active:hover {
-    background: rgba(0, 102, 204, 0.2);
+    background: var(--udoc-primary-active-bg-hover);
 }
 
 /* View Mode Menu */
@@ -325,9 +496,9 @@
     bottom: calc(100% + 8px);
     left: 0;
     padding: 8px;
-    background: #fff;
+    background: var(--udoc-bg-surface);
     border-radius: 8px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    box-shadow: var(--udoc-shadow-dropdown);
     min-width: 160px;
 }
 
@@ -343,7 +514,7 @@
     font-size: 10px;
     font-weight: 600;
     text-transform: uppercase;
-    color: rgba(0, 0, 0, 0.5);
+    color: var(--udoc-text-muted);
     margin-bottom: 4px;
     padding: 0 4px;
 }
@@ -363,25 +534,25 @@
     border: none;
     border-radius: 4px;
     background: transparent;
-    color: rgba(0, 0, 0, 0.6);
+    color: var(--udoc-text-tertiary);
     cursor: pointer;
 }
 
 .udoc-viewer-root .udoc-view-mode-menu__option:hover {
-    background: rgba(0, 0, 0, 0.08);
+    background: var(--udoc-hover-overlay);
 }
 
 .udoc-viewer-root .udoc-view-mode-menu__option--active {
-    background: rgba(0, 102, 204, 0.15);
-    color: #0066cc;
+    background: var(--udoc-primary-active-bg);
+    color: var(--udoc-primary);
 }
 
 .udoc-viewer-root .udoc-view-mode-menu__option--active:hover {
-    background: rgba(0, 102, 204, 0.2);
+    background: var(--udoc-primary-active-bg-hover);
 }
 
 .udoc-viewer-root .udoc-view-mode-menu__option--disabled {
-    color: rgba(0, 0, 0, 0.25);
+    color: var(--udoc-text-disabled);
     cursor: default;
 }
 
@@ -406,8 +577,8 @@
     display: flex;
     width: 240px;
     height: 100%;
-    background: #f5f5f5;
-    border-right: 1px solid #ddd;
+    background: var(--udoc-bg-panel);
+    border-right: 1px solid var(--udoc-border);
     overflow: hidden;
     transition: width 0.2s ease;
 }
@@ -421,8 +592,8 @@
     display: flex;
     flex-direction: column;
     width: 40px;
-    background: #e8e8e8;
-    border-right: 1px solid #ddd;
+    background: var(--udoc-bg-panel-tabs);
+    border-right: 1px solid var(--udoc-border);
 }
 
 .udoc-viewer-root .udoc-left-panel__tab {
@@ -434,18 +605,18 @@
     padding: 0;
     border: none;
     background: transparent;
-    color: #666;
+    color: var(--udoc-text-label);
     cursor: pointer;
 }
 
 .udoc-viewer-root .udoc-left-panel__tab:hover {
-    background: rgba(0, 0, 0, 0.08);
+    background: var(--udoc-hover-overlay);
 }
 
 .udoc-viewer-root .udoc-left-panel__tab--active {
-    background: #f5f5f5;
-    color: #333;
-    border-right: 2px solid #0066cc;
+    background: var(--udoc-bg-panel);
+    color: var(--udoc-text-heading);
+    border-right: 2px solid var(--udoc-primary);
 }
 
 .udoc-viewer-root .udoc-left-panel__tab svg {
@@ -471,7 +642,7 @@
 
 .udoc-viewer-root .udoc-left-panel__resize-handle:hover,
 .udoc-viewer-root .udoc-left-panel--resizing .udoc-left-panel__resize-handle {
-    background: rgba(0, 102, 204, 0.3);
+    background: var(--udoc-primary-muted);
 }
 
 .udoc-viewer-root .udoc-left-panel--resizing {
@@ -504,12 +675,12 @@
 }
 
 .udoc-viewer-root .udoc-thumbnail-item:hover {
-    background: rgba(0, 0, 0, 0.05);
+    background: var(--udoc-subtle-hover);
 }
 
 .udoc-viewer-root .udoc-thumbnail-item--active {
-    background: rgba(0, 102, 204, 0.1);
-    outline: 2px solid #0066cc;
+    background: var(--udoc-primary-subtle-bg);
+    outline: 2px solid var(--udoc-primary);
     outline-offset: -2px;
 }
 
@@ -517,17 +688,17 @@
     display: block;
     max-width: calc(100% - 16px);
     background: white;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+    box-shadow: var(--udoc-shadow-sm);
 }
 
 .udoc-viewer-root .udoc-thumbnail-item__label {
     font-size: 11px;
-    color: #666;
+    color: var(--udoc-text-label);
     text-align: center;
 }
 
 .udoc-viewer-root .udoc-thumbnail-item--active .udoc-thumbnail-item__label {
-    color: #0066cc;
+    color: var(--udoc-primary);
     font-weight: 500;
 }
 
@@ -544,7 +715,7 @@
 .udoc-viewer-root .udoc-outline-panel__loading,
 .udoc-viewer-root .udoc-outline-panel__empty {
     padding: 16px;
-    color: #888;
+    color: var(--udoc-text-subtle);
     font-size: 13px;
     text-align: center;
 }
@@ -567,15 +738,15 @@
 }
 
 .udoc-viewer-root .udoc-outline-item__header--clickable:hover {
-    background: rgba(0, 0, 0, 0.05);
+    background: var(--udoc-subtle-hover);
 }
 
 .udoc-viewer-root .udoc-outline-item__header--active {
-    background: rgba(0, 102, 204, 0.1);
+    background: var(--udoc-primary-subtle-bg);
 }
 
 .udoc-viewer-root .udoc-outline-item__header--active .udoc-outline-item__title {
-    color: #0066cc;
+    color: var(--udoc-primary);
     font-weight: 500;
 }
 
@@ -588,14 +759,14 @@
     padding: 0;
     border: none;
     background: transparent;
-    color: #666;
+    color: var(--udoc-text-label);
     cursor: pointer;
     flex-shrink: 0;
     transition: transform 0.15s ease;
 }
 
 .udoc-viewer-root .udoc-outline-item__toggle:hover {
-    color: #333;
+    color: var(--udoc-text-heading);
 }
 
 .udoc-viewer-root .udoc-outline-item__toggle--expanded {
@@ -609,7 +780,7 @@
 
 .udoc-viewer-root .udoc-outline-item__title {
     font-size: 13px;
-    color: #333;
+    color: var(--udoc-text-heading);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -623,8 +794,8 @@
     align-items: center;
     height: 40px;
     padding: 0 8px;
-    background: #f5f5f5;
-    border-bottom: 1px solid #ddd;
+    background: var(--udoc-bg-panel);
+    border-bottom: 1px solid var(--udoc-border);
 }
 
 .udoc-viewer-root .udoc-toolbar__left,
@@ -652,16 +823,16 @@
     border: none;
     border-radius: 4px;
     background: transparent;
-    color: #555;
+    color: var(--udoc-text-body);
     cursor: pointer;
 }
 
 .udoc-viewer-root .udoc-toolbar__btn:hover {
-    background: rgba(0, 0, 0, 0.08);
+    background: var(--udoc-hover-overlay);
 }
 
 .udoc-viewer-root .udoc-toolbar__btn:active {
-    background: rgba(0, 0, 0, 0.12);
+    background: var(--udoc-active-overlay);
 }
 
 .udoc-viewer-root .udoc-toolbar__btn svg {
@@ -687,7 +858,7 @@
 .udoc-viewer-root .udoc-toolbar__divider {
     width: 1px;
     height: 20px;
-    background: #ddd;
+    background: var(--udoc-border);
     margin: 0 4px;
 }
 
@@ -705,29 +876,29 @@
     display: flex;
     align-items: center;
     font-size: 13px;
-    color: #555;
+    color: var(--udoc-text-body);
 }
 
 .udoc-viewer-root .udoc-toolbar__page-input {
     width: 36px;
     height: 24px;
-    border: 1px solid #ccc;
+    border: 1px solid var(--udoc-border-input);
     border-radius: 3px;
     text-align: center;
     font-size: 13px;
     padding: 0 2px;
-    background: #fff;
-    color: #333;
+    background: var(--udoc-bg-input);
+    color: var(--udoc-text-heading);
 }
 
 .udoc-viewer-root .udoc-toolbar__page-input:focus {
     outline: none;
-    border-color: #999;
+    border-color: var(--udoc-text-placeholder);
 }
 
 .udoc-viewer-root .udoc-toolbar__page-total {
     font-size: 13px;
-    color: #777;
+    color: var(--udoc-text-muted);
     white-space: nowrap;
 }
 
@@ -750,8 +921,8 @@
     flex-direction: column;
     width: 300px;
     height: 100%;
-    background: #f5f5f5;
-    border-left: 1px solid #ddd;
+    background: var(--udoc-bg-panel);
+    border-left: 1px solid var(--udoc-border);
     overflow: hidden;
     transition: width 0.2s ease;
 }
@@ -774,7 +945,7 @@
 
 .udoc-viewer-root .udoc-right-panel__resize-handle:hover,
 .udoc-viewer-root .udoc-right-panel--resizing .udoc-right-panel__resize-handle {
-    background: rgba(0, 102, 204, 0.3);
+    background: var(--udoc-primary-muted);
 }
 
 .udoc-viewer-root .udoc-right-panel--resizing {
@@ -807,7 +978,7 @@
 }
 
 .udoc-viewer-root .udoc-text-span::selection {
-    background: rgba(0, 120, 215, 0.3);
+    background: var(--udoc-text-selection);
 }
 
 /* Annotation Layer */
@@ -831,7 +1002,7 @@
 }
 
 .udoc-viewer-root .udoc-annotation--link:hover {
-    background-color: rgba(0, 102, 204, 0.15);
+    background-color: var(--udoc-primary-active-bg);
 }
 
 /* Highlight annotation */
@@ -883,12 +1054,12 @@
     z-index: 100;
     min-width: 200px;
     max-width: 300px;
-    background: #ffffc0;
-    border: 1px solid #d4d4a0;
+    background: var(--udoc-annotation-bg);
+    border: 1px solid var(--udoc-annotation-border);
     border-radius: 4px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    box-shadow: var(--udoc-shadow-page);
     font-size: 12px;
-    color: #333;
+    color: var(--udoc-text-heading);
     pointer-events: auto;
 }
 
@@ -897,14 +1068,14 @@
     align-items: center;
     justify-content: space-between;
     padding: 6px 8px;
-    background: #f0f0c0;
-    border-bottom: 1px solid #d4d4a0;
+    background: var(--udoc-annotation-header-bg);
+    border-bottom: 1px solid var(--udoc-annotation-border);
     border-radius: 4px 4px 0 0;
 }
 
 .udoc-viewer-root .udoc-annotation-popup__author {
     font-weight: 600;
-    color: #555;
+    color: var(--udoc-text-body);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -990,11 +1161,11 @@
     height: 100%;
     padding: 32px 16px;
     text-align: center;
-    color: #888;
+    color: var(--udoc-text-subtle);
 }
 
 .udoc-viewer-root .udoc-annotation-panel__placeholder-icon {
-    color: #ccc;
+    color: var(--udoc-border-input);
     margin-bottom: 12px;
 }
 
@@ -1006,13 +1177,13 @@
 .udoc-viewer-root .udoc-annotation-panel__placeholder-title {
     font-size: 14px;
     font-weight: 500;
-    color: #666;
+    color: var(--udoc-text-label);
     margin-bottom: 4px;
 }
 
 .udoc-viewer-root .udoc-annotation-panel__placeholder-message {
     font-size: 12px;
-    color: #999;
+    color: var(--udoc-text-placeholder);
 }
 
 .udoc-viewer-root .udoc-annotation-panel__loading {
@@ -1020,7 +1191,7 @@
     align-items: center;
     justify-content: center;
     height: 100%;
-    color: #888;
+    color: var(--udoc-text-subtle);
     font-size: 13px;
 }
 
@@ -1032,7 +1203,7 @@
 
 /* Page Group */
 .udoc-viewer-root .udoc-comments-page-group {
-    border-bottom: 1px solid #e0e0e0;
+    border-bottom: 1px solid var(--udoc-border-medium);
 }
 
 .udoc-viewer-root .udoc-comments-page-group:last-child {
@@ -1046,18 +1217,18 @@
     padding: 10px 12px;
     cursor: pointer;
     user-select: none;
-    background: #f0f0f0;
+    background: var(--udoc-bg-page-header);
     transition: background 0.15s;
 }
 
 .udoc-viewer-root .udoc-comments-page-header:hover {
-    background: #e8e8e8;
+    background: var(--udoc-bg-panel-tabs);
 }
 
 .udoc-viewer-root .udoc-comments-page-header svg {
     width: 16px;
     height: 16px;
-    color: #666;
+    color: var(--udoc-text-label);
     flex-shrink: 0;
     transition: transform 0.2s ease;
 }
@@ -1065,17 +1236,17 @@
 .udoc-viewer-root .udoc-comments-page-header span {
     font-size: 13px;
     font-weight: 500;
-    color: #333;
+    color: var(--udoc-text-heading);
 }
 
 .udoc-viewer-root .udoc-comments-page-count {
     margin-left: auto;
     padding: 2px 6px;
-    background: #ddd;
+    background: var(--udoc-border);
     border-radius: 10px;
     font-size: 11px;
     font-weight: 500;
-    color: #666;
+    color: var(--udoc-text-label);
 }
 
 /* Collapsed state */
@@ -1100,7 +1271,7 @@
     padding: 10px 12px;
     cursor: pointer;
     transition: background 0.15s;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid var(--udoc-border-light);
 }
 
 .udoc-viewer-root .udoc-comment-item:last-child {
@@ -1108,12 +1279,12 @@
 }
 
 .udoc-viewer-root .udoc-comment-item:hover {
-    background: rgba(0, 102, 204, 0.05);
+    background: var(--udoc-subtle-hover);
 }
 
 /* Reply indentation */
 .udoc-viewer-root .udoc-comment-reply {
-    background: #fafafa;
+    background: var(--udoc-bg-reply);
 }
 
 .udoc-viewer-root .udoc-comment-depth-1 {
@@ -1136,7 +1307,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #888;
+    color: var(--udoc-text-subtle);
 }
 
 .udoc-viewer-root .udoc-comment-icon svg {
@@ -1164,7 +1335,7 @@
 .udoc-viewer-root .udoc-comment-author {
     font-size: 12px;
     font-weight: 600;
-    color: #333;
+    color: var(--udoc-text-heading);
 }
 
 /* Status Badge */
@@ -1177,39 +1348,39 @@
 }
 
 .udoc-viewer-root .udoc-comment-status--accepted {
-    background: #d4edda;
-    color: #155724;
+    background: var(--udoc-status-accepted-bg);
+    color: var(--udoc-status-accepted-text);
 }
 
 .udoc-viewer-root .udoc-comment-status--rejected {
-    background: #f8d7da;
-    color: #721c24;
+    background: var(--udoc-status-rejected-bg);
+    color: var(--udoc-status-rejected-text);
 }
 
 .udoc-viewer-root .udoc-comment-status--completed {
-    background: #cce5ff;
-    color: #004085;
+    background: var(--udoc-status-completed-bg);
+    color: var(--udoc-status-completed-text);
 }
 
 .udoc-viewer-root .udoc-comment-status--cancelled {
-    background: #e2e3e5;
-    color: #383d41;
+    background: var(--udoc-status-cancelled-bg);
+    color: var(--udoc-status-cancelled-text);
 }
 
 .udoc-viewer-root .udoc-comment-status--marked {
-    background: #fff3cd;
-    color: #856404;
+    background: var(--udoc-status-marked-bg);
+    color: var(--udoc-status-marked-text);
 }
 
 .udoc-viewer-root .udoc-comment-status--unmarked {
-    background: #e2e3e5;
-    color: #383d41;
+    background: var(--udoc-status-cancelled-bg);
+    color: var(--udoc-status-cancelled-text);
 }
 
 /* Comment Contents */
 .udoc-viewer-root .udoc-comment-contents {
     font-size: 12px;
-    color: #555;
+    color: var(--udoc-text-body);
     line-height: 1.4;
     white-space: pre-wrap;
     word-wrap: break-word;
@@ -1230,14 +1401,14 @@
     border: none;
     border-radius: 4px;
     background: transparent;
-    color: #0066cc;
+    color: var(--udoc-primary);
     font-size: 11px;
     cursor: pointer;
     transition: background 0.15s;
 }
 
 .udoc-viewer-root .udoc-comment-toggle:hover {
-    background: rgba(0, 102, 204, 0.1);
+    background: var(--udoc-primary-subtle-bg);
 }
 
 .udoc-viewer-root .udoc-comment-toggle svg {
@@ -1275,7 +1446,7 @@
 
 .udoc-viewer-root .udoc-annotation--highlighted {
     animation: udoc-annotation-pulse 1.5s ease-out;
-    outline: 2px solid #0066cc;
+    outline: 2px solid var(--udoc-primary);
     outline-offset: 2px;
     border-radius: 2px;
     z-index: 10;
@@ -1287,7 +1458,7 @@
     box-sizing: border-box;
     pointer-events: none;
     animation: udoc-annotation-pulse 1.5s ease-out;
-    outline: 2px solid #0066cc;
+    outline: 2px solid var(--udoc-primary);
     outline-offset: 2px;
     border-radius: 2px;
     z-index: 10;
@@ -1301,7 +1472,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.3);
+    background: var(--udoc-bg-overlay);
     z-index: 140;
 }
 
@@ -1320,7 +1491,7 @@
         bottom: 0;
         width: 280px !important;
         z-index: 150;
-        box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
+        box-shadow: var(--udoc-shadow-panel);
         transform: translateX(-100%);
         transition: transform 0.2s ease;
     }
@@ -1448,7 +1619,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
+    background: var(--udoc-bg-overlay);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1456,9 +1627,9 @@
 }
 
 .udoc-viewer-root .udoc-password-dialog {
-    background: #fff;
+    background: var(--udoc-bg-surface);
     border-radius: 12px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    box-shadow: var(--udoc-shadow-dialog);
     padding: 24px;
     max-width: 360px;
     width: 90%;
@@ -1474,7 +1645,7 @@
 .udoc-viewer-root .udoc-password-icon {
     width: 32px;
     height: 32px;
-    color: #666;
+    color: var(--udoc-text-label);
     flex-shrink: 0;
 }
 
@@ -1482,13 +1653,13 @@
     margin: 0;
     font-size: 18px;
     font-weight: 600;
-    color: #333;
+    color: var(--udoc-text-heading);
 }
 
 .udoc-viewer-root .udoc-password-message {
     margin: 0 0 20px 0;
     font-size: 14px;
-    color: #666;
+    color: var(--udoc-text-label);
     line-height: 1.5;
 }
 
@@ -1501,17 +1672,17 @@
 .udoc-viewer-root .udoc-password-input-wrapper {
     display: flex;
     align-items: center;
-    border: 1px solid #ddd;
+    border: 1px solid var(--udoc-border);
     border-radius: 8px;
-    background: #fff;
+    background: var(--udoc-bg-input);
     transition:
         border-color 0.15s,
         box-shadow 0.15s;
 }
 
 .udoc-viewer-root .udoc-password-input-wrapper:focus-within {
-    border-color: #0066cc;
-    box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.15);
+    border-color: var(--udoc-primary);
+    box-shadow: 0 0 0 3px var(--udoc-primary-active-bg);
 }
 
 .udoc-viewer-root .udoc-password-input {
@@ -1521,17 +1692,17 @@
     border-radius: 8px 0 0 8px;
     background: transparent;
     font-size: 15px;
-    color: #333;
+    color: var(--udoc-text-heading);
     outline: none;
 }
 
 .udoc-viewer-root .udoc-password-input::placeholder {
-    color: #999;
+    color: var(--udoc-text-placeholder);
 }
 
 .udoc-viewer-root .udoc-password-input:disabled {
-    background: #f5f5f5;
-    color: #999;
+    background: var(--udoc-bg-panel);
+    color: var(--udoc-text-placeholder);
 }
 
 .udoc-viewer-root .udoc-password-toggle {
@@ -1542,13 +1713,13 @@
     height: 44px;
     border: none;
     background: transparent;
-    color: #888;
+    color: var(--udoc-text-subtle);
     cursor: pointer;
     transition: color 0.15s;
 }
 
 .udoc-viewer-root .udoc-password-toggle:hover {
-    color: #333;
+    color: var(--udoc-text-heading);
 }
 
 .udoc-viewer-root .udoc-password-toggle svg {
@@ -1559,11 +1730,11 @@
 .udoc-viewer-root .udoc-password-error {
     margin: 0;
     padding: 8px 12px;
-    background: #fef2f2;
-    border: 1px solid #fecaca;
+    background: var(--udoc-error-bg);
+    border: 1px solid var(--udoc-error-border);
     border-radius: 6px;
     font-size: 13px;
-    color: #dc2626;
+    color: var(--udoc-error-text);
 }
 
 .udoc-viewer-root .udoc-password-submit {
@@ -1574,8 +1745,8 @@
     padding: 12px 20px;
     border: none;
     border-radius: 8px;
-    background: #0066cc;
-    color: #fff;
+    background: var(--udoc-primary);
+    color: var(--udoc-text-on-primary);
     font-size: 15px;
     font-weight: 500;
     cursor: pointer;
@@ -1583,11 +1754,11 @@
 }
 
 .udoc-viewer-root .udoc-password-submit:hover:not(:disabled) {
-    background: #0052a3;
+    background: var(--udoc-primary-hover);
 }
 
 .udoc-viewer-root .udoc-password-submit:disabled {
-    background: #94a3b8;
+    background: var(--udoc-primary-disabled);
     cursor: not-allowed;
 }
 
@@ -1603,7 +1774,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(224, 224, 224, 0.95);
+    background: var(--udoc-bg-loading);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1622,7 +1793,7 @@
 .udoc-viewer-root .udoc-loading-spinner {
     width: 40px;
     height: 40px;
-    color: #0066cc;
+    color: var(--udoc-primary);
 }
 
 .udoc-viewer-root .udoc-loading-spinner svg {
@@ -1637,14 +1808,14 @@
 .udoc-viewer-root .udoc-loading-progress-track {
     width: 100%;
     height: 6px;
-    background: #e5e7eb;
+    background: var(--udoc-progress-track);
     border-radius: 3px;
     overflow: hidden;
 }
 
 .udoc-viewer-root .udoc-loading-progress-fill {
     height: 100%;
-    background: #0066cc;
+    background: var(--udoc-progress-fill);
     border-radius: 3px;
     width: 0%;
     transition: width 0.2s ease-out;
@@ -1668,7 +1839,7 @@
 
 .udoc-viewer-root .udoc-loading-progress-text {
     font-size: 13px;
-    color: #666;
+    color: var(--udoc-text-label);
     text-align: center;
 }
 
@@ -1694,22 +1865,22 @@
     flex: 1;
     display: flex;
     align-items: center;
-    border: 1px solid #ccc;
+    border: 1px solid var(--udoc-border-input);
     border-radius: 4px;
-    background: #fff;
+    background: var(--udoc-bg-input);
     overflow: hidden;
 }
 
 .udoc-viewer-root .udoc-search-panel__input-wrapper:focus-within {
-    border-color: #0066cc;
-    box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.2);
+    border-color: var(--udoc-primary);
+    box-shadow: 0 0 0 2px var(--udoc-primary-focus-ring);
 }
 
 .udoc-viewer-root .udoc-search-panel__input-icon {
     display: flex;
     align-items: center;
     padding: 0 6px 0 8px;
-    color: #999;
+    color: var(--udoc-text-placeholder);
 }
 
 .udoc-viewer-root .udoc-search-panel__input-icon svg {
@@ -1733,28 +1904,28 @@
     justify-content: center;
     width: 28px;
     height: 28px;
-    border: 1px solid #ccc;
+    border: 1px solid var(--udoc-border-input);
     border-radius: 4px;
-    background: #fff;
+    background: var(--udoc-bg-input);
     cursor: pointer;
     font-size: 12px;
     font-weight: 600;
-    color: #666;
+    color: var(--udoc-text-label);
     flex-shrink: 0;
 }
 
 .udoc-viewer-root .udoc-search-panel__case:hover {
-    background: #f0f0f0;
+    background: var(--udoc-bg-page-header);
 }
 
 .udoc-viewer-root .udoc-search-panel__case--active {
-    background: #0066cc;
-    color: #fff;
-    border-color: #0066cc;
+    background: var(--udoc-primary);
+    color: var(--udoc-text-on-primary);
+    border-color: var(--udoc-primary);
 }
 
 .udoc-viewer-root .udoc-search-panel__case--active:hover {
-    background: #0055b3;
+    background: var(--udoc-primary-hover);
 }
 
 .udoc-viewer-root .udoc-search-panel__nav {
@@ -1762,12 +1933,12 @@
     align-items: center;
     justify-content: space-between;
     padding: 6px 12px;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid var(--udoc-border-light);
     min-height: 32px;
 }
 
 .udoc-viewer-root .udoc-search-panel__status {
-    color: #666;
+    color: var(--udoc-text-label);
     font-size: 12px;
 }
 
@@ -1786,7 +1957,7 @@
     border-radius: 4px;
     background: transparent;
     cursor: pointer;
-    color: #333;
+    color: var(--udoc-text-heading);
     padding: 0;
 }
 
@@ -1796,7 +1967,7 @@
 }
 
 .udoc-viewer-root .udoc-search-panel__nav-btn:hover {
-    background: rgba(0, 0, 0, 0.08);
+    background: var(--udoc-hover-overlay);
 }
 
 .udoc-viewer-root .udoc-search-panel__nav-btn:disabled {
@@ -1818,12 +1989,12 @@
     padding: 8px 12px 4px;
     font-size: 11px;
     font-weight: 600;
-    color: #999;
+    color: var(--udoc-text-placeholder);
     text-transform: uppercase;
     letter-spacing: 0.5px;
     position: sticky;
     top: 0;
-    background: #fff;
+    background: var(--udoc-bg-surface);
     z-index: 1;
 }
 
@@ -1832,17 +2003,17 @@
     cursor: pointer;
     font-size: 12px;
     line-height: 1.4;
-    color: #333;
+    color: var(--udoc-text-heading);
     border-left: 3px solid transparent;
 }
 
 .udoc-viewer-root .udoc-search-result:hover {
-    background: rgba(0, 0, 0, 0.04);
+    background: var(--udoc-faint-hover);
 }
 
 .udoc-viewer-root .udoc-search-result--active {
-    background: rgba(0, 102, 204, 0.08);
-    border-left-color: #0066cc;
+    background: var(--udoc-search-result-active-bg);
+    border-left-color: var(--udoc-primary);
 }
 
 .udoc-viewer-root .udoc-search-result__context {
@@ -1850,12 +2021,12 @@
     overflow: hidden;
     text-overflow: ellipsis;
     display: block;
-    color: #555;
+    color: var(--udoc-text-body);
 }
 
 .udoc-viewer-root .udoc-search-result__match {
-    background: rgba(255, 200, 0, 0.4);
-    color: #000;
+    background: var(--udoc-search-match-bg);
+    color: var(--udoc-search-match-text);
     border-radius: 2px;
     padding: 0 1px;
 }
@@ -1870,13 +2041,22 @@
 }
 
 .udoc-viewer-root .udoc-search-highlight {
-    background-color: rgba(255, 200, 0, 0.35);
+    background-color: var(--udoc-search-highlight);
     mix-blend-mode: multiply;
     border-radius: 1px;
 }
 
 .udoc-viewer-root .udoc-search-highlight--active {
-    background-color: rgba(255, 140, 0, 0.6);
-    outline: 2px solid rgba(255, 140, 0, 0.8);
+    background-color: var(--udoc-search-highlight-active);
+    outline: 2px solid var(--udoc-search-highlight-active-outline);
     outline-offset: 1px;
+}
+
+/* Dark mode blend mode overrides */
+.udoc-viewer-root.udoc-viewer-dark .udoc-annotation__quad {
+    mix-blend-mode: screen;
+}
+
+.udoc-viewer-root.udoc-viewer-dark .udoc-search-highlight {
+    mix-blend-mode: screen;
 }
