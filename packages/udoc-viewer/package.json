@@ -3,7 +3,7 @@
     "version": "0.5.24",
     "type": "module",
     "license": "MIT",
-    "description": "Free, open-source, universal document viewer for the web. Render PDF, PPTX, and images with high fidelity — no server required.",
+    "description": "Free, open-source, universal document viewer for the web. Render PDF, DOCX, PPTX, and images with high fidelity — no server required.",
     "homepage": "https://www.docmentis.com",
     "repository": {
         "type": "git",
@@ -15,6 +15,8 @@
     },
     "keywords": [
         "pdf",
+        "docx",
+        "word",
         "pptx",
         "powerpoint",
         "viewer",

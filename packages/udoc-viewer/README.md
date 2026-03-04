@@ -1,6 +1,6 @@
 # @docmentis/udoc-viewer
 
-A free, open-source, universal document viewer for the web. Render PDF, PPTX, and images with high fidelity — no server required.
+A free, open-source, universal document viewer for the web. Render PDF, DOCX, PPTX, and images with high fidelity — no server required.
 
 [![npm version](https://img.shields.io/npm/v/@docmentis/udoc-viewer)](https://www.npmjs.com/package/@docmentis/udoc-viewer)
 [![license](https://img.shields.io/npm/l/@docmentis/udoc-viewer)](./LICENSE)
@@ -13,7 +13,7 @@ A free, open-source, universal document viewer for the web. Render PDF, PPTX, an
 
 Most web document viewers only handle PDF, rely on server-side rendering, or require expensive commercial licenses. udoc-viewer is different:
 
-- **Truly universal** — PDF, PowerPoint, and images in a single viewer, with more formats coming
+- **Truly universal** — PDF, Word, PowerPoint, and images in a single viewer, with more formats coming
 - **High fidelity** — powered by a custom Rust/WebAssembly rendering engine, not PDF.js
 - **Client-side only** — everything runs in the browser, no server round-trips
 - **Framework agnostic** — works with React, Vue, Angular, Svelte, or plain HTML
@@ -24,6 +24,7 @@ Most web document viewers only handle PDF, rely on server-side rendering, or req
 | Format | Extensions                                                                                        |
 | ------ | ------------------------------------------------------------------------------------------------- |
 | PDF    | .pdf                                                                                              |
+| DOCX   | .docx                                                                                             |
 | PPTX   | .pptx                                                                                             |
 | Images | .png, .jpg, .jpeg, .gif, .webp, .bmp, .tif, .tiff, .ico, .tga, .ppm, .pgm, .pbm, .hdr, .exr, .qoi |
 
@@ -116,7 +117,7 @@ Full working examples for every major framework are in the [`examples/`](../../e
 
 ## Features
 
-- 📄 **Multi-format rendering** — PDF, PPTX, and images in one unified viewer
+- 📄 **Multi-format rendering** — PDF, DOCX, PPTX, and images in one unified viewer
 - 🎯 **High-fidelity output** — custom Rust rendering engine compiled to WebAssembly
 - 🔍 **Zoom & navigation** — toolbar with zoom controls, page thumbnails, and keyboard navigation
 - 📱 **Responsive** — works on desktop and mobile browsers
