@@ -4,7 +4,7 @@
     "type": "module",
     "license": "MIT",
     "description": "Free, open-source, universal document viewer for the web. Render PDF, PPTX, and images with high fidelity — no server required.",
-    "homepage": "https://docmentis.com/viewer/guide",
+    "homepage": "https://www.docmentis.com",
     "repository": {
         "type": "git",
         "url": "https://github.com/docMentis/docmentis-udoc-viewer.git",
