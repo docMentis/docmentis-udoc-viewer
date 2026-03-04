@@ -158,7 +158,7 @@ const viewer = await client.createViewer({
     // (default: 'single-page')
     layoutMode: "single-page",
 
-    // Zoom mode: 'fit-spread-width', 'fit-spread-height', 'fit-spread', 'custom'
+    // Zoom mode: 'fit-spread-width', 'fit-spread-width-max', 'fit-spread-height', 'fit-spread', 'custom'
     // (default: 'fit-spread-width')
     zoomMode: "fit-spread-width",
 
@@ -193,6 +193,9 @@ const viewer = await client.createViewer({
     // Enable performance tracking (default: false)
     enablePerformanceCounter: false,
 
+    // Callback for performance log entries (called when enablePerformanceCounter is true)
+    onPerformanceLog: (entry) => console.log(entry),
+
     // Hide the "Powered by docMentis" attribution link (default: false)
     // Requires a valid license with the "no_attribution" feature
     hideAttribution: true,
@@ -210,6 +213,9 @@ const viewer = await client.createViewer({
     disableAttachments: false, // Disable the attachments tab
     disableSearch: false, // Disable the search panel
     disableComments: false, // Disable the comments panel
+
+    // Color theme: 'light', 'dark', or 'system' (default: 'light')
+    theme: "light",
 });
 ```
 
@@ -291,6 +297,10 @@ viewer.setLayoutMode("double-page"); // 'single-page' | 'double-page' | ...
 viewer.setPageRotation(90); // 0 | 90 | 180 | 270
 viewer.setSpacingMode("none"); // 'all' | 'none' | 'spread-only' | 'page-only'
 
+// Theme
+viewer.setTheme("dark"); // 'light' | 'dark' | 'system'
+console.log(viewer.theme); // current theme
+
 // Fullscreen
 viewer.setFullscreen(true);
 console.log(viewer.isFullscreen);
@@ -320,6 +330,25 @@ viewer.setPanelEnabled("search", false);
 // Open/close panels programmatically
 viewer.openPanel("outline");
 viewer.closePanel();
+```
+
+### Programmatic Search
+
+Search document text programmatically — useful for custom search UIs:
+
+```typescript
+// Open search panel and search for text
+viewer.search("hello world");
+
+// Search with options
+viewer.search("hello", { caseSensitive: true });
+
+// Navigate between matches
+viewer.searchNext();
+viewer.searchPrev();
+
+// Clear search
+viewer.clearSearch();
 ```
 
 ### Events

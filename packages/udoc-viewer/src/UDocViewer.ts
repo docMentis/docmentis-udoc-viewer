@@ -1362,7 +1362,7 @@ export class UDocViewer {
 
 /**
  * Detect document format based on magic bytes and filename.
- * Returns "pdf" for PDF files, "pptx" for PowerPoint files, "image" for supported image formats.
+ * Returns "pdf" for PDF files, "docx" for Word files, "pptx" for PowerPoint files, "image" for supported image formats.
  */
 function detectDocumentFormat(bytes: Uint8Array, filename?: string): "pdf" | "pptx" | "docx" | "image" {
     // Check magic bytes first (most reliable)

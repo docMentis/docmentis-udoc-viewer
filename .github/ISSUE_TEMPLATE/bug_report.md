@@ -36,7 +36,7 @@ assignees: ""
 
 <!-- If the issue is related to rendering a specific document: -->
 
-- **Format**: (e.g., PDF, PPTX, PNG)
+- **Format**: (e.g., PDF, DOCX, PPTX, PNG)
 - **File size**: (approximate)
 - **Can you share the file?**: Yes / No
 
