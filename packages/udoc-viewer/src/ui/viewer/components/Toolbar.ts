@@ -43,6 +43,7 @@ interface ToolbarSlice {
     fullscreenButtonVisible: boolean;
     isFullscreen: boolean;
     theme: ThemeMode;
+    themeSwitchingDisabled: boolean;
     // Panel button visibility
     leftPanelVisible: boolean;
     rightPanelVisible: boolean;
@@ -63,6 +64,7 @@ function sliceEqual(a: ToolbarSlice, b: ToolbarSlice): boolean {
         a.fullscreenButtonVisible === b.fullscreenButtonVisible &&
         a.isFullscreen === b.isFullscreen &&
         a.theme === b.theme &&
+        a.themeSwitchingDisabled === b.themeSwitchingDisabled &&
         a.leftPanelVisible === b.leftPanelVisible &&
         a.rightPanelVisible === b.rightPanelVisible &&
         a.disabledPanels === b.disabledPanels &&
@@ -82,6 +84,7 @@ function selectSlice(state: ViewerState): ToolbarSlice {
         fullscreenButtonVisible: state.fullscreenButtonVisible,
         isFullscreen: state.isFullscreen,
         theme: state.theme,
+        themeSwitchingDisabled: state.themeSwitchingDisabled,
         leftPanelVisible: state.leftPanelVisible,
         rightPanelVisible: state.rightPanelVisible,
         disabledPanels: state.disabledPanels,
@@ -467,6 +470,9 @@ export function createToolbar() {
 
             // Comments button: hidden when right panel disabled or comments individually disabled
             commentsBtn.style.display = !slice.rightPanelVisible || slice.disabledPanels.has("comments") ? "none" : "";
+
+            // Theme button visibility
+            themeBtn.style.display = slice.themeSwitchingDisabled ? "none" : "";
 
             // Theme button icon and label
             const themeIcon =

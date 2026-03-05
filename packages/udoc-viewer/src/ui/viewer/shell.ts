@@ -184,11 +184,19 @@ export function mountViewerShell(
             if (next.theme === "system") setupSystemListener();
             applyThemeClass(resolveIsDark(next.theme));
         }
+        if (prev.textSelectionDisabled !== next.textSelectionDisabled) {
+            layout.classList.toggle("udoc-viewer--no-text-select", next.textSelectionDisabled);
+        }
     });
 
     // Apply initial toolbar visibility
     if (!mergedInitialState.toolbarVisible) {
         toolbarSlot.style.display = "none";
+    }
+
+    // Apply initial text selection state
+    if (mergedInitialState.textSelectionDisabled) {
+        layout.classList.add("udoc-viewer--no-text-select");
     }
 
     store.dispatch({ type: "__INIT__" });

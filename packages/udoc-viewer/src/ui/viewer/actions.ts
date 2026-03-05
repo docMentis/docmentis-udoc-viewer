@@ -76,6 +76,10 @@ export type Action =
     | { type: "SET_PANEL_DISABLED"; panel: PanelTab; disabled: boolean }
     | { type: "SET_FULLSCREEN_BUTTON_VISIBLE"; visible: boolean }
     | { type: "SET_THEME"; theme: ThemeMode }
+    | { type: "SET_THEME_SWITCHING_DISABLED"; disabled: boolean }
+    | { type: "SET_TEXT_SELECTION_DISABLED"; disabled: boolean }
+    | { type: "SET_MIN_ZOOM"; zoom: number }
+    | { type: "SET_MAX_ZOOM"; zoom: number }
     // Annotation highlight
     | {
           type: "HIGHLIGHT_ANNOTATION";

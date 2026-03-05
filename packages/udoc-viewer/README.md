@@ -151,12 +151,22 @@ const viewer = await client.createViewer({
     // Container element or CSS selector (required for UI mode, omit for headless)
     container: "#viewer",
 
+    // --- View modes ---
+
     // Scroll mode: 'continuous' or 'spread' (default: 'continuous')
     scrollMode: "continuous",
 
     // Layout mode: 'single-page', 'double-page', 'double-page-odd-right', 'double-page-odd-left'
     // (default: 'single-page')
     layoutMode: "single-page",
+
+    // Initial page rotation: 0, 90, 180, or 270 (default: 0)
+    pageRotation: 0,
+
+    // Spacing mode: 'all', 'none', 'spread-only', 'page-only' (default: 'all')
+    spacingMode: "all",
+
+    // --- Zoom ---
 
     // Zoom mode: 'fit-spread-width', 'fit-spread-width-max', 'fit-spread-height', 'fit-spread', 'custom'
     // (default: 'fit-spread-width')
@@ -169,6 +179,12 @@ const viewer = await client.createViewer({
     // (default: [0.1, 0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 3, 4, 5])
     zoomSteps: [0.1, 0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 3, 4, 5],
 
+    // Zoom range limits (default: 0.1 and 5)
+    minZoom: 0.1,
+    maxZoom: 5,
+
+    // --- Spacing & layout ---
+
     // Spacing between pages in pixels (default: 10)
     pageSpacing: 10,
 
@@ -179,31 +195,33 @@ const viewer = await client.createViewer({
     // Height is derived automatically from the page aspect ratio
     thumbnailWidth: 150,
 
+    // Target display DPI (default: 96)
+    dpi: 96,
+
+    // --- Theme ---
+
+    // Color theme: 'light', 'dark', or 'system' (default: 'light')
+    theme: "light",
+
+    // Hide the theme toggle button (default: false)
+    disableThemeSwitching: false,
+
+    // --- Features ---
+
+    // Disable text selection and copying (default: false)
+    disableTextSelection: false,
+
+    // Enable Google Fonts for automatic font fetching (default: true)
+    googleFonts: true,
+
+    // --- Panels ---
+
     // Initially active panel, or null for no panel (default: null)
     // Left panels: 'thumbnail', 'outline', 'bookmarks', 'layers', 'attachments'
     // Right panels: 'search', 'comments'
     activePanel: null,
 
-    // Target display DPI (default: 96)
-    dpi: 96,
-
-    // Enable Google Fonts for automatic font fetching (default: true)
-    googleFonts: true,
-
-    // Enable performance tracking (default: false)
-    enablePerformanceCounter: false,
-
-    // Callback for performance log entries (called when enablePerformanceCounter is true)
-    onPerformanceLog: (entry) => console.log(entry),
-
-    // Hide the "Powered by docMentis" attribution link (default: false)
-    // Requires a valid license with the "no_attribution" feature
-    hideAttribution: true,
-
-    // UI visibility options (all default to false)
-    hideToolbar: false, // Hide the top toolbar
-    hideFloatingToolbar: false, // Hide the floating toolbar (page nav, zoom, view mode)
-    disableFullscreen: false, // Remove the fullscreen button
+    // Disable individual panel tabs (all default to false)
     disableLeftPanel: false, // Disable the entire left panel area
     disableRightPanel: false, // Disable the entire right panel area
     disableThumbnails: false, // Disable the thumbnails tab
@@ -214,8 +232,28 @@ const viewer = await client.createViewer({
     disableSearch: false, // Disable the search panel
     disableComments: false, // Disable the comments panel
 
-    // Color theme: 'light', 'dark', or 'system' (default: 'light')
-    theme: "light",
+    // --- UI visibility ---
+
+    // Hide the top toolbar (default: false)
+    hideToolbar: false,
+
+    // Hide the floating toolbar (page nav, zoom, view mode) (default: false)
+    hideFloatingToolbar: false,
+
+    // Remove the fullscreen button (default: false)
+    disableFullscreen: false,
+
+    // --- Advanced ---
+
+    // Enable performance tracking (default: false)
+    enablePerformanceCounter: false,
+
+    // Callback for performance log entries (called when enablePerformanceCounter is true)
+    onPerformanceLog: (entry) => console.log(entry),
+
+    // Hide the "Powered by docMentis" attribution link (default: false)
+    // Requires a valid license with the "no_attribution" feature
+    hideAttribution: true,
 });
 ```
 
@@ -288,6 +326,8 @@ viewer.zoomIn();
 viewer.zoomOut();
 viewer.setZoom(1.5); // 150%
 viewer.setZoomMode("fit-spread-width");
+viewer.setMinZoom(0.5); // clamp minimum to 50%
+viewer.setMaxZoom(3); // clamp maximum to 300%
 console.log(viewer.zoom); // current zoom level
 console.log(viewer.zoomMode); // current zoom mode
 
@@ -299,7 +339,11 @@ viewer.setSpacingMode("none"); // 'all' | 'none' | 'spread-only' | 'page-only'
 
 // Theme
 viewer.setTheme("dark"); // 'light' | 'dark' | 'system'
+viewer.setThemeSwitchingEnabled(false); // hide theme toggle button
 console.log(viewer.theme); // current theme
+
+// Text selection
+viewer.setTextSelectionEnabled(false); // disable text selection
 
 // Fullscreen
 viewer.setFullscreen(true);

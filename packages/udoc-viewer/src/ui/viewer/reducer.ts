@@ -185,8 +185,7 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
             return { ...state, zoomMode: action.mode };
         }
         case "SET_ZOOM": {
-            const steps = state.zoomSteps;
-            const zoom = clamp(action.zoom, steps[0], steps[steps.length - 1]);
+            const zoom = clamp(action.zoom, state.minZoom, state.maxZoom);
             if (state.zoom === zoom && state.zoomMode === "custom") return state;
             return { ...state, zoom, zoomMode: "custom" };
         }
@@ -202,15 +201,17 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
             const steps = state.zoomSteps;
             const currentZoom = state.effectiveZoom ?? state.zoom;
             const nextStep = steps.find((s) => s > currentZoom + 1e-9) ?? steps[steps.length - 1];
-            if (currentZoom >= nextStep - 1e-9 && state.zoomMode === "custom") return state;
-            return { ...state, zoom: nextStep, zoomMode: "custom" };
+            const clamped = Math.min(nextStep, state.maxZoom);
+            if (currentZoom >= clamped - 1e-9 && state.zoomMode === "custom") return state;
+            return { ...state, zoom: clamped, zoomMode: "custom" };
         }
         case "ZOOM_OUT": {
             const steps = state.zoomSteps;
             const currentZoom = state.effectiveZoom ?? state.zoom;
             const prevStep = [...steps].reverse().find((s) => s < currentZoom - 1e-9) ?? steps[0];
-            if (currentZoom <= prevStep + 1e-9 && state.zoomMode === "custom") return state;
-            return { ...state, zoom: prevStep, zoomMode: "custom" };
+            const clamped = Math.max(prevStep, state.minZoom);
+            if (currentZoom <= clamped + 1e-9 && state.zoomMode === "custom") return state;
+            return { ...state, zoom: clamped, zoomMode: "custom" };
         }
         case "SET_PAGE_ROTATION": {
             if (state.pageRotation === action.rotation) return state;
@@ -309,6 +310,24 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
         case "SET_THEME": {
             if (state.theme === action.theme) return state;
             return { ...state, theme: action.theme };
+        }
+        case "SET_THEME_SWITCHING_DISABLED": {
+            if (state.themeSwitchingDisabled === action.disabled) return state;
+            return { ...state, themeSwitchingDisabled: action.disabled };
+        }
+        case "SET_TEXT_SELECTION_DISABLED": {
+            if (state.textSelectionDisabled === action.disabled) return state;
+            return { ...state, textSelectionDisabled: action.disabled };
+        }
+        case "SET_MIN_ZOOM": {
+            if (state.minZoom === action.zoom) return state;
+            const zoom = state.zoom < action.zoom ? action.zoom : state.zoom;
+            return { ...state, minZoom: action.zoom, zoom };
+        }
+        case "SET_MAX_ZOOM": {
+            if (state.maxZoom === action.zoom) return state;
+            const zoom = state.zoom > action.zoom ? action.zoom : state.zoom;
+            return { ...state, maxZoom: action.zoom, zoom };
         }
         case "SET_PANEL_DISABLED": {
             const alreadyDisabled = state.disabledPanels.has(action.panel);

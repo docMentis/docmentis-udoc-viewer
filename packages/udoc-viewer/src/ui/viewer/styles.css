@@ -986,6 +986,15 @@
     background: var(--udoc-text-selection);
 }
 
+/* Text selection disabled */
+.udoc-viewer--no-text-select .udoc-spread__text-layer {
+    pointer-events: none;
+}
+
+.udoc-viewer--no-text-select .udoc-text-span {
+    user-select: none;
+}
+
 /* Annotation Layer */
 .udoc-viewer-root .udoc-spread__annotation-layer {
     position: absolute;

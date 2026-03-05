@@ -14,7 +14,15 @@ import type {
     SplitByOutlineResult,
 } from "./worker/index.js";
 import { UDocViewer } from "./UDocViewer.js";
-import type { ScrollMode, LayoutMode, ZoomMode, PanelTab, ThemeMode } from "./ui/viewer/state.js";
+import type {
+    ScrollMode,
+    LayoutMode,
+    ZoomMode,
+    PanelTab,
+    ThemeMode,
+    SpacingMode,
+    PageRotation,
+} from "./ui/viewer/state.js";
 import type { PerformanceLogCallback } from "./performance/index.js";
 
 /**
@@ -280,6 +288,44 @@ export interface ViewerOptions {
      * @default 'light'
      */
     theme?: ThemeMode;
+
+    /**
+     * Disable the theme toggle button in the toolbar.
+     * The theme can still be changed programmatically via setTheme().
+     * @default false
+     */
+    disableThemeSwitching?: boolean;
+
+    /**
+     * Disable text selection in the viewer.
+     * When true, users cannot select or copy text from rendered documents.
+     * @default false
+     */
+    disableTextSelection?: boolean;
+
+    /**
+     * Initial page rotation in degrees.
+     * @default 0
+     */
+    pageRotation?: PageRotation;
+
+    /**
+     * Initial spacing mode between pages and spreads.
+     * @default 'all'
+     */
+    spacingMode?: SpacingMode;
+
+    /**
+     * Minimum zoom level.
+     * @default 0.1
+     */
+    minZoom?: number;
+
+    /**
+     * Maximum zoom level.
+     * @default 5
+     */
+    maxZoom?: number;
 }
 
 /**

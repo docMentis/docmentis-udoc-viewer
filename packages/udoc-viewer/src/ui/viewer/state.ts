@@ -186,6 +186,14 @@ export interface ViewerState {
     fullscreenButtonVisible: boolean;
     /** Current color theme mode */
     theme: ThemeMode;
+    /** Whether the theme toggle button is hidden */
+    themeSwitchingDisabled: boolean;
+    /** Whether text selection is disabled */
+    textSelectionDisabled: boolean;
+    /** Minimum zoom level */
+    minZoom: number;
+    /** Maximum zoom level */
+    maxZoom: number;
 
     // Annotation highlight (for click-to-highlight from comments panel)
     /** Currently highlighted annotation (null = none) */
@@ -268,6 +276,10 @@ export const initialState: ViewerState = {
     disabledPanels: new Set(),
     fullscreenButtonVisible: true,
     theme: "light",
+    themeSwitchingDisabled: false,
+    textSelectionDisabled: false,
+    minZoom: DEFAULT_ZOOM_STEPS[0],
+    maxZoom: DEFAULT_ZOOM_STEPS[DEFAULT_ZOOM_STEPS.length - 1],
 
     highlightedAnnotation: null,
 

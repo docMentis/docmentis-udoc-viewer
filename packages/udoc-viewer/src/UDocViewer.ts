@@ -286,6 +286,12 @@ export class UDocViewer {
         if (options.disableLeftPanel) overrides.leftPanelVisible = false;
         if (options.disableRightPanel) overrides.rightPanelVisible = false;
         if (options.theme !== undefined) overrides.theme = options.theme;
+        if (options.disableThemeSwitching) overrides.themeSwitchingDisabled = true;
+        if (options.disableTextSelection) overrides.textSelectionDisabled = true;
+        if (options.pageRotation !== undefined) overrides.pageRotation = options.pageRotation;
+        if (options.spacingMode !== undefined) overrides.spacingMode = options.spacingMode;
+        if (options.minZoom !== undefined) overrides.minZoom = options.minZoom;
+        if (options.maxZoom !== undefined) overrides.maxZoom = options.maxZoom;
 
         // Collect individually disabled panels into the internal Set
         const disabled: PanelTab[] = [];
@@ -312,6 +318,8 @@ export class UDocViewer {
         if (options.zoom !== undefined) overrides.zoom = options.zoom;
         if (options.pageSpacing !== undefined) overrides.pageSpacing = options.pageSpacing;
         if (options.spreadSpacing !== undefined) overrides.spreadSpacing = options.spreadSpacing;
+        if (options.pageRotation !== undefined) overrides.pageRotation = options.pageRotation;
+        if (options.spacingMode !== undefined) overrides.spacingMode = options.spacingMode;
 
         return overrides;
     }
@@ -865,6 +873,42 @@ export class UDocViewer {
         this.ensureNotDestroyed();
         this.ensureUiMode();
         this.uiShell!.dispatch({ type: "SET_THEME", theme });
+    }
+
+    /**
+     * Enable or disable the theme toggle button in the toolbar.
+     */
+    setThemeSwitchingEnabled(enabled: boolean): void {
+        this.ensureNotDestroyed();
+        this.ensureUiMode();
+        this.uiShell!.dispatch({ type: "SET_THEME_SWITCHING_DISABLED", disabled: !enabled });
+    }
+
+    /**
+     * Enable or disable text selection in the viewer.
+     */
+    setTextSelectionEnabled(enabled: boolean): void {
+        this.ensureNotDestroyed();
+        this.ensureUiMode();
+        this.uiShell!.dispatch({ type: "SET_TEXT_SELECTION_DISABLED", disabled: !enabled });
+    }
+
+    /**
+     * Set the minimum zoom level.
+     */
+    setMinZoom(zoom: number): void {
+        this.ensureNotDestroyed();
+        this.ensureUiMode();
+        this.uiShell!.dispatch({ type: "SET_MIN_ZOOM", zoom });
+    }
+
+    /**
+     * Set the maximum zoom level.
+     */
+    setMaxZoom(zoom: number): void {
+        this.ensureNotDestroyed();
+        this.ensureUiMode();
+        this.uiShell!.dispatch({ type: "SET_MAX_ZOOM", zoom });
     }
 
     /**
