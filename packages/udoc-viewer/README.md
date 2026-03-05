@@ -395,6 +395,72 @@ viewer.searchPrev();
 viewer.clearSearch();
 ```
 
+### CSS Customization
+
+The viewer uses CSS custom properties (variables) for all colors, shadows, and borders. Since no Shadow DOM is used, you can override any variable from your own stylesheet:
+
+```css
+/* Override the primary color */
+.udoc-viewer-root {
+    --udoc-primary: #e91e63;
+    --udoc-primary-hover: #c2185b;
+}
+
+/* Override dark theme colors */
+.udoc-viewer-root.udoc-viewer-dark {
+    --udoc-primary: #f48fb1;
+    --udoc-primary-hover: #f06292;
+}
+```
+
+#### Available CSS Variables
+
+| Variable                         | Description            | Light Default                 | Dark Default                 |
+| -------------------------------- | ---------------------- | ----------------------------- | ---------------------------- |
+| **Backgrounds**                  |                        |                               |                              |
+| `--udoc-bg-viewport`             | Viewport background    | `#e0e0e0`                     | `#1a1a1a`                    |
+| `--udoc-bg-surface`              | Page / card surface    | `#fff`                        | `#2d2d2d`                    |
+| `--udoc-bg-panel`                | Side panel background  | `#f5f5f5`                     | `#252525`                    |
+| `--udoc-bg-panel-tabs`           | Panel tab bar          | `#e8e8e8`                     | `#1e1e1e`                    |
+| `--udoc-bg-input`                | Input fields           | `#fff`                        | `#3a3a3a`                    |
+| `--udoc-bg-overlay`              | Modal overlay          | `rgba(0,0,0,0.5)`             | `rgba(0,0,0,0.7)`            |
+| **Text**                         |                        |                               |                              |
+| `--udoc-text-primary`            | Primary text           | `rgba(0,0,0,0.8)`             | `rgba(255,255,255,0.87)`     |
+| `--udoc-text-secondary`          | Secondary text         | `rgba(0,0,0,0.7)`             | `rgba(255,255,255,0.7)`      |
+| `--udoc-text-muted`              | Muted text             | `rgba(0,0,0,0.5)`             | `rgba(255,255,255,0.5)`      |
+| `--udoc-text-disabled`           | Disabled text          | `rgba(0,0,0,0.25)`            | `rgba(255,255,255,0.25)`     |
+| `--udoc-text-placeholder`        | Placeholder text       | `#999`                        | `#777`                       |
+| `--udoc-text-on-primary`         | Text on primary color  | `#fff`                        | `#fff`                       |
+| **Primary color**                |                        |                               |                              |
+| `--udoc-primary`                 | Primary / accent color | `#0066cc`                     | `#4da6ff`                    |
+| `--udoc-primary-hover`           | Primary hover state    | `#0052a3`                     | `#80bfff`                    |
+| `--udoc-primary-focus-ring`      | Focus ring color       | `rgba(0,102,204,0.2)`         | `rgba(77,166,255,0.25)`      |
+| **Borders**                      |                        |                               |                              |
+| `--udoc-border`                  | Default border         | `#ddd`                        | `#444`                       |
+| `--udoc-border-input`            | Input border           | `#ccc`                        | `#555`                       |
+| `--udoc-border-light`            | Light border           | `#eee`                        | `#3a3a3a`                    |
+| **Shadows**                      |                        |                               |                              |
+| `--udoc-shadow-page`             | Page shadow            | `0 2px 8px rgba(0,0,0,0.15)`  | `0 2px 8px rgba(0,0,0,0.4)`  |
+| `--udoc-shadow-toolbar`          | Toolbar shadow         | `0 2px 12px rgba(0,0,0,0.15)` | `0 2px 12px rgba(0,0,0,0.4)` |
+| `--udoc-shadow-dropdown`         | Dropdown shadow        | `0 4px 16px rgba(0,0,0,0.2)`  | `0 4px 16px rgba(0,0,0,0.5)` |
+| **Search**                       |                        |                               |                              |
+| `--udoc-search-highlight`        | Search match highlight | `rgba(255,200,0,0.35)`        | `rgba(255,200,0,0.4)`        |
+| `--udoc-search-highlight-active` | Active match highlight | `rgba(255,140,0,0.6)`         | `rgba(255,140,0,0.65)`       |
+| **Selection**                    |                        |                               |                              |
+| `--udoc-text-selection`          | Text selection color   | `rgba(0,120,215,0.3)`         | `rgba(77,166,255,0.35)`      |
+| **Scrollbar**                    |                        |                               |                              |
+| `--udoc-scrollbar-thumb`         | Scrollbar thumb        | `rgba(0,0,0,0.3)`             | `rgba(255,255,255,0.3)`      |
+| `--udoc-scrollbar-thumb-hover`   | Scrollbar thumb hover  | `rgba(0,0,0,0.5)`             | `rgba(255,255,255,0.5)`      |
+| **Errors**                       |                        |                               |                              |
+| `--udoc-error-bg`                | Error background       | `#fef2f2`                     | `#3a1c1c`                    |
+| `--udoc-error-border`            | Error border           | `#fecaca`                     | `#6b2c2c`                    |
+| `--udoc-error-text`              | Error text             | `#dc2626`                     | `#f87171`                    |
+| **Progress**                     |                        |                               |                              |
+| `--udoc-progress-track`          | Progress bar track     | `#e5e7eb`                     | `#404040`                    |
+| `--udoc-progress-fill`           | Progress bar fill      | `#0066cc`                     | `#4da6ff`                    |
+
+> The full list of variables is defined in `src/ui/viewer/styles.css`. All viewer styles are scoped under `.udoc-viewer-root`, so your overrides won't leak into the rest of the page.
+
 ### Events
 
 ```typescript
