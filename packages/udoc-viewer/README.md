@@ -1,6 +1,8 @@
 # @docmentis/udoc-viewer
 
-A free, open-source, universal document viewer for the web. Render PDF, DOCX, PPTX, and images with high fidelity — no server required.
+Universal document viewer for the web.
+
+Open-source, framework-agnostic viewer powered by a built-from-scratch WebAssembly engine for high-fidelity rendering across PDF, DOCX, PPTX, and images.
 
 [![npm version](https://img.shields.io/npm/v/@docmentis/udoc-viewer)](https://www.npmjs.com/package/@docmentis/udoc-viewer)
 [![license](https://img.shields.io/npm/l/@docmentis/udoc-viewer)](./LICENSE)
