@@ -22,11 +22,11 @@
         "viewer",
         "document",
         "document-viewer",
+        "docx-viewer",
         "pdf-viewer",
         "wasm",
         "webassembly",
-        "image-viewer",
-        "client-side"
+        "image-viewer"
     ],
     "main": "dist/src/index.js",
     "types": "dist/src/index.d.ts",

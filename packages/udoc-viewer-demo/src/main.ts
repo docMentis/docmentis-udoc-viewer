@@ -31,6 +31,10 @@ const sampleCategories: SampleCategory[] = [
         ],
     },
     {
+        name: "DOCX",
+        documents: [{ name: "NASA Artemis Status Report", path: "./nasa-artemis-status-report.docx" }],
+    },
+    {
         name: "PPTX",
         documents: [{ name: "James Webb Space Telescope", path: "./james-webb-space-telescope.pptx" }],
     },
