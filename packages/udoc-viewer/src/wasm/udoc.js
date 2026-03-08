@@ -1460,10 +1460,6 @@ function __wbg_get_imports() {
     imports.wbg.__wbg_error_7bc7d576a6aaf855 = function(arg0) {
         console.error(getObject(arg0));
     };
-    imports.wbg.__wbg_fromCodePoint_50facac709b76f67 = function() { return handleError(function (arg0) {
-        const ret = String.fromCodePoint(arg0 >>> 0);
-        return addHeapObject(ret);
-    }, arguments) };
     imports.wbg.__wbg_getRandomValues_b8f5dbd5f3995a9e = function() { return handleError(function (arg0, arg1) {
         getObject(arg0).getRandomValues(getObject(arg1));
     }, arguments) };
