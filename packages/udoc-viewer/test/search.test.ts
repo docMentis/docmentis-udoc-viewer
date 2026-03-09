@@ -24,7 +24,7 @@ describe("executeSearch", () => {
     it("should return empty array for empty query", () => {
         const pageText = new Map<number, TextRun[]>();
         pageText.set(0, [createMockTextRun("Hello world", 11)]);
-        
+
         const result = executeSearch("", false, pageText, 1);
         expect(result).toEqual([]);
     });
@@ -32,7 +32,7 @@ describe("executeSearch", () => {
     it("should return empty array for whitespace-only query", () => {
         const pageText = new Map<number, TextRun[]>();
         pageText.set(0, [createMockTextRun("Hello world", 11)]);
-        
+
         const result = executeSearch("   ", false, pageText, 1);
         expect(result).toEqual([]);
     });
@@ -40,7 +40,7 @@ describe("executeSearch", () => {
     it("should find exact matches", () => {
         const pageText = new Map<number, TextRun[]>();
         pageText.set(0, [createMockTextRun("Hello world", 11)]);
-        
+
         const result = executeSearch("world", false, pageText, 1);
         expect(result).toHaveLength(1);
         expect(result[0].pageIndex).toBe(0);
@@ -50,7 +50,7 @@ describe("executeSearch", () => {
     it("should find multiple matches", () => {
         const pageText = new Map<number, TextRun[]>();
         pageText.set(0, [createMockTextRun("Hello world, hello world", 22)]);
-        
+
         const result = executeSearch("world", false, pageText, 1);
         expect(result).toHaveLength(2);
     });
@@ -58,10 +58,10 @@ describe("executeSearch", () => {
     it("should respect case sensitivity", () => {
         const pageText = new Map<number, TextRun[]>();
         pageText.set(0, [createMockTextRun("Hello World", 11)]);
-        
+
         const caseInsensitiveResult = executeSearch("world", false, pageText, 1);
         expect(caseInsensitiveResult).toHaveLength(1);
-        
+
         const caseSensitiveResult = executeSearch("world", true, pageText, 1);
         expect(caseSensitiveResult).toHaveLength(0);
     });
@@ -70,7 +70,7 @@ describe("executeSearch", () => {
         const pageText = new Map<number, TextRun[]>();
         pageText.set(0, [createMockTextRun("Hello world", 11)]);
         pageText.set(1, [createMockTextRun("Hello again", 11)]);
-        
+
         const result = executeSearch("Hello", false, pageText, 2);
         expect(result).toHaveLength(2);
         expect(result[0].pageIndex).toBe(0);
@@ -80,7 +80,7 @@ describe("executeSearch", () => {
     it("should handle empty page text", () => {
         const pageText = new Map<number, TextRun[]>();
         pageText.set(0, []);
-        
+
         const result = executeSearch("Hello", false, pageText, 1);
         expect(result).toEqual([]);
     });
@@ -88,7 +88,7 @@ describe("executeSearch", () => {
     it("should return empty array for no matches", () => {
         const pageText = new Map<number, TextRun[]>();
         pageText.set(0, [createMockTextRun("Hello world", 11)]);
-        
+
         const result = executeSearch("not found", false, pageText, 1);
         expect(result).toEqual([]);
     });
@@ -96,7 +96,7 @@ describe("executeSearch", () => {
     it("should include context snippets in results", () => {
         const pageText = new Map<number, TextRun[]>();
         pageText.set(0, [createMockTextRun("This is a test sentence for search context", 42)]);
-        
+
         const result = executeSearch("test", false, pageText, 1);
         expect(result).toHaveLength(1);
         expect(result[0].context).toBeDefined();
