@@ -6,6 +6,8 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+## [0.6.2] - 2026-03-09
+
 ### Features
 
 - Auto-space insertion for CJK ↔ Latin/digit boundaries (engine)
