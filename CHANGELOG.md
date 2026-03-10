@@ -10,11 +10,20 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 - Auto-space insertion for CJK ↔ Latin/digit boundaries (engine)
 - Background style reference (bgRef) support for PPTX slides (engine)
-- Intra-shaped-item line breaking with UAX #14 compliance (engine)
 
 ### Bug Fixes
 
 - Use viewport center instead of top edge for current page detection
+
+## [0.6.1] - 2026-03-08
+
+### Features
+
+- UAX #14 Unicode line breaking in compose pipeline (engine)
+- Intra-shaped-item line breaking with UAX #14 compliance (engine)
+
+### Bug Fixes
+
 - Default to theme minor font for PPTX text without explicit typeface (engine)
 - Skip text alignment when available width is infinite (engine)
 - Handle overflow in carried-over items at paragraph flush (engine)
@@ -22,23 +31,6 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 - Route Common-script fullwidth characters to East Asian font slot (engine)
 - Correct shape_bullet metrics, PUA fallback, and glyph-to-char mapping (engine)
 - Correct paragraph end mark byte span in layout (engine)
-
-## [0.6.1] - 2026-03-08
-
-### Features
-
-- UAX #14 Unicode line breaking in compose pipeline (engine)
-- Column break support in layout engine (engine)
-
-### Bug Fixes
-
-- Extend paragraph shading through space_before when previous paragraph has shading (engine)
-- Per-character subset resolution for CJK Google Fonts (engine)
-- PUA symbol font fallback and Google Fonts subset coverage (engine)
-
-### Performance
-
-- Cache codepoint-to-subset index lookups in GoogleFontsProvider (engine)
 
 ## [0.6.0] - 2026-03-06
 
@@ -50,6 +42,24 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 - Dark mode support with theme toggle and public API
 - Viewer options for text selection, theme switching, rotation, spacing, and zoom limits
 - License hash telemetry
+- Style resolution in the composition engine (engine)
+- FlowSection layout engine with pagination and dual-dispatch rendering (engine)
+- DOCX adapter with text rendering support — Phase 1 MVP (engine)
+- Paragraph borders and inline image rendering for DOCX (engine)
+- DOCX table support with style loading and resolution (engine)
+- DOCX table rendering in composed frames (engine)
+- End mark properties and empty paragraph line height fix (engine)
+- Line metrics rewrite to match Pathfinder model (engine)
+- Format-specific leading in line height model (engine)
+- Orphan control for DOCX page breaks (engine)
+- Page break support for DOCX (pageBreakBefore and w:br) (engine)
+- DOCX paragraph/run properties in layout engine (engine)
+- DOCX run-level properties: width_scale, underline_fill, border, shading (engine)
+- DOCX section break types (EvenPage, OddPage, Continuous) in layout (engine)
+- LocalFontsProvider for loading fonts from a local directory (engine)
+- Paragraph spacing collapse and contextual spacing for DOCX (engine)
+- ComposeSettings for format-specific layout behavior (engine)
+- Column break support in layout engine (engine)
 - PAGE field evaluation during layout (engine)
 - Field support with cached values (engine)
 - DOCX table border and cell margin resolution from style chain (engine)
@@ -65,64 +75,22 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 - Layout and render text in resource frames (engine)
 - DOCX anchor drawing composition and rendering (engine)
 - DOCX TextAnchorDrawing model and wp:anchor converter (engine)
-- Paragraph spacing collapse and contextual spacing for DOCX (engine)
-- ComposeSettings for format-specific layout behavior (engine)
-- LocalFontsProvider for loading fonts from a local directory (engine)
-- DOCX section break types (EvenPage, OddPage, Continuous) in layout (engine)
-- DOCX run-level properties: width_scale, underline_fill, border, shading (engine)
-- DOCX paragraph/run properties in layout engine (engine)
-- Page break support for DOCX (pageBreakBefore and w:br) (engine)
-- Orphan control for DOCX page breaks (engine)
-- Line metrics rewrite to match Pathfinder model (engine)
-- Format-specific leading in line height model (engine)
-- End mark properties and empty paragraph line height fix (engine)
-- DOCX table rendering in composed frames (engine)
-- DOCX table support with style loading and resolution (engine)
-- Paragraph borders and inline image rendering for DOCX (engine)
-- DOCX adapter with text rendering support — Phase 1 MVP (engine)
-- FlowSection layout engine with pagination and dual-dispatch rendering (engine)
-- Style resolution in the composition engine (engine)
-- ColorTransform, ColorRef, ColorBase, PresetColor, and SystemColor (engine)
-- Theme support wired through OOXML adapter and renderer (engine)
-- Theme model with ThemeColorRef, ThemeFontRef, and TextFont types (engine)
-- Character spacing (spc attribute) applied to glyph advances (engine)
-- Preserve text fill alpha from OOXML color transforms (engine)
-- OTF shaping for PPTX text layout (engine)
-- Table composition in text_new pipeline (engine)
-- Bullet support, justify alignment, superscript/subscript, and caps (engine)
-- NormalAutoFit shrink-to-fit in compose_body (engine)
-- compose_body for PPTX text frame layout (engine)
-- compose_program and GlyphId in new layout model (engine)
-- compose_story with greedy line breaking and alignment (engine)
-- TextProgram module (engine)
-- Character position tracking in layout model (engine)
-- Itemizer as stateless function (engine)
-- Itemize and shape modules (engine)
-- Compose module with composition function signatures (engine)
-- TextBody and TextSection models for PPTX/DOCX text containers (engine)
-- Run access, mutation, and position lookup methods (engine)
-- Block access, mutation, and position lookup methods (engine)
-- Computed metrics and above/below baseline methods in layout model (engine)
-- Layout module with LayoutParcel, LayoutLine, LayoutRunList model (engine)
-- Text model module with TextStory, TextBlock, TextRun (engine)
 
 ### Bug Fixes
 
 - Clear search highlights when closing or switching away from search panel
 - Remove column re-sorting, use content stream order for text selection
 - Prevent overlapping text selection highlights from double-darkening
-- Handle DOCX trHeight default (engine)
-- Resolve table cell resolution (engine)
-- PUA→Unicode fallback for symbol fonts in regular text shaping (engine)
-- Suppress Hyperlink style and end mark overrides in TOC-like fields (engine)
-- Inherit headers/footers from previous section for continuous sections (engine)
-- Resolve DOCX header/footer images using correct OPC part relationships (engine)
-- Fix small caps horizontal character overlap in rendering (engine)
-- Fix text wrapping for tight/through wrap polygons (engine)
-- Preserve rotation for DOCX anchored pictures (engine)
-- Parse DOCX wps shapes (engine)
-- Handle SDT in table cells and fix DOCX default font size (engine)
-- DOCX composition bugs for lists, continuations, headers, and widow control (engine)
+- Exclude inline images from line-spacing scaling (engine)
+- Stop using endParaRPr as fallback for paragraph default_run_properties (engine)
+- DOCX theme colors use HSL luminance instead of RGB tint/shade (engine)
+- Add Paint::Image for blipFill and outward stroke for p:pic borders (engine)
+- DOCX table row height rules (Exact/AtLeast/Auto) (engine)
+- Expand paragraph space_after to accommodate bottom border extent (engine)
+- Offset paragraph border stroke by half-width for correct spacing (engine)
+- Include end mark in last line height for all paragraphs (engine)
+- Offset table cell content by border inset to avoid overlap (engine)
+- Inherit table-level cell margins for partial tcMar overrides (engine)
 - Add bounds checks for sub-byte image converters to prevent panic (engine)
 - Prevent compose overflow from resetting story position (engine)
 - Don't fallback to default header/footer on title page when first-page variant is missing (engine)
@@ -138,23 +106,25 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 - Correct hanging indent positioning for numbered lists (engine)
 - Improve PPTX text baseline by pinning descent at bottom of leading (engine)
 - Resolve connector stroke from style matrix when line has no fill (engine)
-- DOCX table row height rules (Exact/AtLeast/Auto) (engine)
-- Expand paragraph space_after to accommodate bottom border extent (engine)
-- Offset paragraph border stroke by half-width for correct spacing (engine)
-- Include end mark in last line height for all paragraphs (engine)
-- Offset table cell content by border inset to avoid overlap (engine)
-- Inherit table-level cell margins for partial tcMar overrides (engine)
-- Exclude inline images from line-spacing scaling (engine)
-- Stop using endParaRPr as fallback for paragraph default_run_properties (engine)
-- DOCX theme colors use HSL luminance instead of RGB tint/shade (engine)
-- Add Paint::Image for blipFill and outward stroke for p:pic borders (engine)
-- Handle all-fields-optional refactor in PPTX converter (engine)
-- Restore ThemeColorRef and use ColorBase::Theme (engine)
-- Center baseline within Exact line spacing and start first line at y=0 (engine)
-- Allow text overflow and negative vertical anchoring for noAutofit boxes (engine)
-- Correct PPTX stroke inheritance and text overflow for small containers (engine)
-- Include line_gap in below_baseline for correct text line height (engine)
-- Fix text rendering regressions in text_new pipeline (engine)
+- Extend paragraph shading through space_before when previous paragraph has shading (engine)
+- Per-character subset resolution for CJK Google Fonts (engine)
+- PUA symbol font fallback and Google Fonts subset coverage (engine)
+- Handle DOCX trHeight default (engine)
+- Resolve table cell resolution (engine)
+- PUA→Unicode fallback for symbol fonts in regular text shaping (engine)
+- Suppress Hyperlink style and end mark overrides in TOC-like fields (engine)
+- Inherit headers/footers from previous section for continuous sections (engine)
+- Resolve DOCX header/footer images using correct OPC part relationships (engine)
+- Fix small caps horizontal character overlap in rendering (engine)
+- Fix text wrapping for tight/through wrap polygons (engine)
+- Preserve rotation for DOCX anchored pictures (engine)
+- Parse DOCX wps shapes (engine)
+- Handle SDT in table cells and fix DOCX default font size (engine)
+- DOCX composition bugs for lists, continuations, headers, and widow control (engine)
+
+### Performance
+
+- Cache codepoint-to-subset index lookups in GoogleFontsProvider (engine)
 
 ## [0.5.24] - 2026-02-27
 
@@ -188,6 +158,12 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 ### Features
 
 - Relax OOXML standard compliance in WASM parser (engine)
+- ColorTransform, ColorRef, ColorBase, PresetColor, and SystemColor (engine)
+
+### Bug Fixes
+
+- Handle all-fields-optional refactor in PPTX converter (engine)
+- Restore ThemeColorRef and use ColorBase::Theme (engine)
 
 ## [0.5.20] - 2026-02-25
 
@@ -207,17 +183,71 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 ### Features
 
 - License-gated hideAttribution option
-- Camera model, contour, extrusion, and Phong face lighting for 3D shapes (engine)
-- Replace bevel profiles with spec-accurate Bezier LUTs and RGB lighting (engine)
-- Spec-accurate multi-light rigs and HSL face lighting for 3D bevels (engine)
-- 3D bevel effect rendering for PPTX shapes (engine)
-- Outer shadow affine transforms (scale, skew, alignment) (engine)
-- Inner shadow, glow, soft edge, reflection, and preset shadow effects (engine)
-- DisplayGroup + Effects architecture for PPTX visual effects (engine)
+- Theme support wired through OOXML adapter and renderer (engine)
+- Theme model with ThemeColorRef, ThemeFontRef, and TextFont types (engine)
+
+## [0.5.17] - 2026-02-23
+
+### Features
+
+- Character spacing (spc attribute) applied to glyph advances (engine)
+- Preserve text fill alpha from OOXML color transforms (engine)
 
 ### Bug Fixes
 
 - Pass object to WASM init function to resolve deprecation warning
+- Center baseline within Exact line spacing and start first line at y=0 (engine)
+- Allow text overflow and negative vertical anchoring for noAutofit boxes (engine)
+- Correct PPTX stroke inheritance and text overflow for small containers (engine)
+
+## [0.5.16] - 2026-02-23
+
+### Features
+
+- OTF shaping for PPTX text layout (engine)
+- Table composition in text_new pipeline (engine)
+- Bullet support, justify alignment, superscript/subscript, and caps (engine)
+- NormalAutoFit shrink-to-fit in compose_body (engine)
+- compose_body for PPTX text frame layout (engine)
+- compose_program and GlyphId in new layout model (engine)
+- compose_story with greedy line breaking and alignment (engine)
+- TextProgram module (engine)
+- Character position tracking in layout model (engine)
+- Itemizer as stateless function (engine)
+- Itemize and shape modules (engine)
+- Compose module with composition function signatures (engine)
+- TextBody and TextSection models for PPTX/DOCX text containers (engine)
+- Run access, mutation, and position lookup methods (engine)
+- Block access, mutation, and position lookup methods (engine)
+- Computed metrics and above/below baseline methods in layout model (engine)
+- Layout module with LayoutParcel, LayoutLine, LayoutRunList model (engine)
+- Text model module with TextStory, TextBlock, TextRun (engine)
+
+### Bug Fixes
+
+- Use effective zoom for zoom in/out step calculation in fit modes
+- Include line_gap in below_baseline for correct text line height (engine)
+- Fix text rendering regressions in text_new pipeline (engine)
+
+## [0.5.15] - 2026-02-19
+
+### Features
+
+- 3D bevel effect rendering for PPTX shapes (engine)
+- Spec-accurate multi-light rigs and HSL face lighting for 3D bevels (engine)
+- Replace bevel profiles with spec-accurate Bezier LUTs and RGB lighting (engine)
+- Camera model, contour, extrusion, and Phong face lighting for 3D shapes (engine)
+- DisplayGroup + Effects architecture for PPTX visual effects (engine)
+- Inner shadow, glow, soft edge, reflection, and preset shadow effects (engine)
+- Outer shadow affine transforms (scale, skew, alignment) (engine)
+- Texture tile fill support for PPTX shapes (engine)
+- Pattern fill support for PPTX shapes (engine)
+- PathShading for shape-following gradient isolines (engine)
+- RectShading for rectangular path gradients in PPTX (engine)
+- Image fill (blipFill) on PPTX shapes (engine)
+
+### Bug Fixes
+
 - Read font name and type from metadata artifacts in WASM extraction (engine)
 - Use Phong specular for bevel interior and tune WarmMatte power (engine)
 - Eliminate bevel fold artifacts at rounded corners (engine)
@@ -228,40 +258,8 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 - Reduce blur sigma to match PowerPoint (engine)
 - Correct inner shadow direction by inverting offset sign (engine)
 - Correct shadow blur by converting OOXML blurRad to Gaussian sigma (engine)
-
-## [0.5.17] - 2026-02-23
-
-### Features
-
-- Use effective zoom for zoom in/out step calculation in fit modes (engine)
-
-## [0.5.16] - 2026-02-23
-
-### Features
-
-- Texture tile fill support for PPTX shapes (engine)
-- Pattern fill support for PPTX shapes (engine)
-- PathShading for shape-following gradient isolines (engine)
-- RectShading for rectangular path gradients in PPTX (engine)
-- Image fill (blipFill) on PPTX shapes (engine)
-
-### Bug Fixes
-
 - Correct all preset pattern bitmaps to match GDI+ HatchStyle spec (engine)
 - Center radial gradient outer circle at focus point instead of shape center (engine)
-
-## [0.5.15] - 2026-02-19
-
-### Features
-
-- Expand font substitution table for broader Office document coverage (engine)
-
-### Bug Fixes
-
-- Correct text baseline positioning with natural line height (engine)
-- Extract PPTX slide background fill and render as first frame (engine)
-- Fix box blur accumulator underflow caused by off-by-one in initial window (engine)
-- Improve CMYK color accuracy and fix fill path merging bug (engine)
 
 ## [0.5.14] - 2026-02-18
 
@@ -336,10 +334,15 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 - Download progress bar
 - Password-protected PDF support
 - Performance counter for tracking viewer operations
+- Expand font substitution table for broader Office document coverage (engine)
 
 ### Bug Fixes
 
 - Correct GitHub repository URL
+- Correct text baseline positioning with natural line height (engine)
+- Extract PPTX slide background fill and render as first frame (engine)
+- Fix box blur accumulator underflow caused by off-by-one in initial window (engine)
+- Improve CMYK color accuracy and fix fill path merging bug (engine)
 
 ### Performance
 
