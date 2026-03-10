@@ -1235,25 +1235,7 @@ export function createViewport(showAttribution = true) {
         return spread ? getSpreadPrimaryPage(spread) : null;
     }
 
-    /** Find the topmost spread that is meaningfully visible at the viewport top edge.
-     *  A 1px threshold avoids selecting a page that only shows a sub-pixel sliver
-     *  due to device-pixel snapping in scrollToTarget. */
-    function findTopVisiblePage(scrollTop: number, state: LayoutState): number | null {
-        if (state.layouts.length === 0 || state.spreads.length === 0) return null;
-
-        for (let i = 0; i < state.layouts.length; i++) {
-            if (scrollTop + 1 < state.layouts[i].top + state.layouts[i].height) {
-                const spread = state.spreads[i];
-                return spread ? getSpreadPrimaryPage(spread) : null;
-            }
-        }
-
-        // Past the last spread – return last page
-        const lastSpread = state.spreads[state.spreads.length - 1];
-        return lastSpread ? getSpreadPrimaryPage(lastSpread) : null;
-    }
-
-    function updateCurrentPageFromScroll(scrollTop: number, _viewportHeight: number, state: LayoutState): void {
+    function updateCurrentPageFromScroll(scrollTop: number, viewportHeight: number, state: LayoutState): void {
         if (!storeRef) return;
 
         let primaryPage: number | null;
@@ -1261,10 +1243,11 @@ export function createViewport(showAttribution = true) {
             // Scroll position unchanged since explicit navigation – keep that page.
             primaryPage = navigationPage;
         } else {
-            // User scrolled – clear override and detect from viewport top.
+            // User scrolled – clear override and detect from viewport center.
             navigationPage = null;
             navigationScrollTop = null;
-            primaryPage = findTopVisiblePage(scrollTop, state);
+            const viewportCenter = scrollTop + viewportHeight / 2;
+            primaryPage = findSpreadAtCenter(viewportCenter, state);
         }
         if (primaryPage === null) return;
 
