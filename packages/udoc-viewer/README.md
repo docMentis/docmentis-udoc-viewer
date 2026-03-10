@@ -7,7 +7,7 @@ Open-source, framework-agnostic viewer powered by a built-from-scratch WebAssemb
 [![npm version](https://img.shields.io/npm/v/@docmentis/udoc-viewer)](https://www.npmjs.com/package/@docmentis/udoc-viewer)
 [![license](https://img.shields.io/npm/l/@docmentis/udoc-viewer)](./LICENSE)
 
-**[Live Demo](https://docmentis.com/viewer/demo)** · **[Guide](https://docmentis.com/viewer/guide)** · **[Report Issue](https://github.com/docmentis/docmentis-udoc-viewer/issues)**
+**[Live Demo](https://docmentis.com/viewer/demo)** · **[Guide](https://docmentis.com/viewer/guide)** · **[Changelog](https://github.com/docmentis/docmentis-udoc-viewer/blob/main/CHANGELOG.md)** · **[Report Issue](https://github.com/docmentis/docmentis-udoc-viewer/issues)**
 
 ---
 
