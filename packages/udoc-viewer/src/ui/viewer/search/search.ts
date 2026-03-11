@@ -1,11 +1,124 @@
 /**
  * Text search algorithm for document viewer.
  *
+ * Uses hybrid search strategy: native indexOf for short text,
+ * Boyer-Moore algorithm for longer text to optimize performance.
  * Searches across all loaded page text and returns matches with
  * pre-computed bounding rectangles for highlight rendering.
  */
 import type { TextRun } from "../text/types";
 import type { SearchMatch } from "../state";
+
+/**
+ * Threshold for switching between native indexOf and Boyer-Moore.
+ * For text shorter than this threshold, native indexOf is faster
+ * due to no preprocessing overhead. For longer text, Boyer-Moore's
+ * ability to skip characters provides better performance.
+ */
+const BOYER_MOORE_THRESHOLD = 100;
+
+/**
+ * Boyer-Moore bad character table.
+ * Maps each character to its rightmost position in the pattern,
+ * used to determine how far to shift the pattern when a mismatch occurs.
+ */
+type BadCharTable = Map<string, number>;
+
+/**
+ * Build the bad character table for Boyer-Moore algorithm.
+ * For each character in the pattern, store its rightmost position
+ * (excluding the last character).
+ */
+function buildBadCharTable(pattern: string): BadCharTable {
+    const table: BadCharTable = new Map();
+    const patternLen = pattern.length;
+
+    for (let i = 0; i < patternLen - 1; i++) {
+        table.set(pattern[i], patternLen - 1 - i);
+    }
+
+    return table;
+}
+
+/**
+ * Find all occurrences of pattern in text using native indexOf.
+ * Simple and efficient for short text where preprocessing overhead
+ * of Boyer-Moore is not justified.
+ */
+function nativeSearch(text: string, pattern: string): number[] {
+    const matches: number[] = [];
+    let searchStart = 0;
+
+    while (searchStart <= text.length - pattern.length) {
+        const idx = text.indexOf(pattern, searchStart);
+        if (idx === -1) break;
+        matches.push(idx);
+        searchStart = idx + 1;
+    }
+
+    return matches;
+}
+
+/**
+ * Find all occurrences of pattern in text using Boyer-Moore algorithm.
+ * Returns an array of starting indices for each match.
+ *
+ * Boyer-Moore achieves O(n/m) best case performance by skipping
+ * sections of the text that cannot possibly match the pattern.
+ */
+function boyerMooreSearch(text: string, pattern: string): number[] {
+    const matches: number[] = [];
+    const textLen = text.length;
+    const patternLen = pattern.length;
+
+    const badCharTable = buildBadCharTable(pattern);
+    const defaultShift = patternLen;
+
+    let i = 0;
+    while (i <= textLen - patternLen) {
+        let j = patternLen - 1;
+
+        while (j >= 0 && pattern[j] === text[i + j]) {
+            j--;
+        }
+
+        if (j < 0) {
+            matches.push(i);
+            i += patternLen > 1 ? (badCharTable.get(text[i + patternLen - 1]) ?? defaultShift) : 1;
+        } else {
+            const badChar = text[i + j];
+            const shift = badCharTable.get(badChar) ?? defaultShift;
+            i += Math.max(1, shift - (patternLen - 1 - j));
+        }
+    }
+
+    return matches;
+}
+
+/**
+ * Find all occurrences of pattern in text using adaptive search strategy.
+ * Automatically selects the most efficient algorithm based on text length:
+ * - Native indexOf for short text (< BOYER_MOORE_THRESHOLD)
+ * - Boyer-Moore for longer text (>= BOYER_MOORE_THRESHOLD)
+ *
+ * @param text - The text to search in
+ * @param pattern - The pattern to search for
+ * @returns Array of starting indices for each match
+ */
+export function findPatternMatches(text: string, pattern: string): number[] {
+    const textLen = text.length;
+    const patternLen = pattern.length;
+
+    if (patternLen === 0 || textLen === 0 || patternLen > textLen) {
+        return [];
+    }
+
+    if (textLen < BOYER_MOORE_THRESHOLD) {
+        return nativeSearch(text, pattern);
+    }
+
+    return boyerMooreSearch(text, pattern);
+}
 
 /** Trim text to at most the last n whitespace-separated words. */
 function trimToLastNWords(text: string, n: number): string {
@@ -130,13 +243,10 @@ export function executeSearch(
         const { fullText, charMap } = buildPageTextMap(runs);
         const compareText = caseSensitive ? fullText : fullText.toLowerCase();
 
-        let searchStart = 0;
-        while (searchStart < compareText.length) {
-            const idx = compareText.indexOf(searchQuery, searchStart);
-            if (idx === -1) break;
+        const matchIndices = findPatternMatches(compareText, searchQuery);
 
+        for (const idx of matchIndices) {
             const rects = computeMatchRects(charMap, idx, searchQuery.length);
-            // Build context snippet: min(30 chars, 3 words) before and after
             const rawBefore = fullText.substring(Math.max(0, idx - 30), idx);
             const rawAfter = fullText.substring(idx + searchQuery.length, idx + searchQuery.length + 30);
             const before = trimToLastNWords(rawBefore, 3);
@@ -146,7 +256,6 @@ export function executeSearch(
             const afterSuffix = idx + searchQuery.length + after.length < fullText.length ? "\u2026" : "";
             const context: [string, string, string] = [beforePrefix + before, matched, after + afterSuffix];
             matches.push({ pageIndex, charOffset: idx, length: searchQuery.length, rects, context });
-            searchStart = idx + 1;
         }
     }
 
