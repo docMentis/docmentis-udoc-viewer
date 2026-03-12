@@ -850,7 +850,7 @@ export class UDocClient {
     }
 }
 
-const DISTINCT_ID_KEY = "udoc_distinct_id";
+const DISTINCT_ID_KEY = "udoc_viewer_distinct_id";
 
 /**
  * Get or create a persistent anonymous ID for telemetry.

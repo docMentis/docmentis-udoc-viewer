@@ -165,18 +165,19 @@ udoc-viewer collects anonymous, non-personally-identifiable usage data to help u
 
 **What we collect:**
 
-| Field            | Description                                            | Example       |
-| ---------------- | ------------------------------------------------------ | ------------- |
-| `domain`         | Hostname of the embedding website                      | `example.com` |
-| `format`         | Document format                                        | `pdf`         |
-| `size_bucket`    | File size in units of 100 KB (`floor(bytes / 100000)`) | `3`           |
-| `viewer_version` | SDK version string                                     | `0.5.19`      |
-| `license_hash`   | SHA-256 hash of the license key (empty if none)        | `a1b2c3...`   |
+| Field            | Description                                            | Example        |
+| ---------------- | ------------------------------------------------------ | -------------- |
+| `domain`         | Hostname of the embedding website                      | `example.com`  |
+| `format`         | Document format                                        | `pdf`          |
+| `size_bucket`    | File size in units of 100 KB (`floor(bytes / 100000)`) | `3`            |
+| `viewer_version` | SDK version string                                     | `0.5.19`       |
+| `license_hash`   | SHA-256 hash of the license key (empty if none)        | `a1b2c3...`    |
+| `distinct_id`    | Anonymous random UUID stored in localStorage           | `f47ac10b-...` |
 
 **What we do NOT collect:**
 
 - Document content, filenames, or URLs
-- User identity, cookies, or session data
+- User identity, cookies, or session data (the UUID above is random and not linked to any account)
 - IP addresses (disabled at the collection endpoint)
 - Any other personally identifiable information
 
