@@ -6,6 +6,8 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+## [0.6.3] - 2026-03-11
+
 ### Bug Fixes
 
 - Use ICC profile for YCCK JPEG CMYK-to-sRGB color conversion (engine)
