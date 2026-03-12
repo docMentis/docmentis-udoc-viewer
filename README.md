@@ -136,10 +136,10 @@ npm run dev
 - 📄 **Multi-format rendering** — PDF, DOCX, PPTX, and images in one unified viewer
 - 🎯 **High-fidelity output** — custom Rust rendering engine compiled to WebAssembly
 - 🔍 **Zoom & navigation** — toolbar with zoom controls, page thumbnails, and keyboard navigation
-- � **Full-text search** — search with match highlighting and navigation
+- 🔎 **Full-text search** — search with match highlighting and navigation
 - 🌓 **Dark mode** — built-in light/dark theme with system preference support
 - 🎨 **Customizable** — override colors and styles via CSS variables
-- �📱 **Responsive** — works on desktop and mobile browsers
+- 📱 **Responsive** — works on desktop and mobile browsers
 - 🌊 **Streaming** — pages render progressively as the document loads
 - 🔒 **Private** — documents never leave the browser; no server upload required
 
