@@ -6,6 +6,15 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+### Bug Fixes
+
+- Use ICC profile for YCCK JPEG CMYK-to-sRGB color conversion (engine)
+
+### Performance
+
+- Introduce glyph rasterization cache for text rendering (engine)
+- Share rendering backend across page renders for glyph cache reuse (engine)
+
 ## [0.6.2] - 2026-03-09
 
 ### Features
