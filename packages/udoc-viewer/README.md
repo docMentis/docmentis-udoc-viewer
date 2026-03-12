@@ -116,12 +116,16 @@ Full working examples for every major framework are in the [`examples/`](../../e
 | [angular](../../examples/angular/)                   | Angular 19          |
 | [nextjs-webpack](../../examples/nextjs-webpack/)     | Next.js + Webpack   |
 | [nextjs-turbopack](../../examples/nextjs-turbopack/) | Next.js + Turbopack |
+| [nuxt](../../examples/nuxt/)                         | Nuxt 3              |
 
 ## Features
 
 - 📄 **Multi-format rendering** — PDF, DOCX, PPTX, and images in one unified viewer
 - 🎯 **High-fidelity output** — custom Rust rendering engine compiled to WebAssembly
 - 🔍 **Zoom & navigation** — toolbar with zoom controls, page thumbnails, and keyboard navigation
+- 🔎 **Full-text search** — search with match highlighting and navigation
+- 🌓 **Dark mode** — built-in light/dark theme with system preference support
+- 🎨 **Customizable** — override colors and styles via CSS variables
 - 📱 **Responsive** — works on desktop and mobile browsers
 - 🌊 **Streaming** — pages render progressively as the document loads
 - 🔒 **Private** — documents never leave the browser; no server upload required
