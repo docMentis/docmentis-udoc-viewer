@@ -559,6 +559,47 @@ export function createViewport(showAttribution = true) {
             if (attribution.className !== attrClass) {
                 attribution.className = attrClass;
             }
+
+            // Computed-visibility check: detect CSS-based hiding via ancestors or overlays
+            const cs = getComputedStyle(attribution);
+            const rect = attribution.getBoundingClientRect();
+            const hidden =
+                cs.display === "none" ||
+                cs.visibility === "hidden" ||
+                parseFloat(cs.opacity) < 0.1 ||
+                rect.width < 10 ||
+                rect.height < 5 ||
+                // Check if element is clipped out of view
+                rect.bottom < 0 ||
+                rect.right < 0 ||
+                rect.top > window.innerHeight ||
+                rect.left > window.innerWidth;
+
+            if (hidden) {
+                // Force visibility via inline styles as a last resort
+                attribution.style.cssText = [
+                    "display: block !important",
+                    "visibility: visible !important",
+                    "opacity: 1 !important",
+                    "position: absolute !important",
+                    "clip: auto !important",
+                    "clip-path: none !important",
+                    "transform: none !important",
+                    "pointer-events: auto !important",
+                    `z-index: ${2147483647} !important`,
+                ].join(";");
+            }
+
+            // Occlusion check: detect overlapping elements covering the attribution
+            if (!hidden) {
+                const cx = rect.left + rect.width / 2;
+                const cy = rect.top + rect.height / 2;
+                const topEl = document.elementFromPoint(cx, cy);
+                if (topEl && topEl !== attribution && !attribution.contains(topEl)) {
+                    // Something is covering the attribution — elevate z-index
+                    attribution.style.zIndex = `${2147483647}`;
+                }
+            }
         }, 1000);
     }
 
