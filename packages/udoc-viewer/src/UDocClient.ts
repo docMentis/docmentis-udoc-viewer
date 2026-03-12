@@ -5,7 +5,6 @@
  */
 
 import { WorkerClient } from "./worker/index.js";
-import { hashLicense } from "./telemetry.js";
 import type {
     LicenseResult,
     Composition,
@@ -371,7 +370,6 @@ export class UDocClient {
     private options: ClientOptions;
     private viewers: Set<UDocViewer> = new Set();
     private destroyed = false;
-    private licenseHash = "";
     private licenseInfo: LicenseInfo = {
         valid: true,
         tier: "free",
@@ -428,13 +426,15 @@ export class UDocClient {
 
         const client = new UDocClient(workerClient, options);
 
+        // Pass domain, version, and anonymous ID to WASM for telemetry
+        const domain = typeof window !== "undefined" ? window.location.hostname : "localhost";
+        const distinctId = getOrCreateDistinctId();
+        await workerClient.setup(domain, UDocClient.version, distinctId);
+
         // Validate license if provided
         if (options.license) {
-            const domain = typeof window !== "undefined" ? window.location.hostname : "localhost";
-
             const result = await workerClient.setLicense(options.license, domain);
             client.licenseInfo = licenseResultToInfo(result);
-            client.licenseHash = await hashLicense(options.license);
 
             if (!result.valid) {
                 console.warn(`[udoc-viewer] License validation failed: ${result.error}`);
@@ -469,13 +469,7 @@ export class UDocClient {
         this.ensureNotDestroyed();
 
         const showAttribution = !(options.hideAttribution && this.hasFeature("no_attribution"));
-        const viewer = new UDocViewer(
-            this.workerClient,
-            options,
-            showAttribution,
-            UDocClient.version,
-            this.licenseHash,
-        );
+        const viewer = new UDocViewer(this.workerClient, options, showAttribution, UDocClient.version);
         this.viewers.add(viewer);
 
         return viewer;
@@ -567,7 +561,7 @@ export class UDocClient {
         // Create viewers for the composed documents
         const viewers: UDocViewer[] = [];
         for (const docId of newDocIds) {
-            const viewer = new UDocViewer(this.workerClient, {}, true, UDocClient.version, this.licenseHash);
+            const viewer = new UDocViewer(this.workerClient, {}, true, UDocClient.version);
             await viewer.initializeFromDocId(docId);
             this.viewers.add(viewer);
             viewers.push(viewer);
@@ -617,7 +611,7 @@ export class UDocClient {
             // Create viewers for the split documents
             const viewers: UDocViewer[] = [];
             for (const newDocId of result.documentIds) {
-                const viewer = new UDocViewer(this.workerClient, {}, true, UDocClient.version, this.licenseHash);
+                const viewer = new UDocViewer(this.workerClient, {}, true, UDocClient.version);
                 await viewer.initializeFromDocId(newDocId);
                 this.viewers.add(viewer);
                 viewers.push(viewer);
@@ -853,6 +847,24 @@ export class UDocClient {
         if (this.destroyed) {
             throw new Error("UDocClient has been destroyed");
         }
+    }
+}
+
+const DISTINCT_ID_KEY = "udoc_distinct_id";
+
+/**
+ * Get or create a persistent anonymous ID for telemetry.
+ * Uses localStorage when available, falls back to a per-session random ID.
+ */
+function getOrCreateDistinctId(): string {
+    try {
+        const stored = localStorage.getItem(DISTINCT_ID_KEY);
+        if (stored) return stored;
+        const id = crypto.randomUUID();
+        localStorage.setItem(DISTINCT_ID_KEY, id);
+        return id;
+    } catch {
+        return crypto.randomUUID();
     }
 }
 

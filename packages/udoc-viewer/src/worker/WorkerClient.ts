@@ -151,6 +151,13 @@ export class WorkerClient {
     }
 
     /**
+     * One-time setup: pass the embedding page's domain and SDK version to WASM.
+     */
+    async setup(domain: string, viewerVersion: string, distinctId: string): Promise<void> {
+        await this.send({ type: "setup", domain, viewerVersion, distinctId });
+    }
+
+    /**
      * Set the license key.
      * @param license - The license key string
      * @param domain - The current domain (from window.location.hostname)

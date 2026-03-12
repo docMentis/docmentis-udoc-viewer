@@ -352,6 +352,18 @@ export class UDoc {
    */
   constructor();
   /**
+   * One-time setup: store the embedding page's domain, SDK version, and anonymous ID.
+   *
+   * Must be called after `new()` and before loading documents so that
+   * telemetry events include the correct metadata.
+   *
+   * # Arguments
+   * * `domain` - Hostname of the embedding page (e.g. from `window.location.hostname`)
+   * * `viewer_version` - SDK version string
+   * * `distinct_id` - Anonymous UUID for per-user tracking (persisted in localStorage)
+   */
+  setup(domain: string, viewer_version: string, distinct_id: string): void;
+  /**
    * Load a PDF document and return its ID.
    *
    * # Arguments
@@ -446,6 +458,7 @@ export interface InitOutput {
   readonly udoc_render_page_to_png: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
   readonly udoc_render_page_to_rgba: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
   readonly udoc_set_license: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
+  readonly udoc_setup: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
   readonly __wbindgen_export: (a: number, b: number) => number;
   readonly __wbindgen_export2: (a: number, b: number, c: number, d: number) => number;
   readonly __wbindgen_export3: (a: number) => void;

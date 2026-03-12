@@ -25,7 +25,6 @@ import {
     type ThemeMode,
 } from "./ui/viewer/state.js";
 import { PerformanceCounter, NoOpPerformanceCounter, type IPerformanceCounter } from "./performance/index.js";
-import { reportDocumentOpen } from "./telemetry.js";
 
 /**
  * Options for rendering a page.
@@ -155,7 +154,6 @@ export class UDocViewer {
     private currentFormat: DocumentFormat | null = null;
     private storeUnsub: (() => void) | null = null;
     private sdkVersion: string;
-    private licenseHash: string;
 
     /**
      * @internal
@@ -166,12 +164,10 @@ export class UDocViewer {
         options: ViewerOptions = {},
         showAttribution = true,
         sdkVersion = "__VERSION__",
-        licenseHash = "",
     ) {
         this.workerClient = workerClient;
         this.googleFontsEnabled = options.googleFonts ?? true;
         this.sdkVersion = sdkVersion;
-        this.licenseHash = licenseHash;
         this.viewOverrides = this.buildViewModeOverrides(options);
 
         // Initialize performance counter
@@ -424,15 +420,6 @@ export class UDocViewer {
             }
 
             this.emit("document:load", { pageCount: this._pageCount });
-
-            // Report telemetry (fire-and-forget, never throws)
-            reportDocumentOpen({
-                domain: typeof window !== "undefined" ? window.location.hostname : "unknown",
-                format,
-                size_bucket: Math.floor(bytes.length / 100_000),
-                viewer_version: this.sdkVersion,
-                license_hash: this.licenseHash,
-            });
         } catch (error) {
             const phase = error instanceof TypeError ? "fetch" : "parse";
             this.emit("error", { error: error as Error, phase });

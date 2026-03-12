@@ -180,8 +180,6 @@ udoc-viewer collects anonymous, non-personally-identifiable usage data to help u
 - IP addresses (disabled at the collection endpoint)
 - Any other personally identifiable information
 
-Data is sent to [PostHog](https://posthog.com) via the HTTP capture API using `navigator.sendBeacon` (with `fetch` fallback). No third-party SDK is loaded.
-
 ## Licensing
 
 udoc-viewer is free to use, including in commercial applications. A "Powered by docMentis" attribution link is shown by default. To remove it, pass a license key with the `no_attribution` feature:

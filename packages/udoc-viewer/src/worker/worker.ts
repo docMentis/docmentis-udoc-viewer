@@ -88,6 +88,7 @@ export interface FontDescriptor {
 
 export type WorkerRequest =
     | { type: "init"; wasmUrl?: string }
+    | { type: "setup"; domain: string; viewerVersion: string; distinctId: string }
     | { type: "setLicense"; license: string; domain: string }
     | { type: "getLicenseStatus" }
     | { type: "loadPdf"; id: string; bytes: Uint8Array }
@@ -125,6 +126,8 @@ export type WorkerRequest =
 export type WorkerResponse =
     | { type: "init"; success: true }
     | { type: "init"; success: false; error: string }
+    | { type: "setup"; success: true }
+    | { type: "setup"; success: false; error: string }
     | { type: "setLicense"; success: true; result: LicenseResult }
     | { type: "setLicense"; success: false; error: string }
     | { type: "getLicenseStatus"; success: true; result: LicenseResult }
@@ -202,6 +205,13 @@ self.onmessage = async (event: MessageEvent<WorkerRequest & { _id?: number }>) =
                 await init(request.wasmUrl ? { module_or_path: request.wasmUrl } : undefined);
                 udoc = new UDoc();
                 respond({ type: "init", success: true });
+                break;
+            }
+
+            case "setup": {
+                ensureInitialized();
+                udoc!.setup(request.domain, request.viewerVersion, request.distinctId);
+                respond({ type: "setup", success: true });
                 break;
             }
 

@@ -39,6 +39,7 @@ export const udoc_remove_document: (a: number, b: number, c: number) => number;
 export const udoc_render_page_to_png: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
 export const udoc_render_page_to_rgba: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
 export const udoc_set_license: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
+export const udoc_setup: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
 export const __wbindgen_export: (a: number, b: number) => number;
 export const __wbindgen_export2: (a: number, b: number, c: number, d: number) => number;
 export const __wbindgen_export3: (a: number) => void;
