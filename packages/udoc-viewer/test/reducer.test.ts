@@ -564,12 +564,19 @@ describe("reducer", () => {
                 expect(result.zoomMode).toBe("custom");
             });
 
-            it("should stay at max zoom if already at max", () => {
-                const state = { ...initialState, zoom: 5, zoomSteps: [0.5, 1, 2, 5], maxZoom: 5 };
+            it("should stay at max zoom if already at max with custom mode", () => {
+                const state = {
+                    ...initialState,
+                    zoom: 5,
+                    zoomSteps: [0.5, 1, 2, 5],
+                    maxZoom: 5,
+                    zoomMode: "custom" as const,
+                };
                 const action: Action = { type: "ZOOM_IN" };
                 const result = reducer(state, action);
 
                 expect(result.zoom).toBe(5);
+                expect(result).toBe(state);
             });
 
             it("should use effectiveZoom if available", () => {
@@ -596,12 +603,19 @@ describe("reducer", () => {
                 expect(result.zoomMode).toBe("custom");
             });
 
-            it("should stay at min zoom if already at min", () => {
-                const state = { ...initialState, zoom: 0.1, zoomSteps: [0.1, 0.5, 1], minZoom: 0.1 };
+            it("should stay at min zoom if already at min with custom mode", () => {
+                const state = {
+                    ...initialState,
+                    zoom: 0.1,
+                    zoomSteps: [0.1, 0.5, 1],
+                    minZoom: 0.1,
+                    zoomMode: "custom" as const,
+                };
                 const action: Action = { type: "ZOOM_OUT" };
                 const result = reducer(state, action);
 
                 expect(result.zoom).toBe(0.1);
+                expect(result).toBe(state);
             });
         });
 
@@ -623,8 +637,9 @@ describe("reducer", () => {
 
         describe("SET_SPACING_MODE", () => {
             it("should set spacing mode 'all'", () => {
+                const state = { ...initialState, spacingMode: "none" as const, pageSpacing: 0, spreadSpacing: 0 };
                 const action: Action = { type: "SET_SPACING_MODE", mode: "all" };
-                const result = reducer(initialState, action);
+                const result = reducer(state, action);
 
                 expect(result.spacingMode).toBe("all");
                 expect(result.pageSpacing).toBe(20);
@@ -656,6 +671,13 @@ describe("reducer", () => {
                 expect(result.spacingMode).toBe("page-only");
                 expect(result.pageSpacing).toBe(20);
                 expect(result.spreadSpacing).toBe(0);
+            });
+
+            it("should return same state if mode unchanged", () => {
+                const state = { ...initialState, spacingMode: "none" as const };
+                const action: Action = { type: "SET_SPACING_MODE", mode: "none" };
+
+                expect(reducer(state, action)).toBe(state);
             });
         });
 
@@ -761,11 +783,16 @@ describe("reducer", () => {
                     ...initialState,
                     activePanel: "search" as const,
                     searchQuery: "test",
+                    searchMatches: [{ pageIndex: 0, charOffset: 0, length: 4, rects: [], context: ["", "test", ""] }],
+                    searchActiveIndex: 0,
                 };
                 const action: Action = { type: "CLOSE_PANEL" };
                 const result = reducer(state, action);
 
+                expect(result.activePanel).toBeNull();
                 expect(result.searchQuery).toBe("");
+                expect(result.searchMatches).toHaveLength(0);
+                expect(result.searchActiveIndex).toBe(-1);
             });
 
             it("should return same state if no panel open", () => {
@@ -896,6 +923,87 @@ describe("reducer", () => {
 
                 expect(result.maxZoom).toBe(3);
                 expect(result.zoom).toBe(3);
+            });
+        });
+
+        describe("SET_FLOATING_TOOLBAR_VISIBLE", () => {
+            it("should set floating toolbar visibility", () => {
+                const action: Action = { type: "SET_FLOATING_TOOLBAR_VISIBLE", visible: false };
+                const result = reducer(initialState, action);
+
+                expect(result.floatingToolbarVisible).toBe(false);
+            });
+
+            it("should return same state if visibility unchanged", () => {
+                const state = { ...initialState, floatingToolbarVisible: false };
+                const action: Action = { type: "SET_FLOATING_TOOLBAR_VISIBLE", visible: false };
+
+                expect(reducer(state, action)).toBe(state);
+            });
+        });
+
+        describe("SET_FULLSCREEN_BUTTON_VISIBLE", () => {
+            it("should set fullscreen button visibility", () => {
+                const action: Action = { type: "SET_FULLSCREEN_BUTTON_VISIBLE", visible: false };
+                const result = reducer(initialState, action);
+
+                expect(result.fullscreenButtonVisible).toBe(false);
+            });
+
+            it("should return same state if visibility unchanged", () => {
+                const state = { ...initialState, fullscreenButtonVisible: false };
+                const action: Action = { type: "SET_FULLSCREEN_BUTTON_VISIBLE", visible: false };
+
+                expect(reducer(state, action)).toBe(state);
+            });
+        });
+
+        describe("SET_THEME_SWITCHING_DISABLED", () => {
+            it("should set theme switching disabled", () => {
+                const action: Action = { type: "SET_THEME_SWITCHING_DISABLED", disabled: true };
+                const result = reducer(initialState, action);
+
+                expect(result.themeSwitchingDisabled).toBe(true);
+            });
+
+            it("should return same state if disabled unchanged", () => {
+                const state = { ...initialState, themeSwitchingDisabled: true };
+                const action: Action = { type: "SET_THEME_SWITCHING_DISABLED", disabled: true };
+
+                expect(reducer(state, action)).toBe(state);
+            });
+        });
+
+        describe("SET_TEXT_SELECTION_DISABLED", () => {
+            it("should set text selection disabled", () => {
+                const action: Action = { type: "SET_TEXT_SELECTION_DISABLED", disabled: true };
+                const result = reducer(initialState, action);
+
+                expect(result.textSelectionDisabled).toBe(true);
+            });
+
+            it("should return same state if disabled unchanged", () => {
+                const state = { ...initialState, textSelectionDisabled: true };
+                const action: Action = { type: "SET_TEXT_SELECTION_DISABLED", disabled: true };
+
+                expect(reducer(state, action)).toBe(state);
+            });
+        });
+
+        describe("SET_ZOOM_STEPS", () => {
+            it("should set zoom steps", () => {
+                const newSteps = [0.25, 0.5, 1, 2, 4] as const;
+                const action: Action = { type: "SET_ZOOM_STEPS", steps: newSteps };
+                const result = reducer(initialState, action);
+
+                expect(result.zoomSteps).toEqual(newSteps);
+            });
+
+            it("should return same state if steps unchanged", () => {
+                const state = { ...initialState, zoomSteps: [0.25, 0.5, 1, 2, 4] as const };
+                const action: Action = { type: "SET_ZOOM_STEPS", steps: state.zoomSteps };
+
+                expect(reducer(state, action)).toBe(state);
             });
         });
     });
