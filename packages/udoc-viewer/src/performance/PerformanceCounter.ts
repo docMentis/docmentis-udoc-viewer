@@ -9,6 +9,7 @@
  */
 export type PerformanceEventType =
     | "download" // Fetching document (URL/File resolution)
+    | "load" // WASM load operation (auto-detect format)
     | "loadPdf" // WASM loadPdf operation
     | "loadImage" // WASM loadImage operation
     | "loadPptx" // WASM loadPptx operation

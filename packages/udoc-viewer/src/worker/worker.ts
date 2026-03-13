@@ -91,10 +91,12 @@ export type WorkerRequest =
     | { type: "setup"; domain: string; viewerVersion: string; distinctId: string }
     | { type: "setLicense"; license: string; domain: string }
     | { type: "getLicenseStatus" }
+    | { type: "load"; id: string; bytes: Uint8Array }
     | { type: "loadPdf"; id: string; bytes: Uint8Array }
     | { type: "loadImage"; id: string; bytes: Uint8Array }
     | { type: "loadPptx"; id: string; bytes: Uint8Array }
     | { type: "loadDocx"; id: string; bytes: Uint8Array }
+    | { type: "getDocumentFormat"; documentId: string }
     | { type: "unloadPdf"; documentId: string }
     | { type: "needsPassword"; documentId: string }
     | { type: "authenticate"; documentId: string; password: string }
@@ -132,6 +134,10 @@ export type WorkerResponse =
     | { type: "setLicense"; success: false; error: string }
     | { type: "getLicenseStatus"; success: true; result: LicenseResult }
     | { type: "getLicenseStatus"; success: false; error: string }
+    | { type: "load"; success: true; documentId: string }
+    | { type: "load"; success: false; error: string }
+    | { type: "getDocumentFormat"; success: true; format: string }
+    | { type: "getDocumentFormat"; success: false; error: string }
     | { type: "loadPdf"; success: true; documentId: string }
     | { type: "loadPdf"; success: false; error: string }
     | { type: "loadImage"; success: true; documentId: string }
@@ -226,6 +232,20 @@ self.onmessage = async (event: MessageEvent<WorkerRequest & { _id?: number }>) =
                 ensureInitialized();
                 const result = udoc!.license_status() as LicenseResult;
                 respond({ type: "getLicenseStatus", success: true, result });
+                break;
+            }
+
+            case "load": {
+                ensureInitialized();
+                const documentId = udoc!.load(request.bytes);
+                respond({ type: "load", success: true, documentId });
+                break;
+            }
+
+            case "getDocumentFormat": {
+                ensureInitialized();
+                const format = udoc!.document_format(request.documentId);
+                respond({ type: "getDocumentFormat", success: true, format });
                 break;
             }
 

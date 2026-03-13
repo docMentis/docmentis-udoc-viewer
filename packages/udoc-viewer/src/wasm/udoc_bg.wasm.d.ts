@@ -5,6 +5,7 @@ export const __wbg_udoc_free: (a: number, b: number) => void;
 export const udoc_all_page_info: (a: number, b: number, c: number, d: number) => void;
 export const udoc_authenticate: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
 export const udoc_document_count: (a: number) => number;
+export const udoc_document_format: (a: number, b: number, c: number, d: number) => void;
 export const udoc_document_ids: (a: number, b: number) => void;
 export const udoc_enableGoogleFonts: (a: number, b: number, c: number, d: number) => void;
 export const udoc_getRequiredFonts: (a: number, b: number, c: number, d: number) => void;
@@ -18,6 +19,7 @@ export const udoc_hasRegisteredFont: (a: number, b: number, c: number, d: number
 export const udoc_has_document: (a: number, b: number, c: number) => number;
 export const udoc_has_feature: (a: number, b: number, c: number) => number;
 export const udoc_license_status: (a: number, b: number) => void;
+export const udoc_load: (a: number, b: number, c: number, d: number) => void;
 export const udoc_load_docx: (a: number, b: number, c: number, d: number) => void;
 export const udoc_load_image: (a: number, b: number, c: number, d: number) => void;
 export const udoc_load_pdf: (a: number, b: number, c: number, d: number) => void;

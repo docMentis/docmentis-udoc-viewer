@@ -184,6 +184,32 @@ export class WorkerClient {
      * Load a PDF document.
      * @returns The document ID.
      */
+    /**
+     * Load a document with auto-format detection.
+     * The WASM engine inspects the file contents to determine the format.
+     * @returns The document ID.
+     */
+    async loadDocument(bytes: Uint8Array): Promise<string> {
+        const response = (await this.send({
+            type: "load",
+            id: "",
+            bytes,
+        })) as { documentId: string };
+        return response.documentId;
+    }
+
+    /**
+     * Get the detected format of a loaded document.
+     * @returns The format string: "pdf", "docx", "pptx", or "image".
+     */
+    async getDocumentFormat(documentId: string): Promise<string> {
+        const response = (await this.send({
+            type: "getDocumentFormat",
+            documentId,
+        })) as { format: string };
+        return response.format;
+    }
+
     async loadPdf(bytes: Uint8Array): Promise<string> {
         const response = (await this.send({
             type: "loadPdf",

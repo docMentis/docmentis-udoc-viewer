@@ -348,30 +348,17 @@ export class UDocViewer {
         try {
             // Track download phase
             const downloadId = this._performanceCounter.markStart("download");
-            const { bytes, filename } = await this.resolveSourceWithFilename(source);
+            const { bytes } = await this.resolveSourceWithFilename(source);
             this._performanceCounter.markEnd(downloadId);
 
-            // Detect format and load appropriately
-            const format = detectDocumentFormat(bytes, filename);
-            this.currentFormat = format;
-            const loadLabel =
-                format === "image"
-                    ? "loadImage"
-                    : format === "pptx"
-                      ? "loadPptx"
-                      : format === "docx"
-                        ? "loadDocx"
-                        : "loadPdf";
-            const loadId = this._performanceCounter.markStart(loadLabel);
-            this.documentId =
-                format === "image"
-                    ? await this.workerClient.loadImage(bytes)
-                    : format === "pptx"
-                      ? await this.workerClient.loadPptx(bytes)
-                      : format === "docx"
-                        ? await this.workerClient.loadDocx(bytes)
-                        : await this.workerClient.loadPdf(bytes);
+            // Load document — WASM auto-detects format from file contents
+            const loadId = this._performanceCounter.markStart("load");
+            this.documentId = await this.workerClient.loadDocument(bytes);
             this._performanceCounter.markEnd(loadId);
+
+            // Get the detected format from WASM for UI defaults
+            const format = (await this.workerClient.getDocumentFormat(this.documentId)) as DocumentFormat;
+            this.currentFormat = format;
 
             // Enable Google Fonts if requested
             if (this.googleFontsEnabled) {
@@ -1388,119 +1375,4 @@ export class UDocViewer {
             throw new Error("This method requires UI mode (container must be provided)");
         }
     }
-}
-
-/**
- * Detect document format based on magic bytes and filename.
- * Returns "pdf" for PDF files, "docx" for Word files, "pptx" for PowerPoint files, "image" for supported image formats.
- */
-function detectDocumentFormat(bytes: Uint8Array, filename?: string): "pdf" | "pptx" | "docx" | "image" {
-    // Check magic bytes first (most reliable)
-    if (bytes.length >= 4) {
-        // PDF: %PDF
-        if (bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46) {
-            return "pdf";
-        }
-
-        // ZIP signature: PK\x03\x04 (0x504B0304) - PPTX is a ZIP archive
-        if (bytes[0] === 0x50 && bytes[1] === 0x4b && bytes[2] === 0x03 && bytes[3] === 0x04) {
-            // Check filename extension to distinguish OOXML types
-            if (filename) {
-                const ext = filename.toLowerCase().split(".").pop();
-                if (ext === "pptx") {
-                    return "pptx";
-                }
-                if (ext === "docx") {
-                    return "docx";
-                }
-            }
-            // Default ZIP to PPTX for now (could add XLSX later)
-            return "pptx";
-        }
-
-        // JPEG: FF D8 FF
-        if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) {
-            return "image";
-        }
-
-        // PNG: 89 50 4E 47
-        if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) {
-            return "image";
-        }
-
-        // GIF: GIF8
-        if (bytes[0] === 0x47 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x38) {
-            return "image";
-        }
-
-        // BMP: BM
-        if (bytes[0] === 0x42 && bytes[1] === 0x4d) {
-            return "image";
-        }
-
-        // TIFF: II (little-endian) or MM (big-endian) followed by 42
-        if (
-            (bytes[0] === 0x49 && bytes[1] === 0x49 && bytes[2] === 0x2a && bytes[3] === 0x00) ||
-            (bytes[0] === 0x4d && bytes[1] === 0x4d && bytes[2] === 0x00 && bytes[3] === 0x2a)
-        ) {
-            return "image";
-        }
-
-        // WebP: RIFF....WEBP
-        if (
-            bytes.length >= 12 &&
-            bytes[0] === 0x52 &&
-            bytes[1] === 0x49 &&
-            bytes[2] === 0x46 &&
-            bytes[3] === 0x46 &&
-            bytes[8] === 0x57 &&
-            bytes[9] === 0x45 &&
-            bytes[10] === 0x42 &&
-            bytes[11] === 0x50
-        ) {
-            return "image";
-        }
-    }
-
-    // Fallback to filename extension
-    if (filename) {
-        const ext = filename.toLowerCase().split(".").pop();
-
-        // PPTX extension
-        if (ext === "pptx") {
-            return "pptx";
-        }
-
-        // DOCX extension
-        if (ext === "docx") {
-            return "docx";
-        }
-
-        const imageExtensions = [
-            "jpg",
-            "jpeg",
-            "png",
-            "gif",
-            "bmp",
-            "tiff",
-            "tif",
-            "webp",
-            "ico",
-            "pnm",
-            "pbm",
-            "pgm",
-            "ppm",
-            "tga",
-            "hdr",
-            "exr",
-            "qoi",
-            "ff",
-        ];
-        if (ext && imageExtensions.includes(ext)) {
-            return "image";
-        }
-    }
-
-    // Default to PDF for unknown formats
-    return "pdf";
 }

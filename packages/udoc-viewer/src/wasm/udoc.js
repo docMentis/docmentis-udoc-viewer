@@ -726,6 +726,39 @@ export class UDoc {
         }
     }
     /**
+     * Get the format of a loaded document.
+     *
+     * Returns one of: "pdf", "docx", "pptx", "image".
+     * @param {string} id
+     * @returns {string}
+     */
+    document_format(id) {
+        let deferred3_0;
+        let deferred3_1;
+        try {
+            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+            const ptr0 = passStringToWasm0(id, wasm.__wbindgen_export, wasm.__wbindgen_export2);
+            const len0 = WASM_VECTOR_LEN;
+            wasm.udoc_document_format(retptr, this.__wbg_ptr, ptr0, len0);
+            var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
+            var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
+            var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
+            var r3 = getDataViewMemory0().getInt32(retptr + 4 * 3, true);
+            var ptr2 = r0;
+            var len2 = r1;
+            if (r3) {
+                ptr2 = 0; len2 = 0;
+                throw takeObject(r2);
+            }
+            deferred3_0 = ptr2;
+            deferred3_1 = len2;
+            return getStringFromWasm0(ptr2, len2);
+        } finally {
+            wasm.__wbindgen_add_to_stack_pointer(16);
+            wasm.__wbindgen_export4(deferred3_0, deferred3_1, 1);
+        }
+    }
+    /**
      * Remove a document by ID.
      *
      * Returns true if the document was removed, false if it didn't exist.
@@ -1129,6 +1162,48 @@ export class UDoc {
         this.__wbg_ptr = ret >>> 0;
         UDocFinalization.register(this, this.__wbg_ptr, this);
         return this;
+    }
+    /**
+     * Load a document by auto-detecting its format from the file contents.
+     *
+     * Inspects magic bytes to determine the format:
+     * - `%PDF` → PDF
+     * - `PK\x03\x04` (ZIP) → inspects ZIP entries for `word/` (DOCX) or `ppt/` (PPTX)
+     * - Image magic bytes (JPEG, PNG, GIF, BMP, TIFF, WebP) → Image
+     *
+     * # Arguments
+     * * `bytes` - Raw file data
+     *
+     * # Returns
+     * A unique document ID that can be used to reference this document.
+     * @param {Uint8Array} bytes
+     * @returns {string}
+     */
+    load(bytes) {
+        let deferred3_0;
+        let deferred3_1;
+        try {
+            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+            const ptr0 = passArray8ToWasm0(bytes, wasm.__wbindgen_export);
+            const len0 = WASM_VECTOR_LEN;
+            wasm.udoc_load(retptr, this.__wbg_ptr, ptr0, len0);
+            var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
+            var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
+            var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
+            var r3 = getDataViewMemory0().getInt32(retptr + 4 * 3, true);
+            var ptr2 = r0;
+            var len2 = r1;
+            if (r3) {
+                ptr2 = 0; len2 = 0;
+                throw takeObject(r2);
+            }
+            deferred3_0 = ptr2;
+            deferred3_1 = len2;
+            return getStringFromWasm0(ptr2, len2);
+        } finally {
+            wasm.__wbindgen_add_to_stack_pointer(16);
+            wasm.__wbindgen_export4(deferred3_0, deferred3_1, 1);
+        }
     }
     /**
      * One-time setup: store the embedding page's domain, SDK version, and anonymous ID.

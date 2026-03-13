@@ -175,6 +175,12 @@ export class UDoc {
    */
   pdf_decompress(doc_id: string): Uint8Array;
   /**
+   * Get the format of a loaded document.
+   *
+   * Returns one of: "pdf", "docx", "pptx", "image".
+   */
+  document_format(id: string): string;
+  /**
    * Remove a document by ID.
    *
    * Returns true if the document was removed, false if it didn't exist.
@@ -352,6 +358,21 @@ export class UDoc {
    */
   constructor();
   /**
+   * Load a document by auto-detecting its format from the file contents.
+   *
+   * Inspects magic bytes to determine the format:
+   * - `%PDF` → PDF
+   * - `PK\x03\x04` (ZIP) → inspects ZIP entries for `word/` (DOCX) or `ppt/` (PPTX)
+   * - Image magic bytes (JPEG, PNG, GIF, BMP, TIFF, WebP) → Image
+   *
+   * # Arguments
+   * * `bytes` - Raw file data
+   *
+   * # Returns
+   * A unique document ID that can be used to reference this document.
+   */
+  load(bytes: Uint8Array): string;
+  /**
    * One-time setup: store the embedding page's domain, SDK version, and anonymous ID.
    *
    * Must be called after `new()` and before loading documents so that
@@ -424,6 +445,7 @@ export interface InitOutput {
   readonly udoc_all_page_info: (a: number, b: number, c: number, d: number) => void;
   readonly udoc_authenticate: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
   readonly udoc_document_count: (a: number) => number;
+  readonly udoc_document_format: (a: number, b: number, c: number, d: number) => void;
   readonly udoc_document_ids: (a: number, b: number) => void;
   readonly udoc_enableGoogleFonts: (a: number, b: number, c: number, d: number) => void;
   readonly udoc_getRequiredFonts: (a: number, b: number, c: number, d: number) => void;
@@ -437,6 +459,7 @@ export interface InitOutput {
   readonly udoc_has_document: (a: number, b: number, c: number) => number;
   readonly udoc_has_feature: (a: number, b: number, c: number) => number;
   readonly udoc_license_status: (a: number, b: number) => void;
+  readonly udoc_load: (a: number, b: number, c: number, d: number) => void;
   readonly udoc_load_docx: (a: number, b: number, c: number, d: number) => void;
   readonly udoc_load_image: (a: number, b: number, c: number, d: number) => void;
   readonly udoc_load_pdf: (a: number, b: number, c: number, d: number) => void;
