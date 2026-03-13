@@ -6,6 +6,8 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+## [0.6.4] - 2026-03-13
+
 ### Features
 
 - Move telemetry from client-side JS to WASM with server-side proxy
