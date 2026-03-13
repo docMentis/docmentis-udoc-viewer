@@ -6,6 +6,18 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+### Features
+
+- Move telemetry from client-side JS to WASM with server-side proxy
+- Auto-detect document format on load (engine)
+- Expose document format getter from engine (engine)
+
+### Bug Fixes
+
+- Move document format detection from JS to WASM, fixing incorrect format reports (#15)
+- Add computed-visibility and occlusion checks to attribution tamper protection
+- Fix continuous section header/footer bugs and move inheritance to layout time (engine)
+
 ## [0.6.3] - 2026-03-11
 
 ### Bug Fixes
