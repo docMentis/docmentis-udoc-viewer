@@ -181,9 +181,11 @@ udoc-viewer collects anonymous, non-personally-identifiable usage data to help u
 - IP addresses (disabled at the collection endpoint)
 - Any other personally identifiable information
 
-## Licensing
+## Branding & Attribution
 
-udoc-viewer is free to use, including in commercial applications. A "Powered by docMentis" attribution link is shown by default. To remove it, pass a license key with the `no_attribution` feature:
+udoc-viewer is free to use, including in commercial applications. A "Powered by docMentis" attribution link is shown by default.
+
+To remove the attribution, contact [licensing@docmentis.com](mailto:licensing@docmentis.com) to obtain a license key, then pass it when creating the client:
 
 ```typescript
 const client = await UDocClient.create({ license: "eyJ2Ijox..." });
@@ -193,7 +195,7 @@ const viewer = await client.createViewer({
 });
 ```
 
-See the [package README](packages/udoc-viewer/README.md#licensing) for details.
+The `hideAttribution` option is only honored when the license includes the `no_attribution` feature. Without a valid license, the attribution link will remain visible.
 
 ## Development
 
