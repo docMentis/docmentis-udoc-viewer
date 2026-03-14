@@ -6,6 +6,26 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+### Features
+
+- Visibility groups (layers) panel UI for toggling Optional Content Groups
+- PDF Optional Content Group (OCG) support with visibility queries and toggling (engine)
+- Locked visibility groups from PDF OCG configuration (engine)
+
+### Bug Fixes
+
+- Resolve OCG visibility on Form XObjects via /OC entry (engine)
+- Treat intra-item breaks after hyphens as strong break candidates (engine)
+- Apply text alignment for PPTX wrap=none text bodies (engine)
+- Improve Exact line spacing baseline positioning for PPTX (engine)
+- Use proportional baseline positioning for PPTX Percent spacing > 1.0 (engine)
+- Round fontScale-applied font sizes to nearest integer point (engine)
+- Exclude trailing space_after from paragraph overflow check (engine)
+- Don't apply lnSpcReduction to paragraph spacing (spcBef/spcAft) (engine)
+- Inherit bodyPr text insets (lIns/tIns/rIns/bIns) from layout/master placeholders (engine)
+- Exclude ParagraphEnd from line metrics when text runs are present (engine)
+- Add placeholder type fallback for ctrTitle→title and subTitle→body inheritance (engine)
+
 ## [0.6.4] - 2026-03-13
 
 ### Features
