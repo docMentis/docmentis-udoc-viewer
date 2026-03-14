@@ -6,6 +6,8 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+## [0.6.5] - 2026-03-14
+
 ### Features
 
 - Visibility groups (layers) panel UI for toggling Optional Content Groups
