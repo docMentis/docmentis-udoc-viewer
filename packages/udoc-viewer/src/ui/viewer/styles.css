@@ -789,6 +789,106 @@
 
 /* .udoc-outline-item__children: Indentation is handled via padding-left on header */
 
+/* Layers panel */
+.udoc-viewer-root .udoc-layers-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 8px 0;
+}
+
+.udoc-viewer-root .udoc-layers-panel__loading,
+.udoc-viewer-root .udoc-layers-panel__empty {
+    padding: 16px;
+    color: var(--udoc-text-subtle);
+    font-size: 13px;
+    text-align: center;
+}
+
+.udoc-viewer-root .udoc-layers-panel__item {
+    display: flex;
+    align-items: center;
+    padding: 6px 12px;
+    gap: 8px;
+    min-height: 32px;
+    cursor: pointer;
+}
+
+.udoc-viewer-root .udoc-layers-panel__item:hover {
+    background: var(--udoc-subtle-hover);
+}
+
+.udoc-viewer-root .udoc-layers-panel__toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--udoc-text-heading);
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.udoc-viewer-root .udoc-layers-panel__toggle svg {
+    width: 18px;
+    height: 18px;
+}
+
+.udoc-viewer-root .udoc-layers-panel__toggle:hover {
+    color: var(--udoc-primary);
+}
+
+.udoc-viewer-root .udoc-layers-panel__toggle--hidden {
+    color: var(--udoc-text-subtle);
+}
+
+.udoc-viewer-root .udoc-layers-panel__label {
+    font-size: 13px;
+    color: var(--udoc-text-heading);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+    cursor: pointer;
+}
+
+.udoc-viewer-root .udoc-layers-panel__label--hidden {
+    color: var(--udoc-text-subtle);
+}
+
+.udoc-viewer-root .udoc-layers-panel__item--locked {
+    cursor: default;
+}
+
+.udoc-viewer-root .udoc-layers-panel__item--locked .udoc-layers-panel__toggle {
+    cursor: default;
+    opacity: 0.5;
+}
+
+.udoc-viewer-root .udoc-layers-panel__item--locked .udoc-layers-panel__label {
+    cursor: default;
+}
+
+.udoc-viewer-root .udoc-layers-panel__lock {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    color: var(--udoc-text-subtle);
+}
+
+.udoc-viewer-root .udoc-layers-panel__lock svg {
+    width: 14px;
+    height: 14px;
+}
+
 .udoc-viewer-root .udoc-toolbar {
     display: flex;
     align-items: center;

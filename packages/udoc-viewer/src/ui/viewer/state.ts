@@ -22,6 +22,17 @@ export interface SearchMatch {
 }
 
 // -----------------------------------------------------------------------------
+// Visibility group types
+// -----------------------------------------------------------------------------
+
+export interface VisibilityGroup {
+    id: string;
+    name: string;
+    visible: boolean;
+    locked: boolean;
+}
+
+// -----------------------------------------------------------------------------
 // Panel types
 // -----------------------------------------------------------------------------
 
@@ -125,6 +136,12 @@ export interface ViewerState {
     outline: OutlineItem[] | null;
     /** Whether outline is currently being loaded */
     outlineLoading: boolean;
+
+    // Visibility groups (loaded on-demand)
+    /** Visibility groups (null = not loaded yet) */
+    visibilityGroups: VisibilityGroup[] | null;
+    /** Whether visibility groups are currently being loaded */
+    visibilityGroupsLoading: boolean;
 
     // Annotations (loaded on-demand per page)
     /** Annotations by page index (0-based). Undefined = not loaded, [] = loaded but empty */
@@ -241,6 +258,9 @@ export const initialState: ViewerState = {
 
     outline: null,
     outlineLoading: false,
+
+    visibilityGroups: null,
+    visibilityGroupsLoading: false,
 
     pageAnnotations: new Map(),
     annotationsLoading: new Set(),

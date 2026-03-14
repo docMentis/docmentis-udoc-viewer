@@ -46,6 +46,8 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
                 isAuthenticating: false,
                 outline: null,
                 outlineLoading: false,
+                visibilityGroups: null,
+                visibilityGroupsLoading: false,
                 pageAnnotations: new Map(),
                 annotationsLoading: new Set(),
                 pageText: new Map(),
@@ -93,6 +95,21 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
             return { ...state, outline: action.outline, outlineLoading: false };
         }
 
+        // Visibility groups (on-demand loading)
+        case "LOAD_VISIBILITY_GROUPS": {
+            if (state.visibilityGroupsLoading) return state;
+            return { ...state, visibilityGroupsLoading: true };
+        }
+        case "SET_VISIBILITY_GROUPS": {
+            return { ...state, visibilityGroups: action.groups, visibilityGroupsLoading: false };
+        }
+        case "SET_VISIBILITY_GROUP_VISIBLE": {
+            if (!state.visibilityGroups) return state;
+            const groups = state.visibilityGroups.map((g) =>
+                g.id === action.groupId ? { ...g, visible: action.visible } : g,
+            );
+            return { ...state, visibilityGroups: groups };
+        }
         // Annotations (on-demand loading per page)
         case "LOAD_PAGE_ANNOTATIONS": {
             if (state.annotationsLoading.has(action.pageIndex)) return state;

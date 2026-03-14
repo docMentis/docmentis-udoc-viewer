@@ -1,6 +1,6 @@
 import { createStore } from "../framework/store";
 import type { Store } from "../framework/store";
-import type { ViewerState, PageInfo, ThemeMode } from "./state";
+import type { ViewerState, PageInfo, ThemeMode, VisibilityGroup } from "./state";
 import type { Action } from "./actions";
 import type { OutlineItem } from "./navigation";
 import type { Annotation } from "./annotation";
@@ -22,6 +22,8 @@ export interface EngineAdapter {
     getOutline(doc: { id: string }): Promise<OutlineItem[]>;
     getPageAnnotations(doc: { id: string }, pageIndex: number): Promise<Annotation[]>;
     getPageText(doc: { id: string }, pageIndex: number): Promise<TextRun[]>;
+    getVisibilityGroups(doc: { id: string }): Promise<VisibilityGroup[]>;
+    setVisibilityGroupVisible(doc: { id: string }, groupId: string, visible: boolean): Promise<boolean>;
 }
 
 export interface ViewerShellCallbacks {

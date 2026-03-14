@@ -23,6 +23,7 @@ import {
     type PageRotation,
     type SpacingMode,
     type ThemeMode,
+    type VisibilityGroup,
 } from "./ui/viewer/state.js";
 import { PerformanceCounter, NoOpPerformanceCounter, type IPerformanceCounter } from "./performance/index.js";
 
@@ -1353,6 +1354,17 @@ export class UDocViewer {
             getPageText: async (doc: { id: string }, pageIndex: number): Promise<TextRun[]> => {
                 const raw = await this.workerClient.getPageText(doc.id, pageIndex);
                 return raw as TextRun[];
+            },
+            getVisibilityGroups: async (doc: { id: string }): Promise<VisibilityGroup[]> => {
+                const raw = await this.workerClient.getVisibilityGroups(doc.id);
+                return raw as VisibilityGroup[];
+            },
+            setVisibilityGroupVisible: async (
+                doc: { id: string },
+                groupId: string,
+                visible: boolean,
+            ): Promise<boolean> => {
+                return await this.workerClient.setVisibilityGroupVisible(doc.id, groupId, visible);
             },
         };
     }

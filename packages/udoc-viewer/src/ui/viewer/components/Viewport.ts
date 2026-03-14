@@ -660,6 +660,24 @@ export function createViewport(showAttribution = true) {
             },
         );
 
+        // Re-render visible spreads when the render cache is invalidated
+        // (e.g. after a visibility group toggle)
+        unsubEvents.push(
+            wc.onRenderInvalidated(() => {
+                for (const spread of spreadComponents.values()) {
+                    spread.resetRenderKeys();
+                }
+                if (currentSlice && lastMetrics && layoutState) {
+                    layoutDirty = true;
+                    if (currentSlice.scrollMode === "continuous") {
+                        updateVisibleSpreads(currentSlice, lastMetrics, layoutState);
+                    } else {
+                        showSingleSpread(currentSlice, lastMetrics, layoutState);
+                    }
+                }
+            }),
+        );
+
         unsubScroll = on(scrollArea, "scroll", () => {
             if (!currentSlice || !layoutState) return;
             if (scrollRaf) return;

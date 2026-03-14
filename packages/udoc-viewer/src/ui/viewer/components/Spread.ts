@@ -511,6 +511,13 @@ export function createSpread(data: SpreadData) {
         }
     }
 
+    function resetRenderKeys(): void {
+        for (const slotEl of slotElements) {
+            slotEl.renderKey = "";
+            slotEl.pendingKey = null;
+        }
+    }
+
     return {
         el,
         mount,
@@ -520,6 +527,7 @@ export function createSpread(data: SpreadData) {
         updateAnnotations,
         updateTextLayer,
         updateSearchHighlights,
+        resetRenderKeys,
         getElement,
         getData,
     };

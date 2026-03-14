@@ -62,6 +62,33 @@ export function createEffects(store: Store<ViewerState, Action>, engine: EngineA
         }),
     );
 
+    // Visibility groups loading effect: load when layers panel is opened
+    unsubscribers.push(
+        store.subscribeEffect(async (prev, next) => {
+            if (prev.doc !== next.doc) docGeneration++;
+            const gen = docGeneration;
+
+            const shouldLoad =
+                next.doc !== null &&
+                next.activePanel === "layers" &&
+                next.visibilityGroups === null &&
+                !next.visibilityGroupsLoading;
+
+            if (shouldLoad) {
+                store.dispatch({ type: "LOAD_VISIBILITY_GROUPS" });
+                try {
+                    const groups = await engine.getVisibilityGroups(next.doc!);
+                    if (gen !== docGeneration) return;
+                    store.dispatch({ type: "SET_VISIBILITY_GROUPS", groups });
+                } catch (error) {
+                    if (gen !== docGeneration) return;
+                    console.error("Failed to load visibility groups", error);
+                    store.dispatch({ type: "SET_VISIBILITY_GROUPS", groups: [] });
+                }
+            }
+        }),
+    );
+
     // Annotation loading effect: load annotations on-demand for visible pages
     // Deferred to avoid blocking page renders (worker processes requests sequentially)
     let annotationLoadTimeout: ReturnType<typeof setTimeout> | null = null;

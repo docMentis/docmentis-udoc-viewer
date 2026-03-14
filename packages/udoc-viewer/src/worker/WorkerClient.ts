@@ -102,6 +102,9 @@ export class WorkerClient {
     private pageFocus: { docId: string; page: number } | null = null;
     private thumbnailFocus: { docId: string; page: number } | null = null;
 
+    // Callbacks notified when render cache is invalidated
+    private renderInvalidatedCallbacks = new Set<() => void>();
+
     // Performance counter per document (for tracking operations)
     private performanceCounters = new Map<string, IPerformanceCounter>();
 
@@ -634,6 +637,30 @@ export class WorkerClient {
     }
 
     // ===========================================================================
+    // Visibility Groups
+    // ===========================================================================
+
+    /**
+     * Get visibility groups for a document.
+     */
+    async getVisibilityGroups(documentId: string): Promise<unknown[]> {
+        const response = (await this.send({ type: "getVisibilityGroups", documentId })) as { groups: unknown[] };
+        return response.groups;
+    }
+
+    /**
+     * Set visibility of a specific group.
+     *
+     * @returns true if the group was found and updated
+     */
+    async setVisibilityGroupVisible(documentId: string, groupId: string, visible: boolean): Promise<boolean> {
+        const response = (await this.send({ type: "setVisibilityGroupVisible", documentId, groupId, visible })) as {
+            updated: boolean;
+        };
+        return response.updated;
+    }
+
+    // ===========================================================================
     // Performance Counter Integration
     // ===========================================================================
 
@@ -801,6 +828,19 @@ export class WorkerClient {
         if (type === undefined || type === "thumbnail") {
             invalidateCache(this.thumbnailRenderCache);
         }
+
+        for (const cb of this.renderInvalidatedCallbacks) {
+            cb();
+        }
+    }
+
+    /**
+     * Subscribe to render cache invalidation events.
+     * Returns an unsubscribe function.
+     */
+    onRenderInvalidated(callback: () => void): () => void {
+        this.renderInvalidatedCallbacks.add(callback);
+        return () => this.renderInvalidatedCallbacks.delete(callback);
     }
 
     /**

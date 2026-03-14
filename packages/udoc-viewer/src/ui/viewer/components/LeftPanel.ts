@@ -7,6 +7,7 @@ import type { WorkerClient } from "../../../worker/index.js";
 import { ICON_THUMBNAIL, ICON_OUTLINE, ICON_BOOKMARK, ICON_LAYERS, ICON_ATTACHMENT } from "../icons";
 import { createThumbnailPanel, type ThumbnailPanelComponent } from "./ThumbnailPanel";
 import { createOutlinePanel, type OutlinePanelComponent } from "./OutlinePanel";
+import { createLayersPanel, type LayersPanelComponent } from "./LayersPanel";
 
 interface TabConfig {
     id: LeftPanelTab;
@@ -67,6 +68,7 @@ export function createLeftPanel() {
     // Panel content components
     let thumbnailPanel: ThumbnailPanelComponent | null = null;
     let outlinePanel: OutlinePanelComponent | null = null;
+    let layersPanel: LayersPanelComponent | null = null;
     let storeRef: Store<ViewerState, Action> | null = null;
     let workerClientRef: WorkerClient | null = null;
 
@@ -100,6 +102,10 @@ export function createLeftPanel() {
             outlinePanel.destroy();
             outlinePanel = null;
         }
+        if (layersPanel) {
+            layersPanel.destroy();
+            layersPanel = null;
+        }
 
         // Mount new content based on active tab
         if (activeTab === "thumbnail" && storeRef && workerClientRef) {
@@ -108,8 +114,10 @@ export function createLeftPanel() {
         } else if (activeTab === "outline" && storeRef) {
             outlinePanel = createOutlinePanel();
             outlinePanel.mount(content, storeRef);
+        } else if (activeTab === "layers" && storeRef && workerClientRef) {
+            layersPanel = createLayersPanel();
+            layersPanel.mount(content, storeRef, workerClientRef);
         }
-        // Future: handle other tabs (bookmarks, layers, attachments)
     }
 
     function setupResize(): void {
@@ -198,6 +206,10 @@ export function createLeftPanel() {
         if (outlinePanel) {
             outlinePanel.destroy();
             outlinePanel = null;
+        }
+        if (layersPanel) {
+            layersPanel.destroy();
+            layersPanel = null;
         }
 
         storeRef = null;

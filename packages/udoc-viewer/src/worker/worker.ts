@@ -120,7 +120,9 @@ export type WorkerRequest =
     | { type: "registerFont"; documentId: string; typeface: string; bold: boolean; italic: boolean; bytes: Uint8Array }
     | { type: "hasRegisteredFont"; documentId: string; typeface: string; bold: boolean; italic: boolean }
     | { type: "registeredFontCount"; documentId: string }
-    | { type: "enableGoogleFonts"; documentId: string };
+    | { type: "enableGoogleFonts"; documentId: string }
+    | { type: "getVisibilityGroups"; documentId: string }
+    | { type: "setVisibilityGroupVisible"; documentId: string; groupId: string; visible: boolean };
 
 /**
  * Message types from worker to main thread.
@@ -193,7 +195,11 @@ export type WorkerResponse =
     | { type: "registeredFontCount"; success: true; count: number }
     | { type: "registeredFontCount"; success: false; error: string }
     | { type: "enableGoogleFonts"; success: true }
-    | { type: "enableGoogleFonts"; success: false; error: string };
+    | { type: "enableGoogleFonts"; success: false; error: string }
+    | { type: "getVisibilityGroups"; success: true; groups: unknown[] }
+    | { type: "getVisibilityGroups"; success: false; error: string }
+    | { type: "setVisibilityGroupVisible"; success: true; updated: boolean }
+    | { type: "setVisibilityGroupVisible"; success: false; error: string };
 
 /** Current request ID for response matching. */
 let currentRequestId: number | undefined;
@@ -489,6 +495,24 @@ self.onmessage = async (event: MessageEvent<WorkerRequest & { _id?: number }>) =
                 ensureInitialized();
                 udoc!.enableGoogleFonts(request.documentId);
                 respond({ type: "enableGoogleFonts", success: true });
+                break;
+            }
+
+            case "getVisibilityGroups": {
+                ensureInitialized();
+                const groups = udoc!.get_visibility_groups(request.documentId) as unknown[];
+                respond({ type: "getVisibilityGroups", success: true, groups });
+                break;
+            }
+
+            case "setVisibilityGroupVisible": {
+                ensureInitialized();
+                const updated = udoc!.set_visibility_group_visible(
+                    request.documentId,
+                    request.groupId,
+                    request.visible,
+                );
+                respond({ type: "setVisibilityGroupVisible", success: true, updated });
                 break;
             }
 

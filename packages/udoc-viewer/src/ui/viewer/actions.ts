@@ -9,6 +9,7 @@ import type {
     ViewModeDefaults,
     SearchMatch,
     ThemeMode,
+    VisibilityGroup,
 } from "./state";
 import type { Destination, OutlineItem } from "./navigation";
 import type { Annotation } from "./annotation";
@@ -37,6 +38,10 @@ export type Action =
     // Outline (on-demand loading)
     | { type: "LOAD_OUTLINE" }
     | { type: "SET_OUTLINE"; outline: OutlineItem[] }
+    // Visibility groups (on-demand loading)
+    | { type: "LOAD_VISIBILITY_GROUPS" }
+    | { type: "SET_VISIBILITY_GROUPS"; groups: VisibilityGroup[] }
+    | { type: "SET_VISIBILITY_GROUP_VISIBLE"; groupId: string; visible: boolean }
     // Annotations (on-demand loading per page)
     | { type: "LOAD_PAGE_ANNOTATIONS"; pageIndex: number }
     | { type: "SET_PAGE_ANNOTATIONS"; pageIndex: number; annotations: Annotation[] }

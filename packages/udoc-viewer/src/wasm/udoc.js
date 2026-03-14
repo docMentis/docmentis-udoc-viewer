@@ -1127,6 +1127,35 @@ export class UDoc {
         }
     }
     /**
+     * Get all visibility groups for a document.
+     *
+     * Returns an array of objects, each containing:
+     * - `id`: Unique identifier string
+     * - `name`: Display name for UI
+     * - `visible`: Whether the group is currently visible
+     *
+     * Returns an empty array for documents without visibility groups.
+     * @param {string} id
+     * @returns {any}
+     */
+    get_visibility_groups(id) {
+        try {
+            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+            const ptr0 = passStringToWasm0(id, wasm.__wbindgen_export, wasm.__wbindgen_export2);
+            const len0 = WASM_VECTOR_LEN;
+            wasm.udoc_get_visibility_groups(retptr, this.__wbg_ptr, ptr0, len0);
+            var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
+            var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
+            var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
+            if (r2) {
+                throw takeObject(r1);
+            }
+            return takeObject(r0);
+        } finally {
+            wasm.__wbindgen_add_to_stack_pointer(16);
+        }
+    }
+    /**
      * Get the number of fonts registered for a document.
      *
      * # Arguments
@@ -1150,6 +1179,39 @@ export class UDoc {
                 throw takeObject(r1);
             }
             return r0 >>> 0;
+        } finally {
+            wasm.__wbindgen_add_to_stack_pointer(16);
+        }
+    }
+    /**
+     * Set the visibility of a specific visibility group.
+     *
+     * # Arguments
+     * * `id` - Document ID
+     * * `group_id` - Visibility group ID
+     * * `visible` - Whether the group should be visible
+     *
+     * Returns `true` if the group was found and updated, `false` if not found.
+     * @param {string} id
+     * @param {string} group_id
+     * @param {boolean} visible
+     * @returns {boolean}
+     */
+    set_visibility_group_visible(id, group_id, visible) {
+        try {
+            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+            const ptr0 = passStringToWasm0(id, wasm.__wbindgen_export, wasm.__wbindgen_export2);
+            const len0 = WASM_VECTOR_LEN;
+            const ptr1 = passStringToWasm0(group_id, wasm.__wbindgen_export, wasm.__wbindgen_export2);
+            const len1 = WASM_VECTOR_LEN;
+            wasm.udoc_set_visibility_group_visible(retptr, this.__wbg_ptr, ptr0, len0, ptr1, len1, visible);
+            var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
+            var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
+            var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
+            if (r2) {
+                throw takeObject(r1);
+            }
+            return r0 !== 0;
         } finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
