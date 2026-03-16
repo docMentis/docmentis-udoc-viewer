@@ -21,10 +21,13 @@ import {
 } from "../icons";
 import { createViewModeMenu } from "./ViewModeMenu";
 
-function createButton(className: string, label: string, iconSvg: string): HTMLButtonElement {
+function createButton(className: string, label: string, iconSvg: string, keyshortcuts?: string): HTMLButtonElement {
     const btn = document.createElement("button");
     btn.className = `udoc-toolbar__btn ${className}`;
     btn.setAttribute("aria-label", label);
+    if (keyshortcuts) {
+        btn.setAttribute("aria-keyshortcuts", keyshortcuts);
+    }
     btn.innerHTML = iconSvg;
     return btn;
 }
@@ -120,6 +123,7 @@ export function createToolbar() {
     prevBtn.className = "udoc-toolbar__btn udoc-toolbar__btn--nav";
     prevBtn.innerHTML = ICON_CHEVRON_LEFT;
     prevBtn.title = "Previous page";
+    prevBtn.setAttribute("aria-label", "Previous page");
 
     const pageInfo = document.createElement("div");
     pageInfo.className = "udoc-toolbar__page-info";
@@ -138,6 +142,7 @@ export function createToolbar() {
     nextBtn.className = "udoc-toolbar__btn udoc-toolbar__btn--nav";
     nextBtn.innerHTML = ICON_CHEVRON_RIGHT;
     nextBtn.title = "Next page";
+    nextBtn.setAttribute("aria-label", "Next page");
 
     navGroup.append(prevBtn, pageInfo, nextBtn);
 
@@ -153,6 +158,8 @@ export function createToolbar() {
     zoomOutBtn.className = "udoc-toolbar__btn udoc-toolbar__btn--nav";
     zoomOutBtn.innerHTML = ICON_ZOOM_OUT;
     zoomOutBtn.title = "Zoom out";
+    zoomOutBtn.setAttribute("aria-label", "Zoom out");
+    zoomOutBtn.setAttribute("aria-keyshortcuts", "Ctrl+-");
 
     // Zoom dropdown container
     const zoomDropdownContainer = document.createElement("div");
@@ -184,6 +191,8 @@ export function createToolbar() {
     zoomInBtn.className = "udoc-toolbar__btn udoc-toolbar__btn--nav";
     zoomInBtn.innerHTML = ICON_ZOOM_IN;
     zoomInBtn.title = "Zoom in";
+    zoomInBtn.setAttribute("aria-label", "Zoom in");
+    zoomInBtn.setAttribute("aria-keyshortcuts", "Ctrl++");
 
     zoomGroup.append(zoomOutBtn, zoomDropdownContainer, zoomInBtn);
 
@@ -199,7 +208,7 @@ export function createToolbar() {
     // Right section
     const rightSection = document.createElement("div");
     rightSection.className = "udoc-toolbar__right";
-    const searchBtn = createButton("udoc-toolbar__btn--search", "Search", ICON_SEARCH);
+    const searchBtn = createButton("udoc-toolbar__btn--search", "Search", ICON_SEARCH, "Ctrl+F");
     const commentsBtn = createButton("udoc-toolbar__btn--comments", "Comments", ICON_COMMENTS);
     const themeBtn = createButton("udoc-toolbar__btn--theme", "Toggle theme", ICON_THEME_DARK);
     const fullscreenBtn = createButton("udoc-toolbar__btn--fullscreen", "Fullscreen", ICON_FULLSCREEN);

@@ -126,8 +126,9 @@ export function mountViewerShell(
     };
     panelOverlay.addEventListener("click", handleOverlayClick);
 
-    // Ctrl+F / Cmd+F to open search panel
+    // Keyboard shortcuts
     const handleKeyDown = (e: KeyboardEvent) => {
+        // Ctrl+F / Cmd+F to open search panel
         if ((e.ctrlKey || e.metaKey) && e.key === "f") {
             e.preventDefault();
             const state = store.getState();
@@ -135,8 +136,39 @@ export function mountViewerShell(
                 store.dispatch({ type: "TOGGLE_PANEL", panel: "search" });
             }
         }
+        
+        // Zoom in: Ctrl++ or Ctrl+= or Ctrl+Mouse wheel up
+        if ((e.ctrlKey || e.metaKey) && (e.key === "=" || e.key === "+") && !e.shiftKey) {
+            e.preventDefault();
+            store.dispatch({ type: "ZOOM_IN" });
+        }
+        
+        // Zoom out: Ctrl+- or Ctrl+Mouse wheel down
+        if ((e.ctrlKey || e.metaKey) && e.key === "-") {
+            e.preventDefault();
+            store.dispatch({ type: "ZOOM_OUT" });
+        }
+        
+        // Reset zoom: Ctrl+0
+        if ((e.ctrlKey || e.metaKey) && e.key === "0") {
+            e.preventDefault();
+            store.dispatch({ type: "SET_ZOOM", zoom: 1 });
+        }
+        
+
+        
+
+        
+        // Close panel: Escape
+        if (e.key === "Escape") {
+            const state = store.getState();
+            if (state.activePanel !== null) {
+                e.preventDefault();
+                store.dispatch({ type: "CLOSE_PANEL" });
+            }
+        }
     };
-    layout.addEventListener("keydown", handleKeyDown);
+    document.addEventListener("keydown", handleKeyDown);
 
     // Theme management
     function resolveIsDark(theme: ThemeMode): boolean {
@@ -209,7 +241,7 @@ export function mountViewerShell(
 
     function destroy(): void {
         cleanupSystemListener();
-        layout.removeEventListener("keydown", handleKeyDown);
+        document.removeEventListener("keydown", handleKeyDown);
         panelOverlay.removeEventListener("click", handleOverlayClick);
         unsubPanelClass();
         effects.destroy();
