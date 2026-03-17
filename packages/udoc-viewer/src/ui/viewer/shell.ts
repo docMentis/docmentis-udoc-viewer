@@ -136,29 +136,25 @@ export function mountViewerShell(
                 store.dispatch({ type: "TOGGLE_PANEL", panel: "search" });
             }
         }
-        
+
         // Zoom in: Ctrl++ or Ctrl+= or Ctrl+Mouse wheel up
         if ((e.ctrlKey || e.metaKey) && (e.key === "=" || e.key === "+") && !e.shiftKey) {
             e.preventDefault();
             store.dispatch({ type: "ZOOM_IN" });
         }
-        
+
         // Zoom out: Ctrl+- or Ctrl+Mouse wheel down
         if ((e.ctrlKey || e.metaKey) && e.key === "-") {
             e.preventDefault();
             store.dispatch({ type: "ZOOM_OUT" });
         }
-        
+
         // Reset zoom: Ctrl+0
         if ((e.ctrlKey || e.metaKey) && e.key === "0") {
             e.preventDefault();
             store.dispatch({ type: "SET_ZOOM", zoom: 1 });
         }
-        
 
-        
-
-        
         // Close panel: Escape
         if (e.key === "Escape") {
             const state = store.getState();
