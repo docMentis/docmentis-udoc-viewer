@@ -44,7 +44,7 @@ export interface PageInfo {
 // Render Management Types
 // =============================================================================
 
-export type RenderType = "page" | "thumbnail";
+export type RenderType = "page" | "thumbnail" | "preview";
 
 export interface RenderRequest {
     docId: string;
@@ -90,13 +90,15 @@ export class WorkerClient {
     private requestId = 0;
     private pending = new Map<number, { resolve: (value: unknown) => void; reject: (error: Error) => void }>();
 
-    // Render management state - separate caches for page and thumbnail, single queue
+    // Render management state - separate caches for page, thumbnail, and preview; single queue
     private pageRenderCache = new Map<string, CacheEntry>();
     private thumbnailRenderCache = new Map<string, CacheEntry>();
+    private previewRenderCache = new Map<string, CacheEntry>();
     private renderQueue: QueuedRequest[] = [];
     private currentRender: { key: string; promise: Promise<RenderResult> } | null = null;
     private maxPageCacheSize = 100;
     private maxThumbnailCacheSize = 500;
+    private maxPreviewCacheSize = 50;
 
     // Separate focus tracking for page and thumbnail boost
     private pageFocus: { docId: string; page: number } | null = null;
@@ -687,11 +689,15 @@ export class WorkerClient {
     // ===========================================================================
 
     private getCache(type: RenderType): Map<string, CacheEntry> {
-        return type === "page" ? this.pageRenderCache : this.thumbnailRenderCache;
+        if (type === "page") return this.pageRenderCache;
+        if (type === "preview") return this.previewRenderCache;
+        return this.thumbnailRenderCache;
     }
 
     private getMaxCacheSize(type: RenderType): number {
-        return type === "page" ? this.maxPageCacheSize : this.maxThumbnailCacheSize;
+        if (type === "page") return this.maxPageCacheSize;
+        if (type === "preview") return this.maxPreviewCacheSize;
+        return this.maxThumbnailCacheSize;
     }
 
     /**
@@ -826,6 +832,7 @@ export class WorkerClient {
         };
         clear(this.pageRenderCache);
         clear(this.thumbnailRenderCache);
+        clear(this.previewRenderCache);
     }
 
     invalidateRenderCache(docId?: string, type?: RenderType): void {
@@ -850,6 +857,9 @@ export class WorkerClient {
         }
         if (type === undefined || type === "thumbnail") {
             invalidateCache(this.thumbnailRenderCache);
+        }
+        if (type === undefined || type === "preview") {
+            invalidateCache(this.previewRenderCache);
         }
 
         for (const cb of this.renderInvalidatedCallbacks) {
@@ -988,14 +998,17 @@ export class WorkerClient {
         const pageFocus = this.pageFocus;
         const thumbnailFocus = this.thumbnailFocus;
 
-        // Categorize requests into 4 groups
+        // Categorize requests into 5 groups (previews first — they are tiny and near-instant)
+        const previewRequests: QueuedRequest[] = [];
         const boostedPages: QueuedRequest[] = [];
         const boostedThumbnails: QueuedRequest[] = [];
         const normalPages: QueuedRequest[] = [];
         const normalThumbnails: QueuedRequest[] = [];
 
         for (const req of this.renderQueue) {
-            if (req.type === "page") {
+            if (req.type === "preview") {
+                previewRequests.push(req);
+            } else if (req.type === "page") {
                 const distance =
                     pageFocus && req.docId === pageFocus.docId ? Math.abs(req.page - pageFocus.page) : Infinity;
                 if (distance <= WorkerClient.BOOST_RANGE) {
@@ -1033,8 +1046,14 @@ export class WorkerClient {
             });
         }
 
-        // Rebuild queue: boosted pages -> boosted thumbnails -> normal pages -> normal thumbnails
-        this.renderQueue = [...boostedPages, ...boostedThumbnails, ...normalPages, ...normalThumbnails];
+        // Rebuild queue: previews -> boosted pages -> boosted thumbnails -> normal pages -> normal thumbnails
+        this.renderQueue = [
+            ...previewRequests,
+            ...boostedPages,
+            ...boostedThumbnails,
+            ...normalPages,
+            ...normalThumbnails,
+        ];
     }
 
     /**
@@ -1058,6 +1077,12 @@ export class WorkerClient {
             entry.result.bitmap.close();
         }
         this.thumbnailRenderCache.clear();
+
+        // Close all cached preview bitmaps
+        for (const entry of this.previewRenderCache.values()) {
+            entry.result.bitmap.close();
+        }
+        this.previewRenderCache.clear();
     }
 
     private processRenderQueue(): void {
@@ -1092,7 +1117,7 @@ export class WorkerClient {
     }
 
     private async doRender(req: QueuedRequest, key: string): Promise<RenderResult> {
-        const counter = this.getCounter(req.docId);
+        const counter = req.type !== "preview" ? this.getCounter(req.docId) : null;
         const eventType = req.type === "thumbnail" ? ("renderThumbnail" as const) : ("renderPage" as const);
         const pageIndex = req.page - 1;
         const eventId = counter?.markStart(eventType, { pageIndex, scale: req.scale });

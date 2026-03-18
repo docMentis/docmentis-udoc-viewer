@@ -251,6 +251,20 @@
     box-shadow: var(--udoc-shadow-page);
 }
 
+/* Fade from transparent to opaque while waiting for render */
+.udoc-viewer-root .udoc-spread__slot--loading {
+    animation: udoc-fade-in 1s ease-in forwards;
+}
+
+@keyframes udoc-fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
 .udoc-viewer-root .udoc-viewport--seamless .udoc-spread__slot {
     box-shadow: none;
 }
@@ -258,6 +272,11 @@
 .udoc-viewer-root .udoc-spread__slot--empty {
     background: transparent;
     box-shadow: none;
+}
+
+.udoc-viewer-root .udoc-spread__preview-canvas {
+    display: none;
+    image-rendering: auto;
 }
 
 .udoc-viewer-root .udoc-spread__canvas {

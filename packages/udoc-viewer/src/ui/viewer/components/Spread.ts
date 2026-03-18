@@ -28,12 +28,14 @@ export interface SpreadLayoutOptions {
 interface PageSlotElement {
     container: HTMLDivElement;
     canvas: HTMLCanvasElement | null;
+    previewCanvas: HTMLCanvasElement | null;
     textLayer: HTMLDivElement | null;
     annotationLayer: HTMLDivElement | null;
     searchHighlightLayer: HTMLDivElement | null;
     pageNumber: PageSlot;
     renderKey: string;
     pendingKey: string | null;
+    previewRenderKey: string;
     renderToken: number;
     cssWidth: number;
     cssHeight: number;
@@ -125,6 +127,16 @@ export function createSpread(data: SpreadData) {
 
         if (pageNumber !== null) {
             container.dataset.page = String(pageNumber);
+            container.classList.add("udoc-spread__slot--loading");
+
+            // Preview canvas (behind main canvas) — shows low-res preview while full-res renders
+            const previewCanvas = document.createElement("canvas");
+            previewCanvas.className = "udoc-spread__preview-canvas";
+            previewCanvas.style.position = "absolute";
+            previewCanvas.style.transformOrigin = "center";
+            previewCanvas.style.display = "none";
+            container.appendChild(previewCanvas);
+
             const canvas = document.createElement("canvas");
             canvas.className = "udoc-spread__canvas";
             canvas.style.position = "absolute";
@@ -160,12 +172,14 @@ export function createSpread(data: SpreadData) {
             return {
                 container,
                 canvas,
+                previewCanvas,
                 textLayer,
                 annotationLayer,
                 searchHighlightLayer,
                 pageNumber,
                 renderKey: "",
                 pendingKey: null,
+                previewRenderKey: "",
                 renderToken: 0,
                 cssWidth: 0,
                 cssHeight: 0,
@@ -185,12 +199,14 @@ export function createSpread(data: SpreadData) {
         return {
             container,
             canvas: null,
+            previewCanvas: null,
             textLayer: null,
             annotationLayer: null,
             searchHighlightLayer: null,
             pageNumber: null,
             renderKey: "",
             pendingKey: null,
+            previewRenderKey: "",
             renderToken: 0,
             cssWidth: 0,
             cssHeight: 0,
@@ -264,6 +280,15 @@ export function createSpread(data: SpreadData) {
             const centerLeft = snapToDevice((containerWidth - slotEl.cssWidth) / 2, dpr);
             const centerTop = snapToDevice((containerHeight - slotEl.cssHeight) / 2, dpr);
 
+            if (slotEl.previewCanvas) {
+                slotEl.previewCanvas.style.width = formatCssSize(slotEl.cssWidth);
+                slotEl.previewCanvas.style.height = formatCssSize(slotEl.cssHeight);
+                slotEl.previewCanvas.style.left = formatCssSize(centerLeft);
+                slotEl.previewCanvas.style.top = formatCssSize(centerTop);
+                slotEl.previewCanvas.style.transform =
+                    effectiveRotation === 0 ? "none" : `rotate(${effectiveRotation}deg)`;
+            }
+
             if (slotEl.canvas) {
                 slotEl.canvas.style.width = formatCssSize(slotEl.cssWidth);
                 slotEl.canvas.style.height = formatCssSize(slotEl.cssHeight);
@@ -303,6 +328,40 @@ export function createSpread(data: SpreadData) {
         }
     }
 
+    function drawToCanvas(
+        canvas: HTMLCanvasElement,
+        result: { bitmap: ImageBitmap; width: number; height: number },
+        slotEl: PageSlotElement,
+        dpr: number,
+    ): void {
+        let targetWidth: number;
+        let targetHeight: number;
+        if (slotEl.cssWidth > 0 && slotEl.cssHeight > 0) {
+            targetWidth = Math.max(1, Math.round(slotEl.cssWidth * dpr));
+            targetHeight = Math.max(1, Math.round(slotEl.cssHeight * dpr));
+            canvas.style.width = formatCssSize(slotEl.cssWidth);
+            canvas.style.height = formatCssSize(slotEl.cssHeight);
+        } else {
+            targetWidth = result.width;
+            targetHeight = result.height;
+        }
+        if (canvas.width !== targetWidth) canvas.width = targetWidth;
+        if (canvas.height !== targetHeight) canvas.height = targetHeight;
+
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (canvas.width === result.width && canvas.height === result.height) {
+                ctx.drawImage(result.bitmap, 0, 0);
+            } else {
+                ctx.drawImage(result.bitmap, 0, 0, canvas.width, canvas.height);
+            }
+        }
+    }
+
+    /** Scale factor for low-res preview renders (relative to full-res) */
+    const PREVIEW_SCALE = 0.15;
+
     async function render(workerClient: WorkerClient, options: SpreadRenderOptions): Promise<void> {
         const dpr = getDevicePixelRatio();
         const pointsToPixels = getPointsToPixels(options.dpi);
@@ -321,6 +380,33 @@ export function createSpread(data: SpreadData) {
             const token = ++slotEl.renderToken;
             slotEl.pendingKey = key;
 
+            // Request low-res preview if no content is shown yet
+            if (slotEl.previewCanvas && slotEl.renderKey === "") {
+                const previewRenderScale = renderScale * PREVIEW_SCALE;
+                const previewKey = makeRenderKey(options.docId, slotEl.pageNumber, "preview", previewRenderScale);
+                if (slotEl.previewRenderKey !== previewKey) {
+                    workerClient
+                        .requestRender({
+                            docId: options.docId,
+                            page: slotEl.pageNumber,
+                            type: "preview",
+                            scale: previewRenderScale,
+                        })
+                        .then((result) => {
+                            if (!mounted || slotEl.renderToken !== token) return;
+                            // Only show preview if full-res hasn't arrived yet
+                            if (slotEl.renderKey === key) return;
+                            drawToCanvas(slotEl.previewCanvas!, result, slotEl, dpr);
+                            slotEl.previewCanvas!.style.display = "block";
+                            slotEl.previewRenderKey = previewKey;
+                            slotEl.container.classList.remove("udoc-spread__slot--loading");
+                        })
+                        .catch(() => {
+                            /* ignore preview failures */
+                        });
+                }
+            }
+
             try {
                 const result = await workerClient.requestRender({
                     docId: options.docId,
@@ -334,30 +420,14 @@ export function createSpread(data: SpreadData) {
                     continue;
                 }
 
-                const canvas = slotEl.canvas;
-                let targetWidth: number;
-                let targetHeight: number;
-                if (slotEl.cssWidth > 0 && slotEl.cssHeight > 0) {
-                    targetWidth = Math.max(1, Math.round(slotEl.cssWidth * dpr));
-                    targetHeight = Math.max(1, Math.round(slotEl.cssHeight * dpr));
-                    canvas.style.width = formatCssSize(slotEl.cssWidth);
-                    canvas.style.height = formatCssSize(slotEl.cssHeight);
-                } else {
-                    targetWidth = result.width;
-                    targetHeight = result.height;
-                }
-                if (canvas.width !== targetWidth) canvas.width = targetWidth;
-                if (canvas.height !== targetHeight) canvas.height = targetHeight;
+                drawToCanvas(slotEl.canvas, result, slotEl, dpr);
+                slotEl.container.classList.remove("udoc-spread__slot--loading");
 
-                const ctx = canvas.getContext("2d");
-                if (ctx) {
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    if (canvas.width === result.width && canvas.height === result.height) {
-                        ctx.drawImage(result.bitmap, 0, 0);
-                    } else {
-                        ctx.drawImage(result.bitmap, 0, 0, canvas.width, canvas.height);
-                    }
+                // Hide preview canvas now that full-res is ready
+                if (slotEl.previewCanvas) {
+                    slotEl.previewCanvas.style.display = "none";
                 }
+                slotEl.previewRenderKey = "";
 
                 slotEl.renderKey = key;
             } catch (error) {
@@ -515,6 +585,10 @@ export function createSpread(data: SpreadData) {
         for (const slotEl of slotElements) {
             slotEl.renderKey = "";
             slotEl.pendingKey = null;
+            slotEl.previewRenderKey = "";
+            if (slotEl.previewCanvas) {
+                slotEl.previewCanvas.style.display = "none";
+            }
         }
     }
 
