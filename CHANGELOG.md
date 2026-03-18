@@ -6,6 +6,38 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+### Features
+
+- GPU-accelerated rendering via WebGPU
+- Low-res preview with fade-in transition for smoother page loading UX
+- Vello GPU render backend with async WebGPU rendering in WASM (engine)
+- Soft mask (SMask) support for PDF transparency effects (engine)
+- XLSX spreadsheet support with table styles, number formatting, rich text, and full pagination (engine)
+- DOCX/PPTX table migration to universal Table model with style chain resolution (engine)
+- Anti-aliasing-aware pixel comparison for visual regression tests (engine)
+- Inline table style support for per-table overrides in composition (engine)
+- Rich text support in XLSX shared and inline strings (engine)
+- Shrink-to-fit and cell indent for XLSX grid table cells (engine)
+
+### Bug Fixes
+
+- Fix white screen when toggling GPU option after opening an external file
+- Replace broken CMYK ICC profile with Adobe USWebCoatedSWOP for accurate color (engine)
+- Apply blend modes for non-group content in Vello GPU backend (engine)
+- Correct CMYK color accuracy with full ICC profile and correct rendering intent (engine)
+- Support DeviceN/Separation color spaces in shading conversion (engine)
+- Correct XLSX style resolution per ECMA-376 spec (engine)
+- Fix XLSX scale, print area, color fallback, pagination, borders, and table width (engine)
+- Correct XLSX table overlay stripe cycle, region exclusion, and style mappings (engine)
+- Correct table border conflict resolution and expansion (engine)
+- Fix DOCX table style inheritance for borders and margins (engine)
+- Correct run/paragraph property merge order and DOCX nil border handling (engine)
+
+### Performance
+
+- Cache tint-to-sRGB lookup for DeviceN/Separation shadings (engine)
+- Reuse thread-local PostScript VM for function evaluation (engine)
+
 ## [0.6.5] - 2026-03-14
 
 ### Features
