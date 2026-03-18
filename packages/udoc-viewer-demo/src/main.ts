@@ -67,6 +67,7 @@ const docNameEl = document.getElementById("doc-name")!;
 // State
 let viewer: UDocViewer | null = null;
 let client: UDocClient | null = null;
+let gpuEnabled = false;
 let currentDocPath: string | null = null;
 let currentDocName: string | null = null;
 let activeDesktopDocItem: HTMLButtonElement | null = null;
@@ -92,6 +93,7 @@ async function createViewer() {
         client = await UDocClient.create({
             license:
                 "eyJ2IjoxLCJpZCI6ImxpY19lMjcyMDFjMyIsImQiOlsiKi5kb2NtZW50aXMuY29tIl0sImYiOlsiY29tcG9zZSJdLCJsIjp7Im1heF9wYWdlcyI6MTAwMDAsIm1heF9kb2N1bWVudHMiOjEwMCwibWF4X2ZpbGVfc2l6ZV9tYiI6NTAwfSwiZSI6MTgwMDY2MjM5OSwiaSI6MTc2OTA1NTM1NSwibyI6IkRvY21lbnRpcyJ9.CG0Vf4kHRKRdniEDTf_y_wbZDqdKu0Q5Ez81xvpy_JBiWPRC-5k42hBjlWmwoZTo4mVai8K1-vDaH0WTH3QCCQ",
+            gpu: gpuEnabled,
         });
     }
     viewer = await client.createViewer({
@@ -278,7 +280,7 @@ function setupEventListeners() {
 
 interface ToggleOption {
     label: string;
-    onChange: (checked: boolean, v: UDocViewer) => void;
+    onChange: (checked: boolean, v: UDocViewer) => void | Promise<void>;
 }
 
 interface ToggleGroup {
@@ -287,6 +289,27 @@ interface ToggleGroup {
 }
 
 const OPTION_GROUPS: ToggleGroup[] = [
+    {
+        title: "Rendering",
+        options: [
+            {
+                label: "GPU Acceleration",
+                onChange: async (checked) => {
+                    gpuEnabled = checked;
+                    // GPU init happens at client creation — must recreate
+                    if (client) {
+                        client.destroy();
+                        client = null;
+                        viewer = null;
+                    }
+                    await createViewer();
+                    if (currentDocPath && viewer) {
+                        await viewer.load(currentDocPath);
+                    }
+                },
+            },
+        ],
+    },
     {
         title: "Toolbar",
         options: [

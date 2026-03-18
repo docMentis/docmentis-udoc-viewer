@@ -91,6 +91,13 @@ export interface ClientOptions {
      * @default 'en'
      */
     locale?: string;
+
+    /**
+     * Enable GPU-accelerated rendering via WebGPU.
+     * Falls back to CPU if the browser doesn't support WebGPU.
+     * @default false
+     */
+    gpu?: boolean;
 }
 
 /**
@@ -415,7 +422,7 @@ export class UDocClient {
         let lastError: unknown;
         for (const wasmUrl of wasmUrls) {
             try {
-                await workerClient.init(wasmUrl);
+                await workerClient.init(wasmUrl, options.gpu);
                 lastError = null;
                 break;
             } catch (e) {

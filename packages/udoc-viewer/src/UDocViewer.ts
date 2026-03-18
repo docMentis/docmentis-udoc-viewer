@@ -423,21 +423,23 @@ export class UDocViewer {
         if (this.documentId) {
             const docId = this.documentId;
 
-            // Remove performance counter for this document
-            this.workerClient.removePerformanceCounter(docId);
-
-            // Clean up render cache first (cancel pending, clear cache)
-            this.workerClient.cancelRenders(docId);
-            this.workerClient.invalidateRenderCache(docId);
-
-            // Unload from WASM worker
-            this.workerClient.unloadPdf(docId).catch(() => {
-                // Ignore errors during close
-            });
-
+            // Clear document state first so UI callbacks from invalidateRenderCache
+            // see no active document and skip re-rendering.
             this.documentId = null;
             this._pageCount = 0;
             this._pageInfo = [];
+
+            // Remove performance counter for this document
+            this.workerClient.removePerformanceCounter(docId);
+
+            // Cancel pending renders, clear cached bitmaps, then unload from worker.
+            // Use clearRenderCache (no callbacks) instead of invalidateRenderCache
+            // to avoid triggering UI re-renders for a document being removed.
+            this.workerClient.cancelRenders(docId);
+            this.workerClient.clearRenderCache(docId);
+            this.workerClient.unloadPdf(docId).catch(() => {
+                // Ignore errors during close
+            });
             if (this.uiShell) {
                 this.uiShell.dispatch({ type: "CLEAR_DOC" });
             }

@@ -149,8 +149,8 @@ export class WorkerClient {
     /**
      * Initialize the WASM module.
      */
-    async init(wasmUrl?: string): Promise<void> {
-        await this.send({ type: "init", wasmUrl });
+    async init(wasmUrl?: string, gpu?: boolean): Promise<void> {
+        await this.send({ type: "init", wasmUrl, gpu });
     }
 
     /**
@@ -270,7 +270,6 @@ export class WorkerClient {
     async unloadPdf(documentId: string): Promise<boolean> {
         this.pageInfoCache.delete(documentId);
         this.performanceCounters.delete(documentId);
-        this.invalidateRenderCache(documentId);
         this.cancelRenders(documentId);
         const response = (await this.send({ type: "unloadPdf", documentId })) as { removed: boolean };
         return response.removed;
@@ -805,6 +804,30 @@ export class WorkerClient {
     /**
      * Invalidate cache entries. Call when document or zoom changes.
      */
+    /**
+     * Clear cached bitmaps without notifying UI callbacks.
+     * Use during document close to avoid triggering re-renders.
+     */
+    clearRenderCache(docId?: string): void {
+        const clear = (cache: Map<string, CacheEntry>) => {
+            if (docId === undefined) {
+                for (const entry of cache.values()) {
+                    entry.result.bitmap.close();
+                }
+                cache.clear();
+            } else {
+                for (const [key, entry] of cache) {
+                    if (key.startsWith(docId + ":")) {
+                        entry.result.bitmap.close();
+                        cache.delete(key);
+                    }
+                }
+            }
+        };
+        clear(this.pageRenderCache);
+        clear(this.thumbnailRenderCache);
+    }
+
     invalidateRenderCache(docId?: string, type?: RenderType): void {
         const invalidateCache = (cache: Map<string, CacheEntry>) => {
             if (docId === undefined) {

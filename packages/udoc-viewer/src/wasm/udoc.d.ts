@@ -187,6 +187,18 @@ export class UDoc {
    */
   remove_document(id: string): boolean;
   /**
+   * Render a page using the GPU backend (Vello + WebGPU).
+   *
+   * Returns raw RGBA pixel data in premultiplied alpha format,
+   * identical to `render_page_to_rgba` but GPU-accelerated.
+   *
+   * # Errors
+   * Returns an error if the GPU backend is not initialized
+   * (call `init_gpu()` first), if the document is not found,
+   * or if rendering fails.
+   */
+  render_page_gpu(id: string, page_index: number, width: number, height: number): Promise<Uint8Array>;
+  /**
    * Extract all embedded fonts from a PDF document.
    *
    * # Arguments
@@ -407,6 +419,19 @@ export class UDoc {
    */
   setup(domain: string, viewer_version: string, distinct_id: string): void;
   /**
+   * Check whether the GPU render backend is available.
+   */
+  has_gpu(): boolean;
+  /**
+   * Initialize the GPU render backend (Vello + WebGPU).
+   *
+   * This is async because wgpu device initialization requires yielding
+   * to the browser event loop. Call this once after construction.
+   * Returns `true` if GPU initialization succeeded, `false` if no
+   * WebGPU adapter is available (the CPU backend remains usable).
+   */
+  init_gpu(): Promise<boolean>;
+  /**
    * Load a PDF document and return its ID.
    *
    * # Arguments
@@ -450,6 +475,16 @@ export class UDoc {
    */
   load_pptx(bytes: Uint8Array): string;
   /**
+   * Load an XLSX document and return its ID.
+   *
+   * # Arguments
+   * * `bytes` - Raw XLSX file data
+   *
+   * # Returns
+   * A unique document ID that can be used to reference this document.
+   */
+  load_xlsx(bytes: Uint8Array): string;
+  /**
    * Get info for a specific page.
    */
   page_info(id: string, page_index: number): any;
@@ -481,12 +516,15 @@ export interface InitOutput {
   readonly udoc_hasRegisteredFont: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => void;
   readonly udoc_has_document: (a: number, b: number, c: number) => number;
   readonly udoc_has_feature: (a: number, b: number, c: number) => number;
+  readonly udoc_has_gpu: (a: number) => number;
+  readonly udoc_init_gpu: (a: number) => number;
   readonly udoc_license_status: (a: number, b: number) => void;
   readonly udoc_load: (a: number, b: number, c: number, d: number) => void;
   readonly udoc_load_docx: (a: number, b: number, c: number, d: number) => void;
   readonly udoc_load_image: (a: number, b: number, c: number, d: number) => void;
   readonly udoc_load_pdf: (a: number, b: number, c: number, d: number) => void;
   readonly udoc_load_pptx: (a: number, b: number, c: number, d: number) => void;
+  readonly udoc_load_xlsx: (a: number, b: number, c: number, d: number) => void;
   readonly udoc_needs_password: (a: number, b: number, c: number, d: number) => void;
   readonly udoc_new: () => number;
   readonly udoc_page_count: (a: number, b: number, c: number, d: number) => void;
@@ -501,11 +539,15 @@ export interface InitOutput {
   readonly udoc_registerFont: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number) => void;
   readonly udoc_registeredFontCount: (a: number, b: number, c: number, d: number) => void;
   readonly udoc_remove_document: (a: number, b: number, c: number) => number;
+  readonly udoc_render_page_gpu: (a: number, b: number, c: number, d: number, e: number, f: number) => number;
   readonly udoc_render_page_to_png: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
   readonly udoc_render_page_to_rgba: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
   readonly udoc_set_license: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
   readonly udoc_set_visibility_group_visible: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
   readonly udoc_setup: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
+  readonly __wasm_bindgen_func_elem_2525: (a: number, b: number, c: number) => void;
+  readonly __wasm_bindgen_func_elem_2509: (a: number, b: number) => void;
+  readonly __wasm_bindgen_func_elem_16202: (a: number, b: number, c: number, d: number) => void;
   readonly __wbindgen_export: (a: number, b: number) => number;
   readonly __wbindgen_export2: (a: number, b: number, c: number, d: number) => number;
   readonly __wbindgen_export3: (a: number) => void;

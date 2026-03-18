@@ -7,6 +7,7 @@
 import init, { UDoc } from "../wasm/udoc.js";
 
 let udoc: UDoc | null = null;
+let gpuAvailable = false;
 
 /**
  * License validation result from WASM.
@@ -87,7 +88,7 @@ export interface FontDescriptor {
 }
 
 export type WorkerRequest =
-    | { type: "init"; wasmUrl?: string }
+    | { type: "init"; wasmUrl?: string; gpu?: boolean }
     | { type: "setup"; domain: string; viewerVersion: string; distinctId: string }
     | { type: "setLicense"; license: string; domain: string }
     | { type: "getLicenseStatus" }
@@ -205,9 +206,34 @@ export type WorkerResponse =
 let currentRequestId: number | undefined;
 
 /**
+ * Message queue to serialize processing.
+ * GPU render is async and yields to the browser event loop.
+ * Without serialization, a new message arriving during a yield would
+ * trigger a concurrent &mut self borrow on the WASM UDoc instance.
+ */
+let processing = false;
+const messageQueue: MessageEvent<WorkerRequest & { _id?: number }>[] = [];
+
+self.onmessage = (event: MessageEvent<WorkerRequest & { _id?: number }>) => {
+    messageQueue.push(event);
+    if (!processing) {
+        processQueue();
+    }
+};
+
+async function processQueue(): Promise<void> {
+    processing = true;
+    while (messageQueue.length > 0) {
+        const event = messageQueue.shift()!;
+        await handleMessage(event);
+    }
+    processing = false;
+}
+
+/**
  * Handle incoming messages from main thread.
  */
-self.onmessage = async (event: MessageEvent<WorkerRequest & { _id?: number }>) => {
+async function handleMessage(event: MessageEvent<WorkerRequest & { _id?: number }>): Promise<void> {
     const { _id, ...request } = event.data;
     currentRequestId = _id;
 
@@ -216,6 +242,13 @@ self.onmessage = async (event: MessageEvent<WorkerRequest & { _id?: number }>) =
             case "init": {
                 await init(request.wasmUrl ? { module_or_path: request.wasmUrl } : undefined);
                 udoc = new UDoc();
+                if (request.gpu) {
+                    try {
+                        gpuAvailable = await udoc.init_gpu();
+                    } catch {
+                        gpuAvailable = false;
+                    }
+                }
                 respond({ type: "init", success: true });
                 break;
             }
@@ -348,12 +381,29 @@ self.onmessage = async (event: MessageEvent<WorkerRequest & { _id?: number }>) =
 
             case "renderPage": {
                 ensureInitialized();
-                const rgba = udoc!.render_page_to_rgba(
-                    request.documentId,
-                    request.pageIndex,
-                    request.width,
-                    request.height,
-                );
+                // Skip renders for documents that were unloaded while queued
+                if (!udoc!.has_document(request.documentId)) {
+                    respond({ type: "renderPage", success: false, error: `Document not found: ${request.documentId}` });
+                    break;
+                }
+                let rgba: Uint8Array;
+                if (gpuAvailable) {
+                    const gpuResult = await udoc!.render_page_gpu(
+                        request.documentId,
+                        request.pageIndex,
+                        request.width,
+                        request.height,
+                    );
+                    // Copy to own buffer — GPU result may be a view into WASM memory
+                    rgba = new Uint8Array(gpuResult);
+                } else {
+                    rgba = udoc!.render_page_to_rgba(
+                        request.documentId,
+                        request.pageIndex,
+                        request.width,
+                        request.height,
+                    );
+                }
                 respond({ type: "renderPage", success: true, rgba, width: request.width, height: request.height }, [
                     rgba.buffer,
                 ]);
@@ -525,7 +575,7 @@ self.onmessage = async (event: MessageEvent<WorkerRequest & { _id?: number }>) =
         const errorMessage = error instanceof Error ? error.message : String(error);
         respond({ type: request.type, success: false, error: errorMessage } as WorkerResponse);
     }
-};
+}
 
 function ensureInitialized(): void {
     if (!udoc) {
