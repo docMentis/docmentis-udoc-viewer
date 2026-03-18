@@ -68,7 +68,7 @@ const docNameEl = document.getElementById("doc-name")!;
 let viewer: UDocViewer | null = null;
 let client: UDocClient | null = null;
 let gpuEnabled = false;
-let currentDocPath: string | null = null;
+let currentDocSource: string | File | null = null;
 let currentDocName: string | null = null;
 let activeDesktopDocItem: HTMLButtonElement | null = null;
 let activeMobileDocItem: HTMLButtonElement | null = null;
@@ -105,8 +105,8 @@ async function createViewer() {
     });
 
     // Reload current document if any
-    if (currentDocPath) {
-        await viewer.load(currentDocPath);
+    if (currentDocSource) {
+        await viewer.load(currentDocSource);
     }
 }
 
@@ -136,7 +136,7 @@ async function loadDocument(
     desktopBtn: HTMLButtonElement | null,
     mobileBtn: HTMLButtonElement | null,
 ) {
-    currentDocPath = path;
+    currentDocSource = path;
     currentDocName = name;
 
     updateActiveStates(desktopBtn, mobileBtn);
@@ -230,7 +230,7 @@ function openFile() {
 async function openUrl() {
     const url = prompt("Enter document URL:");
     if (url) {
-        currentDocPath = url;
+        currentDocSource = url;
         currentDocName = url.split("/").pop() || url;
         updateActiveStates(null, null);
         docNameEl.textContent = currentDocName;
@@ -268,7 +268,7 @@ function setupEventListeners() {
     fileInput.addEventListener("change", async () => {
         const file = fileInput.files?.[0];
         if (file) {
-            currentDocPath = null;
+            currentDocSource = file;
             currentDocName = file.name;
             updateActiveStates(null, null);
             docNameEl.textContent = file.name;
@@ -289,27 +289,6 @@ interface ToggleGroup {
 }
 
 const OPTION_GROUPS: ToggleGroup[] = [
-    {
-        title: "Rendering",
-        options: [
-            {
-                label: "GPU Acceleration",
-                onChange: async (checked) => {
-                    gpuEnabled = checked;
-                    // GPU init happens at client creation — must recreate
-                    if (client) {
-                        client.destroy();
-                        client = null;
-                        viewer = null;
-                    }
-                    await createViewer();
-                    if (currentDocPath && viewer) {
-                        await viewer.load(currentDocPath);
-                    }
-                },
-            },
-        ],
-    },
     {
         title: "Toolbar",
         options: [
@@ -335,6 +314,24 @@ const OPTION_GROUPS: ToggleGroup[] = [
             { label: "Disable Right Panel", onChange: (c, v) => v.setRightPanelEnabled(!c) },
             { label: "Disable Search", onChange: (c, v) => v.setPanelEnabled("search", !c) },
             { label: "Disable Comments", onChange: (c, v) => v.setPanelEnabled("comments", !c) },
+        ],
+    },
+    {
+        title: "Rendering",
+        options: [
+            {
+                label: "GPU Acceleration (Beta)",
+                onChange: async (checked) => {
+                    gpuEnabled = checked;
+                    // GPU init happens at client creation — must recreate
+                    if (client) {
+                        client.destroy();
+                        client = null;
+                        viewer = null;
+                    }
+                    await createViewer();
+                },
+            },
         ],
     },
 ];
