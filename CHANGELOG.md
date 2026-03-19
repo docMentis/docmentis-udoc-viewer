@@ -6,6 +6,8 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+## [0.6.7] - 2026-03-19
+
 ### Features
 
 - Add WordPress plugin for embedding UDoc Viewer via shortcode or Gutenberg block
