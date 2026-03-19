@@ -6,6 +6,26 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+### Features
+
+- Add WordPress plugin for embedding UDoc Viewer via shortcode or Gutenberg block
+- Add docMentis logo branding to loading overlay and page rendering
+- Add hide-attribution toggle to demo viewer options
+- Script-aware font fallback for CJK and other non-Latin scripts (engine)
+- Shared blip image effects: duotone, alphaModFix, grayscale, biLevel, luminance (engine)
+
+### Bug Fixes
+
+- Prevent viewport scroll area from overflowing container when padded
+- Load themes from all slide masters in multi-master PPTX files (engine)
+- Correct EMF rendering for content at non-zero device coordinates (engine)
+- Support grpFill to inherit fill from parent group in PPTX shapes (engine)
+- Rewrite clrChange to decode and replace pixels directly (engine)
+- Fix table cell merge layout, border conflict resolution, and corner gaps (engine)
+- Preserve leading spaces on first line of paragraphs and fix PPTX col_idx tracking (engine)
+- Resolve PPTX table style colors against the correct per-slide theme (engine)
+- Support pattern fill backgrounds and fix pattern scale to 1pt/pixel (engine)
+
 ## [0.6.6] - 2026-03-17
 
 ### Features
