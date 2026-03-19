@@ -313,6 +313,7 @@ const OPTION_GROUPS: ToggleGroup[] = [
             { label: "Hide Floating Toolbar", onChange: (c, v) => v.setFloatingToolbarVisible(!c) },
             { label: "Disable Fullscreen", onChange: (c, v) => v.setFullscreenEnabled(!c) },
             { label: "Disable Download", onChange: (c, v) => v.setDownloadEnabled(!c) },
+            { label: "Disable Print", onChange: (c, v) => v.setPrintEnabled(!c) },
         ],
     },
     {

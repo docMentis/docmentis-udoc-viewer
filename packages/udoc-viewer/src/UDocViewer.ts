@@ -162,7 +162,6 @@ export class UDocViewer {
     private viewOverrides: ViewModeDefaults;
     private currentFormat: DocumentFormat | null = null;
     private sourceFilename: string | null = null;
-    private sourceBytes: Uint8Array | null = null;
     private storeUnsub: (() => void) | null = null;
     private sdkVersion: string;
 
@@ -377,7 +376,6 @@ export class UDocViewer {
             const downloadId = this._performanceCounter.markStart("download");
             const { bytes, filename } = await this.resolveSourceWithFilename(source);
             this.sourceFilename = filename ?? null;
-            this.sourceBytes = bytes;
             this._performanceCounter.markEnd(downloadId);
 
             // Load document — WASM auto-detects format from file contents
@@ -457,7 +455,6 @@ export class UDocViewer {
             this._pageCount = 0;
             this._pageInfo = [];
             this.sourceFilename = null;
-            this.sourceBytes = null;
 
             // Remove performance counter for this document
             this.workerClient.removePerformanceCounter(docId);
@@ -1156,19 +1153,10 @@ export class UDocViewer {
 
     /**
      * Export document as bytes.
-     * For PDF documents, returns bytes from the WASM engine (may include modifications).
-     * For other formats, returns the original source bytes.
      */
     async toBytes(): Promise<Uint8Array> {
         this.ensureLoaded();
-        if (this.currentFormat === "pdf") {
-            return this.workerClient.getBytes(this.documentId!);
-        }
-        // Non-PDF formats: WASM engine doesn't support get_bytes, use stored source bytes
-        if (this.sourceBytes) {
-            return this.sourceBytes;
-        }
-        throw new Error("No source bytes available for download");
+        return this.workerClient.getBytes(this.documentId!);
     }
 
     /**

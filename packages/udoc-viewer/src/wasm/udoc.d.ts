@@ -77,12 +77,11 @@ export class UDoc {
    *
    * # Arguments
    * * `license_key` - The license key string
-   * * `domain` - The current domain (from window.location.hostname)
    *
    * # Returns
    * License validation result as JSON.
    */
-  set_license(license_key: string, domain: string): any;
+  set_license(license_key: string): any;
   /**
    * Authenticate with a password to unlock an encrypted document.
    *
@@ -442,10 +441,9 @@ export class UDoc {
    */
   load_pdf(bytes: Uint8Array): string;
   /**
-   * Get the raw PDF bytes of a document.
+   * Get the raw file bytes of a document.
    *
-   * Returns the original PDF file data for the document.
-   * Returns an error if the document is not a PDF.
+   * Returns the original file data for the document.
    */
   get_bytes(id: string): Uint8Array;
   /**
@@ -542,12 +540,12 @@ export interface InitOutput {
   readonly udoc_render_page_gpu: (a: number, b: number, c: number, d: number, e: number, f: number) => number;
   readonly udoc_render_page_to_png: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
   readonly udoc_render_page_to_rgba: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
-  readonly udoc_set_license: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
+  readonly udoc_set_license: (a: number, b: number, c: number, d: number) => void;
   readonly udoc_set_visibility_group_visible: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
   readonly udoc_setup: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
-  readonly __wasm_bindgen_func_elem_2525: (a: number, b: number, c: number) => void;
-  readonly __wasm_bindgen_func_elem_2509: (a: number, b: number) => void;
-  readonly __wasm_bindgen_func_elem_16253: (a: number, b: number, c: number, d: number) => void;
+  readonly __wasm_bindgen_func_elem_2523: (a: number, b: number, c: number) => void;
+  readonly __wasm_bindgen_func_elem_2507: (a: number, b: number) => void;
+  readonly __wasm_bindgen_func_elem_16256: (a: number, b: number, c: number, d: number) => void;
   readonly __wbindgen_export: (a: number, b: number) => number;
   readonly __wbindgen_export2: (a: number, b: number, c: number, d: number) => number;
   readonly __wbindgen_export3: (a: number) => void;

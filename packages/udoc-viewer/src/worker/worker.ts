@@ -262,7 +262,7 @@ async function handleMessage(event: MessageEvent<WorkerRequest & { _id?: number 
 
             case "setLicense": {
                 ensureInitialized();
-                const result = udoc!.set_license(request.license, request.domain) as LicenseResult;
+                const result = udoc!.set_license(request.license) as LicenseResult;
                 respond({ type: "setLicense", success: true, result });
                 break;
             }

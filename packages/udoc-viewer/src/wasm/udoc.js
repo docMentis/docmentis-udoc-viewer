@@ -259,12 +259,12 @@ if (!('encodeInto' in cachedTextEncoder)) {
 
 let WASM_VECTOR_LEN = 0;
 
-function __wasm_bindgen_func_elem_2525(arg0, arg1, arg2) {
-    wasm.__wasm_bindgen_func_elem_2525(arg0, arg1, addHeapObject(arg2));
+function __wasm_bindgen_func_elem_2523(arg0, arg1, arg2) {
+    wasm.__wasm_bindgen_func_elem_2523(arg0, arg1, addHeapObject(arg2));
 }
 
-function __wasm_bindgen_func_elem_16253(arg0, arg1, arg2, arg3) {
-    wasm.__wasm_bindgen_func_elem_16253(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
+function __wasm_bindgen_func_elem_16256(arg0, arg1, arg2, arg3) {
+    wasm.__wasm_bindgen_func_elem_16256(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
 }
 
 const __wbindgen_enum_GpuBufferBindingType = ["uniform", "storage", "read-only-storage"];
@@ -494,22 +494,18 @@ export class UDoc {
      *
      * # Arguments
      * * `license_key` - The license key string
-     * * `domain` - The current domain (from window.location.hostname)
      *
      * # Returns
      * License validation result as JSON.
      * @param {string} license_key
-     * @param {string} domain
      * @returns {any}
      */
-    set_license(license_key, domain) {
+    set_license(license_key) {
         try {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
             const ptr0 = passStringToWasm0(license_key, wasm.__wbindgen_export, wasm.__wbindgen_export2);
             const len0 = WASM_VECTOR_LEN;
-            const ptr1 = passStringToWasm0(domain, wasm.__wbindgen_export, wasm.__wbindgen_export2);
-            const len1 = WASM_VECTOR_LEN;
-            wasm.udoc_set_license(retptr, this.__wbg_ptr, ptr0, len0, ptr1, len1);
+            wasm.udoc_set_license(retptr, this.__wbg_ptr, ptr0, len0);
             var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
             var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
             var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
@@ -1442,10 +1438,9 @@ export class UDoc {
         }
     }
     /**
-     * Get the raw PDF bytes of a document.
+     * Get the raw file bytes of a document.
      *
-     * Returns the original PDF file data for the document.
-     * Returns an error if the document is not a PDF.
+     * Returns the original file data for the document.
      * @param {string} id
      * @returns {Uint8Array}
      */
@@ -2014,7 +2009,7 @@ function __wbg_get_imports() {
                 const a = state0.a;
                 state0.a = 0;
                 try {
-                    return __wasm_bindgen_func_elem_16253(a, state0.b, arg0, arg1);
+                    return __wasm_bindgen_func_elem_16256(a, state0.b, arg0, arg1);
                 } finally {
                     state0.a = a;
                 }
@@ -2479,7 +2474,7 @@ function __wbg_get_imports() {
     };
     imports.wbg.__wbindgen_cast_3a49331188f32bb6 = function(arg0, arg1) {
         // Cast intrinsic for `Closure(Closure { dtor_idx: 208, function: Function { arguments: [Externref], shim_idx: 209, ret: Unit, inner_ret: Some(Unit) }, mutable: true }) -> Externref`.
-        const ret = makeMutClosure(arg0, arg1, wasm.__wasm_bindgen_func_elem_2509, __wasm_bindgen_func_elem_2525);
+        const ret = makeMutClosure(arg0, arg1, wasm.__wasm_bindgen_func_elem_2507, __wasm_bindgen_func_elem_2523);
         return addHeapObject(ret);
     };
     imports.wbg.__wbindgen_cast_4625c577ab2ec9ee = function(arg0) {
