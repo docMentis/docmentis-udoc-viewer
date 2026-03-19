@@ -203,6 +203,8 @@ export interface ViewerState {
     fullscreenButtonVisible: boolean;
     /** Whether the download button is visible in the toolbar */
     downloadButtonVisible: boolean;
+    /** Whether the print button is visible in the toolbar */
+    printButtonVisible: boolean;
     /** Current color theme mode */
     theme: ThemeMode;
     /** Whether the theme toggle button is hidden */
@@ -239,13 +241,19 @@ export interface ViewerState {
     /** Whether search text is currently being loaded */
     searchTextLoading: boolean;
 
-    // Loading progress (for document download)
-    /** Whether document is currently being downloaded */
+    // Loading progress (for document download and print preparation)
+    /** Whether document is currently being downloaded or print is being prepared */
     isDownloading: boolean;
     /** Download progress: loaded bytes */
     downloadLoaded: number;
     /** Download progress: total bytes (0 if unknown) */
     downloadTotal: number;
+    /** Whether print preparation is in progress */
+    isPrinting: boolean;
+    /** Print progress: current page being rendered (1-based) */
+    printCurrentPage: number;
+    /** Print progress: total pages to render */
+    printTotalPages: number;
 }
 
 export const initialState: ViewerState = {
@@ -298,6 +306,7 @@ export const initialState: ViewerState = {
     disabledPanels: new Set(),
     fullscreenButtonVisible: true,
     downloadButtonVisible: true,
+    printButtonVisible: true,
     theme: "light",
     themeSwitchingDisabled: false,
     textSelectionDisabled: false,
@@ -318,4 +327,8 @@ export const initialState: ViewerState = {
     isDownloading: false,
     downloadLoaded: 0,
     downloadTotal: 0,
+
+    isPrinting: false,
+    printCurrentPage: 0,
+    printTotalPages: 0,
 };

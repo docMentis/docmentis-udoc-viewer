@@ -328,6 +328,10 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
             if (state.downloadButtonVisible === action.visible) return state;
             return { ...state, downloadButtonVisible: action.visible };
         }
+        case "SET_PRINT_BUTTON_VISIBLE": {
+            if (state.printButtonVisible === action.visible) return state;
+            return { ...state, printButtonVisible: action.visible };
+        }
         case "SET_THEME": {
             if (state.theme === action.theme) return state;
             return { ...state, theme: action.theme };
@@ -447,6 +451,25 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
                 isDownloading: false,
                 downloadLoaded: 0,
                 downloadTotal: 0,
+            };
+        }
+
+        // Print progress
+        case "SET_PRINT_PROGRESS": {
+            return {
+                ...state,
+                isPrinting: true,
+                printCurrentPage: action.currentPage,
+                printTotalPages: action.totalPages,
+            };
+        }
+        case "CLEAR_PRINT_PROGRESS": {
+            if (!state.isPrinting) return state;
+            return {
+                ...state,
+                isPrinting: false,
+                printCurrentPage: 0,
+                printTotalPages: 0,
             };
         }
 

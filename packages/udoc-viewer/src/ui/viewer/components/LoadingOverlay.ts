@@ -71,8 +71,8 @@ export function createLoadingOverlay(showAttribution = true) {
 
         unsubRender = store.subscribeRender((prev, next) => {
             // Show/hide overlay (with delay before showing)
-            const wasVisible = prev.isDownloading;
-            const isVisible = next.isDownloading;
+            const wasVisible = prev.isDownloading || prev.isPrinting;
+            const isVisible = next.isDownloading || next.isPrinting;
 
             if (wasVisible !== isVisible) {
                 if (isVisible) {
@@ -89,8 +89,21 @@ export function createLoadingOverlay(showAttribution = true) {
                 }
             }
 
-            // Update progress
-            if (next.isDownloading) {
+            // Update progress — print takes priority over download
+            if (next.isPrinting) {
+                const { printCurrentPage, printTotalPages } = next;
+                progressContainer.style.display = "";
+                progressFill.classList.remove("udoc-loading-progress-fill--indeterminate");
+
+                if (printCurrentPage === 0) {
+                    progressFill.style.width = "0%";
+                    progressText.textContent = "Preparing to print...";
+                } else {
+                    const percent = Math.round((printCurrentPage / printTotalPages) * 100);
+                    progressFill.style.width = `${percent}%`;
+                    progressText.textContent = `Rendering page ${printCurrentPage} of ${printTotalPages}...`;
+                }
+            } else if (next.isDownloading) {
                 const { downloadLoaded, downloadTotal } = next;
 
                 if (downloadLoaded === 0 && downloadTotal === 0) {

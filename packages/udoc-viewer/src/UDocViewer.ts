@@ -124,6 +124,7 @@ export type UIComponent =
     | "rightPanel"
     | "fullscreen"
     | "download"
+    | "print"
     | PanelTab;
 
 /**
@@ -206,6 +207,7 @@ export class UDocViewer {
             this.uiShell.setCallbacks({
                 onPasswordSubmit: (password: string) => this.handlePasswordSubmit(password),
                 onDownload: () => this.download(),
+                onPrint: () => this.print(),
             });
 
             // Subscribe to store state changes to emit public events
@@ -247,6 +249,12 @@ export class UDocViewer {
                     this.emit("ui:visibilityChange", {
                         component: "download",
                         visible: next.downloadButtonVisible,
+                    });
+                }
+                if (prev.printButtonVisible !== next.printButtonVisible) {
+                    this.emit("ui:visibilityChange", {
+                        component: "print",
+                        visible: next.printButtonVisible,
                     });
                 }
                 if (prev.disabledPanels !== next.disabledPanels) {
@@ -297,6 +305,7 @@ export class UDocViewer {
         if (options.hideFloatingToolbar) overrides.floatingToolbarVisible = false;
         if (options.disableFullscreen) overrides.fullscreenButtonVisible = false;
         if (options.disableDownload) overrides.downloadButtonVisible = false;
+        if (options.disablePrint) overrides.printButtonVisible = false;
         if (options.disableLeftPanel) overrides.leftPanelVisible = false;
         if (options.disableRightPanel) overrides.rightPanelVisible = false;
         if (options.theme !== undefined) overrides.theme = options.theme;
@@ -866,6 +875,15 @@ export class UDocViewer {
         this.uiShell!.dispatch({ type: "SET_DOWNLOAD_BUTTON_VISIBLE", visible: enabled });
     }
 
+    /**
+     * Enable or disable the print button.
+     */
+    setPrintEnabled(enabled: boolean): void {
+        this.ensureNotDestroyed();
+        this.ensureUiMode();
+        this.uiShell!.dispatch({ type: "SET_PRINT_BUTTON_VISIBLE", visible: enabled });
+    }
+
     /** Current theme mode. */
     get theme(): ThemeMode {
         return this.uiShell?.getState().theme ?? "light";
@@ -1171,6 +1189,158 @@ export class UDocViewer {
         URL.revokeObjectURL(url);
     }
 
+    /**
+     * Print the document.
+     * Renders all pages at print resolution and opens the browser print dialog.
+     */
+    async print(): Promise<void> {
+        this.ensureLoaded();
+
+        if (this.currentFormat === "pdf") {
+            await this.printPdfNative();
+        } else {
+            await this.printRendered();
+        }
+    }
+
+    /**
+     * Print PDF by loading original bytes into an iframe — vector quality, no rendering needed.
+     * @internal
+     */
+    private async printPdfNative(): Promise<void> {
+        const bytes = await this.toBytes();
+        const blob = new Blob([bytes.buffer as ArrayBuffer], { type: "application/pdf" });
+        const blobUrl = URL.createObjectURL(blob);
+
+        const title = this.getDefaultFilename().replace(/\.[^.]+$/, "");
+
+        const iframe = document.createElement("iframe");
+        iframe.style.position = "fixed";
+        iframe.style.left = "-9999px";
+        iframe.style.top = "-9999px";
+        iframe.style.width = "0";
+        iframe.style.height = "0";
+        document.body.appendChild(iframe);
+
+        iframe.src = blobUrl;
+
+        // Wait for the PDF to load in the iframe
+        await new Promise<void>((resolve) => {
+            iframe.onload = () => resolve();
+        });
+
+        const originalTitle = document.title;
+        document.title = title;
+
+        iframe.contentWindow?.print();
+
+        setTimeout(() => {
+            document.title = originalTitle;
+            URL.revokeObjectURL(blobUrl);
+            iframe.remove();
+        }, 1000);
+    }
+
+    /**
+     * Print non-PDF formats by rendering pages to images.
+     * @internal
+     */
+    private async printRendered(): Promise<void> {
+        // Show progress via store-driven loading overlay
+        this.uiShell?.dispatch({ type: "SET_PRINT_PROGRESS", currentPage: 0, totalPages: this._pageCount });
+        const blobUrls: string[] = [];
+
+        try {
+            const scale = 300 / 72; // 300 DPI — standard print quality
+
+            for (let i = 0; i < this._pageCount; i++) {
+                this.uiShell?.dispatch({ type: "SET_PRINT_PROGRESS", currentPage: i + 1, totalPages: this._pageCount });
+                const blob = await this.renderPage(i, {
+                    scale,
+                    format: "blob",
+                    force: true,
+                });
+                blobUrls.push(URL.createObjectURL(blob as Blob));
+            }
+
+            const firstInfo = this._pageInfo[0];
+            const pageWidthIn = (firstInfo.width / 72).toFixed(4);
+            const pageHeightIn = (firstInfo.height / 72).toFixed(4);
+
+            let pagesHtml = "";
+            for (let i = 0; i < this._pageCount; i++) {
+                const info = this._pageInfo[i];
+                const widthIn = (info.width / 72).toFixed(4);
+                const heightIn = (info.height / 72).toFixed(4);
+                pagesHtml +=
+                    `<div class="page" style="width:${widthIn}in;height:${heightIn}in;">` +
+                    `<img src="${blobUrls[i]}" style="width:100%;height:100%;">` +
+                    `</div>`;
+            }
+
+            const title = this.getDefaultFilename().replace(/\.[^.]+$/, "");
+
+            const html = `<!DOCTYPE html>
+<html><head><title>${title}</title><style>
+@page { size: ${pageWidthIn}in ${pageHeightIn}in; margin: 0; }
+* { margin: 0; padding: 0; }
+.page { page-break-after: always; overflow: hidden; }
+.page:last-child { page-break-after: auto; }
+img { display: block; }
+</style></head><body>${pagesHtml}</body></html>`;
+
+            const iframe = document.createElement("iframe");
+            iframe.style.position = "fixed";
+            iframe.style.left = "-9999px";
+            iframe.style.top = "-9999px";
+            iframe.style.width = "0";
+            iframe.style.height = "0";
+            document.body.appendChild(iframe);
+
+            const iframeDoc = iframe.contentDocument ?? iframe.contentWindow?.document;
+            if (!iframeDoc) {
+                iframe.remove();
+                throw new Error("Failed to create print iframe");
+            }
+
+            iframeDoc.open();
+            iframeDoc.write(html);
+            iframeDoc.close();
+
+            const images = iframeDoc.querySelectorAll("img");
+            await Promise.all(
+                Array.from(images).map(
+                    (img) =>
+                        new Promise<void>((resolve) => {
+                            if (img.complete) {
+                                resolve();
+                            } else {
+                                img.onload = () => resolve();
+                                img.onerror = () => resolve();
+                            }
+                        }),
+                ),
+            );
+
+            this.uiShell?.dispatch({ type: "CLEAR_PRINT_PROGRESS" });
+
+            const originalTitle = document.title;
+            document.title = title;
+
+            iframe.contentWindow?.print();
+
+            setTimeout(() => {
+                document.title = originalTitle;
+                for (const url of blobUrls) URL.revokeObjectURL(url);
+                iframe.remove();
+            }, 1000);
+        } catch (error) {
+            this.uiShell?.dispatch({ type: "CLEAR_PRINT_PROGRESS" });
+            for (const url of blobUrls) URL.revokeObjectURL(url);
+            throw error;
+        }
+    }
+
     /** Returns the MIME type for the current document format. */
     private getMimeType(): string {
         switch (this.currentFormat) {
@@ -1196,8 +1366,9 @@ export class UDocViewer {
                 const name = path.substring(path.lastIndexOf("/") + 1);
                 if (name) return decodeURIComponent(name);
             } catch {
-                // Not a URL — use as-is (e.g. File.name)
-                return this.sourceFilename;
+                // Not a full URL (e.g. relative path or File.name) — extract filename
+                const lastSlash = this.sourceFilename.lastIndexOf("/");
+                return lastSlash >= 0 ? this.sourceFilename.substring(lastSlash + 1) : this.sourceFilename;
             }
         }
         // Fallback based on format

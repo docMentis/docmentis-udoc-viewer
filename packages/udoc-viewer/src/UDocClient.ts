@@ -307,6 +307,13 @@ export interface ViewerOptions {
     disableDownload?: boolean;
 
     /**
+     * Disable the print button in the toolbar.
+     * The print() method can still be called programmatically.
+     * @default false
+     */
+    disablePrint?: boolean;
+
+    /**
      * Initial page rotation in degrees.
      * @default 0
      */

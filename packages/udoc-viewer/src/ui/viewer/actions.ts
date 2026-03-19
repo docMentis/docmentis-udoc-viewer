@@ -81,6 +81,7 @@ export type Action =
     | { type: "SET_PANEL_DISABLED"; panel: PanelTab; disabled: boolean }
     | { type: "SET_FULLSCREEN_BUTTON_VISIBLE"; visible: boolean }
     | { type: "SET_DOWNLOAD_BUTTON_VISIBLE"; visible: boolean }
+    | { type: "SET_PRINT_BUTTON_VISIBLE"; visible: boolean }
     | { type: "SET_THEME"; theme: ThemeMode }
     | { type: "SET_THEME_SWITCHING_DISABLED"; disabled: boolean }
     | { type: "SET_TEXT_SELECTION_DISABLED"; disabled: boolean }
@@ -107,4 +108,7 @@ export type Action =
     | { type: "SET_SEARCH_TEXT_LOADED"; loaded: boolean }
     // Download progress
     | { type: "SET_DOWNLOAD_PROGRESS"; loaded: number; total: number }
-    | { type: "CLEAR_DOWNLOAD_PROGRESS" };
+    | { type: "CLEAR_DOWNLOAD_PROGRESS" }
+    // Print progress
+    | { type: "SET_PRINT_PROGRESS"; currentPage: number; totalPages: number }
+    | { type: "CLEAR_PRINT_PROGRESS" };

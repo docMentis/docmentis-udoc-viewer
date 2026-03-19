@@ -29,6 +29,7 @@ export interface EngineAdapter {
 export interface ViewerShellCallbacks {
     onPasswordSubmit?: (password: string) => void;
     onDownload?: () => void;
+    onPrint?: () => void;
 }
 
 export interface ViewerShell {
@@ -207,6 +208,7 @@ export function mountViewerShell(
     function setCallbacks(newCallbacks: ViewerShellCallbacks): void {
         callbacks = { ...callbacks, ...newCallbacks };
         toolbar.setOnDownload(callbacks.onDownload ?? null);
+        toolbar.setOnPrint(callbacks.onPrint ?? null);
     }
 
     function destroy(): void {
