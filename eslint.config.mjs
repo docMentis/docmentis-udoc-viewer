@@ -12,6 +12,7 @@ export default tseslint.config(
             "examples/",
             "packages/udoc-viewer/src/wasm/",
             "packages/udoc-viewer/src/ui/viewer/styles-inline.ts",
+            "packages/udoc-viewer-wordpress/",
         ],
     },
 

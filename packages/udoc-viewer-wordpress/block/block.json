@@ -1,0 +1,70 @@
+{
+    "$schema": "https://schemas.wp.org/trunk/block.json",
+    "apiVersion": 3,
+    "name": "udoc/viewer",
+    "version": "0.1.0",
+    "title": "Document Viewer",
+    "category": "embed",
+    "icon": "media-document",
+    "description": "Embed a document viewer for PDF, DOCX, PPTX, and images with high-fidelity WebAssembly rendering.",
+    "textdomain": "udoc-viewer",
+    "attributes": {
+        "src": {
+            "type": "string",
+            "default": ""
+        },
+        "attachmentId": {
+            "type": "number",
+            "default": 0
+        },
+        "attachmentTitle": {
+            "type": "string",
+            "default": ""
+        },
+        "width": {
+            "type": "string",
+            "default": "100%"
+        },
+        "height": {
+            "type": "string",
+            "default": "600px"
+        },
+        "theme": {
+            "type": "string",
+            "default": ""
+        },
+        "hideToolbar": {
+            "type": "boolean",
+            "default": false
+        },
+        "hideAttribution": {
+            "type": "boolean",
+            "default": false
+        },
+        "disableSearch": {
+            "type": "boolean",
+            "default": false
+        },
+        "disableFullscreen": {
+            "type": "boolean",
+            "default": false
+        },
+        "disableTextSelection": {
+            "type": "boolean",
+            "default": false
+        },
+        "disableLeftPanel": {
+            "type": "boolean",
+            "default": false
+        },
+        "disableRightPanel": {
+            "type": "boolean",
+            "default": false
+        }
+    },
+    "supports": {
+        "html": false,
+        "align": ["wide", "full"]
+    },
+    "editorScript": "file:./index.js"
+}
