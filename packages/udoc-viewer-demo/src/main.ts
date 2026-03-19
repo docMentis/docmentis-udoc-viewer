@@ -68,6 +68,7 @@ const docNameEl = document.getElementById("doc-name")!;
 let viewer: UDocViewer | null = null;
 let client: UDocClient | null = null;
 let gpuEnabled = false;
+let hideAttribution = false;
 let currentDocSource: string | File | null = null;
 let currentDocName: string | null = null;
 let activeDesktopDocItem: HTMLButtonElement | null = null;
@@ -92,12 +93,13 @@ async function createViewer() {
     if (!client) {
         client = await UDocClient.create({
             license:
-                "eyJ2IjoxLCJpZCI6ImxpY19lMjcyMDFjMyIsImQiOlsiKi5kb2NtZW50aXMuY29tIl0sImYiOlsiY29tcG9zZSJdLCJsIjp7Im1heF9wYWdlcyI6MTAwMDAsIm1heF9kb2N1bWVudHMiOjEwMCwibWF4X2ZpbGVfc2l6ZV9tYiI6NTAwfSwiZSI6MTgwMDY2MjM5OSwiaSI6MTc2OTA1NTM1NSwibyI6IkRvY21lbnRpcyJ9.CG0Vf4kHRKRdniEDTf_y_wbZDqdKu0Q5Ez81xvpy_JBiWPRC-5k42hBjlWmwoZTo4mVai8K1-vDaH0WTH3QCCQ",
+                "eyJ2IjoxLCJpZCI6ImxpY19jOGNlZjE4ZiIsImQiOlsiZG9jbWVudGlzLmNvbSIsIiouZG9jbWVudGlzLmNvbSJdLCJmIjpbIm5vX2F0dHJpYnV0aW9uIl0sImUiOjE4MDU1MDA3OTksImkiOjE3NzM4ODU1MDYsIm8iOiJkb2NNZW50aXMifQ.E-Wef8w3LnFAbFgZBTrXa4uQ8VMFby59Fg8VLOrm0lNgI4BcLuDxpH_2NheFA89eW8QmKs_vGOdtG619XcOcCg",
             gpu: gpuEnabled,
         });
     }
     viewer = await client.createViewer({
         container: viewerContainer,
+        hideAttribution,
         enablePerformanceCounter: true,
         onPerformanceLog: (entry) => {
             console.log(formatPerformanceEntry(entry));
@@ -280,6 +282,7 @@ function setupEventListeners() {
 
 interface ToggleOption {
     label: string;
+    hint?: string;
     onChange: (checked: boolean, v: UDocViewer) => void | Promise<void>;
 }
 
@@ -289,6 +292,20 @@ interface ToggleGroup {
 }
 
 const OPTION_GROUPS: ToggleGroup[] = [
+    {
+        title: "Branding",
+        options: [
+            {
+                label: "Hide Attribution",
+                hint: "Requires license",
+                onChange: async (checked) => {
+                    hideAttribution = checked;
+                    // Attribution is set at viewer creation — must recreate
+                    await createViewer();
+                },
+            },
+        ],
+    },
     {
         title: "Toolbar",
         options: [
@@ -355,6 +372,12 @@ function setupOptionsPanel() {
             const label = document.createElement("label");
             label.className = "option-label";
             label.textContent = opt.label;
+            if (opt.hint) {
+                const hint = document.createElement("span");
+                hint.className = "option-hint";
+                hint.textContent = `(${opt.hint})`;
+                label.appendChild(hint);
+            }
 
             const toggle = document.createElement("label");
             toggle.className = "option-toggle";

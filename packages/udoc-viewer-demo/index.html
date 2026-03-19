@@ -42,10 +42,13 @@
             .demo-panel-section-title {
                 font-size: 11px;
                 font-weight: 600;
-                color: #5580a0;
+                color: #ffffff;
                 text-transform: uppercase;
                 letter-spacing: 0.5px;
-                margin-bottom: 8px;
+                background: #5a8cb8;
+                padding: 8px 10px;
+                border-radius: 4px;
+                margin: 10px 2px 6px 10px;
             }
             .demo-btn {
                 display: block;
@@ -91,8 +94,8 @@
                 background: #e0eaf2;
             }
             .document-item.active {
-                background: #5a8cb8;
-                color: white;
+                background: #c4d8ea;
+                color: #2c4e6a;
             }
             .category-header {
                 font-size: 12px;
@@ -116,35 +119,32 @@
             }
 
             /* Options panel */
-            .demo-panel-section.collapsible .demo-panel-section-title {
+            .collapsible .demo-panel-section-title {
                 cursor: pointer;
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
                 user-select: none;
             }
-            .demo-panel-section.collapsible .demo-panel-section-title:hover {
-                color: #4a78a0;
-            }
-            .demo-panel-section.collapsible .section-chevron {
+            .collapsible .section-chevron {
                 width: 14px;
                 height: 14px;
                 fill: currentColor;
                 transition: transform 0.2s;
             }
-            .demo-panel-section.collapsible.collapsed .section-chevron {
+            .collapsible.collapsed .section-chevron {
                 transform: rotate(-90deg);
             }
-            .demo-panel-section.collapsible .section-content {
+            .collapsible .section-content {
                 overflow: hidden;
                 transition: max-height 0.25s ease;
                 max-height: 500px;
             }
-            .demo-panel-section.collapsible.collapsed .section-content {
+            .collapsible.collapsed .section-content {
                 max-height: 0;
             }
             .options-section {
-                padding: 8px 12px;
+                padding: 8px 20px;
             }
             .options-group {
                 margin-bottom: 8px;
@@ -168,6 +168,11 @@
                 color: #3a5068;
                 cursor: pointer;
                 user-select: none;
+            }
+            .option-hint {
+                font-size: 10px;
+                color: #8aa4b8;
+                margin-left: 4px;
             }
             .option-toggle {
                 position: relative;
@@ -415,18 +420,18 @@
                     </button>
                 </div>
 
-                <div class="demo-panel-section">
-                    <div class="demo-panel-section-title">Sample Documents</div>
-                </div>
+                <div class="demo-panel-section-title">Sample Documents</div>
                 <div class="document-list" id="document-list"></div>
 
-                <div class="demo-panel-section collapsible collapsed" id="options-panel">
+                <div class="collapsible collapsed" id="options-panel">
                     <div class="demo-panel-section-title" id="options-toggle">
                         Viewer Options
                         <svg class="section-chevron" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z" /></svg>
                     </div>
                     <div class="section-content">
-                        <div class="options-section" id="options-section"></div>
+                        <div class="demo-panel-section">
+                            <div class="options-section" id="options-section"></div>
+                        </div>
                     </div>
                 </div>
             </div>
