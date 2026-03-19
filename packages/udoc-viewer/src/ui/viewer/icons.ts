@@ -77,6 +77,9 @@ export const ICON_SPACING_SPREAD = `<svg viewBox="0 0 24 24" fill="none" stroke=
 // Page-only: L-corners with vertical gap only (horizontal lines at y=10,14; vertical lines merge at x=12)
 export const ICON_SPACING_PAGE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 3v9H3M14 3v9h7M10 21v-9H3M14 21v-9h7"/></svg>`;
 
+// Download icon
+export const ICON_DOWNLOAD = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>`;
+
 // Checkmark icon for selected items
 export const ICON_CHECK = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>`;
 

@@ -117,7 +117,14 @@ export interface DownloadProgress {
 /**
  * UI component identifier for visibility events.
  */
-export type UIComponent = "toolbar" | "floatingToolbar" | "leftPanel" | "rightPanel" | "fullscreen" | PanelTab;
+export type UIComponent =
+    | "toolbar"
+    | "floatingToolbar"
+    | "leftPanel"
+    | "rightPanel"
+    | "fullscreen"
+    | "download"
+    | PanelTab;
 
 /**
  * Event map for viewer events.
@@ -153,6 +160,8 @@ export class UDocViewer {
     private googleFontsEnabled: boolean;
     private viewOverrides: ViewModeDefaults;
     private currentFormat: DocumentFormat | null = null;
+    private sourceFilename: string | null = null;
+    private sourceBytes: Uint8Array | null = null;
     private storeUnsub: (() => void) | null = null;
     private sdkVersion: string;
 
@@ -193,9 +202,10 @@ export class UDocViewer {
                 showAttribution,
             );
 
-            // Set up password callback
+            // Set up callbacks for shell events
             this.uiShell.setCallbacks({
                 onPasswordSubmit: (password: string) => this.handlePasswordSubmit(password),
+                onDownload: () => this.download(),
             });
 
             // Subscribe to store state changes to emit public events
@@ -231,6 +241,12 @@ export class UDocViewer {
                     this.emit("ui:visibilityChange", {
                         component: "fullscreen",
                         visible: next.fullscreenButtonVisible,
+                    });
+                }
+                if (prev.downloadButtonVisible !== next.downloadButtonVisible) {
+                    this.emit("ui:visibilityChange", {
+                        component: "download",
+                        visible: next.downloadButtonVisible,
                     });
                 }
                 if (prev.disabledPanels !== next.disabledPanels) {
@@ -280,6 +296,7 @@ export class UDocViewer {
         if (options.hideToolbar) overrides.toolbarVisible = false;
         if (options.hideFloatingToolbar) overrides.floatingToolbarVisible = false;
         if (options.disableFullscreen) overrides.fullscreenButtonVisible = false;
+        if (options.disableDownload) overrides.downloadButtonVisible = false;
         if (options.disableLeftPanel) overrides.leftPanelVisible = false;
         if (options.disableRightPanel) overrides.rightPanelVisible = false;
         if (options.theme !== undefined) overrides.theme = options.theme;
@@ -349,7 +366,9 @@ export class UDocViewer {
         try {
             // Track download phase
             const downloadId = this._performanceCounter.markStart("download");
-            const { bytes } = await this.resolveSourceWithFilename(source);
+            const { bytes, filename } = await this.resolveSourceWithFilename(source);
+            this.sourceFilename = filename ?? null;
+            this.sourceBytes = bytes;
             this._performanceCounter.markEnd(downloadId);
 
             // Load document — WASM auto-detects format from file contents
@@ -428,6 +447,8 @@ export class UDocViewer {
             this.documentId = null;
             this._pageCount = 0;
             this._pageInfo = [];
+            this.sourceFilename = null;
+            this.sourceBytes = null;
 
             // Remove performance counter for this document
             this.workerClient.removePerformanceCounter(docId);
@@ -836,6 +857,15 @@ export class UDocViewer {
         this.uiShell!.dispatch({ type: "SET_FULLSCREEN_BUTTON_VISIBLE", visible: enabled });
     }
 
+    /**
+     * Enable or disable the download button.
+     */
+    setDownloadEnabled(enabled: boolean): void {
+        this.ensureNotDestroyed();
+        this.ensureUiMode();
+        this.uiShell!.dispatch({ type: "SET_DOWNLOAD_BUTTON_VISIBLE", visible: enabled });
+    }
+
     /** Current theme mode. */
     get theme(): ThemeMode {
         return this.uiShell?.getState().theme ?? "light";
@@ -1108,27 +1138,80 @@ export class UDocViewer {
 
     /**
      * Export document as bytes.
+     * For PDF documents, returns bytes from the WASM engine (may include modifications).
+     * For other formats, returns the original source bytes.
      */
     async toBytes(): Promise<Uint8Array> {
         this.ensureLoaded();
-        return this.workerClient.getBytes(this.documentId!);
+        if (this.currentFormat === "pdf") {
+            return this.workerClient.getBytes(this.documentId!);
+        }
+        // Non-PDF formats: WASM engine doesn't support get_bytes, use stored source bytes
+        if (this.sourceBytes) {
+            return this.sourceBytes;
+        }
+        throw new Error("No source bytes available for download");
     }
 
     /**
      * Download document to user's device.
-     * @param filename - Filename for download
+     * @param filename - Filename for download (defaults to original source filename)
      */
     async download(filename?: string): Promise<void> {
         const bytes = await this.toBytes();
-        const blob = new Blob([bytes.buffer as ArrayBuffer], { type: "application/pdf" });
+        const mimeType = this.getMimeType();
+        const blob = new Blob([bytes.buffer as ArrayBuffer], { type: mimeType });
         const url = URL.createObjectURL(blob);
 
         const a = document.createElement("a");
         a.href = url;
-        a.download = filename ?? "document.pdf";
+        a.download = filename ?? this.getDefaultFilename();
         a.click();
 
         URL.revokeObjectURL(url);
+    }
+
+    /** Returns the MIME type for the current document format. */
+    private getMimeType(): string {
+        switch (this.currentFormat) {
+            case "docx":
+                return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+            case "pptx":
+                return "application/vnd.openxmlformats-officedocument.presentationml.presentation";
+            case "image":
+                return "application/octet-stream";
+            case "pdf":
+            default:
+                return "application/pdf";
+        }
+    }
+
+    /** Returns a default filename based on the source or format. */
+    private getDefaultFilename(): string {
+        if (this.sourceFilename) {
+            // Extract filename from URL or File.name
+            try {
+                const url = new URL(this.sourceFilename);
+                const path = url.pathname;
+                const name = path.substring(path.lastIndexOf("/") + 1);
+                if (name) return decodeURIComponent(name);
+            } catch {
+                // Not a URL — use as-is (e.g. File.name)
+                return this.sourceFilename;
+            }
+        }
+        // Fallback based on format
+        switch (this.currentFormat) {
+            case "docx":
+                return "document.docx";
+            case "pptx":
+                return "document.pptx";
+            case "image":
+                return "image.png";
+            case "pdf":
+            default:
+                return "document.pdf";
+        }
     }
 
     // ===========================================================================

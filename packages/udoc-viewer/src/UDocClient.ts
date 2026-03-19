@@ -300,6 +300,13 @@ export interface ViewerOptions {
     disableTextSelection?: boolean;
 
     /**
+     * Disable the download button in the toolbar.
+     * The download() method can still be called programmatically.
+     * @default false
+     */
+    disableDownload?: boolean;
+
+    /**
      * Initial page rotation in degrees.
      * @default 0
      */

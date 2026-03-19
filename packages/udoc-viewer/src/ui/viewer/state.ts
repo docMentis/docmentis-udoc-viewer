@@ -201,6 +201,8 @@ export interface ViewerState {
     disabledPanels: ReadonlySet<PanelTab>;
     /** Whether the fullscreen button is visible in the toolbar */
     fullscreenButtonVisible: boolean;
+    /** Whether the download button is visible in the toolbar */
+    downloadButtonVisible: boolean;
     /** Current color theme mode */
     theme: ThemeMode;
     /** Whether the theme toggle button is hidden */
@@ -295,6 +297,7 @@ export const initialState: ViewerState = {
     rightPanelVisible: true,
     disabledPanels: new Set(),
     fullscreenButtonVisible: true,
+    downloadButtonVisible: true,
     theme: "light",
     themeSwitchingDisabled: false,
     textSelectionDisabled: false,

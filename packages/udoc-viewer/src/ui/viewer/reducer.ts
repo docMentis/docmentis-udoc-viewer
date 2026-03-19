@@ -324,6 +324,10 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
             if (state.fullscreenButtonVisible === action.visible) return state;
             return { ...state, fullscreenButtonVisible: action.visible };
         }
+        case "SET_DOWNLOAD_BUTTON_VISIBLE": {
+            if (state.downloadButtonVisible === action.visible) return state;
+            return { ...state, downloadButtonVisible: action.visible };
+        }
         case "SET_THEME": {
             if (state.theme === action.theme) return state;
             return { ...state, theme: action.theme };

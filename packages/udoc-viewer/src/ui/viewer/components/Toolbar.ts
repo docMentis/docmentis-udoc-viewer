@@ -18,6 +18,7 @@ import {
     ICON_THEME_LIGHT,
     ICON_THEME_DARK,
     ICON_THEME_SYSTEM,
+    ICON_DOWNLOAD,
 } from "../icons";
 import { createViewModeMenu } from "./ViewModeMenu";
 
@@ -41,6 +42,7 @@ interface ToolbarSlice {
     toolbarVisible: boolean;
     floatingToolbarVisible: boolean;
     fullscreenButtonVisible: boolean;
+    downloadButtonVisible: boolean;
     isFullscreen: boolean;
     theme: ThemeMode;
     themeSwitchingDisabled: boolean;
@@ -62,6 +64,7 @@ function sliceEqual(a: ToolbarSlice, b: ToolbarSlice): boolean {
         a.toolbarVisible === b.toolbarVisible &&
         a.floatingToolbarVisible === b.floatingToolbarVisible &&
         a.fullscreenButtonVisible === b.fullscreenButtonVisible &&
+        a.downloadButtonVisible === b.downloadButtonVisible &&
         a.isFullscreen === b.isFullscreen &&
         a.theme === b.theme &&
         a.themeSwitchingDisabled === b.themeSwitchingDisabled &&
@@ -82,6 +85,7 @@ function selectSlice(state: ViewerState): ToolbarSlice {
         toolbarVisible: state.toolbarVisible,
         floatingToolbarVisible: state.floatingToolbarVisible,
         fullscreenButtonVisible: state.fullscreenButtonVisible,
+        downloadButtonVisible: state.downloadButtonVisible,
         isFullscreen: state.isFullscreen,
         theme: state.theme,
         themeSwitchingDisabled: state.themeSwitchingDisabled,
@@ -201,15 +205,17 @@ export function createToolbar() {
     rightSection.className = "udoc-toolbar__right";
     const searchBtn = createButton("udoc-toolbar__btn--search", "Search", ICON_SEARCH);
     const commentsBtn = createButton("udoc-toolbar__btn--comments", "Comments", ICON_COMMENTS);
+    const downloadBtn = createButton("udoc-toolbar__btn--download", "Download", ICON_DOWNLOAD);
     const themeBtn = createButton("udoc-toolbar__btn--theme", "Toggle theme", ICON_THEME_DARK);
     const fullscreenBtn = createButton("udoc-toolbar__btn--fullscreen", "Fullscreen", ICON_FULLSCREEN);
-    rightSection.append(searchBtn, commentsBtn, themeBtn, fullscreenBtn);
+    rightSection.append(searchBtn, commentsBtn, downloadBtn, themeBtn, fullscreenBtn);
 
     el.append(leftSection, centerSection, rightSection);
 
     const unsubEvents: Array<() => void> = [];
     let unsubRender: (() => void) | null = null;
     let viewModeMounted = false;
+    let onDownloadCallback: (() => void) | null = null;
 
     // Zoom dropdown local state
     let isZoomDropdownOpen = false;
@@ -353,6 +359,13 @@ export function createToolbar() {
         fullscreenBtn.addEventListener("click", onFullscreenClick);
         unsubEvents.push(() => fullscreenBtn.removeEventListener("click", onFullscreenClick));
 
+        // Wire download button
+        const onDownloadClick = () => {
+            onDownloadCallback?.();
+        };
+        downloadBtn.addEventListener("click", onDownloadClick);
+        unsubEvents.push(() => downloadBtn.removeEventListener("click", onDownloadClick));
+
         // Listen for fullscreen change events to sync state
         const onFullscreenChange = () => {
             const root = el.closest(".udoc-viewer-root");
@@ -487,6 +500,9 @@ export function createToolbar() {
             themeBtn.setAttribute("aria-label", themeLabel);
             themeBtn.title = themeLabel;
 
+            // Download button visibility
+            downloadBtn.style.display = slice.downloadButtonVisible ? "" : "none";
+
             // Fullscreen button visibility and icon
             fullscreenBtn.style.display = slice.fullscreenButtonVisible ? "" : "none";
             fullscreenBtn.innerHTML = slice.isFullscreen ? ICON_FULLSCREEN_EXIT : ICON_FULLSCREEN;
@@ -535,5 +551,9 @@ export function createToolbar() {
         el.remove();
     }
 
-    return { el, mount, destroy };
+    function setOnDownload(callback: (() => void) | null): void {
+        onDownloadCallback = callback;
+    }
+
+    return { el, mount, destroy, setOnDownload };
 }

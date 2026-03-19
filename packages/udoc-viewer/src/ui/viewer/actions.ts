@@ -80,6 +80,7 @@ export type Action =
     | { type: "SET_RIGHT_PANEL_VISIBLE"; visible: boolean }
     | { type: "SET_PANEL_DISABLED"; panel: PanelTab; disabled: boolean }
     | { type: "SET_FULLSCREEN_BUTTON_VISIBLE"; visible: boolean }
+    | { type: "SET_DOWNLOAD_BUTTON_VISIBLE"; visible: boolean }
     | { type: "SET_THEME"; theme: ThemeMode }
     | { type: "SET_THEME_SWITCHING_DISABLED"; disabled: boolean }
     | { type: "SET_TEXT_SELECTION_DISABLED"; disabled: boolean }
