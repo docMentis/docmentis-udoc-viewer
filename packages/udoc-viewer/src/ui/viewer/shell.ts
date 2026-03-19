@@ -109,7 +109,7 @@ export function mountViewerShell(
     let callbacks: ViewerShellCallbacks = {};
 
     // Loading overlay (mounted to viewport slot, shows during document download)
-    const loadingOverlay = createLoadingOverlay();
+    const loadingOverlay = createLoadingOverlay(showAttribution);
     loadingOverlay.mount(viewportSlot, store);
 
     // Password dialog (mounted to viewport slot so it covers only the viewer area)

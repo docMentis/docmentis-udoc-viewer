@@ -1152,7 +1152,7 @@ export function createViewport(showAttribution = true) {
                 let spreadComp = spreadComponents.get(i);
                 if (!spreadComp) {
                     const spreadData = state.spreads[i];
-                    spreadComp = createSpread(spreadData);
+                    spreadComp = createSpread(spreadData, showAttribution);
                     spreadComp.mount(container);
                     spreadComponents.set(i, spreadComp);
                 }
@@ -1222,7 +1222,7 @@ export function createViewport(showAttribution = true) {
         let spreadComp = spreadComponents.get(spreadIndex);
         if (!spreadComp) {
             const spreadData = state.spreads[spreadIndex];
-            spreadComp = createSpread(spreadData);
+            spreadComp = createSpread(spreadData, showAttribution);
             spreadComp.mount(container);
             spreadComponents.set(spreadIndex, spreadComp);
         }

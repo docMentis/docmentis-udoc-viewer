@@ -251,20 +251,6 @@
     box-shadow: var(--udoc-shadow-page);
 }
 
-/* Fade from transparent to opaque while waiting for render */
-.udoc-viewer-root .udoc-spread__slot--loading {
-    animation: udoc-fade-in 1s ease-in forwards;
-}
-
-@keyframes udoc-fade-in {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-}
-
 .udoc-viewer-root .udoc-viewport--seamless .udoc-spread__slot {
     box-shadow: none;
 }
@@ -1974,6 +1960,59 @@
     font-size: 13px;
     color: var(--udoc-text-label);
     text-align: center;
+}
+
+/* Logo path colors */
+.udoc-viewer-root .udoc-logo-doc {
+    fill: #0f172a;
+}
+
+.udoc-viewer-root .udoc-logo-mentis {
+    fill: #4f46e5;
+}
+
+.udoc-viewer-dark .udoc-logo-doc {
+    fill: #e2e8f0;
+}
+
+.udoc-viewer-dark .udoc-logo-mentis {
+    fill: #818cf8;
+}
+
+.udoc-viewer-root .udoc-loading-attribution {
+    margin-top: 12px;
+    text-decoration: none;
+    display: inline-flex;
+}
+
+/* Brand logo on page slots while rendering */
+.udoc-viewer-root .udoc-spread__slot-attribution {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    pointer-events: none;
+    z-index: 1;
+    user-select: none;
+    opacity: 0.3;
+}
+
+.udoc-viewer-root .udoc-spread__slot-attribution-text {
+    font-size: 11px;
+    font-weight: 500;
+    color: #0f172a;
+}
+
+.udoc-viewer-dark .udoc-spread__slot-attribution-text {
+    color: #e2e8f0;
+}
+
+.udoc-viewer-root .udoc-spread__slot:not(.udoc-spread__slot--loading) .udoc-spread__slot-attribution {
+    display: none;
 }
 
 /* =============================================================================
