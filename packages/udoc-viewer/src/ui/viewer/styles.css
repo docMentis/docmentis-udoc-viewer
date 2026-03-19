@@ -211,6 +211,7 @@
 .udoc-viewer-root .udoc-viewport__scroll {
     width: 100%;
     height: 100%;
+    box-sizing: border-box;
     overflow: auto;
     /* scrollbar visibility is managed dynamically by Viewport.ts */
 }
