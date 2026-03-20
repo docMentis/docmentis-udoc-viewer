@@ -6,6 +6,8 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+## [0.6.10] - 2026-03-20
+
 ### Features
 
 - Font registration API for loading custom fonts via `registerFont()`
