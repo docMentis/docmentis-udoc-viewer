@@ -6,8 +6,6 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
-## [0.6.8] - 2026-03-20
-
 ### Features
 
 - Add print dialog with page range and quality options
@@ -19,6 +17,7 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ### Bug Fixes
 
+- Remove `now_utc()` fallback that panics on WASM (engine)
 - Close panels instantly without animation when opening a new document
 - Scope keyboard shortcuts to viewer and fix aria-keyshortcuts format
 - Correct nested group transform positioning and rotation offset scaling in PPTX (engine)
