@@ -6,6 +6,28 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+### Features
+
+- Add print dialog with page range and quality options
+- Add print button to toolbar with native PDF and rendered fallback
+- Add download button to toolbar with multi-format support
+- Add keyboard shortcuts for search and zoom operations
+- Show processing overlay during WASM load and page info extraction
+- Evaluate datetime and slidenum/PAGE fields with actual values (engine)
+
+### Bug Fixes
+
+- Close panels instantly without animation when opening a new document
+- Scope keyboard shortcuts to viewer and fix aria-keyshortcuts format
+- Correct nested group transform positioning and rotation offset scaling in PPTX (engine)
+- Counter-flip text in PPTX groups with flipH/flipV (engine)
+- Use group-scaled rect for text wrapping in PPTX grouped shapes (engine)
+- Resolve nested grpFill inheritance in PPTX group shapes (engine)
+- Skip all hidden shape types in PPTX rendering (engine)
+- Correct EMF alpha handling, EMR_ALPHABLEND support, and luminance in sRGB space (engine)
+- Support gradient fill backgrounds and scaled gradient geometry in PPTX (engine)
+- Apply luminance effect in linear light space for correct washout (engine)
+
 ## [0.6.7] - 2026-03-19
 
 ### Features
