@@ -170,21 +170,93 @@ class UDoc_Settings {
 			)
 		);
 
-		register_setting( 'udoc-viewer', 'udoc_gpu_enabled', array(
+		register_setting( 'udoc-viewer', 'udoc_default_hide_floating_toolbar', array(
 			'type'              => 'boolean',
 			'sanitize_callback' => 'rest_sanitize_boolean',
 			'default'           => false,
 		) );
 
 		add_settings_field(
-			'udoc_gpu_enabled',
-			__( 'GPU Acceleration', 'udoc-viewer' ),
+			'udoc_default_hide_floating_toolbar',
+			__( 'Hide Floating Toolbar', 'udoc-viewer' ),
 			array( __CLASS__, 'render_checkbox_field' ),
 			'udoc-viewer',
 			'udoc_defaults_section',
 			array(
-				'name'        => 'udoc_gpu_enabled',
-				'description' => __( 'Enable WebGPU-accelerated rendering (falls back to CPU if unsupported).', 'udoc-viewer' ),
+				'name'        => 'udoc_default_hide_floating_toolbar',
+				'description' => __( 'Hide the floating toolbar (page navigation, zoom, view mode controls).', 'udoc-viewer' ),
+			)
+		);
+
+		register_setting( 'udoc-viewer', 'udoc_default_disable_download', array(
+			'type'              => 'boolean',
+			'sanitize_callback' => 'rest_sanitize_boolean',
+			'default'           => false,
+		) );
+
+		add_settings_field(
+			'udoc_default_disable_download',
+			__( 'Disable Download', 'udoc-viewer' ),
+			array( __CLASS__, 'render_checkbox_field' ),
+			'udoc-viewer',
+			'udoc_defaults_section',
+			array(
+				'name'        => 'udoc_default_disable_download',
+				'description' => __( 'Hide the download button from the toolbar.', 'udoc-viewer' ),
+			)
+		);
+
+		register_setting( 'udoc-viewer', 'udoc_default_disable_print', array(
+			'type'              => 'boolean',
+			'sanitize_callback' => 'rest_sanitize_boolean',
+			'default'           => false,
+		) );
+
+		add_settings_field(
+			'udoc_default_disable_print',
+			__( 'Disable Print', 'udoc-viewer' ),
+			array( __CLASS__, 'render_checkbox_field' ),
+			'udoc-viewer',
+			'udoc_defaults_section',
+			array(
+				'name'        => 'udoc_default_disable_print',
+				'description' => __( 'Hide the print button from the toolbar.', 'udoc-viewer' ),
+			)
+		);
+
+		register_setting( 'udoc-viewer', 'udoc_default_disable_theme_switching', array(
+			'type'              => 'boolean',
+			'sanitize_callback' => 'rest_sanitize_boolean',
+			'default'           => false,
+		) );
+
+		add_settings_field(
+			'udoc_default_disable_theme_switching',
+			__( 'Disable Theme Switching', 'udoc-viewer' ),
+			array( __CLASS__, 'render_checkbox_field' ),
+			'udoc-viewer',
+			'udoc_defaults_section',
+			array(
+				'name'        => 'udoc_default_disable_theme_switching',
+				'description' => __( 'Hide the theme toggle button from the toolbar.', 'udoc-viewer' ),
+			)
+		);
+
+		register_setting( 'udoc-viewer', 'udoc_default_google_fonts', array(
+			'type'              => 'boolean',
+			'sanitize_callback' => 'rest_sanitize_boolean',
+			'default'           => true,
+		) );
+
+		add_settings_field(
+			'udoc_default_google_fonts',
+			__( 'Google Fonts', 'udoc-viewer' ),
+			array( __CLASS__, 'render_checkbox_field' ),
+			'udoc-viewer',
+			'udoc_defaults_section',
+			array(
+				'name'        => 'udoc_default_google_fonts',
+				'description' => __( 'Fetch missing fonts from Google Fonts during rendering. Disable for privacy-sensitive sites.', 'udoc-viewer' ),
 			)
 		);
 	}
@@ -227,9 +299,26 @@ class UDoc_Settings {
 					<tr><td><code>height</code></td><td>600px</td><td><?php esc_html_e( 'Container height (CSS value)', 'udoc-viewer' ); ?></td></tr>
 					<tr><td><code>theme</code></td><td>light</td><td><?php esc_html_e( 'light, dark, or system', 'udoc-viewer' ); ?></td></tr>
 					<tr><td><code>toolbar</code></td><td>true</td><td><?php esc_html_e( 'Show/hide the top toolbar', 'udoc-viewer' ); ?></td></tr>
+					<tr><td><code>floating-toolbar</code></td><td>true</td><td><?php esc_html_e( 'Show/hide the floating toolbar', 'udoc-viewer' ); ?></td></tr>
 					<tr><td><code>search</code></td><td>true</td><td><?php esc_html_e( 'Enable/disable search', 'udoc-viewer' ); ?></td></tr>
 					<tr><td><code>fullscreen</code></td><td>true</td><td><?php esc_html_e( 'Enable/disable fullscreen button', 'udoc-viewer' ); ?></td></tr>
+					<tr><td><code>download</code></td><td>true</td><td><?php esc_html_e( 'Enable/disable download button', 'udoc-viewer' ); ?></td></tr>
+					<tr><td><code>print</code></td><td>true</td><td><?php esc_html_e( 'Enable/disable print button', 'udoc-viewer' ); ?></td></tr>
 					<tr><td><code>text-selection</code></td><td>true</td><td><?php esc_html_e( 'Enable/disable text selection', 'udoc-viewer' ); ?></td></tr>
+					<tr><td><code>theme-switching</code></td><td>true</td><td><?php esc_html_e( 'Enable/disable theme toggle button', 'udoc-viewer' ); ?></td></tr>
+					<tr><td><code>left-panel</code></td><td>true</td><td><?php esc_html_e( 'Enable/disable left panel', 'udoc-viewer' ); ?></td></tr>
+					<tr><td><code>right-panel</code></td><td>true</td><td><?php esc_html_e( 'Enable/disable right panel', 'udoc-viewer' ); ?></td></tr>
+					<tr><td><code>thumbnails</code></td><td>true</td><td><?php esc_html_e( 'Enable/disable thumbnail panel', 'udoc-viewer' ); ?></td></tr>
+					<tr><td><code>outline</code></td><td>true</td><td><?php esc_html_e( 'Enable/disable outline panel', 'udoc-viewer' ); ?></td></tr>
+					<tr><td><code>bookmarks</code></td><td>true</td><td><?php esc_html_e( 'Enable/disable bookmarks panel', 'udoc-viewer' ); ?></td></tr>
+					<tr><td><code>layers</code></td><td>true</td><td><?php esc_html_e( 'Enable/disable layers panel', 'udoc-viewer' ); ?></td></tr>
+					<tr><td><code>attachments</code></td><td>true</td><td><?php esc_html_e( 'Enable/disable attachments panel', 'udoc-viewer' ); ?></td></tr>
+					<tr><td><code>comments</code></td><td>true</td><td><?php esc_html_e( 'Enable/disable comments panel', 'udoc-viewer' ); ?></td></tr>
+					<tr><td><code>google-fonts</code></td><td>true</td><td><?php esc_html_e( 'Enable/disable Google Fonts fetching', 'udoc-viewer' ); ?></td></tr>
+					<tr><td><code>scroll-mode</code></td><td>—</td><td><?php esc_html_e( 'continuous, page, or wrapped', 'udoc-viewer' ); ?></td></tr>
+					<tr><td><code>layout-mode</code></td><td>—</td><td><?php esc_html_e( 'single, double, or double-cover', 'udoc-viewer' ); ?></td></tr>
+					<tr><td><code>zoom-mode</code></td><td>—</td><td><?php esc_html_e( 'fit-width, fit-page, fit-spread-width, or custom', 'udoc-viewer' ); ?></td></tr>
+					<tr><td><code>zoom</code></td><td>—</td><td><?php esc_html_e( 'Initial zoom level (number, e.g. 1.5)', 'udoc-viewer' ); ?></td></tr>
 				</tbody>
 			</table>
 		</div>

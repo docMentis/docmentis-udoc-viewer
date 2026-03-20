@@ -60,6 +60,66 @@
         "disableRightPanel": {
             "type": "boolean",
             "default": false
+        },
+        "hideFloatingToolbar": {
+            "type": "boolean",
+            "default": false
+        },
+        "disableDownload": {
+            "type": "boolean",
+            "default": false
+        },
+        "disablePrint": {
+            "type": "boolean",
+            "default": false
+        },
+        "disableThemeSwitching": {
+            "type": "boolean",
+            "default": false
+        },
+        "disableThumbnails": {
+            "type": "boolean",
+            "default": false
+        },
+        "disableOutline": {
+            "type": "boolean",
+            "default": false
+        },
+        "disableBookmarks": {
+            "type": "boolean",
+            "default": false
+        },
+        "disableLayers": {
+            "type": "boolean",
+            "default": false
+        },
+        "disableAttachments": {
+            "type": "boolean",
+            "default": false
+        },
+        "disableComments": {
+            "type": "boolean",
+            "default": false
+        },
+        "googleFonts": {
+            "type": "boolean",
+            "default": true
+        },
+        "scrollMode": {
+            "type": "string",
+            "default": ""
+        },
+        "layoutMode": {
+            "type": "string",
+            "default": ""
+        },
+        "zoomMode": {
+            "type": "string",
+            "default": ""
+        },
+        "zoom": {
+            "type": "string",
+            "default": ""
         }
     },
     "supports": {

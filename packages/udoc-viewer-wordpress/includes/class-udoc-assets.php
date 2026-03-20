@@ -49,7 +49,6 @@ class UDoc_Assets {
 		$config = array(
 			'esmUrl'  => $esm_url,
 			'license' => get_option( 'udoc_license_key', '' ),
-			'gpu'     => (bool) get_option( 'udoc_gpu_enabled', false ),
 			'theme'   => get_option( 'udoc_default_theme', 'light' ),
 		);
 

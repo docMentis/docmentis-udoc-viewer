@@ -47,8 +47,12 @@ function udoc_viewer_activate() {
 	add_option( 'udoc_base_url', '' );
 	add_option( 'udoc_default_theme', 'light' );
 	add_option( 'udoc_default_hide_toolbar', false );
+	add_option( 'udoc_default_hide_floating_toolbar', false );
 	add_option( 'udoc_default_hide_attribution', false );
-	add_option( 'udoc_gpu_enabled', false );
+	add_option( 'udoc_default_disable_download', false );
+	add_option( 'udoc_default_disable_print', false );
+	add_option( 'udoc_default_disable_theme_switching', false );
+	add_option( 'udoc_default_google_fonts', true );
 }
 register_activation_hook( __FILE__, 'udoc_viewer_activate' );
 
@@ -61,7 +65,11 @@ function udoc_viewer_uninstall() {
 	delete_option( 'udoc_base_url' );
 	delete_option( 'udoc_default_theme' );
 	delete_option( 'udoc_default_hide_toolbar' );
+	delete_option( 'udoc_default_hide_floating_toolbar' );
 	delete_option( 'udoc_default_hide_attribution' );
-	delete_option( 'udoc_gpu_enabled' );
+	delete_option( 'udoc_default_disable_download' );
+	delete_option( 'udoc_default_disable_print' );
+	delete_option( 'udoc_default_disable_theme_switching' );
+	delete_option( 'udoc_default_google_fonts' );
 }
 register_uninstall_hook( __FILE__, 'udoc_viewer_uninstall' );

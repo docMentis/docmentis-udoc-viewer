@@ -64,11 +64,26 @@ Search for "Document Viewer" in the block inserter. Select a file from the Media
 * `height` — Container height, default `600px`
 * `theme` — `light`, `dark`, or `system`
 * `toolbar` — Show/hide toolbar (`true`/`false`)
+* `floating-toolbar` — Show/hide floating toolbar (`true`/`false`)
 * `search` — Enable/disable search (`true`/`false`)
 * `fullscreen` — Enable/disable fullscreen (`true`/`false`)
+* `download` — Enable/disable download button (`true`/`false`)
+* `print` — Enable/disable print button (`true`/`false`)
 * `text-selection` — Enable/disable text selection (`true`/`false`)
+* `theme-switching` — Enable/disable theme toggle button (`true`/`false`)
 * `left-panel` — Enable/disable left panel (`true`/`false`)
 * `right-panel` — Enable/disable right panel (`true`/`false`)
+* `thumbnails` — Enable/disable thumbnail panel (`true`/`false`)
+* `outline` — Enable/disable outline panel (`true`/`false`)
+* `bookmarks` — Enable/disable bookmarks panel (`true`/`false`)
+* `layers` — Enable/disable layers panel (`true`/`false`)
+* `attachments` — Enable/disable attachments panel (`true`/`false`)
+* `comments` — Enable/disable comments panel (`true`/`false`)
+* `google-fonts` — Enable/disable Google Fonts fetching (`true`/`false`)
+* `scroll-mode` — `continuous`, `page`, or `wrapped`
+* `layout-mode` — `single`, `double`, or `double-cover`
+* `zoom-mode` — `fit-width`, `fit-page`, `fit-spread-width`, or `custom`
+* `zoom` — Initial zoom level (number, e.g. `1.5`)
 
 == Frequently Asked Questions ==
 

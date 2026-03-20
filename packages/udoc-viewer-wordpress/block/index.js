@@ -32,12 +32,27 @@ registerBlockType("udoc/viewer", {
             height,
             theme,
             hideToolbar,
+            hideFloatingToolbar,
             hideAttribution,
             disableSearch,
             disableFullscreen,
+            disableDownload,
+            disablePrint,
             disableTextSelection,
+            disableThemeSwitching,
             disableLeftPanel,
             disableRightPanel,
+            disableThumbnails,
+            disableOutline,
+            disableBookmarks,
+            disableLayers,
+            disableAttachments,
+            disableComments,
+            googleFonts,
+            scrollMode,
+            layoutMode,
+            zoomMode,
+            zoom,
         } = attributes;
 
         const hasDocument = attachmentId > 0 || (src && src.length > 0);
@@ -107,10 +122,21 @@ registerBlockType("udoc/viewer", {
                     onChange: (val) => setAttributes({ hideToolbar: val }),
                 }),
                 wp.element.createElement(ToggleControl, {
+                    label: __("Hide Floating Toolbar", "udoc-viewer"),
+                    checked: hideFloatingToolbar,
+                    onChange: (val) => setAttributes({ hideFloatingToolbar: val }),
+                    help: __("Page navigation, zoom, and view mode controls.", "udoc-viewer"),
+                }),
+                wp.element.createElement(ToggleControl, {
                     label: __("Hide Attribution", "udoc-viewer"),
                     checked: hideAttribution,
                     onChange: (val) => setAttributes({ hideAttribution: val }),
                     help: __("Requires a valid license key.", "udoc-viewer"),
+                }),
+                wp.element.createElement(ToggleControl, {
+                    label: __("Disable Theme Switching", "udoc-viewer"),
+                    checked: disableThemeSwitching,
+                    onChange: (val) => setAttributes({ disableThemeSwitching: val }),
                 }),
             ),
             wp.element.createElement(
@@ -130,21 +156,121 @@ registerBlockType("udoc/viewer", {
                     onChange: (val) => setAttributes({ disableFullscreen: val }),
                 }),
                 wp.element.createElement(ToggleControl, {
+                    label: __("Disable Download", "udoc-viewer"),
+                    checked: disableDownload,
+                    onChange: (val) => setAttributes({ disableDownload: val }),
+                }),
+                wp.element.createElement(ToggleControl, {
+                    label: __("Disable Print", "udoc-viewer"),
+                    checked: disablePrint,
+                    onChange: (val) => setAttributes({ disablePrint: val }),
+                }),
+                wp.element.createElement(ToggleControl, {
                     label: __("Disable Text Selection", "udoc-viewer"),
                     checked: disableTextSelection,
                     onChange: (val) => setAttributes({ disableTextSelection: val }),
                 }),
                 wp.element.createElement(ToggleControl, {
+                    label: __("Google Fonts", "udoc-viewer"),
+                    checked: googleFonts,
+                    onChange: (val) => setAttributes({ googleFonts: val }),
+                    help: __("Fetch missing fonts from Google Fonts. Disable for privacy.", "udoc-viewer"),
+                }),
+            ),
+            wp.element.createElement(
+                PanelBody,
+                {
+                    title: __("Panels", "udoc-viewer"),
+                    initialOpen: false,
+                },
+                wp.element.createElement(ToggleControl, {
                     label: __("Disable Left Panel", "udoc-viewer"),
                     checked: disableLeftPanel,
                     onChange: (val) => setAttributes({ disableLeftPanel: val }),
-                    help: __("Thumbnails, outline, bookmarks, layers, attachments", "udoc-viewer"),
+                    help: __("Hides the entire left panel area.", "udoc-viewer"),
                 }),
                 wp.element.createElement(ToggleControl, {
                     label: __("Disable Right Panel", "udoc-viewer"),
                     checked: disableRightPanel,
                     onChange: (val) => setAttributes({ disableRightPanel: val }),
-                    help: __("Search, comments", "udoc-viewer"),
+                    help: __("Hides the entire right panel area.", "udoc-viewer"),
+                }),
+                wp.element.createElement(ToggleControl, {
+                    label: __("Disable Thumbnails", "udoc-viewer"),
+                    checked: disableThumbnails,
+                    onChange: (val) => setAttributes({ disableThumbnails: val }),
+                }),
+                wp.element.createElement(ToggleControl, {
+                    label: __("Disable Outline", "udoc-viewer"),
+                    checked: disableOutline,
+                    onChange: (val) => setAttributes({ disableOutline: val }),
+                }),
+                wp.element.createElement(ToggleControl, {
+                    label: __("Disable Bookmarks", "udoc-viewer"),
+                    checked: disableBookmarks,
+                    onChange: (val) => setAttributes({ disableBookmarks: val }),
+                }),
+                wp.element.createElement(ToggleControl, {
+                    label: __("Disable Layers", "udoc-viewer"),
+                    checked: disableLayers,
+                    onChange: (val) => setAttributes({ disableLayers: val }),
+                }),
+                wp.element.createElement(ToggleControl, {
+                    label: __("Disable Attachments", "udoc-viewer"),
+                    checked: disableAttachments,
+                    onChange: (val) => setAttributes({ disableAttachments: val }),
+                }),
+                wp.element.createElement(ToggleControl, {
+                    label: __("Disable Comments", "udoc-viewer"),
+                    checked: disableComments,
+                    onChange: (val) => setAttributes({ disableComments: val }),
+                }),
+            ),
+            wp.element.createElement(
+                PanelBody,
+                {
+                    title: __("View Mode", "udoc-viewer"),
+                    initialOpen: false,
+                },
+                wp.element.createElement(SelectControl, {
+                    label: __("Scroll Mode", "udoc-viewer"),
+                    value: scrollMode,
+                    options: [
+                        { label: __("Default", "udoc-viewer"), value: "" },
+                        { label: __("Continuous", "udoc-viewer"), value: "continuous" },
+                        { label: __("Page", "udoc-viewer"), value: "page" },
+                        { label: __("Wrapped", "udoc-viewer"), value: "wrapped" },
+                    ],
+                    onChange: (val) => setAttributes({ scrollMode: val }),
+                }),
+                wp.element.createElement(SelectControl, {
+                    label: __("Layout Mode", "udoc-viewer"),
+                    value: layoutMode,
+                    options: [
+                        { label: __("Default", "udoc-viewer"), value: "" },
+                        { label: __("Single Page", "udoc-viewer"), value: "single" },
+                        { label: __("Double Page", "udoc-viewer"), value: "double" },
+                        { label: __("Double Page (Cover)", "udoc-viewer"), value: "double-cover" },
+                    ],
+                    onChange: (val) => setAttributes({ layoutMode: val }),
+                }),
+                wp.element.createElement(SelectControl, {
+                    label: __("Zoom Mode", "udoc-viewer"),
+                    value: zoomMode,
+                    options: [
+                        { label: __("Default", "udoc-viewer"), value: "" },
+                        { label: __("Fit Width", "udoc-viewer"), value: "fit-width" },
+                        { label: __("Fit Page", "udoc-viewer"), value: "fit-page" },
+                        { label: __("Fit Spread Width", "udoc-viewer"), value: "fit-spread-width" },
+                        { label: __("Custom", "udoc-viewer"), value: "custom" },
+                    ],
+                    onChange: (val) => setAttributes({ zoomMode: val }),
+                }),
+                wp.element.createElement(TextControl, {
+                    label: __("Zoom Level", "udoc-viewer"),
+                    value: zoom,
+                    onChange: (val) => setAttributes({ zoom: val }),
+                    help: __("Number, e.g. 1.5. Only used when Zoom Mode is Custom.", "udoc-viewer"),
                 }),
             ),
         );

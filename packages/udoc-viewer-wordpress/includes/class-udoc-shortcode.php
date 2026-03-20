@@ -22,17 +22,32 @@ class UDoc_Shortcode {
 	 */
 	public static function render( $atts, $content = null ) {
 		$atts = shortcode_atts( array(
-			'src'            => '',
-			'width'          => '100%',
-			'height'         => '600px',
-			'theme'          => get_option( 'udoc_default_theme', 'light' ),
-			'toolbar'        => get_option( 'udoc_default_hide_toolbar', false ) ? 'false' : 'true',
-			'attribution'    => get_option( 'udoc_default_hide_attribution', false ) ? 'false' : 'true',
-			'search'         => 'true',
-			'fullscreen'     => 'true',
-			'text-selection' => 'true',
-			'left-panel'     => 'true',
-			'right-panel'    => 'true',
+			'src'              => '',
+			'width'            => '100%',
+			'height'           => '600px',
+			'theme'            => get_option( 'udoc_default_theme', 'light' ),
+			'toolbar'          => get_option( 'udoc_default_hide_toolbar', false ) ? 'false' : 'true',
+			'floating-toolbar' => get_option( 'udoc_default_hide_floating_toolbar', false ) ? 'false' : 'true',
+			'attribution'      => get_option( 'udoc_default_hide_attribution', false ) ? 'false' : 'true',
+			'search'           => 'true',
+			'fullscreen'       => 'true',
+			'download'         => get_option( 'udoc_default_disable_download', false ) ? 'false' : 'true',
+			'print'            => get_option( 'udoc_default_disable_print', false ) ? 'false' : 'true',
+			'text-selection'   => 'true',
+			'theme-switching'  => get_option( 'udoc_default_disable_theme_switching', false ) ? 'false' : 'true',
+			'left-panel'       => 'true',
+			'right-panel'      => 'true',
+			'thumbnails'       => 'true',
+			'outline'          => 'true',
+			'bookmarks'        => 'true',
+			'layers'           => 'true',
+			'attachments'      => 'true',
+			'comments'         => 'true',
+			'google-fonts'     => get_option( 'udoc_default_google_fonts', true ) ? 'true' : 'false',
+			'scroll-mode'      => '',
+			'layout-mode'      => '',
+			'zoom-mode'        => '',
+			'zoom'             => '',
 		), $atts, 'udoc-viewer' );
 
 		if ( empty( $atts['src'] ) ) {
@@ -63,6 +78,10 @@ class UDoc_Shortcode {
 			$config['hideToolbar'] = true;
 		}
 
+		if ( self::is_false( $atts['floating-toolbar'] ) ) {
+			$config['hideFloatingToolbar'] = true;
+		}
+
 		if ( self::is_false( $atts['attribution'] ) ) {
 			$config['hideAttribution'] = true;
 		}
@@ -75,8 +94,20 @@ class UDoc_Shortcode {
 			$config['disableFullscreen'] = true;
 		}
 
+		if ( self::is_false( $atts['download'] ) ) {
+			$config['disableDownload'] = true;
+		}
+
+		if ( self::is_false( $atts['print'] ) ) {
+			$config['disablePrint'] = true;
+		}
+
 		if ( self::is_false( $atts['text-selection'] ) ) {
 			$config['disableTextSelection'] = true;
+		}
+
+		if ( self::is_false( $atts['theme-switching'] ) ) {
+			$config['disableThemeSwitching'] = true;
 		}
 
 		if ( self::is_false( $atts['left-panel'] ) ) {
@@ -85,6 +116,50 @@ class UDoc_Shortcode {
 
 		if ( self::is_false( $atts['right-panel'] ) ) {
 			$config['disableRightPanel'] = true;
+		}
+
+		if ( self::is_false( $atts['thumbnails'] ) ) {
+			$config['disableThumbnails'] = true;
+		}
+
+		if ( self::is_false( $atts['outline'] ) ) {
+			$config['disableOutline'] = true;
+		}
+
+		if ( self::is_false( $atts['bookmarks'] ) ) {
+			$config['disableBookmarks'] = true;
+		}
+
+		if ( self::is_false( $atts['layers'] ) ) {
+			$config['disableLayers'] = true;
+		}
+
+		if ( self::is_false( $atts['attachments'] ) ) {
+			$config['disableAttachments'] = true;
+		}
+
+		if ( self::is_false( $atts['comments'] ) ) {
+			$config['disableComments'] = true;
+		}
+
+		if ( self::is_false( $atts['google-fonts'] ) ) {
+			$config['googleFonts'] = false;
+		}
+
+		if ( ! empty( $atts['scroll-mode'] ) ) {
+			$config['scrollMode'] = $atts['scroll-mode'];
+		}
+
+		if ( ! empty( $atts['layout-mode'] ) ) {
+			$config['layoutMode'] = $atts['layout-mode'];
+		}
+
+		if ( ! empty( $atts['zoom-mode'] ) ) {
+			$config['zoomMode'] = $atts['zoom-mode'];
+		}
+
+		if ( ! empty( $atts['zoom'] ) ) {
+			$config['zoom'] = (float) $atts['zoom'];
 		}
 
 		// Trigger asset enqueue.

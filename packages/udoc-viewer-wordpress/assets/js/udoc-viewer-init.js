@@ -37,7 +37,6 @@ async function initViewers() {
             const client = await UDocClient.create({
                 license: config.license || undefined,
                 baseUrl: config.baseUrl || undefined,
-                gpu: config.gpu || false,
             });
 
             opts.container = el;
