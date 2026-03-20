@@ -6,7 +6,7 @@ export type {
     ComposePick,
     ExtractedFont,
     ExtractedImage,
-    FontDescriptor,
+    FontEntry,
     OutlineSection,
     SplitByOutlineResult,
     RenderType,

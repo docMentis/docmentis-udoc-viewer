@@ -1,32 +1,54 @@
 /**
- * Google Fonts support for document rendering.
+ * Font management for document rendering.
  *
- * Call `enableGoogleFonts()` once after loading a document to enable
- * automatic font fetching during rendering.
+ * - Call `registerFonts()` to provide custom font URLs (resolved first).
+ * - Call `enableGoogleFonts()` to enable automatic Google Fonts fetching.
+ *
+ * Both should be called before loading documents.
  */
 
-import type { WorkerClient } from "./worker/index.js";
+import type { WorkerClient, FontEntry } from "./worker/index.js";
+
+export type { FontEntry };
 
 /**
- * Enable Google Fonts for a document.
+ * Register font URLs.
  *
- * When enabled, fonts that are not embedded in the document will be
- * automatically fetched from Google Fonts during rendering.
+ * The engine fetches fonts on-demand during layout from the provided URLs.
+ * Call this before loading documents. Registered fonts take priority over
+ * Google Fonts.
  *
  * @param workerClient - The worker client
- * @param documentId - Document ID to enable Google Fonts for
+ * @param fonts - Array of font entries
  *
  * @example
  * ```ts
- * // Load document
- * const docId = await workerClient.loadPdf(bytes);
- *
- * // Enable Google Fonts
- * await enableGoogleFonts(workerClient, docId);
- *
- * // Render - fonts are fetched automatically as needed
+ * await registerFonts(workerClient, [
+ *   { typeface: "Roboto", bold: false, italic: false, url: "https://cdn.example.com/Roboto-Regular.woff2" },
+ *   { typeface: "Roboto", bold: true, italic: false, url: "https://cdn.example.com/Roboto-Bold.woff2" },
+ * ]);
  * ```
  */
-export async function enableGoogleFonts(workerClient: WorkerClient, documentId: string): Promise<void> {
-    await workerClient.enableGoogleFonts(documentId);
+export async function registerFonts(workerClient: WorkerClient, fonts: FontEntry[]): Promise<void> {
+    await workerClient.registerFonts(fonts);
+}
+
+/**
+ * Enable Google Fonts.
+ *
+ * When enabled, fonts that are not embedded in the document will be
+ * automatically fetched from Google Fonts during rendering. Google Fonts
+ * are resolved after any URL fonts registered via `registerFonts`.
+ *
+ * Call this before loading documents.
+ *
+ * @param workerClient - The worker client
+ *
+ * @example
+ * ```ts
+ * await enableGoogleFonts(workerClient);
+ * ```
+ */
+export async function enableGoogleFonts(workerClient: WorkerClient): Promise<void> {
+    await workerClient.enableGoogleFonts();
 }

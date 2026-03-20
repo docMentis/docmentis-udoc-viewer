@@ -259,12 +259,12 @@ if (!('encodeInto' in cachedTextEncoder)) {
 
 let WASM_VECTOR_LEN = 0;
 
-function __wasm_bindgen_func_elem_2530(arg0, arg1, arg2) {
-    wasm.__wasm_bindgen_func_elem_2530(arg0, arg1, addHeapObject(arg2));
+function __wasm_bindgen_func_elem_2544(arg0, arg1, arg2) {
+    wasm.__wasm_bindgen_func_elem_2544(arg0, arg1, addHeapObject(arg2));
 }
 
-function __wasm_bindgen_func_elem_16266(arg0, arg1, arg2, arg3) {
-    wasm.__wasm_bindgen_func_elem_16266(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
+function __wasm_bindgen_func_elem_16280(arg0, arg1, arg2, arg3) {
+    wasm.__wasm_bindgen_func_elem_16280(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
 }
 
 const __wbindgen_enum_GpuBufferBindingType = ["uniform", "storage", "read-only-storage"];
@@ -287,25 +287,25 @@ const __wbindgen_enum_GpuTextureViewDimension = ["1d", "2d", "2d-array", "cube",
 
 const __wbindgen_enum_XmlHttpRequestResponseType = ["", "arraybuffer", "blob", "document", "json", "text"];
 
-const UDocFinalization = (typeof FinalizationRegistry === 'undefined')
+const WasmFinalization = (typeof FinalizationRegistry === 'undefined')
     ? { register: () => {}, unregister: () => {} }
-    : new FinalizationRegistry(ptr => wasm.__wbg_udoc_free(ptr >>> 0, 1));
+    : new FinalizationRegistry(ptr => wasm.__wbg_wasm_free(ptr >>> 0, 1));
 
 /**
  * Universal document viewer.
  *
  * Loads, stores, and renders PDF documents. Each document is identified by a unique ID.
  */
-export class UDoc {
+export class Wasm {
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
-        UDocFinalization.unregister(this);
+        WasmFinalization.unregister(this);
         return ptr;
     }
     free() {
         const ptr = this.__destroy_into_raw();
-        wasm.__wbg_udoc_free(ptr, 0);
+        wasm.__wbg_wasm_free(ptr, 0);
     }
     /**
      * Load an image file and return its ID.
@@ -328,7 +328,7 @@ export class UDoc {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
             const ptr0 = passArray8ToWasm0(bytes, wasm.__wbindgen_export);
             const len0 = WASM_VECTOR_LEN;
-            wasm.udoc_load_image(retptr, this.__wbg_ptr, ptr0, len0);
+            wasm.wasm_load_image(retptr, this.__wbg_ptr, ptr0, len0);
             var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
             var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
             var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
@@ -357,7 +357,7 @@ export class UDoc {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
             const ptr0 = passStringToWasm0(id, wasm.__wbindgen_export, wasm.__wbindgen_export2);
             const len0 = WASM_VECTOR_LEN;
-            wasm.udoc_page_count(retptr, this.__wbg_ptr, ptr0, len0);
+            wasm.wasm_page_count(retptr, this.__wbg_ptr, ptr0, len0);
             var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
             var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
             var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
@@ -386,7 +386,7 @@ export class UDoc {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
             const ptr0 = passStringToWasm0(id, wasm.__wbindgen_export, wasm.__wbindgen_export2);
             const len0 = WASM_VECTOR_LEN;
-            wasm.udoc_get_outline(retptr, this.__wbg_ptr, ptr0, len0);
+            wasm.wasm_get_outline(retptr, this.__wbg_ptr, ptr0, len0);
             var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
             var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
             var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
@@ -406,7 +406,7 @@ export class UDoc {
     has_feature(feature) {
         const ptr0 = passStringToWasm0(feature, wasm.__wbindgen_export, wasm.__wbindgen_export2);
         const len0 = WASM_VECTOR_LEN;
-        const ret = wasm.udoc_has_feature(this.__wbg_ptr, ptr0, len0);
+        const ret = wasm.wasm_has_feature(this.__wbg_ptr, ptr0, len0);
         return ret !== 0;
     }
     /**
@@ -426,7 +426,7 @@ export class UDoc {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
             const ptr0 = passStringToWasm0(id, wasm.__wbindgen_export, wasm.__wbindgen_export2);
             const len0 = WASM_VECTOR_LEN;
-            wasm.udoc_page_layout(retptr, this.__wbg_ptr, ptr0, len0);
+            wasm.wasm_page_layout(retptr, this.__wbg_ptr, ptr0, len0);
             var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
             var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
             var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
@@ -477,7 +477,7 @@ export class UDoc {
     pdf_compose(compositions, doc_ids) {
         try {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-            wasm.udoc_pdf_compose(retptr, this.__wbg_ptr, addHeapObject(compositions), addHeapObject(doc_ids));
+            wasm.wasm_pdf_compose(retptr, this.__wbg_ptr, addHeapObject(compositions), addHeapObject(doc_ids));
             var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
             var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
             var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
@@ -505,7 +505,7 @@ export class UDoc {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
             const ptr0 = passStringToWasm0(license_key, wasm.__wbindgen_export, wasm.__wbindgen_export2);
             const len0 = WASM_VECTOR_LEN;
-            wasm.udoc_set_license(retptr, this.__wbg_ptr, ptr0, len0);
+            wasm.wasm_set_license(retptr, this.__wbg_ptr, ptr0, len0);
             var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
             var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
             var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
@@ -537,7 +537,7 @@ export class UDoc {
             const len0 = WASM_VECTOR_LEN;
             const ptr1 = passStringToWasm0(password, wasm.__wbindgen_export, wasm.__wbindgen_export2);
             const len1 = WASM_VECTOR_LEN;
-            wasm.udoc_authenticate(retptr, this.__wbg_ptr, ptr0, len0, ptr1, len1);
+            wasm.wasm_authenticate(retptr, this.__wbg_ptr, ptr0, len0, ptr1, len1);
             var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
             var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
             var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
@@ -556,7 +556,7 @@ export class UDoc {
     document_ids() {
         try {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-            wasm.udoc_document_ids(retptr, this.__wbg_ptr);
+            wasm.wasm_document_ids(retptr, this.__wbg_ptr);
             var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
             var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
             var v1 = getArrayJsValueFromWasm0(r0, r1).slice();
@@ -574,7 +574,7 @@ export class UDoc {
     has_document(id) {
         const ptr0 = passStringToWasm0(id, wasm.__wbindgen_export, wasm.__wbindgen_export2);
         const len0 = WASM_VECTOR_LEN;
-        const ret = wasm.udoc_has_document(this.__wbg_ptr, ptr0, len0);
+        const ret = wasm.wasm_has_document(this.__wbg_ptr, ptr0, len0);
         return ret !== 0;
     }
     /**
@@ -599,7 +599,7 @@ export class UDoc {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
             const ptr0 = passStringToWasm0(doc_id, wasm.__wbindgen_export, wasm.__wbindgen_export2);
             const len0 = WASM_VECTOR_LEN;
-            wasm.udoc_pdf_compress(retptr, this.__wbg_ptr, ptr0, len0);
+            wasm.wasm_pdf_compress(retptr, this.__wbg_ptr, ptr0, len0);
             var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
             var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
             var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
@@ -627,7 +627,7 @@ export class UDoc {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
             const ptr0 = passStringToWasm0(id, wasm.__wbindgen_export, wasm.__wbindgen_export2);
             const len0 = WASM_VECTOR_LEN;
-            wasm.udoc_all_page_info(retptr, this.__wbg_ptr, ptr0, len0);
+            wasm.wasm_all_page_info(retptr, this.__wbg_ptr, ptr0, len0);
             var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
             var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
             var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
@@ -656,7 +656,7 @@ export class UDoc {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
             const ptr0 = passStringToWasm0(id, wasm.__wbindgen_export, wasm.__wbindgen_export2);
             const len0 = WASM_VECTOR_LEN;
-            wasm.udoc_get_page_text(retptr, this.__wbg_ptr, ptr0, len0, page_index);
+            wasm.wasm_get_page_text(retptr, this.__wbg_ptr, ptr0, len0, page_index);
             var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
             var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
             var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
@@ -669,49 +669,11 @@ export class UDoc {
         }
     }
     /**
-     * Register a font from raw bytes.
-     *
-     * The JS viewer calls `getRequiredFonts` to discover which fonts a
-     * document needs, fetches them from any source (CDN, local storage, etc.),
-     * and passes the raw bytes here so the engine can use them during rendering.
-     *
-     * # Arguments
-     * * `id` - Document ID
-     * * `typeface` - The typeface name (must match what's in the document)
-     * * `bold` - Whether this is a bold variant
-     * * `italic` - Whether this is an italic variant
-     * * `bytes` - Raw font file data (TTF, OTF, WOFF, or WOFF2)
-     * @param {string} id
-     * @param {string} typeface
-     * @param {boolean} bold
-     * @param {boolean} italic
-     * @param {Uint8Array} bytes
-     */
-    registerFont(id, typeface, bold, italic, bytes) {
-        try {
-            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-            const ptr0 = passStringToWasm0(id, wasm.__wbindgen_export, wasm.__wbindgen_export2);
-            const len0 = WASM_VECTOR_LEN;
-            const ptr1 = passStringToWasm0(typeface, wasm.__wbindgen_export, wasm.__wbindgen_export2);
-            const len1 = WASM_VECTOR_LEN;
-            const ptr2 = passArray8ToWasm0(bytes, wasm.__wbindgen_export);
-            const len2 = WASM_VECTOR_LEN;
-            wasm.udoc_registerFont(retptr, this.__wbg_ptr, ptr0, len0, ptr1, len1, bold, italic, ptr2, len2);
-            var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
-            var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
-            if (r1) {
-                throw takeObject(r0);
-            }
-        } finally {
-            wasm.__wbindgen_add_to_stack_pointer(16);
-        }
-    }
-    /**
      * Get the number of documents currently loaded.
      * @returns {number}
      */
     get document_count() {
-        const ret = wasm.udoc_document_count(this.__wbg_ptr);
+        const ret = wasm.wasm_document_count(this.__wbg_ptr);
         return ret >>> 0;
     }
     /**
@@ -721,7 +683,7 @@ export class UDoc {
     license_status() {
         try {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-            wasm.udoc_license_status(retptr, this.__wbg_ptr);
+            wasm.wasm_license_status(retptr, this.__wbg_ptr);
             var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
             var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
             var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
@@ -746,7 +708,7 @@ export class UDoc {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
             const ptr0 = passStringToWasm0(id, wasm.__wbindgen_export, wasm.__wbindgen_export2);
             const len0 = WASM_VECTOR_LEN;
-            wasm.udoc_needs_password(retptr, this.__wbg_ptr, ptr0, len0);
+            wasm.wasm_needs_password(retptr, this.__wbg_ptr, ptr0, len0);
             var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
             var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
             var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
@@ -777,7 +739,7 @@ export class UDoc {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
             const ptr0 = passStringToWasm0(doc_id, wasm.__wbindgen_export, wasm.__wbindgen_export2);
             const len0 = WASM_VECTOR_LEN;
-            wasm.udoc_pdf_decompress(retptr, this.__wbg_ptr, ptr0, len0);
+            wasm.wasm_pdf_decompress(retptr, this.__wbg_ptr, ptr0, len0);
             var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
             var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
             var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
@@ -788,6 +750,47 @@ export class UDoc {
             var v2 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_export4(r0, r1 * 1, 1);
             return v2;
+        } finally {
+            wasm.__wbindgen_add_to_stack_pointer(16);
+        }
+    }
+    /**
+     * Register font URLs.
+     *
+     * The caller provides a list of all available fonts with their download
+     * URLs. During layout, when the engine needs a font, it is fetched from
+     * the URL, parsed, and cached for reuse.
+     *
+     * Call this before loading documents. Registered fonts are automatically
+     * applied to every document loaded afterward. URL fonts are always
+     * resolved before Google Fonts.
+     *
+     * # Arguments
+     * * `fonts` - Array of font entries: `[{ typeface: "Roboto", bold: false, italic: false, url: "https://..." }, ...]`
+     *
+     * # Example (JavaScript)
+     * ```js
+     * // Register available fonts before loading documents
+     * udoc.registerFonts([
+     *     { typeface: "Roboto", bold: false, italic: false, url: "https://cdn.example.com/Roboto-Regular.woff2" },
+     *     { typeface: "Roboto", bold: true, italic: false, url: "https://cdn.example.com/Roboto-Bold.woff2" },
+     * ]);
+     *
+     * // Load and render - fonts are fetched on demand during layout
+     * const docId = udoc.loadPptx(pptxBytes);
+     * const pixels = udoc.renderPageToRgba(docId, 0, 800, 600);
+     * ```
+     * @param {any} fonts
+     */
+    registerFonts(fonts) {
+        try {
+            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+            wasm.wasm_registerFonts(retptr, this.__wbg_ptr, addHeapObject(fonts));
+            var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
+            var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
+            if (r1) {
+                throw takeObject(r0);
+            }
         } finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
@@ -806,7 +809,7 @@ export class UDoc {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
             const ptr0 = passStringToWasm0(id, wasm.__wbindgen_export, wasm.__wbindgen_export2);
             const len0 = WASM_VECTOR_LEN;
-            wasm.udoc_document_format(retptr, this.__wbg_ptr, ptr0, len0);
+            wasm.wasm_document_format(retptr, this.__wbg_ptr, ptr0, len0);
             var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
             var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
             var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
@@ -835,7 +838,7 @@ export class UDoc {
     remove_document(id) {
         const ptr0 = passStringToWasm0(id, wasm.__wbindgen_export, wasm.__wbindgen_export2);
         const len0 = WASM_VECTOR_LEN;
-        const ret = wasm.udoc_remove_document(this.__wbg_ptr, ptr0, len0);
+        const ret = wasm.wasm_remove_document(this.__wbg_ptr, ptr0, len0);
         return ret !== 0;
     }
     /**
@@ -857,7 +860,7 @@ export class UDoc {
     render_page_gpu(id, page_index, width, height) {
         const ptr0 = passStringToWasm0(id, wasm.__wbindgen_export, wasm.__wbindgen_export2);
         const len0 = WASM_VECTOR_LEN;
-        const ret = wasm.udoc_render_page_gpu(this.__wbg_ptr, ptr0, len0, page_index, width, height);
+        const ret = wasm.wasm_render_page_gpu(this.__wbg_ptr, ptr0, len0, page_index, width, height);
         return takeObject(ret);
     }
     /**
@@ -880,62 +883,7 @@ export class UDoc {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
             const ptr0 = passStringToWasm0(doc_id, wasm.__wbindgen_export, wasm.__wbindgen_export2);
             const len0 = WASM_VECTOR_LEN;
-            wasm.udoc_pdf_extract_fonts(retptr, this.__wbg_ptr, ptr0, len0);
-            var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
-            var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
-            var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
-            if (r2) {
-                throw takeObject(r1);
-            }
-            return takeObject(r0);
-        } finally {
-            wasm.__wbindgen_add_to_stack_pointer(16);
-        }
-    }
-    /**
-     * Get all external fonts required by the document.
-     *
-     * This scans all text content in loaded pages and returns font descriptors
-     * for fonts that are:
-     * - Not embedded in the document
-     * - Not standard PDF fonts (Helvetica, Times, Courier, etc.)
-     *
-     * Use this to determine which fonts need to be fetched from external sources
-     * (e.g., Google Fonts) before rendering.
-     *
-     * Note: This only scans pages that have been loaded. Call appropriate loading
-     * methods first to ensure the pages you need are scanned.
-     *
-     * # Arguments
-     * * `id` - Document ID
-     *
-     * # Returns
-     * Array of font descriptors: `[{ typeface: "Roboto", bold: false, italic: false }, ...]`
-     *
-     * # Example (JavaScript)
-     * ```js
-     * // Load document
-     * const docId = udoc.loadPdf(pdfBytes);
-     *
-     * // Load all pages to scan for fonts
-     * const pageCount = udoc.pageCount(docId);
-     * for (let i = 0; i < pageCount; i++) {
-     *     udoc.renderPageToRgba(docId, i, 1, 1); // Minimal render to load page
-     * }
-     *
-     * // Get required fonts
-     * const fonts = udoc.getRequiredFonts(docId);
-     * // fonts: [{ typeface: "Roboto", bold: false, italic: false }, ...]
-     * ```
-     * @param {string} id
-     * @returns {any}
-     */
-    getRequiredFonts(id) {
-        try {
-            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-            const ptr0 = passStringToWasm0(id, wasm.__wbindgen_export, wasm.__wbindgen_export2);
-            const len0 = WASM_VECTOR_LEN;
-            wasm.udoc_getRequiredFonts(retptr, this.__wbg_ptr, ptr0, len0);
+            wasm.wasm_pdf_extract_fonts(retptr, this.__wbg_ptr, ptr0, len0);
             var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
             var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
             var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
@@ -970,7 +918,7 @@ export class UDoc {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
             const ptr0 = passStringToWasm0(doc_id, wasm.__wbindgen_export, wasm.__wbindgen_export2);
             const len0 = WASM_VECTOR_LEN;
-            wasm.udoc_pdf_extract_images(retptr, this.__wbg_ptr, ptr0, len0, convert_raw_to_png);
+            wasm.wasm_pdf_extract_images(retptr, this.__wbg_ptr, ptr0, len0, convert_raw_to_png);
             var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
             var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
             var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
@@ -1004,7 +952,7 @@ export class UDoc {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
             const ptr0 = passStringToWasm0(id, wasm.__wbindgen_export, wasm.__wbindgen_export2);
             const len0 = WASM_VECTOR_LEN;
-            wasm.udoc_render_page_to_png(retptr, this.__wbg_ptr, ptr0, len0, page_index, width, height);
+            wasm.wasm_render_page_to_png(retptr, this.__wbg_ptr, ptr0, len0, page_index, width, height);
             var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
             var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
             var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
@@ -1020,38 +968,23 @@ export class UDoc {
         }
     }
     /**
-     * Enable Google Fonts for a document.
+     * Enable Google Fonts.
      *
      * When enabled, fonts that are not embedded in the document will be
-     * automatically fetched from Google Fonts during rendering.
+     * automatically fetched from Google Fonts during rendering. Google Fonts
+     * are resolved after any URL fonts registered via `registerFonts`.
      *
-     * # Arguments
-     * * `id` - Document ID
+     * Call this before loading documents.
      *
      * # Example (JavaScript)
      * ```js
-     * // Enable Google Fonts for the document
-     * udoc.enableGoogleFonts(docId);
-     *
-     * // Now render pages - fonts will be fetched automatically
+     * udoc.enableGoogleFonts();
+     * const docId = udoc.loadPptx(pptxBytes);
      * const pixels = udoc.renderPageToRgba(docId, 0, 800, 600);
      * ```
-     * @param {string} id
      */
-    enableGoogleFonts(id) {
-        try {
-            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-            const ptr0 = passStringToWasm0(id, wasm.__wbindgen_export, wasm.__wbindgen_export2);
-            const len0 = WASM_VECTOR_LEN;
-            wasm.udoc_enableGoogleFonts(retptr, this.__wbg_ptr, ptr0, len0);
-            var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
-            var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
-            if (r1) {
-                throw takeObject(r0);
-            }
-        } finally {
-            wasm.__wbindgen_add_to_stack_pointer(16);
-        }
+    enableGoogleFonts() {
+        wasm.wasm_enableGoogleFonts(this.__wbg_ptr);
     }
     /**
      * Get all annotations in the document, grouped by page index.
@@ -1065,7 +998,7 @@ export class UDoc {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
             const ptr0 = passStringToWasm0(id, wasm.__wbindgen_export, wasm.__wbindgen_export2);
             const len0 = WASM_VECTOR_LEN;
-            wasm.udoc_get_all_annotations(retptr, this.__wbg_ptr, ptr0, len0);
+            wasm.wasm_get_all_annotations(retptr, this.__wbg_ptr, ptr0, len0);
             var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
             var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
             var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
@@ -1073,42 +1006,6 @@ export class UDoc {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
-            wasm.__wbindgen_add_to_stack_pointer(16);
-        }
-    }
-    /**
-     * Check if a font is registered for a document.
-     *
-     * # Arguments
-     * * `id` - Document ID
-     * * `typeface` - The typeface name
-     * * `bold` - Whether to check for bold variant
-     * * `italic` - Whether to check for italic variant
-     *
-     * # Returns
-     * `true` if the font is registered, `false` otherwise.
-     * @param {string} id
-     * @param {string} typeface
-     * @param {boolean} bold
-     * @param {boolean} italic
-     * @returns {boolean}
-     */
-    hasRegisteredFont(id, typeface, bold, italic) {
-        try {
-            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-            const ptr0 = passStringToWasm0(id, wasm.__wbindgen_export, wasm.__wbindgen_export2);
-            const len0 = WASM_VECTOR_LEN;
-            const ptr1 = passStringToWasm0(typeface, wasm.__wbindgen_export, wasm.__wbindgen_export2);
-            const len1 = WASM_VECTOR_LEN;
-            wasm.udoc_hasRegisteredFont(retptr, this.__wbg_ptr, ptr0, len0, ptr1, len1, bold, italic);
-            var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
-            var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
-            var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
-            if (r2) {
-                throw takeObject(r1);
-            }
-            return r0 !== 0;
         } finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
@@ -1138,7 +1035,7 @@ export class UDoc {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
             const ptr0 = passStringToWasm0(id, wasm.__wbindgen_export, wasm.__wbindgen_export2);
             const len0 = WASM_VECTOR_LEN;
-            wasm.udoc_render_page_to_rgba(retptr, this.__wbg_ptr, ptr0, len0, page_index, width, height);
+            wasm.wasm_render_page_to_rgba(retptr, this.__wbg_ptr, ptr0, len0, page_index, width, height);
             var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
             var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
             var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
@@ -1167,7 +1064,7 @@ export class UDoc {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
             const ptr0 = passStringToWasm0(id, wasm.__wbindgen_export, wasm.__wbindgen_export2);
             const len0 = WASM_VECTOR_LEN;
-            wasm.udoc_get_page_annotations(retptr, this.__wbg_ptr, ptr0, len0, page_index);
+            wasm.wasm_get_page_annotations(retptr, this.__wbg_ptr, ptr0, len0, page_index);
             var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
             var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
             var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
@@ -1203,7 +1100,7 @@ export class UDoc {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
             const ptr0 = passStringToWasm0(doc_id, wasm.__wbindgen_export, wasm.__wbindgen_export2);
             const len0 = WASM_VECTOR_LEN;
-            wasm.udoc_pdf_split_by_outline(retptr, this.__wbg_ptr, ptr0, len0, max_level, split_mid_page);
+            wasm.wasm_pdf_split_by_outline(retptr, this.__wbg_ptr, ptr0, len0, max_level, split_mid_page);
             var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
             var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
             var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
@@ -1232,7 +1129,7 @@ export class UDoc {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
             const ptr0 = passStringToWasm0(id, wasm.__wbindgen_export, wasm.__wbindgen_export2);
             const len0 = WASM_VECTOR_LEN;
-            wasm.udoc_get_visibility_groups(retptr, this.__wbg_ptr, ptr0, len0);
+            wasm.wasm_get_visibility_groups(retptr, this.__wbg_ptr, ptr0, len0);
             var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
             var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
             var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
@@ -1240,34 +1137,6 @@ export class UDoc {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
-            wasm.__wbindgen_add_to_stack_pointer(16);
-        }
-    }
-    /**
-     * Get the number of fonts registered for a document.
-     *
-     * # Arguments
-     * * `id` - Document ID
-     *
-     * # Returns
-     * The number of registered fonts.
-     * @param {string} id
-     * @returns {number}
-     */
-    registeredFontCount(id) {
-        try {
-            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-            const ptr0 = passStringToWasm0(id, wasm.__wbindgen_export, wasm.__wbindgen_export2);
-            const len0 = WASM_VECTOR_LEN;
-            wasm.udoc_registeredFontCount(retptr, this.__wbg_ptr, ptr0, len0);
-            var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
-            var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
-            var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
-            if (r2) {
-                throw takeObject(r1);
-            }
-            return r0 >>> 0;
         } finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
@@ -1293,7 +1162,7 @@ export class UDoc {
             const len0 = WASM_VECTOR_LEN;
             const ptr1 = passStringToWasm0(group_id, wasm.__wbindgen_export, wasm.__wbindgen_export2);
             const len1 = WASM_VECTOR_LEN;
-            wasm.udoc_set_visibility_group_visible(retptr, this.__wbg_ptr, ptr0, len0, ptr1, len1, visible);
+            wasm.wasm_set_visibility_group_visible(retptr, this.__wbg_ptr, ptr0, len0, ptr1, len1, visible);
             var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
             var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
             var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
@@ -1309,9 +1178,9 @@ export class UDoc {
      * Create a new document viewer.
      */
     constructor() {
-        const ret = wasm.udoc_new();
+        const ret = wasm.wasm_new();
         this.__wbg_ptr = ret >>> 0;
-        UDocFinalization.register(this, this.__wbg_ptr, this);
+        WasmFinalization.register(this, this.__wbg_ptr, this);
         return this;
     }
     /**
@@ -1337,7 +1206,7 @@ export class UDoc {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
             const ptr0 = passArray8ToWasm0(bytes, wasm.__wbindgen_export);
             const len0 = WASM_VECTOR_LEN;
-            wasm.udoc_load(retptr, this.__wbg_ptr, ptr0, len0);
+            wasm.wasm_load(retptr, this.__wbg_ptr, ptr0, len0);
             var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
             var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
             var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
@@ -1377,14 +1246,14 @@ export class UDoc {
         const len1 = WASM_VECTOR_LEN;
         const ptr2 = passStringToWasm0(distinct_id, wasm.__wbindgen_export, wasm.__wbindgen_export2);
         const len2 = WASM_VECTOR_LEN;
-        wasm.udoc_setup(this.__wbg_ptr, ptr0, len0, ptr1, len1, ptr2, len2);
+        wasm.wasm_setup(this.__wbg_ptr, ptr0, len0, ptr1, len1, ptr2, len2);
     }
     /**
      * Check whether the GPU render backend is available.
      * @returns {boolean}
      */
     has_gpu() {
-        const ret = wasm.udoc_has_gpu(this.__wbg_ptr);
+        const ret = wasm.wasm_has_gpu(this.__wbg_ptr);
         return ret !== 0;
     }
     /**
@@ -1397,7 +1266,7 @@ export class UDoc {
      * @returns {Promise<boolean>}
      */
     init_gpu() {
-        const ret = wasm.udoc_init_gpu(this.__wbg_ptr);
+        const ret = wasm.wasm_init_gpu(this.__wbg_ptr);
         return takeObject(ret);
     }
     /**
@@ -1418,7 +1287,7 @@ export class UDoc {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
             const ptr0 = passArray8ToWasm0(bytes, wasm.__wbindgen_export);
             const len0 = WASM_VECTOR_LEN;
-            wasm.udoc_load_pdf(retptr, this.__wbg_ptr, ptr0, len0);
+            wasm.wasm_load_pdf(retptr, this.__wbg_ptr, ptr0, len0);
             var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
             var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
             var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
@@ -1449,7 +1318,7 @@ export class UDoc {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
             const ptr0 = passStringToWasm0(id, wasm.__wbindgen_export, wasm.__wbindgen_export2);
             const len0 = WASM_VECTOR_LEN;
-            wasm.udoc_get_bytes(retptr, this.__wbg_ptr, ptr0, len0);
+            wasm.wasm_get_bytes(retptr, this.__wbg_ptr, ptr0, len0);
             var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
             var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
             var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
@@ -1475,7 +1344,7 @@ export class UDoc {
     get_limit(limit_name, _default) {
         const ptr0 = passStringToWasm0(limit_name, wasm.__wbindgen_export, wasm.__wbindgen_export2);
         const len0 = WASM_VECTOR_LEN;
-        const ret = wasm.udoc_get_limit(this.__wbg_ptr, ptr0, len0, _default);
+        const ret = wasm.wasm_get_limit(this.__wbg_ptr, ptr0, len0, _default);
         return BigInt.asUintN(64, ret);
     }
     /**
@@ -1496,7 +1365,7 @@ export class UDoc {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
             const ptr0 = passArray8ToWasm0(bytes, wasm.__wbindgen_export);
             const len0 = WASM_VECTOR_LEN;
-            wasm.udoc_load_docx(retptr, this.__wbg_ptr, ptr0, len0);
+            wasm.wasm_load_docx(retptr, this.__wbg_ptr, ptr0, len0);
             var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
             var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
             var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
@@ -1533,7 +1402,7 @@ export class UDoc {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
             const ptr0 = passArray8ToWasm0(bytes, wasm.__wbindgen_export);
             const len0 = WASM_VECTOR_LEN;
-            wasm.udoc_load_pptx(retptr, this.__wbg_ptr, ptr0, len0);
+            wasm.wasm_load_pptx(retptr, this.__wbg_ptr, ptr0, len0);
             var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
             var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
             var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
@@ -1570,7 +1439,7 @@ export class UDoc {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
             const ptr0 = passArray8ToWasm0(bytes, wasm.__wbindgen_export);
             const len0 = WASM_VECTOR_LEN;
-            wasm.udoc_load_xlsx(retptr, this.__wbg_ptr, ptr0, len0);
+            wasm.wasm_load_xlsx(retptr, this.__wbg_ptr, ptr0, len0);
             var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
             var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
             var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
@@ -1600,7 +1469,7 @@ export class UDoc {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
             const ptr0 = passStringToWasm0(id, wasm.__wbindgen_export, wasm.__wbindgen_export2);
             const len0 = WASM_VECTOR_LEN;
-            wasm.udoc_page_info(retptr, this.__wbg_ptr, ptr0, len0, page_index);
+            wasm.wasm_page_info(retptr, this.__wbg_ptr, ptr0, len0, page_index);
             var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
             var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
             var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
@@ -1613,7 +1482,7 @@ export class UDoc {
         }
     }
 }
-if (Symbol.dispose) UDoc.prototype[Symbol.dispose] = UDoc.prototype.free;
+if (Symbol.dispose) Wasm.prototype[Symbol.dispose] = Wasm.prototype.free;
 
 const EXPECTED_RESPONSE_TYPES = new Set(['basic', 'cors', 'default']);
 
@@ -2033,7 +1902,7 @@ function __wbg_get_imports() {
                 const a = state0.a;
                 state0.a = 0;
                 try {
-                    return __wasm_bindgen_func_elem_16266(a, state0.b, arg0, arg1);
+                    return __wasm_bindgen_func_elem_16280(a, state0.b, arg0, arg1);
                 } finally {
                     state0.a = a;
                 }
@@ -2496,11 +2365,6 @@ function __wbg_get_imports() {
         const ret = getStringFromWasm0(arg0, arg1);
         return addHeapObject(ret);
     };
-    imports.wbg.__wbindgen_cast_3a49331188f32bb6 = function(arg0, arg1) {
-        // Cast intrinsic for `Closure(Closure { dtor_idx: 208, function: Function { arguments: [Externref], shim_idx: 209, ret: Unit, inner_ret: Some(Unit) }, mutable: true }) -> Externref`.
-        const ret = makeMutClosure(arg0, arg1, wasm.__wasm_bindgen_func_elem_2514, __wasm_bindgen_func_elem_2530);
-        return addHeapObject(ret);
-    };
     imports.wbg.__wbindgen_cast_4625c577ab2ec9ee = function(arg0) {
         // Cast intrinsic for `U64 -> Externref`.
         const ret = BigInt.asUintN(64, arg0);
@@ -2511,6 +2375,11 @@ function __wbg_get_imports() {
         wasm.__wbindgen_export4(arg0, arg1 * 1, 1);
         // Cast intrinsic for `Vector(U8) -> Externref`.
         const ret = v0;
+        return addHeapObject(ret);
+    };
+    imports.wbg.__wbindgen_cast_89b0435615caf0ab = function(arg0, arg1) {
+        // Cast intrinsic for `Closure(Closure { dtor_idx: 211, function: Function { arguments: [Externref], shim_idx: 212, ret: Unit, inner_ret: Some(Unit) }, mutable: true }) -> Externref`.
+        const ret = makeMutClosure(arg0, arg1, wasm.__wasm_bindgen_func_elem_2528, __wasm_bindgen_func_elem_2544);
         return addHeapObject(ret);
     };
     imports.wbg.__wbindgen_cast_9ae0607507abb057 = function(arg0) {

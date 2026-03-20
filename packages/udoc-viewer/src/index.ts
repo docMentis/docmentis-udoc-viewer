@@ -8,6 +8,7 @@ export type {
     Pick,
     Composition,
     ComposePick,
+    FontEntry,
 } from "./UDocClient.js";
 
 export { UDocViewer } from "./UDocViewer.js";
@@ -40,8 +41,7 @@ export type {
     ThemeMode,
 } from "./ui/viewer/state.js";
 
-// Worker internals (for advanced usage)
-export { WorkerClient } from "./worker/index.js";
+// Worker internals (types only, for advanced usage)
 export type { PageInfo, LicenseResult, WorkerRequest, WorkerResponse } from "./worker/index.js";
 
 // Performance tracking
@@ -54,6 +54,3 @@ export type {
     PerformanceEventStats,
     PerformanceCounterSummary,
 } from "./performance/index.js";
-
-// Google Fonts support
-export { enableGoogleFonts } from "./fonts.js";

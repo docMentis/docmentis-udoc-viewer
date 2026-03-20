@@ -143,6 +143,20 @@ const client = await UDocClient.create({
     // Custom base URL for worker and WASM files (optional)
     // Expected files: {baseUrl}/worker.js and {baseUrl}/udoc_bg.wasm
     baseUrl: "https://cdn.example.com/udoc/",
+
+    // Enable Google Fonts for automatic font fetching (default: true)
+    // When enabled, missing fonts are fetched from Google Fonts on-demand during rendering
+    googleFonts: true,
+
+    // Register custom font URLs for on-demand fetching during layout (optional)
+    // Supports OTF, TTF, WOFF, and WOFF2 formats
+    // Registered fonts take priority over Google Fonts
+    fonts: [
+        { typeface: "Roboto", bold: false, italic: false, url: "https://cdn.example.com/Roboto-Regular.woff2" },
+        { typeface: "Roboto", bold: true, italic: false, url: "https://cdn.example.com/Roboto-Bold.woff2" },
+        { typeface: "Roboto", bold: false, italic: true, url: "https://cdn.example.com/Roboto-Italic.woff2" },
+        { typeface: "Roboto", bold: true, italic: true, url: "https://cdn.example.com/Roboto-BoldItalic.woff2" },
+    ],
 });
 ```
 
@@ -212,9 +226,6 @@ const viewer = await client.createViewer({
 
     // Disable text selection and copying (default: false)
     disableTextSelection: false,
-
-    // Enable Google Fonts for automatic font fetching (default: true)
-    googleFonts: true,
 
     // --- Panels ---
 
@@ -555,6 +566,31 @@ const compressed = await client.compress(source);
 
 // Decompress a document
 const decompressed = await client.decompress(source);
+```
+
+### Font Management
+
+udoc-viewer automatically handles fonts for document rendering. By default, missing fonts are fetched from Google Fonts on-demand. You can also register custom fonts for full control.
+
+**Font resolution order:** Custom registered fonts are resolved first, then Google Fonts (if enabled). Supported font formats: OTF, TTF, WOFF, and WOFF2.
+
+```typescript
+// Option 1: Register fonts declaratively at client creation
+const client = await UDocClient.create({
+    googleFonts: true, // default, enable Google Fonts fallback
+    fonts: [
+        { typeface: "CustomFont", bold: false, italic: false, url: "https://cdn.example.com/CustomFont-Regular.woff2" },
+        { typeface: "CustomFont", bold: true, italic: false, url: "https://cdn.example.com/CustomFont-Bold.woff2" },
+    ],
+});
+
+// Option 2: Register fonts programmatically (before loading documents)
+await client.registerFonts([
+    { typeface: "CustomFont", bold: false, italic: false, url: "https://cdn.example.com/CustomFont-Regular.woff2" },
+]);
+
+// Option 3: Disable Google Fonts entirely (only use registered fonts)
+const client = await UDocClient.create({ googleFonts: false });
 ```
 
 ### Headless Rendering

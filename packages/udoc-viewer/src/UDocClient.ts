@@ -11,6 +11,7 @@ import type {
     ComposePick,
     ExtractedFont,
     ExtractedImage,
+    FontEntry,
     SplitByOutlineResult,
 } from "./worker/index.js";
 import { UDocViewer } from "./UDocViewer.js";
@@ -98,6 +99,31 @@ export interface ClientOptions {
      * @default false
      */
     gpu?: boolean;
+
+    /**
+     * Enable Google Fonts for automatic font fetching.
+     * When true, fonts not embedded in the document are fetched from Google Fonts
+     * on-demand during rendering. Google Fonts are resolved after any URL fonts
+     * registered via `fonts`.
+     * @default true
+     */
+    googleFonts?: boolean;
+
+    /**
+     * Register font URLs for on-demand fetching during layout.
+     * Call before loading documents. Registered fonts take priority over Google Fonts.
+     *
+     * @example
+     * ```ts
+     * const client = await UDocClient.create({
+     *   fonts: [
+     *     { typeface: "Roboto", bold: false, italic: false, url: "https://cdn.example.com/Roboto-Regular.woff2" },
+     *     { typeface: "Roboto", bold: true, italic: false, url: "https://cdn.example.com/Roboto-Bold.woff2" },
+     *   ],
+     * });
+     * ```
+     */
+    fonts?: FontEntry[];
 }
 
 /**
@@ -185,14 +211,6 @@ export interface ViewerOptions {
      * Called for each operation start/end when enablePerformanceCounter is true.
      */
     onPerformanceLog?: PerformanceLogCallback;
-
-    /**
-     * Enable Google Fonts for automatic font fetching.
-     * When true, fonts not embedded in the document are fetched from Google Fonts
-     * on-demand during rendering.
-     * @default true
-     */
-    googleFonts?: boolean;
 
     /**
      * Hide the "Powered by docMentis" attribution link.
@@ -374,7 +392,7 @@ export interface Pick {
 /**
  * Re-export low-level types for advanced usage.
  */
-export type { Composition, ComposePick, ExtractedFont, ExtractedImage, SplitByOutlineResult };
+export type { Composition, ComposePick, ExtractedFont, ExtractedImage, FontEntry, SplitByOutlineResult };
 
 /**
  * SDK entry point for document viewing.
@@ -452,6 +470,16 @@ export class UDocClient {
         const distinctId = getOrCreateDistinctId();
         await workerClient.setup(domain, UDocClient.version, distinctId);
 
+        // Register font URLs before loading documents
+        if (options.fonts?.length) {
+            await workerClient.registerFonts(options.fonts);
+        }
+
+        // Enable Google Fonts (default: true) before loading documents
+        if (options.googleFonts !== false) {
+            await workerClient.enableGoogleFonts();
+        }
+
         // Validate license if provided
         if (options.license) {
             const result = await workerClient.setLicense(options.license, domain);
@@ -478,6 +506,43 @@ export class UDocClient {
      */
     hasFeature(feature: string): boolean {
         return this.licenseInfo.features.includes(feature);
+    }
+
+    /**
+     * Register custom font URLs for on-demand fetching during layout.
+     *
+     * Fonts are fetched when the engine needs them during rendering.
+     * Registered fonts take priority over Google Fonts.
+     * Call before loading documents. Supports OTF, TTF, WOFF, and WOFF2 formats.
+     *
+     * @param fonts - Array of font entries with typeface, style, and URL
+     *
+     * @example
+     * ```ts
+     * await client.registerFonts([
+     *   { typeface: "Roboto", bold: false, italic: false, url: "https://cdn.example.com/Roboto-Regular.woff2" },
+     *   { typeface: "Roboto", bold: true, italic: false, url: "https://cdn.example.com/Roboto-Bold.woff2" },
+     * ]);
+     * ```
+     */
+    async registerFonts(fonts: FontEntry[]): Promise<void> {
+        this.ensureNotDestroyed();
+        await this.workerClient.registerFonts(fonts);
+    }
+
+    /**
+     * Enable Google Fonts for automatic font fetching.
+     *
+     * When enabled, fonts not embedded in the document are fetched from
+     * Google Fonts on-demand during rendering. Google Fonts are resolved
+     * after any fonts registered via `registerFonts`.
+     *
+     * Call before loading documents. Enabled by default unless
+     * `googleFonts: false` is passed to `create()`.
+     */
+    async enableGoogleFonts(): Promise<void> {
+        this.ensureNotDestroyed();
+        await this.workerClient.enableGoogleFonts();
     }
 
     /**

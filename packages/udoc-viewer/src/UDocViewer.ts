@@ -159,7 +159,6 @@ export class UDocViewer {
     private destroyed = false;
     private eventHandlers = new Map<keyof ViewerEventMap, Set<EventHandler<keyof ViewerEventMap>>>();
     private _performanceCounter: IPerformanceCounter;
-    private googleFontsEnabled: boolean;
     private viewOverrides: ViewModeDefaults;
     private currentFormat: DocumentFormat | null = null;
     private sourceFilename: string | null = null;
@@ -177,7 +176,6 @@ export class UDocViewer {
         sdkVersion = "__VERSION__",
     ) {
         this.workerClient = workerClient;
-        this.googleFontsEnabled = options.googleFonts ?? true;
         this.sdkVersion = sdkVersion;
         this.viewOverrides = this.buildViewModeOverrides(options);
 
@@ -391,11 +389,6 @@ export class UDocViewer {
             const format = (await this.workerClient.getDocumentFormat(this.documentId)) as DocumentFormat;
             this.currentFormat = format;
 
-            // Enable Google Fonts if requested
-            if (this.googleFontsEnabled) {
-                await this.workerClient.enableGoogleFonts(this.documentId);
-            }
-
             // Register performance counter with WorkerClient for this document
             // This enables tracking of all subsequent operations (getPageInfo, render, etc.)
             if (this._performanceCounter.enabled) {
@@ -521,11 +514,6 @@ export class UDocViewer {
                 // Clear any cached renders from before authentication (they would be invalid)
                 this.workerClient.cancelRenders(this.documentId!);
                 this.workerClient.invalidateRenderCache(this.documentId!);
-
-                // Enable Google Fonts if requested
-                if (this.googleFontsEnabled) {
-                    await this.workerClient.enableGoogleFonts(this.documentId!);
-                }
 
                 // Reload page info after successful authentication
                 this._pageInfo = await this.workerClient.getAllPageInfo(this.documentId!);

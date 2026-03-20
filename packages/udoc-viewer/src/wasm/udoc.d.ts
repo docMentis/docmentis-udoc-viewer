@@ -1,7 +1,7 @@
 /* tslint:disable */
 /* eslint-disable */
 
-export class UDoc {
+export class Wasm {
   free(): void;
   [Symbol.dispose](): void;
   /**
@@ -135,21 +135,6 @@ export class UDoc {
    */
   get_page_text(id: string, page_index: number): any;
   /**
-   * Register a font from raw bytes.
-   *
-   * The JS viewer calls `getRequiredFonts` to discover which fonts a
-   * document needs, fetches them from any source (CDN, local storage, etc.),
-   * and passes the raw bytes here so the engine can use them during rendering.
-   *
-   * # Arguments
-   * * `id` - Document ID
-   * * `typeface` - The typeface name (must match what's in the document)
-   * * `bold` - Whether this is a bold variant
-   * * `italic` - Whether this is an italic variant
-   * * `bytes` - Raw font file data (TTF, OTF, WOFF, or WOFF2)
-   */
-  registerFont(id: string, typeface: string, bold: boolean, italic: boolean, bytes: Uint8Array): void;
-  /**
    * Get current license status.
    */
   license_status(): any;
@@ -173,6 +158,34 @@ export class UDoc {
    * Decompressed PDF data as Uint8Array
    */
   pdf_decompress(doc_id: string): Uint8Array;
+  /**
+   * Register font URLs.
+   *
+   * The caller provides a list of all available fonts with their download
+   * URLs. During layout, when the engine needs a font, it is fetched from
+   * the URL, parsed, and cached for reuse.
+   *
+   * Call this before loading documents. Registered fonts are automatically
+   * applied to every document loaded afterward. URL fonts are always
+   * resolved before Google Fonts.
+   *
+   * # Arguments
+   * * `fonts` - Array of font entries: `[{ typeface: "Roboto", bold: false, italic: false, url: "https://..." }, ...]`
+   *
+   * # Example (JavaScript)
+   * ```js
+   * // Register available fonts before loading documents
+   * udoc.registerFonts([
+   *     { typeface: "Roboto", bold: false, italic: false, url: "https://cdn.example.com/Roboto-Regular.woff2" },
+   *     { typeface: "Roboto", bold: true, italic: false, url: "https://cdn.example.com/Roboto-Bold.woff2" },
+   * ]);
+   *
+   * // Load and render - fonts are fetched on demand during layout
+   * const docId = udoc.loadPptx(pptxBytes);
+   * const pixels = udoc.renderPageToRgba(docId, 0, 800, 600);
+   * ```
+   */
+  registerFonts(fonts: any): void;
   /**
    * Get the format of a loaded document.
    *
@@ -212,43 +225,6 @@ export class UDoc {
    */
   pdf_extract_fonts(doc_id: string): any;
   /**
-   * Get all external fonts required by the document.
-   *
-   * This scans all text content in loaded pages and returns font descriptors
-   * for fonts that are:
-   * - Not embedded in the document
-   * - Not standard PDF fonts (Helvetica, Times, Courier, etc.)
-   *
-   * Use this to determine which fonts need to be fetched from external sources
-   * (e.g., Google Fonts) before rendering.
-   *
-   * Note: This only scans pages that have been loaded. Call appropriate loading
-   * methods first to ensure the pages you need are scanned.
-   *
-   * # Arguments
-   * * `id` - Document ID
-   *
-   * # Returns
-   * Array of font descriptors: `[{ typeface: "Roboto", bold: false, italic: false }, ...]`
-   *
-   * # Example (JavaScript)
-   * ```js
-   * // Load document
-   * const docId = udoc.loadPdf(pdfBytes);
-   *
-   * // Load all pages to scan for fonts
-   * const pageCount = udoc.pageCount(docId);
-   * for (let i = 0; i < pageCount; i++) {
-   *     udoc.renderPageToRgba(docId, i, 1, 1); // Minimal render to load page
-   * }
-   *
-   * // Get required fonts
-   * const fonts = udoc.getRequiredFonts(docId);
-   * // fonts: [{ typeface: "Roboto", bold: false, italic: false }, ...]
-   * ```
-   */
-  getRequiredFonts(id: string): any;
-  /**
    * Extract all embedded images from a PDF document.
    *
    * # Arguments
@@ -278,43 +254,28 @@ export class UDoc {
    */
   render_page_to_png(id: string, page_index: number, width: number, height: number): Uint8Array;
   /**
-   * Enable Google Fonts for a document.
+   * Enable Google Fonts.
    *
    * When enabled, fonts that are not embedded in the document will be
-   * automatically fetched from Google Fonts during rendering.
+   * automatically fetched from Google Fonts during rendering. Google Fonts
+   * are resolved after any URL fonts registered via `registerFonts`.
    *
-   * # Arguments
-   * * `id` - Document ID
+   * Call this before loading documents.
    *
    * # Example (JavaScript)
    * ```js
-   * // Enable Google Fonts for the document
-   * udoc.enableGoogleFonts(docId);
-   *
-   * // Now render pages - fonts will be fetched automatically
+   * udoc.enableGoogleFonts();
+   * const docId = udoc.loadPptx(pptxBytes);
    * const pixels = udoc.renderPageToRgba(docId, 0, 800, 600);
    * ```
    */
-  enableGoogleFonts(id: string): void;
+  enableGoogleFonts(): void;
   /**
    * Get all annotations in the document, grouped by page index.
    *
    * Returns an object mapping page indices (as strings) to arrays of annotations.
    */
   get_all_annotations(id: string): any;
-  /**
-   * Check if a font is registered for a document.
-   *
-   * # Arguments
-   * * `id` - Document ID
-   * * `typeface` - The typeface name
-   * * `bold` - Whether to check for bold variant
-   * * `italic` - Whether to check for italic variant
-   *
-   * # Returns
-   * `true` if the font is registered, `false` otherwise.
-   */
-  hasRegisteredFont(id: string, typeface: string, bold: boolean, italic: boolean): boolean;
   /**
    * Render a page to raw RGBA pixel data.
    *
@@ -365,16 +326,6 @@ export class UDoc {
    * Returns an empty array for documents without visibility groups.
    */
   get_visibility_groups(id: string): any;
-  /**
-   * Get the number of fonts registered for a document.
-   *
-   * # Arguments
-   * * `id` - Document ID
-   *
-   * # Returns
-   * The number of registered fonts.
-   */
-  registeredFontCount(id: string): number;
   /**
    * Set the visibility of a specific visibility group.
    *
@@ -496,56 +447,53 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 
 export interface InitOutput {
   readonly memory: WebAssembly.Memory;
-  readonly __wbg_udoc_free: (a: number, b: number) => void;
-  readonly udoc_all_page_info: (a: number, b: number, c: number, d: number) => void;
-  readonly udoc_authenticate: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
-  readonly udoc_document_count: (a: number) => number;
-  readonly udoc_document_format: (a: number, b: number, c: number, d: number) => void;
-  readonly udoc_document_ids: (a: number, b: number) => void;
-  readonly udoc_enableGoogleFonts: (a: number, b: number, c: number, d: number) => void;
-  readonly udoc_getRequiredFonts: (a: number, b: number, c: number, d: number) => void;
-  readonly udoc_get_all_annotations: (a: number, b: number, c: number, d: number) => void;
-  readonly udoc_get_bytes: (a: number, b: number, c: number, d: number) => void;
-  readonly udoc_get_limit: (a: number, b: number, c: number, d: bigint) => bigint;
-  readonly udoc_get_outline: (a: number, b: number, c: number, d: number) => void;
-  readonly udoc_get_page_annotations: (a: number, b: number, c: number, d: number, e: number) => void;
-  readonly udoc_get_page_text: (a: number, b: number, c: number, d: number, e: number) => void;
-  readonly udoc_get_visibility_groups: (a: number, b: number, c: number, d: number) => void;
-  readonly udoc_hasRegisteredFont: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => void;
-  readonly udoc_has_document: (a: number, b: number, c: number) => number;
-  readonly udoc_has_feature: (a: number, b: number, c: number) => number;
-  readonly udoc_has_gpu: (a: number) => number;
-  readonly udoc_init_gpu: (a: number) => number;
-  readonly udoc_license_status: (a: number, b: number) => void;
-  readonly udoc_load: (a: number, b: number, c: number, d: number) => void;
-  readonly udoc_load_docx: (a: number, b: number, c: number, d: number) => void;
-  readonly udoc_load_image: (a: number, b: number, c: number, d: number) => void;
-  readonly udoc_load_pdf: (a: number, b: number, c: number, d: number) => void;
-  readonly udoc_load_pptx: (a: number, b: number, c: number, d: number) => void;
-  readonly udoc_load_xlsx: (a: number, b: number, c: number, d: number) => void;
-  readonly udoc_needs_password: (a: number, b: number, c: number, d: number) => void;
-  readonly udoc_new: () => number;
-  readonly udoc_page_count: (a: number, b: number, c: number, d: number) => void;
-  readonly udoc_page_info: (a: number, b: number, c: number, d: number, e: number) => void;
-  readonly udoc_page_layout: (a: number, b: number, c: number, d: number) => void;
-  readonly udoc_pdf_compose: (a: number, b: number, c: number, d: number) => void;
-  readonly udoc_pdf_compress: (a: number, b: number, c: number, d: number) => void;
-  readonly udoc_pdf_decompress: (a: number, b: number, c: number, d: number) => void;
-  readonly udoc_pdf_extract_fonts: (a: number, b: number, c: number, d: number) => void;
-  readonly udoc_pdf_extract_images: (a: number, b: number, c: number, d: number, e: number) => void;
-  readonly udoc_pdf_split_by_outline: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
-  readonly udoc_registerFont: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number) => void;
-  readonly udoc_registeredFontCount: (a: number, b: number, c: number, d: number) => void;
-  readonly udoc_remove_document: (a: number, b: number, c: number) => number;
-  readonly udoc_render_page_gpu: (a: number, b: number, c: number, d: number, e: number, f: number) => number;
-  readonly udoc_render_page_to_png: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
-  readonly udoc_render_page_to_rgba: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
-  readonly udoc_set_license: (a: number, b: number, c: number, d: number) => void;
-  readonly udoc_set_visibility_group_visible: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
-  readonly udoc_setup: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
-  readonly __wasm_bindgen_func_elem_2530: (a: number, b: number, c: number) => void;
-  readonly __wasm_bindgen_func_elem_2514: (a: number, b: number) => void;
-  readonly __wasm_bindgen_func_elem_16266: (a: number, b: number, c: number, d: number) => void;
+  readonly __wbg_wasm_free: (a: number, b: number) => void;
+  readonly wasm_all_page_info: (a: number, b: number, c: number, d: number) => void;
+  readonly wasm_authenticate: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
+  readonly wasm_document_count: (a: number) => number;
+  readonly wasm_document_format: (a: number, b: number, c: number, d: number) => void;
+  readonly wasm_document_ids: (a: number, b: number) => void;
+  readonly wasm_enableGoogleFonts: (a: number) => void;
+  readonly wasm_get_all_annotations: (a: number, b: number, c: number, d: number) => void;
+  readonly wasm_get_bytes: (a: number, b: number, c: number, d: number) => void;
+  readonly wasm_get_limit: (a: number, b: number, c: number, d: bigint) => bigint;
+  readonly wasm_get_outline: (a: number, b: number, c: number, d: number) => void;
+  readonly wasm_get_page_annotations: (a: number, b: number, c: number, d: number, e: number) => void;
+  readonly wasm_get_page_text: (a: number, b: number, c: number, d: number, e: number) => void;
+  readonly wasm_get_visibility_groups: (a: number, b: number, c: number, d: number) => void;
+  readonly wasm_has_document: (a: number, b: number, c: number) => number;
+  readonly wasm_has_feature: (a: number, b: number, c: number) => number;
+  readonly wasm_has_gpu: (a: number) => number;
+  readonly wasm_init_gpu: (a: number) => number;
+  readonly wasm_license_status: (a: number, b: number) => void;
+  readonly wasm_load: (a: number, b: number, c: number, d: number) => void;
+  readonly wasm_load_docx: (a: number, b: number, c: number, d: number) => void;
+  readonly wasm_load_image: (a: number, b: number, c: number, d: number) => void;
+  readonly wasm_load_pdf: (a: number, b: number, c: number, d: number) => void;
+  readonly wasm_load_pptx: (a: number, b: number, c: number, d: number) => void;
+  readonly wasm_load_xlsx: (a: number, b: number, c: number, d: number) => void;
+  readonly wasm_needs_password: (a: number, b: number, c: number, d: number) => void;
+  readonly wasm_new: () => number;
+  readonly wasm_page_count: (a: number, b: number, c: number, d: number) => void;
+  readonly wasm_page_info: (a: number, b: number, c: number, d: number, e: number) => void;
+  readonly wasm_page_layout: (a: number, b: number, c: number, d: number) => void;
+  readonly wasm_pdf_compose: (a: number, b: number, c: number, d: number) => void;
+  readonly wasm_pdf_compress: (a: number, b: number, c: number, d: number) => void;
+  readonly wasm_pdf_decompress: (a: number, b: number, c: number, d: number) => void;
+  readonly wasm_pdf_extract_fonts: (a: number, b: number, c: number, d: number) => void;
+  readonly wasm_pdf_extract_images: (a: number, b: number, c: number, d: number, e: number) => void;
+  readonly wasm_pdf_split_by_outline: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
+  readonly wasm_registerFonts: (a: number, b: number, c: number) => void;
+  readonly wasm_remove_document: (a: number, b: number, c: number) => number;
+  readonly wasm_render_page_gpu: (a: number, b: number, c: number, d: number, e: number, f: number) => number;
+  readonly wasm_render_page_to_png: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
+  readonly wasm_render_page_to_rgba: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
+  readonly wasm_set_license: (a: number, b: number, c: number, d: number) => void;
+  readonly wasm_set_visibility_group_visible: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
+  readonly wasm_setup: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
+  readonly __wasm_bindgen_func_elem_2544: (a: number, b: number, c: number) => void;
+  readonly __wasm_bindgen_func_elem_2528: (a: number, b: number) => void;
+  readonly __wasm_bindgen_func_elem_16280: (a: number, b: number, c: number, d: number) => void;
   readonly __wbindgen_export: (a: number, b: number) => number;
   readonly __wbindgen_export2: (a: number, b: number, c: number, d: number) => number;
   readonly __wbindgen_export3: (a: number) => void;

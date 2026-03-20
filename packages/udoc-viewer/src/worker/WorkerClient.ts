@@ -11,7 +11,7 @@ import type {
     ComposePick,
     ExtractedFont,
     ExtractedImage,
-    FontDescriptor,
+    FontEntry,
     LicenseResult,
     OutlineSection,
     SplitByOutlineResult,
@@ -26,7 +26,7 @@ export type {
     ComposePick,
     ExtractedFont,
     ExtractedImage,
-    FontDescriptor,
+    FontEntry,
     OutlineSection,
     SplitByOutlineResult,
 };
@@ -558,83 +558,29 @@ export class WorkerClient {
     // ===========================================================================
 
     /**
-     * Get all external fonts required by the document.
+     * Register font URLs.
      *
-     * Scans all text content in the document and returns font descriptors
-     * for fonts that are not embedded and not standard PDF fonts.
+     * The engine fetches fonts on-demand during layout from the provided URLs.
+     * Call this before loading documents. Registered fonts take priority over
+     * Google Fonts.
      *
-     * @param documentId - Document ID
-     * @returns Array of font descriptors
+     * @param fonts - Array of font entries with typeface, style, and URL
      */
-    async getRequiredFonts(documentId: string): Promise<FontDescriptor[]> {
-        const response = (await this.send({ type: "getRequiredFonts", documentId })) as {
-            fonts: FontDescriptor[];
-        };
-        return response.fonts;
+    async registerFonts(fonts: FontEntry[]): Promise<void> {
+        await this.send({ type: "registerFonts", fonts });
     }
 
     /**
-     * Register a font from raw bytes.
+     * Enable Google Fonts.
      *
-     * @param documentId - Document ID
-     * @param typeface - The typeface name (must match what's in the document)
-     * @param bold - Whether this is a bold variant
-     * @param italic - Whether this is an italic variant
-     * @param bytes - Raw font file data (TTF, OTF, WOFF, or WOFF2)
+     * When enabled, fonts not embedded in the document are fetched from
+     * Google Fonts on-demand during rendering. Google Fonts are resolved
+     * after any URL fonts registered via `registerFonts`.
+     *
+     * Call this before loading documents.
      */
-    async registerFont(
-        documentId: string,
-        typeface: string,
-        bold: boolean,
-        italic: boolean,
-        bytes: Uint8Array,
-    ): Promise<void> {
-        await this.send({ type: "registerFont", documentId, typeface, bold, italic, bytes });
-    }
-
-    /**
-     * Check if a font is registered for a document.
-     *
-     * @param documentId - Document ID
-     * @param typeface - The typeface name
-     * @param bold - Whether to check for bold variant
-     * @param italic - Whether to check for italic variant
-     * @returns True if the font is registered
-     */
-    async hasRegisteredFont(documentId: string, typeface: string, bold: boolean, italic: boolean): Promise<boolean> {
-        const response = (await this.send({ type: "hasRegisteredFont", documentId, typeface, bold, italic })) as {
-            hasFont: boolean;
-        };
-        return response.hasFont;
-    }
-
-    /**
-     * Get the number of fonts registered for a document.
-     *
-     * @param documentId - Document ID
-     * @returns Number of registered fonts
-     */
-    async registeredFontCount(documentId: string): Promise<number> {
-        const response = (await this.send({ type: "registeredFontCount", documentId })) as {
-            count: number;
-        };
-        return response.count;
-    }
-
-    /**
-     * Enable Google Fonts for a document.
-     *
-     * When enabled, fonts that are not embedded in the document will be
-     * automatically fetched from Google Fonts during rendering.
-     *
-     * This is an alternative to the `getRequiredFonts` + `registerFont` workflow.
-     * Instead of scanning all pages upfront, fonts are fetched on-demand as
-     * pages are rendered.
-     *
-     * @param documentId - Document ID
-     */
-    async enableGoogleFonts(documentId: string): Promise<void> {
-        await this.send({ type: "enableGoogleFonts", documentId });
+    async enableGoogleFonts(): Promise<void> {
+        await this.send({ type: "enableGoogleFonts" });
     }
 
     // ===========================================================================

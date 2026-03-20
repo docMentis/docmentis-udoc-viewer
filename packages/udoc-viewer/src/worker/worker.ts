@@ -4,9 +4,9 @@
  * Handles WASM operations off the main thread to keep the UI responsive.
  */
 
-import init, { UDoc } from "../wasm/udoc.js";
+import init, { Wasm } from "../wasm/udoc.js";
 
-let udoc: UDoc | null = null;
+let wasm: Wasm | null = null;
 let gpuAvailable = false;
 
 /**
@@ -79,12 +79,19 @@ export interface ExtractedFont {
 }
 
 /**
- * Font descriptor for external font requirements.
+ * Font entry for registering font URLs.
+ *
+ * Supported font formats: OTF, TTF, WOFF, and WOFF2.
  */
-export interface FontDescriptor {
+export interface FontEntry {
+    /** Font family name (must match the name used in the document). */
     typeface: string;
+    /** Whether this is a bold variant. */
     bold: boolean;
+    /** Whether this is an italic variant. */
     italic: boolean;
+    /** URL to fetch the font file from. Supports OTF, TTF, WOFF, and WOFF2 formats. */
+    url: string;
 }
 
 export type WorkerRequest =
@@ -117,11 +124,8 @@ export type WorkerRequest =
     | { type: "pdfExtractFonts"; documentId: string }
     | { type: "pdfCompress"; documentId: string }
     | { type: "pdfDecompress"; documentId: string }
-    | { type: "getRequiredFonts"; documentId: string }
-    | { type: "registerFont"; documentId: string; typeface: string; bold: boolean; italic: boolean; bytes: Uint8Array }
-    | { type: "hasRegisteredFont"; documentId: string; typeface: string; bold: boolean; italic: boolean }
-    | { type: "registeredFontCount"; documentId: string }
-    | { type: "enableGoogleFonts"; documentId: string }
+    | { type: "registerFonts"; fonts: FontEntry[] }
+    | { type: "enableGoogleFonts" }
     | { type: "getVisibilityGroups"; documentId: string }
     | { type: "setVisibilityGroupVisible"; documentId: string; groupId: string; visible: boolean };
 
@@ -187,14 +191,8 @@ export type WorkerResponse =
     | { type: "pdfCompress"; success: false; error: string }
     | { type: "pdfDecompress"; success: true; bytes: Uint8Array }
     | { type: "pdfDecompress"; success: false; error: string }
-    | { type: "getRequiredFonts"; success: true; fonts: FontDescriptor[] }
-    | { type: "getRequiredFonts"; success: false; error: string }
-    | { type: "registerFont"; success: true }
-    | { type: "registerFont"; success: false; error: string }
-    | { type: "hasRegisteredFont"; success: true; hasFont: boolean }
-    | { type: "hasRegisteredFont"; success: false; error: string }
-    | { type: "registeredFontCount"; success: true; count: number }
-    | { type: "registeredFontCount"; success: false; error: string }
+    | { type: "registerFonts"; success: true }
+    | { type: "registerFonts"; success: false; error: string }
     | { type: "enableGoogleFonts"; success: true }
     | { type: "enableGoogleFonts"; success: false; error: string }
     | { type: "getVisibilityGroups"; success: true; groups: unknown[] }
@@ -241,10 +239,10 @@ async function handleMessage(event: MessageEvent<WorkerRequest & { _id?: number 
         switch (request.type) {
             case "init": {
                 await init(request.wasmUrl ? { module_or_path: request.wasmUrl } : undefined);
-                udoc = new UDoc();
+                wasm = new Wasm();
                 if (request.gpu) {
                     try {
-                        gpuAvailable = await udoc.init_gpu();
+                        gpuAvailable = await wasm.init_gpu();
                     } catch {
                         gpuAvailable = false;
                     }
@@ -255,98 +253,98 @@ async function handleMessage(event: MessageEvent<WorkerRequest & { _id?: number 
 
             case "setup": {
                 ensureInitialized();
-                udoc!.setup(request.domain, request.viewerVersion, request.distinctId);
+                wasm!.setup(request.domain, request.viewerVersion, request.distinctId);
                 respond({ type: "setup", success: true });
                 break;
             }
 
             case "setLicense": {
                 ensureInitialized();
-                const result = udoc!.set_license(request.license) as LicenseResult;
+                const result = wasm!.set_license(request.license) as LicenseResult;
                 respond({ type: "setLicense", success: true, result });
                 break;
             }
 
             case "getLicenseStatus": {
                 ensureInitialized();
-                const result = udoc!.license_status() as LicenseResult;
+                const result = wasm!.license_status() as LicenseResult;
                 respond({ type: "getLicenseStatus", success: true, result });
                 break;
             }
 
             case "load": {
                 ensureInitialized();
-                const documentId = udoc!.load(request.bytes);
+                const documentId = wasm!.load(request.bytes);
                 respond({ type: "load", success: true, documentId });
                 break;
             }
 
             case "getDocumentFormat": {
                 ensureInitialized();
-                const format = udoc!.document_format(request.documentId);
+                const format = wasm!.document_format(request.documentId);
                 respond({ type: "getDocumentFormat", success: true, format });
                 break;
             }
 
             case "loadPdf": {
                 ensureInitialized();
-                const documentId = udoc!.load_pdf(request.bytes);
+                const documentId = wasm!.load_pdf(request.bytes);
                 respond({ type: "loadPdf", success: true, documentId });
                 break;
             }
 
             case "loadImage": {
                 ensureInitialized();
-                const documentId = udoc!.load_image(request.bytes);
+                const documentId = wasm!.load_image(request.bytes);
                 respond({ type: "loadImage", success: true, documentId });
                 break;
             }
 
             case "loadPptx": {
                 ensureInitialized();
-                const documentId = udoc!.load_pptx(request.bytes);
+                const documentId = wasm!.load_pptx(request.bytes);
                 respond({ type: "loadPptx", success: true, documentId });
                 break;
             }
 
             case "loadDocx": {
                 ensureInitialized();
-                const documentId = udoc!.load_docx(request.bytes);
+                const documentId = wasm!.load_docx(request.bytes);
                 respond({ type: "loadDocx", success: true, documentId });
                 break;
             }
 
             case "unloadPdf": {
                 ensureInitialized();
-                const removed = udoc!.remove_document(request.documentId);
+                const removed = wasm!.remove_document(request.documentId);
                 respond({ type: "unloadPdf", success: true, removed });
                 break;
             }
 
             case "needsPassword": {
                 ensureInitialized();
-                const needsPassword = udoc!.needs_password(request.documentId);
+                const needsPassword = wasm!.needs_password(request.documentId);
                 respond({ type: "needsPassword", success: true, needsPassword });
                 break;
             }
 
             case "authenticate": {
                 ensureInitialized();
-                const authenticated = udoc!.authenticate(request.documentId, request.password);
+                const authenticated = wasm!.authenticate(request.documentId, request.password);
                 respond({ type: "authenticate", success: true, authenticated });
                 break;
             }
 
             case "getPageCount": {
                 ensureInitialized();
-                const pageCount = udoc!.page_count(request.documentId);
+                const pageCount = wasm!.page_count(request.documentId);
                 respond({ type: "getPageCount", success: true, pageCount });
                 break;
             }
 
             case "getPageInfo": {
                 ensureInitialized();
-                const info = udoc!.page_info(request.documentId, request.pageIndex) as {
+                const info = wasm!.page_info(request.documentId, request.pageIndex) as {
                     width: number;
                     height: number;
                     rotation: number;
@@ -363,7 +361,7 @@ async function handleMessage(event: MessageEvent<WorkerRequest & { _id?: number 
 
             case "getAllPageInfo": {
                 ensureInitialized();
-                const pages = udoc!.all_page_info(request.documentId) as Array<{
+                const pages = wasm!.all_page_info(request.documentId) as Array<{
                     width: number;
                     height: number;
                     rotation: number;
@@ -374,7 +372,7 @@ async function handleMessage(event: MessageEvent<WorkerRequest & { _id?: number 
 
             case "getPageLayout": {
                 ensureInitialized();
-                const layout = udoc!.page_layout(request.documentId);
+                const layout = wasm!.page_layout(request.documentId);
                 respond({ type: "getPageLayout", success: true, layout });
                 break;
             }
@@ -382,13 +380,13 @@ async function handleMessage(event: MessageEvent<WorkerRequest & { _id?: number 
             case "renderPage": {
                 ensureInitialized();
                 // Skip renders for documents that were unloaded while queued
-                if (!udoc!.has_document(request.documentId)) {
+                if (!wasm!.has_document(request.documentId)) {
                     respond({ type: "renderPage", success: false, error: `Document not found: ${request.documentId}` });
                     break;
                 }
                 let rgba: Uint8Array;
                 if (gpuAvailable) {
-                    const gpuResult = await udoc!.render_page_gpu(
+                    const gpuResult = await wasm!.render_page_gpu(
                         request.documentId,
                         request.pageIndex,
                         request.width,
@@ -397,7 +395,7 @@ async function handleMessage(event: MessageEvent<WorkerRequest & { _id?: number 
                     // Copy to own buffer — GPU result may be a view into WASM memory
                     rgba = new Uint8Array(gpuResult);
                 } else {
-                    rgba = udoc!.render_page_to_rgba(
+                    rgba = wasm!.render_page_to_rgba(
                         request.documentId,
                         request.pageIndex,
                         request.width,
@@ -412,49 +410,49 @@ async function handleMessage(event: MessageEvent<WorkerRequest & { _id?: number 
 
             case "getOutline": {
                 ensureInitialized();
-                const outline = udoc!.get_outline(request.documentId) as unknown[];
+                const outline = wasm!.get_outline(request.documentId) as unknown[];
                 respond({ type: "getOutline", success: true, outline });
                 break;
             }
 
             case "getPageAnnotations": {
                 ensureInitialized();
-                const annotations = udoc!.get_page_annotations(request.documentId, request.pageIndex) as unknown[];
+                const annotations = wasm!.get_page_annotations(request.documentId, request.pageIndex) as unknown[];
                 respond({ type: "getPageAnnotations", success: true, annotations });
                 break;
             }
 
             case "getPageText": {
                 ensureInitialized();
-                const text = udoc!.get_page_text(request.documentId, request.pageIndex) as unknown[];
+                const text = wasm!.get_page_text(request.documentId, request.pageIndex) as unknown[];
                 respond({ type: "getPageText", success: true, text });
                 break;
             }
 
             case "getAllAnnotations": {
                 ensureInitialized();
-                const annotations = udoc!.get_all_annotations(request.documentId) as Record<string, unknown[]>;
+                const annotations = wasm!.get_all_annotations(request.documentId) as Record<string, unknown[]>;
                 respond({ type: "getAllAnnotations", success: true, annotations });
                 break;
             }
 
             case "pdfCompose": {
                 ensureInitialized();
-                const documentIds = udoc!.pdf_compose(request.compositions, request.docIds) as string[];
+                const documentIds = wasm!.pdf_compose(request.compositions, request.docIds) as string[];
                 respond({ type: "pdfCompose", success: true, documentIds });
                 break;
             }
 
             case "getBytes": {
                 ensureInitialized();
-                const bytes = udoc!.get_bytes(request.documentId) as Uint8Array;
+                const bytes = wasm!.get_bytes(request.documentId) as Uint8Array;
                 respond({ type: "getBytes", success: true, bytes }, [bytes.buffer]);
                 break;
             }
 
             case "pdfSplitByOutline": {
                 ensureInitialized();
-                const result = udoc!.pdf_split_by_outline(
+                const result = wasm!.pdf_split_by_outline(
                     request.documentId,
                     request.maxLevel,
                     request.splitMidPage,
@@ -465,7 +463,7 @@ async function handleMessage(event: MessageEvent<WorkerRequest & { _id?: number 
 
             case "pdfExtractImages": {
                 ensureInitialized();
-                const rawImages = udoc!.pdf_extract_images(
+                const rawImages = wasm!.pdf_extract_images(
                     request.documentId,
                     request.convertRawToPng,
                 ) as ExtractedImage[];
@@ -482,7 +480,7 @@ async function handleMessage(event: MessageEvent<WorkerRequest & { _id?: number 
 
             case "pdfExtractFonts": {
                 ensureInitialized();
-                const rawFonts = udoc!.pdf_extract_fonts(request.documentId) as ExtractedFont[];
+                const rawFonts = wasm!.pdf_extract_fonts(request.documentId) as ExtractedFont[];
                 // Copy Uint8Array data to ensure proper transfer across worker boundary
                 // (WASM memory views don't survive structured clone when nested in objects)
                 const fonts = rawFonts.map((font) => ({
@@ -496,68 +494,42 @@ async function handleMessage(event: MessageEvent<WorkerRequest & { _id?: number 
 
             case "pdfCompress": {
                 ensureInitialized();
-                const compressedBytes = udoc!.pdf_compress(request.documentId) as Uint8Array;
+                const compressedBytes = wasm!.pdf_compress(request.documentId) as Uint8Array;
                 respond({ type: "pdfCompress", success: true, bytes: compressedBytes }, [compressedBytes.buffer]);
                 break;
             }
 
             case "pdfDecompress": {
                 ensureInitialized();
-                const decompressedBytes = udoc!.pdf_decompress(request.documentId) as Uint8Array;
+                const decompressedBytes = wasm!.pdf_decompress(request.documentId) as Uint8Array;
                 respond({ type: "pdfDecompress", success: true, bytes: decompressedBytes }, [decompressedBytes.buffer]);
                 break;
             }
 
-            case "getRequiredFonts": {
+            case "registerFonts": {
                 ensureInitialized();
-                const fonts = udoc!.getRequiredFonts(request.documentId) as FontDescriptor[];
-                respond({ type: "getRequiredFonts", success: true, fonts });
-                break;
-            }
-
-            case "registerFont": {
-                ensureInitialized();
-                udoc!.registerFont(request.documentId, request.typeface, request.bold, request.italic, request.bytes);
-                respond({ type: "registerFont", success: true });
-                break;
-            }
-
-            case "hasRegisteredFont": {
-                ensureInitialized();
-                const hasFont = udoc!.hasRegisteredFont(
-                    request.documentId,
-                    request.typeface,
-                    request.bold,
-                    request.italic,
-                );
-                respond({ type: "hasRegisteredFont", success: true, hasFont });
-                break;
-            }
-
-            case "registeredFontCount": {
-                ensureInitialized();
-                const count = udoc!.registeredFontCount(request.documentId);
-                respond({ type: "registeredFontCount", success: true, count });
+                wasm!.registerFonts(request.fonts);
+                respond({ type: "registerFonts", success: true });
                 break;
             }
 
             case "enableGoogleFonts": {
                 ensureInitialized();
-                udoc!.enableGoogleFonts(request.documentId);
+                wasm!.enableGoogleFonts();
                 respond({ type: "enableGoogleFonts", success: true });
                 break;
             }
 
             case "getVisibilityGroups": {
                 ensureInitialized();
-                const groups = udoc!.get_visibility_groups(request.documentId) as unknown[];
+                const groups = wasm!.get_visibility_groups(request.documentId) as unknown[];
                 respond({ type: "getVisibilityGroups", success: true, groups });
                 break;
             }
 
             case "setVisibilityGroupVisible": {
                 ensureInitialized();
-                const updated = udoc!.set_visibility_group_visible(
+                const updated = wasm!.set_visibility_group_visible(
                     request.documentId,
                     request.groupId,
                     request.visible,
@@ -578,7 +550,7 @@ async function handleMessage(event: MessageEvent<WorkerRequest & { _id?: number 
 }
 
 function ensureInitialized(): void {
-    if (!udoc) {
+    if (!wasm) {
         throw new Error("Worker not initialized. Call init first.");
     }
 }
