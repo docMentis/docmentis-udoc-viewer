@@ -1,0 +1,31 @@
+name: Publish WordPress Plugin
+
+on:
+    push:
+        tags:
+            - "wp-v*"
+
+jobs:
+    release:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Build ZIP
+              run: sh scripts/build-wp-zip.sh
+
+            - name: Extract version from tag
+              id: version
+              run: echo "version=${GITHUB_REF_NAME#wp-v}" >> "$GITHUB_OUTPUT"
+
+            - name: Create GitHub Release
+              uses: softprops/action-gh-release@v2
+              with:
+                  name: "UDoc Viewer WordPress Plugin v${{ steps.version.outputs.version }}"
+                  body: |
+                      ## UDoc Viewer WordPress Plugin v${{ steps.version.outputs.version }}
+
+                      Download `udoc-viewer-wordpress-${{ steps.version.outputs.version }}.zip` and install via **WordPress Admin > Plugins > Add New > Upload Plugin**.
+                  files: dist/udoc-viewer-wordpress-${{ steps.version.outputs.version }}.zip
