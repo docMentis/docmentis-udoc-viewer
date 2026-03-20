@@ -6,6 +6,15 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+### Features
+
+- Font registration API for loading custom fonts via `registerFont()`
+- Move `googleFonts` configuration to client level for more flexible font management
+
+### Bug Fixes
+
+- Replace corrupt demo font files and use `import.meta.url` for correct font paths
+
 ## [0.6.9] - 2026-03-20
 
 ### Features
