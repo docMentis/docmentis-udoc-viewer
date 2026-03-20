@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 define( 'UDOC_VIEWER_VERSION', '0.1.0' );
-define( 'UDOC_VIEWER_SDK_VERSION', '0.6.7' );
+define( 'UDOC_VIEWER_SDK_VERSION', '0.6.8' );
 define( 'UDOC_VIEWER_PATH', plugin_dir_path( __FILE__ ) );
 define( 'UDOC_VIEWER_URL', plugin_dir_url( __FILE__ ) );
 
