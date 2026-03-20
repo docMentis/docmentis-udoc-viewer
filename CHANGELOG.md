@@ -6,6 +6,8 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+## [0.6.9] - 2026-03-20
+
 ### Features
 
 - Add print dialog with page range and quality options
