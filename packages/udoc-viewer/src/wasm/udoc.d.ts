@@ -491,9 +491,9 @@ export interface InitOutput {
   readonly wasm_set_license: (a: number, b: number, c: number, d: number) => void;
   readonly wasm_set_visibility_group_visible: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
   readonly wasm_setup: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
-  readonly __wasm_bindgen_func_elem_2544: (a: number, b: number, c: number) => void;
-  readonly __wasm_bindgen_func_elem_2528: (a: number, b: number) => void;
-  readonly __wasm_bindgen_func_elem_16280: (a: number, b: number, c: number, d: number) => void;
+  readonly __wasm_bindgen_func_elem_2543: (a: number, b: number, c: number) => void;
+  readonly __wasm_bindgen_func_elem_2527: (a: number, b: number) => void;
+  readonly __wasm_bindgen_func_elem_16275: (a: number, b: number, c: number, d: number) => void;
   readonly __wbindgen_export: (a: number, b: number) => number;
   readonly __wbindgen_export2: (a: number, b: number, c: number, d: number) => number;
   readonly __wbindgen_export3: (a: number) => void;
