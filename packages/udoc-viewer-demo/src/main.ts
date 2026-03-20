@@ -91,6 +91,12 @@ async function createViewer() {
             license:
                 "eyJ2IjoxLCJpZCI6ImxpY19jOGNlZjE4ZiIsImQiOlsiZG9jbWVudGlzLmNvbSIsIiouZG9jbWVudGlzLmNvbSJdLCJmIjpbIm5vX2F0dHJpYnV0aW9uIl0sImUiOjE4MDU1MDA3OTksImkiOjE3NzM4ODU1MDYsIm8iOiJkb2NNZW50aXMifQ.E-Wef8w3LnFAbFgZBTrXa4uQ8VMFby59Fg8VLOrm0lNgI4BcLuDxpH_2NheFA89eW8QmKs_vGOdtG619XcOcCg",
             gpu: gpuEnabled,
+            fonts: [
+                { typeface: "Roboto", bold: false, italic: false, url: "./fonts/Roboto-Regular.ttf" },
+                { typeface: "Roboto", bold: true, italic: false, url: "./fonts/Roboto-Bold.ttf" },
+                { typeface: "Roboto", bold: false, italic: true, url: "./fonts/Roboto-Italic.ttf" },
+                { typeface: "Roboto", bold: true, italic: true, url: "./fonts/Roboto-BoldItalic.ttf" },
+            ],
         });
     }
     viewer = await client.createViewer({
