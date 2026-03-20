@@ -379,6 +379,9 @@ export class UDocViewer {
             this.sourceFilename = filename ?? null;
             this._performanceCounter.markEnd(downloadId);
 
+            // Show processing state while WASM loads and extracts page info
+            this.uiShell?.dispatch({ type: "SET_PROCESSING", processing: true });
+
             // Load document — WASM auto-detects format from file contents
             const loadId = this._performanceCounter.markStart("load");
             this.documentId = await this.workerClient.loadDocument(bytes);
@@ -412,6 +415,7 @@ export class UDocViewer {
                         pageInfos: [],
                         viewDefaults: this.computeViewDefaults(format),
                     });
+                    this.uiShell.dispatch({ type: "SET_PROCESSING", processing: false });
                     this.uiShell.dispatch({ type: "SET_NEEDS_PASSWORD", needsPassword: true });
                 }
                 // Don't emit document:load yet - wait for successful authentication
@@ -432,10 +436,12 @@ export class UDocViewer {
                     viewDefaults: this.computeViewDefaults(format),
                 });
                 this._performanceCounter.markEnd(initUiId);
+                this.uiShell.dispatch({ type: "SET_PROCESSING", processing: false });
             }
 
             this.emit("document:load", { pageCount: this._pageCount });
         } catch (error) {
+            this.uiShell?.dispatch({ type: "SET_PROCESSING", processing: false });
             const phase = error instanceof TypeError ? "fetch" : "parse";
             this.emit("error", { error: error as Error, phase });
             throw error;

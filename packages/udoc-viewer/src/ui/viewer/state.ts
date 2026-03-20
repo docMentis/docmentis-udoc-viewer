@@ -248,6 +248,8 @@ export interface ViewerState {
     downloadLoaded: number;
     /** Download progress: total bytes (0 if unknown) */
     downloadTotal: number;
+    /** Whether document is being processed (WASM load, page info extraction) after download */
+    isProcessing: boolean;
     /** Whether print preparation is in progress */
     isPrinting: boolean;
     /** Print progress: current page being rendered (1-based) */
@@ -334,6 +336,7 @@ export const initialState: ViewerState = {
     downloadLoaded: 0,
     downloadTotal: 0,
 
+    isProcessing: false,
     isPrinting: false,
     printCurrentPage: 0,
     printTotalPages: 0,

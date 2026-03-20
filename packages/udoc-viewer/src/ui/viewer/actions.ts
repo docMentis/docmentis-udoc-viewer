@@ -109,6 +109,8 @@ export type Action =
     // Download progress
     | { type: "SET_DOWNLOAD_PROGRESS"; loaded: number; total: number }
     | { type: "CLEAR_DOWNLOAD_PROGRESS" }
+    // Processing state (WASM load / page info after download)
+    | { type: "SET_PROCESSING"; processing: boolean }
     // Print progress
     | { type: "SET_PRINT_PROGRESS"; currentPage: number; totalPages: number }
     | { type: "CLEAR_PRINT_PROGRESS" }

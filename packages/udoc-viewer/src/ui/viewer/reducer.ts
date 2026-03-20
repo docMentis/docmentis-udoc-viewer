@@ -58,6 +58,7 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
                 searchActiveIndex: -1,
                 searchTextLoaded: false,
                 searchTextLoading: false,
+                isProcessing: false,
                 // Close panels instantly when clearing a document
                 activePanel: null,
                 panelTransitionsDisabled: true,
@@ -455,6 +456,12 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
                 downloadLoaded: 0,
                 downloadTotal: 0,
             };
+        }
+
+        // Processing state
+        case "SET_PROCESSING": {
+            if (state.isProcessing === action.processing) return state;
+            return { ...state, isProcessing: action.processing };
         }
 
         // Print progress
