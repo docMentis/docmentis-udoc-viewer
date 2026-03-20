@@ -167,7 +167,7 @@ export function createToolbar() {
     zoomOutBtn.innerHTML = ICON_ZOOM_OUT;
     zoomOutBtn.title = "Zoom out";
     zoomOutBtn.setAttribute("aria-label", "Zoom out");
-    zoomOutBtn.setAttribute("aria-keyshortcuts", "Ctrl+-");
+    zoomOutBtn.setAttribute("aria-keyshortcuts", "Control+- Meta+-");
 
     // Zoom dropdown container
     const zoomDropdownContainer = document.createElement("div");
@@ -200,7 +200,7 @@ export function createToolbar() {
     zoomInBtn.innerHTML = ICON_ZOOM_IN;
     zoomInBtn.title = "Zoom in";
     zoomInBtn.setAttribute("aria-label", "Zoom in");
-    zoomInBtn.setAttribute("aria-keyshortcuts", "Ctrl++");
+    zoomInBtn.setAttribute("aria-keyshortcuts", "Control+= Meta+=");
 
     zoomGroup.append(zoomOutBtn, zoomDropdownContainer, zoomInBtn);
 
@@ -216,7 +216,7 @@ export function createToolbar() {
     // Right section
     const rightSection = document.createElement("div");
     rightSection.className = "udoc-toolbar__right";
-    const searchBtn = createButton("udoc-toolbar__btn--search", "Search", ICON_SEARCH, "Ctrl+F");
+    const searchBtn = createButton("udoc-toolbar__btn--search", "Search", ICON_SEARCH, "Control+F Meta+F");
     const commentsBtn = createButton("udoc-toolbar__btn--comments", "Comments", ICON_COMMENTS);
     const printBtn = createButton("udoc-toolbar__btn--print", "Print", ICON_PRINT);
     const downloadBtn = createButton("udoc-toolbar__btn--download", "Download", ICON_DOWNLOAD);

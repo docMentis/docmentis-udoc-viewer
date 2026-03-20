@@ -128,7 +128,8 @@ export function mountViewerShell(
     };
     panelOverlay.addEventListener("click", handleOverlayClick);
 
-    // Keyboard shortcuts
+    // Keyboard shortcuts (scoped to viewer — only fires when focus is inside)
+    layout.setAttribute("tabindex", "-1");
     const handleKeyDown = (e: KeyboardEvent) => {
         // Ctrl+F / Cmd+F to open search panel
         if ((e.ctrlKey || e.metaKey) && e.key === "f") {
@@ -139,20 +140,20 @@ export function mountViewerShell(
             }
         }
 
-        // Zoom in: Ctrl++ or Ctrl+= or Ctrl+Mouse wheel up
+        // Zoom in: Ctrl++ or Ctrl+=
         if ((e.ctrlKey || e.metaKey) && (e.key === "=" || e.key === "+") && !e.shiftKey) {
             e.preventDefault();
             store.dispatch({ type: "ZOOM_IN" });
         }
 
-        // Zoom out: Ctrl+- or Ctrl+Mouse wheel down
-        if ((e.ctrlKey || e.metaKey) && e.key === "-") {
+        // Zoom out: Ctrl+-
+        if ((e.ctrlKey || e.metaKey) && e.key === "-" && !e.shiftKey) {
             e.preventDefault();
             store.dispatch({ type: "ZOOM_OUT" });
         }
 
         // Reset zoom: Ctrl+0
-        if ((e.ctrlKey || e.metaKey) && e.key === "0") {
+        if ((e.ctrlKey || e.metaKey) && e.key === "0" && !e.shiftKey) {
             e.preventDefault();
             store.dispatch({ type: "SET_ZOOM", zoom: 1 });
         }
@@ -166,7 +167,7 @@ export function mountViewerShell(
             }
         }
     };
-    document.addEventListener("keydown", handleKeyDown);
+    layout.addEventListener("keydown", handleKeyDown);
 
     // Theme management
     function resolveIsDark(theme: ThemeMode): boolean {
@@ -241,7 +242,7 @@ export function mountViewerShell(
 
     function destroy(): void {
         cleanupSystemListener();
-        document.removeEventListener("keydown", handleKeyDown);
+        layout.removeEventListener("keydown", handleKeyDown);
         panelOverlay.removeEventListener("click", handleOverlayClick);
         unsubPanelClass();
         effects.destroy();
