@@ -48,9 +48,9 @@ export const udoc_render_page_to_rgba: (a: number, b: number, c: number, d: numb
 export const udoc_set_license: (a: number, b: number, c: number, d: number) => void;
 export const udoc_set_visibility_group_visible: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
 export const udoc_setup: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
-export const __wasm_bindgen_func_elem_2523: (a: number, b: number, c: number) => void;
-export const __wasm_bindgen_func_elem_2507: (a: number, b: number) => void;
-export const __wasm_bindgen_func_elem_16262: (a: number, b: number, c: number, d: number) => void;
+export const __wasm_bindgen_func_elem_2530: (a: number, b: number, c: number) => void;
+export const __wasm_bindgen_func_elem_2514: (a: number, b: number) => void;
+export const __wasm_bindgen_func_elem_16266: (a: number, b: number, c: number, d: number) => void;
 export const __wbindgen_export: (a: number, b: number) => number;
 export const __wbindgen_export2: (a: number, b: number, c: number, d: number) => number;
 export const __wbindgen_export3: (a: number) => void;
