@@ -16,7 +16,7 @@ interface SampleCategory {
 const sampleCategories: SampleCategory[] = [
     {
         name: "PDF",
-        description: "NASA documents are public-domain. PDF Reference is hosted by Adobe via its public website.",
+        description: "NASA documents are public-domain.",
         documents: [
             {
                 name: "Hubble Fact Sheet: Mission Operations",
@@ -24,10 +24,6 @@ const sampleCategories: SampleCategory[] = [
             },
             { name: "Hubble Focus: Black Holes", path: "./pdf/nasa-hubble-focus-black-holes-ebook.pdf" },
             { name: "Earth Art", path: "./pdf/nasa-earth-art.pdf" },
-            {
-                name: "PDF Reference 1.7",
-                path: "https://opensource.adobe.com/dc-acrobat-sdk-docs/pdfstandards/PDF32000_2008.pdf",
-            },
         ],
     },
     {
