@@ -473,6 +473,16 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
             };
         }
 
+        case "SHOW_PRINT_DIALOG": {
+            if (state.showPrintDialog) return state;
+            return { ...state, showPrintDialog: true };
+        }
+
+        case "HIDE_PRINT_DIALOG": {
+            if (!state.showPrintDialog) return state;
+            return { ...state, showPrintDialog: false };
+        }
+
         default:
             return state;
     }

@@ -254,6 +254,9 @@ export interface ViewerState {
     printCurrentPage: number;
     /** Print progress: total pages to render */
     printTotalPages: number;
+
+    /** Whether the print dialog is visible */
+    showPrintDialog: boolean;
 }
 
 export const initialState: ViewerState = {
@@ -331,4 +334,6 @@ export const initialState: ViewerState = {
     isPrinting: false,
     printCurrentPage: 0,
     printTotalPages: 0,
+
+    showPrintDialog: false,
 };

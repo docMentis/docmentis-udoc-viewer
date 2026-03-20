@@ -8,6 +8,7 @@
 import type { WorkerClient, PageInfo, RenderType } from "./worker/index.js";
 import type { ViewerOptions } from "./UDocClient.js";
 import { mountViewerShell, type ViewerShell, type InitialStateOverrides } from "./ui/viewer/shell.js";
+import type { PrintDialogResult, PrintPageRange, PrintQuality } from "./ui/viewer/components/PrintDialog.js";
 import type { Destination, OutlineItem } from "./ui/viewer/navigation.js";
 import type { Annotation } from "./ui/viewer/annotation/index.js";
 export type { Annotation } from "./ui/viewer/annotation/index.js";
@@ -206,7 +207,7 @@ export class UDocViewer {
             this.uiShell.setCallbacks({
                 onPasswordSubmit: (password: string) => this.handlePasswordSubmit(password),
                 onDownload: () => this.download(),
-                onPrint: () => this.print(),
+                onPrint: (options) => this.print(options),
             });
 
             // Subscribe to store state changes to emit public events
@@ -1179,15 +1180,46 @@ export class UDocViewer {
 
     /**
      * Print the document.
-     * Renders all pages at print resolution and opens the browser print dialog.
+     * Shows the print dialog when called without options (from public API).
+     * When called with options (from the dialog), renders selected pages and opens the browser print dialog.
      */
-    async print(): Promise<void> {
+    async print(options?: PrintDialogResult): Promise<void> {
         this.ensureLoaded();
 
-        if (this.currentFormat === "pdf") {
+        // If no options provided, show the print dialog
+        if (!options) {
+            this.uiShell?.dispatch({ type: "SHOW_PRINT_DIALOG" });
+            return;
+        }
+
+        const pageIndices = this.resolvePageIndices(options.pageRange);
+        const isAllPages = pageIndices.length === this._pageCount;
+
+        // For PDF with all pages and standard quality, use native PDF printing (vector quality)
+        if (this.currentFormat === "pdf" && isAllPages && options.quality === "standard") {
             await this.printPdfNative();
         } else {
-            await this.printRendered();
+            await this.printRendered(pageIndices, options.quality);
+        }
+    }
+
+    /**
+     * Resolve a PrintPageRange into an array of 0-based page indices.
+     * @internal
+     */
+    private resolvePageIndices(range: PrintPageRange): number[] {
+        switch (range.kind) {
+            case "all":
+                return Array.from({ length: this._pageCount }, (_, i) => i);
+            case "current":
+                return [this.currentPage - 1];
+            case "fromTo": {
+                const indices: number[] = [];
+                for (let i = range.from - 1; i < range.to; i++) indices.push(i);
+                return indices;
+            }
+            case "custom":
+                return range.pages.map((p) => p - 1);
         }
     }
 
@@ -1229,21 +1261,35 @@ export class UDocViewer {
         }, 1000);
     }
 
+    /** Map quality preset to DPI scale factor. */
+    private static qualityToDpiScale(quality: PrintQuality): number {
+        switch (quality) {
+            case "draft":
+                return 150 / 72;
+            case "standard":
+                return 300 / 72;
+            case "high":
+                return 600 / 72;
+        }
+    }
+
     /**
-     * Print non-PDF formats by rendering pages to images.
+     * Print by rendering selected pages to images.
      * @internal
      */
-    private async printRendered(): Promise<void> {
+    private async printRendered(pageIndices: number[], quality: PrintQuality): Promise<void> {
+        const totalPages = pageIndices.length;
         // Show progress via store-driven loading overlay
-        this.uiShell?.dispatch({ type: "SET_PRINT_PROGRESS", currentPage: 0, totalPages: this._pageCount });
+        this.uiShell?.dispatch({ type: "SET_PRINT_PROGRESS", currentPage: 0, totalPages });
         const blobUrls: string[] = [];
 
         try {
-            const scale = 300 / 72; // 300 DPI — standard print quality
+            const scale = UDocViewer.qualityToDpiScale(quality);
 
-            for (let i = 0; i < this._pageCount; i++) {
-                this.uiShell?.dispatch({ type: "SET_PRINT_PROGRESS", currentPage: i + 1, totalPages: this._pageCount });
-                const blob = await this.renderPage(i, {
+            for (let idx = 0; idx < totalPages; idx++) {
+                const pageIndex = pageIndices[idx];
+                this.uiShell?.dispatch({ type: "SET_PRINT_PROGRESS", currentPage: idx + 1, totalPages });
+                const blob = await this.renderPage(pageIndex, {
                     scale,
                     format: "blob",
                     force: true,
@@ -1251,18 +1297,18 @@ export class UDocViewer {
                 blobUrls.push(URL.createObjectURL(blob as Blob));
             }
 
-            const firstInfo = this._pageInfo[0];
+            const firstInfo = this._pageInfo[pageIndices[0]];
             const pageWidthIn = (firstInfo.width / 72).toFixed(4);
             const pageHeightIn = (firstInfo.height / 72).toFixed(4);
 
             let pagesHtml = "";
-            for (let i = 0; i < this._pageCount; i++) {
-                const info = this._pageInfo[i];
+            for (let idx = 0; idx < totalPages; idx++) {
+                const info = this._pageInfo[pageIndices[idx]];
                 const widthIn = (info.width / 72).toFixed(4);
                 const heightIn = (info.height / 72).toFixed(4);
                 pagesHtml +=
                     `<div class="page" style="width:${widthIn}in;height:${heightIn}in;">` +
-                    `<img src="${blobUrls[i]}" style="width:100%;height:100%;">` +
+                    `<img src="${blobUrls[idx]}" style="width:100%;height:100%;">` +
                     `</div>`;
             }
 

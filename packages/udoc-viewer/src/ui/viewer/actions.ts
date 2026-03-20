@@ -111,4 +111,7 @@ export type Action =
     | { type: "CLEAR_DOWNLOAD_PROGRESS" }
     // Print progress
     | { type: "SET_PRINT_PROGRESS"; currentPage: number; totalPages: number }
-    | { type: "CLEAR_PRINT_PROGRESS" };
+    | { type: "CLEAR_PRINT_PROGRESS" }
+    // Print dialog
+    | { type: "SHOW_PRINT_DIALOG" }
+    | { type: "HIDE_PRINT_DIALOG" };

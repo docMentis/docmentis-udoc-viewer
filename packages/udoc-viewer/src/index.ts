@@ -24,6 +24,9 @@ export type {
     UIComponent,
 } from "./UDocViewer.js";
 
+// Print dialog types
+export type { PrintDialogResult, PrintPageRange, PrintQuality } from "./ui/viewer/components/PrintDialog.js";
+
 // View mode and panel types
 export type {
     ScrollMode,

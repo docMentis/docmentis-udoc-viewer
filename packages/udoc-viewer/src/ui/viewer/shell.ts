@@ -14,6 +14,8 @@ import { createLeftPanel } from "./components/LeftPanel";
 import { createViewport } from "./components/Viewport";
 import { createRightPanel } from "./components/RightPanel";
 import { createPasswordDialog } from "./components/PasswordDialog";
+import { createPrintDialog } from "./components/PrintDialog";
+import type { PrintDialogResult } from "./components/PrintDialog";
 import { createLoadingOverlay } from "./components/LoadingOverlay";
 import { inlineStyles } from "./styles-inline.js";
 
@@ -29,7 +31,7 @@ export interface EngineAdapter {
 export interface ViewerShellCallbacks {
     onPasswordSubmit?: (password: string) => void;
     onDownload?: () => void;
-    onPrint?: () => void;
+    onPrint?: (options: PrintDialogResult) => void;
 }
 
 export interface ViewerShell {
@@ -112,7 +114,7 @@ export function mountViewerShell(
 
     // Loading overlay (mounted to viewport slot, shows during document download)
     const loadingOverlay = createLoadingOverlay(showAttribution);
-    loadingOverlay.mount(viewportSlot, store);
+    loadingOverlay.mount(layout, store);
 
     // Password dialog (mounted to viewport slot so it covers only the viewer area)
     const passwordDialog = createPasswordDialog();
@@ -158,10 +160,22 @@ export function mountViewerShell(
             store.dispatch({ type: "SET_ZOOM", zoom: 1 });
         }
 
-        // Close panel: Escape
+        // Ctrl+P / Cmd+P to open print dialog
+        if ((e.ctrlKey || e.metaKey) && e.key === "p") {
+            e.preventDefault();
+            const state = store.getState();
+            if (state.printButtonVisible && !state.showPrintDialog) {
+                store.dispatch({ type: "SHOW_PRINT_DIALOG" });
+            }
+        }
+
+        // Close panel or print dialog: Escape
         if (e.key === "Escape") {
             const state = store.getState();
-            if (state.activePanel !== null) {
+            if (state.showPrintDialog) {
+                e.preventDefault();
+                store.dispatch({ type: "HIDE_PRINT_DIALOG" });
+            } else if (state.activePanel !== null) {
                 e.preventDefault();
                 store.dispatch({ type: "CLOSE_PANEL" });
             }
@@ -234,10 +248,24 @@ export function mountViewerShell(
 
     store.dispatch({ type: "__INIT__" });
 
+    // Print dialog (mounted to layout root so it covers toolbar + viewport)
+    const printDialog = createPrintDialog();
+    printDialog.mount(layout, store, {
+        onPrint: (result: PrintDialogResult) => {
+            store.dispatch({ type: "HIDE_PRINT_DIALOG" });
+            callbacks.onPrint?.(result);
+        },
+        onCancel: () => {
+            store.dispatch({ type: "HIDE_PRINT_DIALOG" });
+        },
+    });
+
     function setCallbacks(newCallbacks: ViewerShellCallbacks): void {
         callbacks = { ...callbacks, ...newCallbacks };
         toolbar.setOnDownload(callbacks.onDownload ?? null);
-        toolbar.setOnPrint(callbacks.onPrint ?? null);
+        toolbar.setOnPrint(() => {
+            store.dispatch({ type: "SHOW_PRINT_DIALOG" });
+        });
     }
 
     function destroy(): void {
@@ -252,6 +280,7 @@ export function mountViewerShell(
         rightPanel.destroy();
         loadingOverlay.destroy();
         passwordDialog.destroy();
+        printDialog.destroy();
         layout.remove();
     }
 

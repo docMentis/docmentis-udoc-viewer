@@ -84,6 +84,7 @@
     --udoc-scrollbar-thumb: rgba(0, 0, 0, 0.3);
     --udoc-scrollbar-thumb-hover: rgba(0, 0, 0, 0.5);
 
+    position: relative;
     display: flex;
     flex-direction: column;
     height: 100%;
@@ -1885,6 +1886,170 @@
 .udoc-viewer-root .udoc-password-submit-spinner svg {
     width: 20px;
     height: 20px;
+}
+
+/* ===== Print Dialog ===== */
+.udoc-viewer-root .udoc-print-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--udoc-bg-overlay);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 210;
+}
+
+.udoc-viewer-root .udoc-print-dialog {
+    background: var(--udoc-bg-surface);
+    border-radius: 12px;
+    box-shadow: var(--udoc-shadow-dialog);
+    padding: 24px;
+    max-width: 400px;
+    width: 90%;
+}
+
+.udoc-viewer-root .udoc-print-title {
+    margin: 0 0 20px 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--udoc-text-heading);
+}
+
+.udoc-viewer-root .udoc-print-section {
+    margin-bottom: 16px;
+}
+
+.udoc-viewer-root .udoc-print-section-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--udoc-text-label);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.udoc-viewer-root .udoc-print-radios {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.udoc-viewer-root .udoc-print-radio {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: var(--udoc-text-heading);
+    cursor: pointer;
+    padding: 4px 0;
+}
+
+.udoc-viewer-root .udoc-print-radio input[type="radio"] {
+    accent-color: var(--udoc-primary);
+    margin: 0;
+    cursor: pointer;
+}
+
+.udoc-viewer-root .udoc-print-input {
+    padding: 4px 8px;
+    border: 1px solid var(--udoc-border);
+    border-radius: 6px;
+    background: var(--udoc-bg-input);
+    color: var(--udoc-text-heading);
+    font-size: 14px;
+    outline: none;
+    transition:
+        border-color 0.15s,
+        box-shadow 0.15s;
+}
+
+.udoc-viewer-root .udoc-print-input:focus {
+    border-color: var(--udoc-primary);
+    box-shadow: 0 0 0 3px var(--udoc-primary-active-bg);
+}
+
+.udoc-viewer-root .udoc-print-input:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.udoc-viewer-root .udoc-print-input[type="number"] {
+    width: 64px;
+}
+
+.udoc-viewer-root .udoc-print-input[type="text"] {
+    flex: 1;
+    min-width: 0;
+}
+
+.udoc-viewer-root .udoc-print-select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--udoc-border);
+    border-radius: 8px;
+    background: var(--udoc-bg-input);
+    color: var(--udoc-text-heading);
+    font-size: 14px;
+    outline: none;
+    cursor: pointer;
+    transition:
+        border-color 0.15s,
+        box-shadow 0.15s;
+}
+
+.udoc-viewer-root .udoc-print-select:focus {
+    border-color: var(--udoc-primary);
+    box-shadow: 0 0 0 3px var(--udoc-primary-active-bg);
+}
+
+.udoc-viewer-root .udoc-print-error {
+    margin: 0 0 12px 0;
+    padding: 8px 12px;
+    background: var(--udoc-error-bg);
+    border: 1px solid var(--udoc-error-border);
+    border-radius: 6px;
+    font-size: 13px;
+    color: var(--udoc-error-text);
+    display: none;
+}
+
+.udoc-viewer-root .udoc-print-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 20px;
+}
+
+.udoc-viewer-root .udoc-print-btn {
+    padding: 8px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.udoc-viewer-root .udoc-print-btn--cancel {
+    background: transparent;
+    color: var(--udoc-text-label);
+}
+
+.udoc-viewer-root .udoc-print-btn--cancel:hover {
+    background: var(--udoc-bg-hover);
+}
+
+.udoc-viewer-root .udoc-print-btn--print {
+    background: var(--udoc-primary);
+    color: var(--udoc-text-on-primary);
+}
+
+.udoc-viewer-root .udoc-print-btn--print:hover {
+    background: var(--udoc-primary-hover);
 }
 
 /* ===== Loading Overlay ===== */
