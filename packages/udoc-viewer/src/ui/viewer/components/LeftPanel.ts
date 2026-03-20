@@ -30,6 +30,7 @@ type LeftPanelSlice = {
     panelVisible: boolean;
     disabledPanels: ReadonlySet<PanelTab>;
     allDisabled: boolean;
+    noTransition: boolean;
 };
 
 export function createLeftPanel() {
@@ -75,6 +76,9 @@ export function createLeftPanel() {
     function applyState(slice: LeftPanelSlice): void {
         // Hide entire panel area if disabled or all left tabs are disabled
         el.style.display = !slice.panelVisible || slice.allDisabled ? "none" : "";
+
+        // Suppress transition when loading a new document
+        el.style.transition = slice.noTransition ? "none" : "";
 
         el.classList.toggle("udoc-left-panel--closed", !slice.open);
 
@@ -186,7 +190,8 @@ export function createLeftPanel() {
                 a.width === b.width &&
                 a.panelVisible === b.panelVisible &&
                 a.disabledPanels === b.disabledPanels &&
-                a.allDisabled === b.allDisabled,
+                a.allDisabled === b.allDisabled &&
+                a.noTransition === b.noTransition,
         });
 
         // Subscribe to active tab changes for content
@@ -231,5 +236,6 @@ function selectLeftPanel(state: ViewerState): LeftPanelSlice {
         panelVisible: state.leftPanelVisible,
         disabledPanels: state.disabledPanels,
         allDisabled,
+        noTransition: state.panelTransitionsDisabled,
     };
 }

@@ -114,4 +114,6 @@ export type Action =
     | { type: "CLEAR_PRINT_PROGRESS" }
     // Print dialog
     | { type: "SHOW_PRINT_DIALOG" }
-    | { type: "HIDE_PRINT_DIALOG" };
+    | { type: "HIDE_PRINT_DIALOG" }
+    // Panel transitions
+    | { type: "ENABLE_PANEL_TRANSITIONS" };

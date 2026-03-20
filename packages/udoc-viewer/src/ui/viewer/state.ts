@@ -257,6 +257,9 @@ export interface ViewerState {
 
     /** Whether the print dialog is visible */
     showPrintDialog: boolean;
+
+    /** When true, panel open/close should skip CSS transitions (reset automatically after one frame) */
+    panelTransitionsDisabled: boolean;
 }
 
 export const initialState: ViewerState = {
@@ -336,4 +339,6 @@ export const initialState: ViewerState = {
     printTotalPages: 0,
 
     showPrintDialog: false,
+
+    panelTransitionsDisabled: false,
 };

@@ -14,6 +14,7 @@ type RightPanelSlice = {
     width: number | null;
     panelVisible: boolean;
     allDisabled: boolean;
+    noTransition: boolean;
 };
 
 export function createRightPanel() {
@@ -41,6 +42,9 @@ export function createRightPanel() {
     function applyState(slice: RightPanelSlice): void {
         // Hide entire panel area if disabled or all right tabs are disabled
         el.style.display = !slice.panelVisible || slice.allDisabled ? "none" : "";
+
+        // Suppress transition when loading a new document
+        el.style.transition = slice.noTransition ? "none" : "";
 
         el.classList.toggle("udoc-right-panel--closed", !slice.open);
 
@@ -117,7 +121,8 @@ export function createRightPanel() {
                 a.activeTab === b.activeTab &&
                 a.width === b.width &&
                 a.panelVisible === b.panelVisible &&
-                a.allDisabled === b.allDisabled,
+                a.allDisabled === b.allDisabled &&
+                a.noTransition === b.noTransition,
         });
     }
 
@@ -143,5 +148,6 @@ function selectRightPanel(state: ViewerState): RightPanelSlice {
         width: state.rightPanelWidth,
         panelVisible: state.rightPanelVisible,
         allDisabled,
+        noTransition: state.panelTransitionsDisabled,
     };
 }

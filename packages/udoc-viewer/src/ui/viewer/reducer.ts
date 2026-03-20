@@ -58,6 +58,9 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
                 searchActiveIndex: -1,
                 searchTextLoaded: false,
                 searchTextLoading: false,
+                // Close panels instantly when clearing a document
+                activePanel: null,
+                panelTransitionsDisabled: true,
             };
         }
         case "SET_PAGE": {
@@ -481,6 +484,11 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
         case "HIDE_PRINT_DIALOG": {
             if (!state.showPrintDialog) return state;
             return { ...state, showPrintDialog: false };
+        }
+
+        case "ENABLE_PANEL_TRANSITIONS": {
+            if (!state.panelTransitionsDisabled) return state;
+            return { ...state, panelTransitionsDisabled: false };
         }
 
         default:

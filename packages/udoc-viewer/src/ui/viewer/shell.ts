@@ -234,6 +234,12 @@ export function mountViewerShell(
         if (prev.textSelectionDisabled !== next.textSelectionDisabled) {
             layout.classList.toggle("udoc-viewer--no-text-select", next.textSelectionDisabled);
         }
+        // Re-enable panel transitions after one frame so future open/close animates normally
+        if (next.panelTransitionsDisabled && !prev.panelTransitionsDisabled) {
+            requestAnimationFrame(() => {
+                store.dispatch({ type: "ENABLE_PANEL_TRANSITIONS" });
+            });
+        }
     });
 
     // Apply initial toolbar visibility
