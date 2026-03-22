@@ -71,3 +71,72 @@ export function createLiveRegion(): {
 
     return { announce, el, destroy };
 }
+
+/**
+ * Sets up roving tabindex on a toolbar or group of items.
+ * Only one item has tabindex="0" at a time; arrow keys move between items.
+ * Call `refresh()` after showing/hiding items so the active index stays valid.
+ */
+export function setupRovingTabindex(
+    container: HTMLElement,
+    itemSelector: string,
+    direction: "horizontal" | "vertical" = "horizontal",
+): { refresh: () => void; destroy: () => void } {
+    let activeIndex = 0;
+
+    function getItems(): HTMLElement[] {
+        return Array.from(container.querySelectorAll<HTMLElement>(itemSelector)).filter(
+            (el) => el.offsetParent !== null && !el.hasAttribute("disabled"),
+        );
+    }
+
+    function refresh(): void {
+        const items = getItems();
+        if (items.length === 0) return;
+
+        // Clamp active index
+        if (activeIndex >= items.length) activeIndex = 0;
+
+        for (let i = 0; i < items.length; i++) {
+            items[i].setAttribute("tabindex", i === activeIndex ? "0" : "-1");
+        }
+    }
+
+    function handler(e: KeyboardEvent): void {
+        const prevKey = direction === "horizontal" ? "ArrowLeft" : "ArrowUp";
+        const nextKey = direction === "horizontal" ? "ArrowRight" : "ArrowDown";
+
+        if (e.key !== prevKey && e.key !== nextKey && e.key !== "Home" && e.key !== "End") return;
+
+        const items = getItems();
+        if (items.length === 0) return;
+
+        e.preventDefault();
+
+        const currentIndex = items.findIndex((item) => item === document.activeElement);
+        let nextIndex: number;
+
+        if (e.key === "Home") {
+            nextIndex = 0;
+        } else if (e.key === "End") {
+            nextIndex = items.length - 1;
+        } else if (e.key === nextKey) {
+            nextIndex = currentIndex < items.length - 1 ? currentIndex + 1 : 0;
+        } else {
+            nextIndex = currentIndex > 0 ? currentIndex - 1 : items.length - 1;
+        }
+
+        items[currentIndex]?.setAttribute("tabindex", "-1");
+        items[nextIndex].setAttribute("tabindex", "0");
+        items[nextIndex].focus();
+        activeIndex = nextIndex;
+    }
+
+    container.addEventListener("keydown", handler);
+    refresh();
+
+    return {
+        refresh,
+        destroy: () => container.removeEventListener("keydown", handler),
+    };
+}

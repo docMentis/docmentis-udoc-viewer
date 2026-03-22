@@ -24,10 +24,18 @@ export function createRightPanel() {
     // Resize handle (on left edge for right panel)
     const resizeHandle = document.createElement("div");
     resizeHandle.className = "udoc-right-panel__resize-handle";
+    resizeHandle.setAttribute("role", "separator");
+    resizeHandle.setAttribute("aria-orientation", "vertical");
+    resizeHandle.setAttribute("aria-label", "Resize panel");
+    resizeHandle.setAttribute("tabindex", "0");
+    resizeHandle.setAttribute("aria-valuenow", "320");
+    resizeHandle.setAttribute("aria-valuemin", "200");
+    resizeHandle.setAttribute("aria-valuemax", "500");
 
     // Content area (search or comments)
     const content = document.createElement("div");
     content.className = "udoc-right-panel__content";
+    content.setAttribute("role", "region");
 
     el.append(resizeHandle, content);
 
@@ -57,8 +65,11 @@ export function createRightPanel() {
 
         if (slice.activeTab) {
             content.setAttribute("data-tab", slice.activeTab);
+            const label = slice.activeTab === "search" ? "Search panel" : "Comments panel";
+            content.setAttribute("aria-label", label);
         } else {
             content.removeAttribute("data-tab");
+            content.removeAttribute("aria-label");
         }
     }
 
@@ -100,6 +111,23 @@ export function createRightPanel() {
 
         resizeHandle.addEventListener("pointerdown", onPointerDown);
         unsubEvents.push(() => resizeHandle.removeEventListener("pointerdown", onPointerDown));
+
+        // Keyboard resize: arrow keys (left increases width for right panel)
+        const RESIZE_STEP = 20;
+        const onKeyDown = (e: KeyboardEvent) => {
+            if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+            e.preventDefault();
+            const currentWidth = el.offsetWidth;
+            const delta = e.key === "ArrowLeft" ? RESIZE_STEP : -RESIZE_STEP;
+            const newWidth = Math.max(200, Math.min(500, currentWidth + delta));
+            el.style.width = `${newWidth}px`;
+            resizeHandle.setAttribute("aria-valuenow", String(newWidth));
+            if (storeRef) {
+                storeRef.dispatch({ type: "SET_RIGHT_PANEL_WIDTH", width: newWidth });
+            }
+        };
+        resizeHandle.addEventListener("keydown", onKeyDown);
+        unsubEvents.push(() => resizeHandle.removeEventListener("keydown", onKeyDown));
     }
 
     function mount(container: HTMLElement, store: Store<ViewerState, Action>): void {

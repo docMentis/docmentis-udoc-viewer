@@ -13,13 +13,13 @@
     --udoc-text-primary: rgba(0, 0, 0, 0.8);
     --udoc-text-secondary: rgba(0, 0, 0, 0.7);
     --udoc-text-tertiary: rgba(0, 0, 0, 0.6);
-    --udoc-text-muted: rgba(0, 0, 0, 0.5);
-    --udoc-text-faint: rgba(0, 0, 0, 0.4);
+    --udoc-text-muted: rgba(0, 0, 0, 0.58);
+    --udoc-text-faint: rgba(0, 0, 0, 0.52);
     --udoc-text-disabled: rgba(0, 0, 0, 0.25);
     --udoc-text-heading: #333;
     --udoc-text-body: #555;
     --udoc-text-label: #666;
-    --udoc-text-subtle: #888;
+    --udoc-text-subtle: #767676;
     --udoc-text-placeholder: #999;
     --udoc-text-on-primary: #fff;
 
@@ -106,13 +106,13 @@
     --udoc-text-primary: rgba(255, 255, 255, 0.87);
     --udoc-text-secondary: rgba(255, 255, 255, 0.7);
     --udoc-text-tertiary: rgba(255, 255, 255, 0.6);
-    --udoc-text-muted: rgba(255, 255, 255, 0.5);
-    --udoc-text-faint: rgba(255, 255, 255, 0.38);
+    --udoc-text-muted: rgba(255, 255, 255, 0.64);
+    --udoc-text-faint: rgba(255, 255, 255, 0.56);
     --udoc-text-disabled: rgba(255, 255, 255, 0.25);
     --udoc-text-heading: #e0e0e0;
     --udoc-text-body: #bbb;
     --udoc-text-label: #aaa;
-    --udoc-text-subtle: #888;
+    --udoc-text-subtle: #a0a0a0;
     --udoc-text-placeholder: #777;
     --udoc-text-on-primary: #fff;
 
@@ -2496,5 +2496,50 @@
 
     .udoc-viewer-root .udoc-search-highlight {
         outline: 2px solid Highlight;
+    }
+}
+
+/* Resize handle focus styles */
+.udoc-viewer-root .udoc-left-panel__resize-handle:focus-visible,
+.udoc-viewer-root .udoc-right-panel__resize-handle:focus-visible {
+    background: var(--udoc-primary-muted);
+    outline: 2px solid var(--udoc-primary);
+    outline-offset: -2px;
+}
+
+/* Touch target sizes for coarse pointers */
+@media (pointer: coarse) {
+    .udoc-viewer-root .udoc-toolbar__btn {
+        min-width: 44px;
+        min-height: 44px;
+    }
+
+    .udoc-viewer-root .udoc-toolbar__btn--nav {
+        min-width: 44px;
+        min-height: 44px;
+    }
+
+    .udoc-viewer-root .udoc-floating-toolbar__btn {
+        min-width: 44px;
+        min-height: 44px;
+    }
+
+    .udoc-viewer-root .udoc-left-panel__tab {
+        width: 44px;
+        height: 44px;
+    }
+
+    .udoc-viewer-root .udoc-left-panel__tabs {
+        width: 44px;
+    }
+
+    .udoc-viewer-root .udoc-zoom-dropdown__chevron {
+        min-width: 44px;
+        min-height: 44px;
+    }
+
+    .udoc-viewer-root .udoc-outline-item__toggle {
+        min-width: 44px;
+        min-height: 44px;
     }
 }

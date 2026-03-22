@@ -137,12 +137,15 @@ export function createSpread(data: SpreadData, showAttribution = true) {
             previewCanvas.style.position = "absolute";
             previewCanvas.style.transformOrigin = "center";
             previewCanvas.style.display = "none";
+            previewCanvas.setAttribute("aria-hidden", "true");
             container.appendChild(previewCanvas);
 
             const canvas = document.createElement("canvas");
             canvas.className = "udoc-spread__canvas";
             canvas.style.position = "absolute";
             canvas.style.transformOrigin = "center";
+            canvas.setAttribute("aria-label", `Page ${pageNumber} content`);
+            canvas.textContent = `Page ${pageNumber}`;
             container.appendChild(canvas);
 
             // Text layer (above canvas, below annotations) - for text selection

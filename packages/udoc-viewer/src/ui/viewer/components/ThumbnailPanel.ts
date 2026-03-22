@@ -100,6 +100,7 @@ export function createThumbnailPanel() {
 
         const canvas = document.createElement("canvas");
         canvas.className = "udoc-thumbnail-item__canvas";
+        canvas.setAttribute("aria-hidden", "true");
 
         // Set aspect ratio for responsive scaling
         const aspectRatio = pageInfo.width / pageInfo.height;

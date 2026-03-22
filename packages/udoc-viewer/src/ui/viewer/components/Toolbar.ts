@@ -4,6 +4,7 @@ import { on } from "../../framework/events";
 import type { ViewerState, ZoomMode, PanelTab, LeftPanelTab, ThemeMode } from "../state";
 import { isLeftPanelTab } from "../state";
 import type { Action } from "../actions";
+import { setupRovingTabindex } from "../a11y";
 import {
     ICON_MENU,
     ICON_SEARCH,
@@ -111,6 +112,8 @@ function selectSlice(state: ViewerState): ToolbarSlice {
 export function createToolbar() {
     const el = document.createElement("div");
     el.className = "udoc-toolbar";
+    el.setAttribute("role", "toolbar");
+    el.setAttribute("aria-label", "Document toolbar");
 
     // Left section
     const leftSection = document.createElement("div");
@@ -140,6 +143,7 @@ export function createToolbar() {
     pageInput.className = "udoc-toolbar__page-input";
     pageInput.type = "text";
     pageInput.inputMode = "numeric";
+    pageInput.setAttribute("aria-label", "Page number");
 
     const pageTotal = document.createElement("span");
     pageTotal.className = "udoc-toolbar__page-total";
@@ -235,6 +239,7 @@ export function createToolbar() {
     const unsubEvents: Array<() => void> = [];
     let unsubRender: (() => void) | null = null;
     let viewModeMounted = false;
+    let rovingTabindex: ReturnType<typeof setupRovingTabindex> | null = null;
     let onDownloadCallback: (() => void) | null = null;
     let onPrintCallback: (() => void) | null = null;
 
@@ -334,6 +339,9 @@ export function createToolbar() {
 
     function mount(container: HTMLElement, store: Store<ViewerState, Action>): void {
         container.appendChild(el);
+
+        // Roving tabindex: single Tab stop, arrow keys between buttons
+        rovingTabindex = setupRovingTabindex(el, ".udoc-toolbar__btn, .udoc-toolbar__btn--nav, input");
 
         // Wire menu button to toggle the first available left panel tab
         const onMenuClick = () => {
@@ -573,6 +581,9 @@ export function createToolbar() {
                 // Rebuild zoom dropdown
                 buildZoomDropdown(slice, store);
             }
+
+            // Refresh roving tabindex after visibility changes
+            rovingTabindex?.refresh();
         };
 
         // Initial state
@@ -586,6 +597,7 @@ export function createToolbar() {
 
     function destroy(): void {
         if (unsubRender) unsubRender();
+        if (rovingTabindex) rovingTabindex.destroy();
         for (const off of unsubEvents) off();
         if (viewModeMounted) viewModeMenu.destroy();
         el.remove();

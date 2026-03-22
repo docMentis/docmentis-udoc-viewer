@@ -3,6 +3,7 @@ import { subscribeSelector } from "../../framework/selectors";
 import { on } from "../../framework/events";
 import type { ViewerState, ZoomMode } from "../state";
 import type { Action } from "../actions";
+import { setupRovingTabindex } from "../a11y";
 import { ICON_CHEVRON_LEFT, ICON_CHEVRON_RIGHT, ICON_CHEVRON_DOWN, ICON_ZOOM_IN, ICON_ZOOM_OUT } from "../icons";
 import { createViewModeMenu } from "./ViewModeMenu";
 
@@ -42,6 +43,8 @@ function getDisplayZoom(slice: FloatingToolbarSlice): number {
 export function createFloatingToolbar() {
     const el = document.createElement("div");
     el.className = "udoc-floating-toolbar";
+    el.setAttribute("role", "toolbar");
+    el.setAttribute("aria-label", "Page navigation and zoom");
 
     // Navigation section
     const navSection = document.createElement("div");
@@ -151,9 +154,13 @@ export function createFloatingToolbar() {
 
     let unsub: (() => void) | null = null;
     const unsubEvents: Array<() => void> = [];
+    let rovingTabindex: ReturnType<typeof setupRovingTabindex> | null = null;
 
     function mount(container: HTMLElement, store: Store<ViewerState, Action>): void {
         container.appendChild(el);
+
+        // Roving tabindex: single Tab stop, arrow keys between buttons
+        rovingTabindex = setupRovingTabindex(el, ".udoc-floating-toolbar__btn, input");
 
         // Mount view mode menu
         viewModeMenu.mount(store);
@@ -384,6 +391,7 @@ export function createFloatingToolbar() {
 
     function destroy(): void {
         if (unsub) unsub();
+        if (rovingTabindex) rovingTabindex.destroy();
         for (const off of unsubEvents) off();
         viewModeMenu.destroy();
         el.remove();

@@ -80,14 +80,14 @@ export function createPrintDialog() {
                 <label class="udoc-print-radio">
                     <input type="radio" name="udoc-print-range" value="fromTo">
                     <span>Pages</span>
-                    <input type="number" class="udoc-print-input udoc-print-from" min="1" value="1" disabled>
+                    <input type="number" class="udoc-print-input udoc-print-from" min="1" value="1" disabled aria-describedby="udoc-print-error">
                     <span>to</span>
-                    <input type="number" class="udoc-print-input udoc-print-to" min="1" value="1" disabled>
+                    <input type="number" class="udoc-print-input udoc-print-to" min="1" value="1" disabled aria-describedby="udoc-print-error">
                 </label>
                 <label class="udoc-print-radio">
                     <input type="radio" name="udoc-print-range" value="custom">
                     <span>Custom</span>
-                    <input type="text" class="udoc-print-input udoc-print-custom" placeholder="e.g. 1,3,5-8" disabled>
+                    <input type="text" class="udoc-print-input udoc-print-custom" placeholder="e.g. 1,3,5-8" disabled aria-describedby="udoc-print-error">
                 </label>
             </div>
         </div>
@@ -101,7 +101,7 @@ export function createPrintDialog() {
             </select>
         </div>
 
-        <p class="udoc-print-error" aria-live="polite"></p>
+        <p class="udoc-print-error" id="udoc-print-error" aria-live="polite"></p>
 
         <div class="udoc-print-actions">
             <button type="button" class="udoc-print-btn udoc-print-btn--cancel">Cancel</button>

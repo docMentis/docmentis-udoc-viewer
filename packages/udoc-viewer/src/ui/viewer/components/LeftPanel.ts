@@ -47,9 +47,11 @@ export function createLeftPanel() {
     for (const tab of TABS) {
         const btn = document.createElement("button");
         btn.className = "udoc-left-panel__tab";
+        btn.id = `udoc-left-tab-${tab.id}`;
         btn.setAttribute("aria-label", tab.label);
         btn.setAttribute("role", "tab");
         btn.setAttribute("aria-selected", "false");
+        btn.setAttribute("aria-controls", "udoc-left-panel-content");
         btn.setAttribute("data-tab", tab.id);
         btn.innerHTML = tab.icon;
         tabButtons.set(tab.id, btn);
@@ -59,11 +61,19 @@ export function createLeftPanel() {
     // Content area
     const content = document.createElement("div");
     content.className = "udoc-left-panel__content";
+    content.id = "udoc-left-panel-content";
     content.setAttribute("role", "tabpanel");
 
     // Resize handle
     const resizeHandle = document.createElement("div");
     resizeHandle.className = "udoc-left-panel__resize-handle";
+    resizeHandle.setAttribute("role", "separator");
+    resizeHandle.setAttribute("aria-orientation", "vertical");
+    resizeHandle.setAttribute("aria-label", "Resize side panel");
+    resizeHandle.setAttribute("tabindex", "0");
+    resizeHandle.setAttribute("aria-valuenow", "280");
+    resizeHandle.setAttribute("aria-valuemin", "200");
+    resizeHandle.setAttribute("aria-valuemax", "500");
 
     el.append(tabBar, content, resizeHandle);
 
@@ -100,6 +110,13 @@ export function createLeftPanel() {
             btn.setAttribute("aria-selected", String(isActive));
             // Hide individual tab buttons that are disabled
             btn.style.display = slice.disabledPanels.has(tabId) ? "none" : "";
+        }
+
+        // Link tabpanel to active tab
+        if (slice.activeTab) {
+            content.setAttribute("aria-labelledby", `udoc-left-tab-${slice.activeTab}`);
+        } else {
+            content.removeAttribute("aria-labelledby");
         }
     }
 
@@ -168,6 +185,23 @@ export function createLeftPanel() {
 
         resizeHandle.addEventListener("pointerdown", onPointerDown);
         unsubEvents.push(() => resizeHandle.removeEventListener("pointerdown", onPointerDown));
+
+        // Keyboard resize: arrow keys
+        const RESIZE_STEP = 20;
+        const onKeyDown = (e: KeyboardEvent) => {
+            if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+            e.preventDefault();
+            const currentWidth = el.offsetWidth;
+            const delta = e.key === "ArrowRight" ? RESIZE_STEP : -RESIZE_STEP;
+            const newWidth = Math.max(200, Math.min(500, currentWidth + delta));
+            el.style.width = `${newWidth}px`;
+            resizeHandle.setAttribute("aria-valuenow", String(newWidth));
+            if (storeRef) {
+                storeRef.dispatch({ type: "SET_LEFT_PANEL_WIDTH", width: newWidth });
+            }
+        };
+        resizeHandle.addEventListener("keydown", onKeyDown);
+        unsubEvents.push(() => resizeHandle.removeEventListener("keydown", onKeyDown));
     }
 
     function mount(container: HTMLElement, store: Store<ViewerState, Action>, workerClient: WorkerClient): void {

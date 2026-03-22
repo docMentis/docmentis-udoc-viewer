@@ -10,6 +10,8 @@ export function createLoadingOverlay(showAttribution = true) {
     // Create overlay container
     const overlay = document.createElement("div");
     overlay.className = "udoc-loading-overlay";
+    overlay.setAttribute("role", "status");
+    overlay.setAttribute("aria-live", "polite");
     overlay.style.display = "none";
 
     // Create content container
@@ -45,6 +47,8 @@ export function createLoadingOverlay(showAttribution = true) {
     // Create progress text
     const progressText = document.createElement("div");
     progressText.className = "udoc-loading-progress-text";
+    progressText.setAttribute("aria-live", "polite");
+    progressText.setAttribute("aria-atomic", "true");
     progressText.textContent = "Loading...";
 
     // Attribution logo shown below progress during loading
@@ -78,6 +82,7 @@ export function createLoadingOverlay(showAttribution = true) {
                 if (isVisible) {
                     showTimer = setTimeout(() => {
                         overlay.style.display = "flex";
+                        overlay.setAttribute("aria-busy", "true");
                         showTimer = null;
                     }, SHOW_DELAY_MS);
                 } else {
@@ -86,6 +91,7 @@ export function createLoadingOverlay(showAttribution = true) {
                         showTimer = null;
                     }
                     overlay.style.display = "none";
+                    overlay.setAttribute("aria-busy", "false");
                 }
             }
 

@@ -41,6 +41,7 @@ export function createPasswordDialog() {
                     placeholder="Enter password"
                     autocomplete="off"
                     aria-label="Password"
+                    aria-describedby="udoc-password-error"
                 />
                 <button type="button" class="udoc-password-toggle" aria-label="Show password">
                     <svg class="udoc-password-eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -53,7 +54,7 @@ export function createPasswordDialog() {
                     </svg>
                 </button>
             </div>
-            <p class="udoc-password-error" aria-live="polite"></p>
+            <p class="udoc-password-error" id="udoc-password-error" aria-live="polite"></p>
             <button type="submit" class="udoc-password-submit">
                 <span class="udoc-password-submit-text">Unlock</span>
                 <span class="udoc-password-submit-spinner" style="display:none">
