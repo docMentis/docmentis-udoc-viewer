@@ -69,22 +69,36 @@ export interface I18n {
 }
 
 /**
+ * Detect the browser's preferred locale.
+ * Returns the first `navigator.languages` entry, or "en" in non-browser environments.
+ */
+function detectLocale(): string {
+    if (typeof navigator !== "undefined") {
+        return navigator.language ?? "en";
+    }
+    return "en";
+}
+
+/**
  * Create an i18n instance.
  *
  * Resolves the locale to a built-in translation pack (en, zh-CN, ja, ko, es,
  * fr, de, pt-BR, ar, ru, zh-TW). Optional overrides are merged on top.
  *
- * @param locale - Locale identifier (e.g. "en", "zh-CN"). Defaults to "en".
+ * When `locale` is omitted, the browser's preferred language is used automatically.
+ *
+ * @param locale - Locale identifier (e.g. "en", "zh-CN"). Defaults to browser language.
  * @param overrides - Partial translation overrides. Merged on top of the resolved locale.
  */
 export function createI18n(locale?: string, overrides?: Record<string, string>): I18n {
-    const resolved = resolveLocale(locale ?? "en");
+    const effectiveLocale = locale ?? detectLocale();
+    const resolved = resolveLocale(effectiveLocale);
     const messages: Record<string, string> = overrides
         ? { ...(resolved as unknown as Record<string, string>), ...overrides }
         : (resolved as unknown as Record<string, string>);
 
     return {
-        locale: locale ?? "en",
+        locale: effectiveLocale,
         t(key: string, params?: Params): string {
             const template = messages[key] ?? key;
             return interpolate(template, params);

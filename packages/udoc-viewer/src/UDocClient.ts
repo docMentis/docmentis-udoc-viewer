@@ -360,7 +360,7 @@ export interface ViewerOptions {
      *
      * Built-in locales: `en`, `zh-CN`, `zh-TW`, `ja`, `ko`, `es`, `fr`, `de`, `pt-BR`, `ar`, `ru`.
      * Falls back to English for unrecognized locales.
-     * @default 'en'
+     * @default browser language (navigator.language)
      */
     locale?: string;
 
