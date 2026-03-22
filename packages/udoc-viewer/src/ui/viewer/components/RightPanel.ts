@@ -3,6 +3,7 @@ import { subscribeSelector } from "../../framework/selectors";
 import type { ViewerState, RightPanelTab } from "../state";
 import { isLeftPanelTab } from "../state";
 import type { Action } from "../actions";
+import type { I18n } from "../i18n/index.js";
 import { createAnnotationPanel } from "./AnnotationPanel";
 import { createSearchPanel } from "./SearchPanel";
 
@@ -46,6 +47,7 @@ export function createRightPanel() {
     let unsubRender: (() => void) | null = null;
     const unsubEvents: Array<() => void> = [];
     let storeRef: Store<ViewerState, Action> | null = null;
+    let i18nRef: I18n | null = null;
 
     function applyState(slice: RightPanelSlice): void {
         // Hide entire panel area if disabled or all right tabs are disabled
@@ -65,7 +67,10 @@ export function createRightPanel() {
 
         if (slice.activeTab) {
             content.setAttribute("data-tab", slice.activeTab);
-            const label = slice.activeTab === "search" ? "Search panel" : "Comments panel";
+            const label =
+                slice.activeTab === "search"
+                    ? i18nRef!.t("rightPanel.searchPanel")
+                    : i18nRef!.t("rightPanel.commentsPanel");
             content.setAttribute("aria-label", label);
         } else {
             content.removeAttribute("data-tab");
@@ -130,16 +135,20 @@ export function createRightPanel() {
         unsubEvents.push(() => resizeHandle.removeEventListener("keydown", onKeyDown));
     }
 
-    function mount(container: HTMLElement, store: Store<ViewerState, Action>): void {
+    function mount(container: HTMLElement, store: Store<ViewerState, Action>, i18n: I18n): void {
         container.appendChild(el);
         storeRef = store;
+        i18nRef = i18n;
+
+        // Update i18n labels
+        resizeHandle.setAttribute("aria-label", i18n.t("rightPanel.resizeHandle"));
 
         // Setup resize handle
         setupResize();
 
         // Mount panels
-        searchPanel.mount(content, store);
-        annotationPanel.mount(content, store);
+        searchPanel.mount(content, store, i18n);
+        annotationPanel.mount(content, store, i18n);
 
         // Subscribe to state changes
         applyState(selectRightPanel(store.getState()));

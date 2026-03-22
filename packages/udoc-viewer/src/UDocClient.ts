@@ -354,6 +354,22 @@ export interface ViewerOptions {
      * @default 5
      */
     maxZoom?: number;
+
+    /**
+     * Locale for UI strings.
+     *
+     * Built-in locales: `en`, `zh-CN`, `zh-TW`, `ja`, `ko`, `es`, `fr`, `de`, `pt-BR`, `ar`, `ru`.
+     * Falls back to English for unrecognized locales.
+     * @default 'en'
+     */
+    locale?: string;
+
+    /**
+     * Override individual translation strings on top of the resolved locale.
+     * Keys are dot-separated (e.g. "toolbar.search", "print.title").
+     * See `TranslationKeys` for the full list.
+     */
+    translations?: Record<string, string>;
 }
 
 /**

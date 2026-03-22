@@ -4,6 +4,7 @@ import type { ViewerState, LeftPanelTab, PanelTab } from "../state";
 import { isLeftPanelTab } from "../state";
 import type { Action } from "../actions";
 import type { WorkerClient } from "../../../worker/index.js";
+import type { I18n } from "../i18n/index.js";
 import { ICON_THUMBNAIL, ICON_OUTLINE, ICON_BOOKMARK, ICON_LAYERS, ICON_ATTACHMENT } from "../icons";
 import { createThumbnailPanel, type ThumbnailPanelComponent } from "./ThumbnailPanel";
 import { createOutlinePanel, type OutlinePanelComponent } from "./OutlinePanel";
@@ -87,6 +88,7 @@ export function createLeftPanel() {
     let layersPanel: LayersPanelComponent | null = null;
     let storeRef: Store<ViewerState, Action> | null = null;
     let workerClientRef: WorkerClient | null = null;
+    let i18nRef: I18n | null = null;
 
     function applyState(slice: LeftPanelSlice): void {
         // Hide entire panel area if disabled or all left tabs are disabled
@@ -138,13 +140,13 @@ export function createLeftPanel() {
         // Mount new content based on active tab
         if (activeTab === "thumbnail" && storeRef && workerClientRef) {
             thumbnailPanel = createThumbnailPanel();
-            thumbnailPanel.mount(content, storeRef, workerClientRef);
+            thumbnailPanel.mount(content, storeRef, workerClientRef, i18nRef!);
         } else if (activeTab === "outline" && storeRef) {
             outlinePanel = createOutlinePanel();
-            outlinePanel.mount(content, storeRef);
+            outlinePanel.mount(content, storeRef, i18nRef!);
         } else if (activeTab === "layers" && storeRef && workerClientRef) {
             layersPanel = createLayersPanel();
-            layersPanel.mount(content, storeRef, workerClientRef);
+            layersPanel.mount(content, storeRef, workerClientRef, i18nRef!);
         }
     }
 
@@ -204,10 +206,26 @@ export function createLeftPanel() {
         unsubEvents.push(() => resizeHandle.removeEventListener("keydown", onKeyDown));
     }
 
-    function mount(container: HTMLElement, store: Store<ViewerState, Action>, workerClient: WorkerClient): void {
+    function mount(
+        container: HTMLElement,
+        store: Store<ViewerState, Action>,
+        workerClient: WorkerClient,
+        i18n: I18n,
+    ): void {
         container.appendChild(el);
         storeRef = store;
         workerClientRef = workerClient;
+        i18nRef = i18n;
+
+        // Update i18n labels
+        tabBar.setAttribute("aria-label", i18n.t("leftPanel.tabs"));
+        resizeHandle.setAttribute("aria-label", i18n.t("leftPanel.resizeHandle"));
+
+        // Update tab labels with i18n
+        for (const [tabId, btn] of tabButtons) {
+            const labelKey = tabId === "thumbnail" ? "leftPanel.thumbnails" : `leftPanel.${tabId}`;
+            btn.setAttribute("aria-label", i18n.t(labelKey));
+        }
 
         // Tab click handlers
         for (const [tabId, btn] of tabButtons) {

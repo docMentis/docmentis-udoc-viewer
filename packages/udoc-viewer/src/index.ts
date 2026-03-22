@@ -28,6 +28,11 @@ export type {
 // Print dialog types
 export type { PrintDialogResult, PrintPageRange, PrintQuality } from "./ui/viewer/components/PrintDialog.js";
 
+// i18n types
+export type { TranslationKeys } from "./ui/viewer/i18n/index.js";
+export type { I18n } from "./ui/viewer/i18n/index.js";
+export { createI18n } from "./ui/viewer/i18n/index.js";
+
 // View mode and panel types
 export type {
     ScrollMode,

@@ -5,6 +5,7 @@
 import type { Store } from "../../framework/store";
 import type { ViewerState } from "../state";
 import type { Action } from "../actions";
+import type { I18n } from "../i18n/index.js";
 import { trapFocus } from "../a11y";
 
 export type PrintPageRange =
@@ -123,6 +124,7 @@ export function createPrintDialog() {
     const printBtn = dialog.querySelector(".udoc-print-btn--print") as HTMLButtonElement;
 
     let callbacks: PrintDialogCallbacks | null = null;
+    let i18nRef: I18n | null = null;
     let unsubRender: (() => void) | null = null;
     let cleanupTrap: (() => void) | null = null;
     let previousFocus: HTMLElement | null = null;
@@ -187,11 +189,11 @@ export function createPrintDialog() {
                 const from = parseInt(fromInput.value, 10);
                 const to = parseInt(toInput.value, 10);
                 if (isNaN(from) || isNaN(to) || from < 1 || to < 1 || from > pageCount || to > pageCount) {
-                    showError(`Please enter page numbers between 1 and ${pageCount}.`);
+                    showError(i18nRef!.t("print.errorPageRange", { max: pageCount }));
                     return;
                 }
                 if (from > to) {
-                    showError("Start page must be less than or equal to end page.");
+                    showError(i18nRef!.t("print.errorStartEnd"));
                     return;
                 }
                 pageRange = { kind: "fromTo", from, to };
@@ -200,7 +202,7 @@ export function createPrintDialog() {
             case "custom": {
                 const parsed = parsePageRange(customInput.value, pageCount);
                 if (!parsed) {
-                    showError(`Invalid range. Use format like "1,3,5-8". Pages must be between 1 and ${pageCount}.`);
+                    showError(i18nRef!.t("print.errorCustomRange", { max: pageCount }));
                     return;
                 }
                 pageRange = { kind: "custom", pages: parsed };
@@ -229,9 +231,55 @@ export function createPrintDialog() {
         }
     });
 
-    function mount(container: HTMLElement, store: Store<ViewerState, Action>, cb: PrintDialogCallbacks): void {
+    function mount(
+        container: HTMLElement,
+        store: Store<ViewerState, Action>,
+        i18n: I18n,
+        cb: PrintDialogCallbacks,
+    ): void {
         container.appendChild(overlay);
         callbacks = cb;
+        i18nRef = i18n;
+
+        // Update i18n strings in the dialog
+        const titleEl = dialog.querySelector("#udoc-print-title") as HTMLElement;
+        if (titleEl) titleEl.textContent = i18n.t("print.title");
+
+        const sectionLabels = dialog.querySelectorAll(".udoc-print-section-label");
+        if (sectionLabels[0]) sectionLabels[0].textContent = i18n.t("print.pagesLabel");
+        if (sectionLabels[1]) (sectionLabels[1] as HTMLElement).textContent = i18n.t("print.qualityLabel");
+
+        // Update radio labels - need to update the span text within each radio label
+        const radioLabels = dialog.querySelectorAll(".udoc-print-radio");
+        // "All pages" radio
+        const allPagesSpan = radioLabels[0]?.querySelector("span");
+        if (allPagesSpan) allPagesSpan.textContent = i18n.t("print.allPages");
+        // "Current page (X)" radio - split translation on placeholder to preserve nested span
+        const cpParent = radioLabels[1]?.querySelector<HTMLSpanElement>(":scope > span");
+        if (cpParent) {
+            const tpl = i18n.t("print.currentPage", { page: "\x00" });
+            const [before, after] = tpl.split("\x00");
+            cpParent.textContent = "";
+            cpParent.append(document.createTextNode(before), currentPageSpan, document.createTextNode(after));
+        }
+        // "Pages" range label
+        const pagesRangeSpans = radioLabels[2]?.querySelectorAll<HTMLSpanElement>(":scope > span");
+        if (pagesRangeSpans && pagesRangeSpans[0]) pagesRangeSpans[0].textContent = i18n.t("print.pagesRange");
+        if (pagesRangeSpans && pagesRangeSpans[1]) pagesRangeSpans[1].textContent = i18n.t("print.pagesTo");
+        // "Custom" label
+        const customSpan = radioLabels[3]?.querySelector<HTMLSpanElement>(":scope > span");
+        if (customSpan) customSpan.textContent = i18n.t("print.custom");
+
+        customInput.placeholder = i18n.t("print.customPlaceholder");
+
+        // Quality options
+        const qualityOptions = qualitySelect.querySelectorAll("option");
+        if (qualityOptions[0]) qualityOptions[0].textContent = i18n.t("print.qualityDraft");
+        if (qualityOptions[1]) qualityOptions[1].textContent = i18n.t("print.qualityStandard");
+        if (qualityOptions[2]) qualityOptions[2].textContent = i18n.t("print.qualityHigh");
+
+        cancelBtn.textContent = i18n.t("print.cancel");
+        printBtn.textContent = i18n.t("print.print");
 
         unsubRender = store.subscribeRender((prev, next) => {
             const wasVisible = prev.showPrintDialog;

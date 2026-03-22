@@ -5,6 +5,7 @@
 import type { Store } from "../../framework/store";
 import type { ViewerState } from "../state";
 import type { Action } from "../actions";
+import type { I18n } from "../i18n/index.js";
 import { trapFocus } from "../a11y";
 
 export interface PasswordDialogCallbacks {
@@ -86,15 +87,6 @@ export function createPasswordDialog() {
     let cleanupTrap: (() => void) | null = null;
     let previousFocus: HTMLElement | null = null;
 
-    // Toggle password visibility
-    toggleBtn.addEventListener("click", () => {
-        const isPassword = input.type === "password";
-        input.type = isPassword ? "text" : "password";
-        eyeOpen.style.display = isPassword ? "none" : "";
-        eyeClosed.style.display = isPassword ? "" : "none";
-        toggleBtn.setAttribute("aria-label", isPassword ? "Hide password" : "Show password");
-    });
-
     // Handle form submit
     form.addEventListener("submit", (e) => {
         e.preventDefault();
@@ -112,9 +104,37 @@ export function createPasswordDialog() {
         }
     });
 
-    function mount(container: HTMLElement, store: Store<ViewerState, Action>, cb: PasswordDialogCallbacks): void {
+    function mount(
+        container: HTMLElement,
+        store: Store<ViewerState, Action>,
+        i18n: I18n,
+        cb: PasswordDialogCallbacks,
+    ): void {
         container.appendChild(overlay);
         callbacks = cb;
+
+        // Update i18n strings in the dialog
+        const titleEl = dialog.querySelector("#udoc-password-title") as HTMLElement;
+        if (titleEl) titleEl.textContent = i18n.t("password.title");
+        const messageEl = dialog.querySelector(".udoc-password-message") as HTMLElement;
+        if (messageEl) messageEl.textContent = i18n.t("password.message");
+        input.placeholder = i18n.t("password.placeholder");
+        input.setAttribute("aria-label", i18n.t("password.label"));
+        toggleBtn.setAttribute("aria-label", i18n.t("password.showPassword"));
+        const submitTextEl = dialog.querySelector(".udoc-password-submit-text") as HTMLElement;
+        if (submitTextEl) submitTextEl.textContent = i18n.t("password.unlock");
+
+        // Toggle password visibility
+        toggleBtn.addEventListener("click", () => {
+            const isPassword = input.type === "password";
+            input.type = isPassword ? "text" : "password";
+            eyeOpen.style.display = isPassword ? "none" : "";
+            eyeClosed.style.display = isPassword ? "" : "none";
+            toggleBtn.setAttribute(
+                "aria-label",
+                isPassword ? i18n.t("password.hidePassword") : i18n.t("password.showPassword"),
+            );
+        });
 
         unsubRender = store.subscribeRender((prev, next) => {
             // Show/hide dialog based on needsPassword state

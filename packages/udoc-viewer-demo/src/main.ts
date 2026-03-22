@@ -65,6 +65,7 @@ let viewer: UDocViewer | null = null;
 let client: UDocClient | null = null;
 let gpuEnabled = false;
 let hideAttribution = false;
+let currentLocale = "en";
 let currentDocSource: string | File | null = null;
 let currentDocName: string | null = null;
 let activeDesktopDocItem: HTMLButtonElement | null = null;
@@ -122,6 +123,7 @@ async function createViewer() {
     viewer = await client.createViewer({
         container: viewerContainer,
         hideAttribution,
+        locale: currentLocale,
         enablePerformanceCounter: true,
         onPerformanceLog: (entry) => {
             console.log(formatPerformanceEntry(entry));
@@ -313,6 +315,20 @@ interface ToggleGroup {
     options: ToggleOption[];
 }
 
+const LOCALES = [
+    { value: "en", label: "English" },
+    { value: "zh-CN", label: "中文 (简体)" },
+    { value: "zh-TW", label: "中文 (繁體)" },
+    { value: "ja", label: "日本語" },
+    { value: "ko", label: "한국어" },
+    { value: "es", label: "Español" },
+    { value: "fr", label: "Français" },
+    { value: "de", label: "Deutsch" },
+    { value: "pt-BR", label: "Português (Brasil)" },
+    { value: "ar", label: "العربية" },
+    { value: "ru", label: "Русский" },
+];
+
 const OPTION_GROUPS: ToggleGroup[] = [
     {
         title: "Branding",
@@ -379,6 +395,40 @@ const OPTION_GROUPS: ToggleGroup[] = [
 
 function setupOptionsPanel() {
     const container = document.getElementById("options-section")!;
+
+    // Locale selector
+    const localeGroup = document.createElement("div");
+    localeGroup.className = "options-group";
+
+    const localeTitle = document.createElement("div");
+    localeTitle.className = "options-group-title";
+    localeTitle.textContent = "Locale";
+    localeGroup.appendChild(localeTitle);
+
+    const localeRow = document.createElement("div");
+    localeRow.className = "option-row";
+
+    const localeLabel = document.createElement("label");
+    localeLabel.className = "option-label";
+    localeLabel.textContent = "Language";
+
+    const localeSelect = document.createElement("select");
+    localeSelect.className = "option-select";
+    for (const loc of LOCALES) {
+        const option = document.createElement("option");
+        option.value = loc.value;
+        option.textContent = loc.label;
+        if (loc.value === currentLocale) option.selected = true;
+        localeSelect.appendChild(option);
+    }
+    localeSelect.addEventListener("change", async () => {
+        currentLocale = localeSelect.value;
+        await createViewer();
+    });
+
+    localeRow.append(localeLabel, localeSelect);
+    localeGroup.appendChild(localeRow);
+    container.appendChild(localeGroup);
 
     for (const group of OPTION_GROUPS) {
         const groupEl = document.createElement("div");

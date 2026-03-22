@@ -3,6 +3,7 @@ import { subscribeSelector, shallowEqual } from "../../framework/selectors";
 import type { ViewerState, VisibilityGroup } from "../state";
 import type { Action } from "../actions";
 import type { WorkerClient } from "../../../worker/index.js";
+import type { I18n } from "../i18n/index.js";
 import { ICON_VISIBILITY, ICON_VISIBILITY_OFF, ICON_LOCK } from "../icons";
 
 type LayersSlice = {
@@ -25,6 +26,7 @@ export function createLayersPanel() {
 
     let storeRef: Store<ViewerState, Action> | null = null;
     let workerClientRef: WorkerClient | null = null;
+    let i18nRef: I18n | null = null;
     let currentSlice: LayersSlice | null = null;
 
     let unsubRender: (() => void) | null = null;
@@ -36,7 +38,7 @@ export function createLayersPanel() {
         if (groups.length === 0) {
             const empty = document.createElement("div");
             empty.className = "udoc-layers-panel__empty";
-            empty.textContent = "No layers in this document";
+            empty.textContent = i18nRef!.t("layers.empty");
             el.appendChild(empty);
             return;
         }
@@ -53,7 +55,7 @@ export function createLayersPanel() {
             toggle.type = "button";
             toggle.setAttribute("role", "switch");
             toggle.setAttribute("aria-checked", String(group.visible));
-            toggle.setAttribute("aria-label", `${group.name} layer visibility`);
+            toggle.setAttribute("aria-label", i18nRef!.t("layers.visibility", { name: group.name }));
             toggle.innerHTML = group.visible ? ICON_VISIBILITY : ICON_VISIBILITY_OFF;
             toggle.classList.toggle("udoc-layers-panel__toggle--hidden", !group.visible);
             if (group.locked) {
@@ -108,7 +110,7 @@ export function createLayersPanel() {
         el.innerHTML = "";
         const loading = document.createElement("div");
         loading.className = "udoc-layers-panel__loading";
-        loading.textContent = "Loading layers...";
+        loading.textContent = i18nRef!.t("layers.loading");
         el.appendChild(loading);
     }
 
@@ -132,10 +134,16 @@ export function createLayersPanel() {
         currentSlice = slice;
     }
 
-    function mount(container: HTMLElement, store: Store<ViewerState, Action>, workerClient: WorkerClient): void {
+    function mount(
+        container: HTMLElement,
+        store: Store<ViewerState, Action>,
+        workerClient: WorkerClient,
+        i18n: I18n,
+    ): void {
         container.appendChild(el);
         storeRef = store;
         workerClientRef = workerClient;
+        i18nRef = i18n;
 
         applyState(selectLayersSlice(store.getState()));
         unsubRender = subscribeSelector(store, selectLayersSlice, applyState, { equality: shallowEqual });

@@ -199,6 +199,8 @@ export class UDocViewer {
                 this.workerClient,
                 overrides,
                 showAttribution,
+                options.locale,
+                options.translations,
             );
 
             // Set up callbacks for shell events

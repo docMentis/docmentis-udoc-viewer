@@ -4,6 +4,7 @@ import type { ViewerState, PageInfo } from "../state";
 import { getPointsToPixels } from "../state";
 import type { Action } from "../actions";
 import type { WorkerClient } from "../../../worker/index.js";
+import type { I18n } from "../i18n/index.js";
 import { getDevicePixelRatio } from "../layout";
 
 interface ThumbnailItem {
@@ -83,6 +84,7 @@ export function createThumbnailPanel() {
     let mounted = false;
     let storeRef: Store<ViewerState, Action> | null = null;
     let workerClient: WorkerClient | null = null;
+    let i18nRef: I18n | null = null;
     let thumbnailItems: ThumbnailItem[] = [];
     let intersectionObserver: IntersectionObserver | null = null;
     let currentSlice: ThumbnailSlice | null = null;
@@ -95,7 +97,10 @@ export function createThumbnailPanel() {
         container.className = "udoc-thumbnail-item";
         container.dataset.page = String(pageNumber);
         container.setAttribute("role", "option");
-        container.setAttribute("aria-label", `Page ${pageNumber}`);
+        container.setAttribute(
+            "aria-label",
+            i18nRef ? i18nRef.t("thumbnails.pageLabel", { page: pageNumber }) : `Page ${pageNumber}`,
+        );
         container.id = `udoc-thumb-${pageNumber}`;
 
         const canvas = document.createElement("canvas");
@@ -318,11 +323,13 @@ export function createThumbnailPanel() {
         currentSlice = slice;
     }
 
-    function mount(container: HTMLElement, store: Store<ViewerState, Action>, rm: WorkerClient): void {
+    function mount(container: HTMLElement, store: Store<ViewerState, Action>, rm: WorkerClient, i18n: I18n): void {
         container.appendChild(el);
         mounted = true;
         storeRef = store;
         workerClient = rm;
+        i18nRef = i18n;
+        el.setAttribute("aria-label", i18n.t("thumbnails.label"));
 
         // Apply initial state (currentSlice is null, so docChanged will be true)
         applyState(selectThumbnailSlice(store.getState()));

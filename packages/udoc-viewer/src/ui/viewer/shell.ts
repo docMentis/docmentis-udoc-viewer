@@ -19,6 +19,7 @@ import type { PrintDialogResult } from "./components/PrintDialog";
 import { createLoadingOverlay } from "./components/LoadingOverlay";
 import { inlineStyles } from "./styles-inline.js";
 import { createLiveRegion } from "./a11y";
+import { createI18n } from "./i18n/index.js";
 
 export interface EngineAdapter {
     getPageInfo(doc: { id: string }, page: number): Promise<PageInfo>;
@@ -51,7 +52,10 @@ export function mountViewerShell(
     workerClient: WorkerClient,
     overrides?: InitialStateOverrides,
     showAttribution = true,
+    locale?: string,
+    translations?: Record<string, string>,
 ): ViewerShell {
+    const i18n = createI18n(locale, translations);
     const layout = document.createElement("div");
     layout.className = "udoc-viewer-root";
 
@@ -77,26 +81,26 @@ export function mountViewerShell(
 
     // ARIA landmark roles for F6 region navigation
     toolbarSlot.setAttribute("role", "region");
-    toolbarSlot.setAttribute("aria-label", "Toolbar");
+    toolbarSlot.setAttribute("aria-label", i18n.t("shell.regionToolbar"));
     toolbarSlot.setAttribute("tabindex", "-1");
 
     leftPanelSlot.setAttribute("role", "region");
-    leftPanelSlot.setAttribute("aria-label", "Side panel");
+    leftPanelSlot.setAttribute("aria-label", i18n.t("shell.regionSidePanel"));
     leftPanelSlot.setAttribute("tabindex", "-1");
 
     viewportSlot.setAttribute("role", "region");
-    viewportSlot.setAttribute("aria-label", "Document");
+    viewportSlot.setAttribute("aria-label", i18n.t("shell.regionDocument"));
     viewportSlot.setAttribute("tabindex", "-1");
 
     rightPanelSlot.setAttribute("role", "region");
-    rightPanelSlot.setAttribute("aria-label", "Search and comments");
+    rightPanelSlot.setAttribute("aria-label", i18n.t("shell.regionSearchComments"));
     rightPanelSlot.setAttribute("tabindex", "-1");
 
     // Skip navigation link
     const skipLink = document.createElement("a");
     skipLink.href = "#";
     skipLink.className = "udoc-skip-link";
-    skipLink.textContent = "Skip to document";
+    skipLink.textContent = i18n.t("shell.skipToDocument");
     skipLink.addEventListener("click", (e) => {
         e.preventDefault();
         const focusTarget = viewportSlot.querySelector<HTMLElement>('[tabindex="0"]') ?? viewportSlot;
@@ -120,7 +124,7 @@ export function mountViewerShell(
     function announcePageDebounced(page: number, pageCount: number): void {
         if (pageAnnounceTimer) clearTimeout(pageAnnounceTimer);
         pageAnnounceTimer = setTimeout(() => {
-            liveRegion.announce(`Page ${page} of ${pageCount}`);
+            liveRegion.announce(i18n.t("shell.pageOfTotal", { page, pageCount }));
             pageAnnounceTimer = null;
         }, 500);
     }
@@ -129,10 +133,7 @@ export function mountViewerShell(
     const shortcutHelp = document.createElement("div");
     shortcutHelp.id = "udoc-shortcut-help";
     shortcutHelp.className = "udoc-sr-only";
-    shortcutHelp.textContent =
-        "Keyboard shortcuts: F6 to navigate regions, Ctrl+F to search, Ctrl+P to print, " +
-        "Ctrl+Plus to zoom in, Ctrl+Minus to zoom out, Ctrl+0 to reset zoom, Escape to close panels. " +
-        "Press ? for a list of shortcuts.";
+    shortcutHelp.textContent = i18n.t("shell.shortcutHelp");
     layout.appendChild(shortcutHelp);
     layout.setAttribute("aria-describedby", "udoc-shortcut-help");
 
@@ -150,16 +151,16 @@ export function mountViewerShell(
     const store = createStore<ViewerState, Action>(reducer, mergedInitialState, { batched: true });
 
     const toolbar = createToolbar();
-    toolbar.mount(toolbarSlot, store);
+    toolbar.mount(toolbarSlot, store, i18n);
 
     const leftPanel = createLeftPanel();
-    leftPanel.mount(leftPanelSlot, store, workerClient);
+    leftPanel.mount(leftPanelSlot, store, workerClient, i18n);
 
     const viewport = createViewport(showAttribution);
-    viewport.mount(viewportSlot, store, workerClient);
+    viewport.mount(viewportSlot, store, workerClient, i18n);
 
     const rightPanel = createRightPanel();
-    rightPanel.mount(rightPanelSlot, store);
+    rightPanel.mount(rightPanelSlot, store, i18n);
 
     const effects = createEffects(store, engine);
 
@@ -168,11 +169,11 @@ export function mountViewerShell(
 
     // Loading overlay (mounted to viewport slot, shows during document download)
     const loadingOverlay = createLoadingOverlay(showAttribution);
-    loadingOverlay.mount(layout, store);
+    loadingOverlay.mount(layout, store, i18n);
 
     // Password dialog (mounted to viewport slot so it covers only the viewer area)
     const passwordDialog = createPasswordDialog();
-    passwordDialog.mount(viewportSlot, store, {
+    passwordDialog.mount(viewportSlot, store, i18n, {
         onSubmit: (password: string) => {
             callbacks.onPasswordSubmit?.(password);
         },
@@ -257,11 +258,7 @@ export function mountViewerShell(
             // Don't trigger when typing in an input
             const tag = (document.activeElement as HTMLElement)?.tagName;
             if (tag !== "INPUT" && tag !== "TEXTAREA" && tag !== "SELECT") {
-                liveRegion.announce(
-                    "Keyboard shortcuts: F6 navigate regions, Ctrl+F search, Ctrl+P print, " +
-                        "Ctrl+Plus zoom in, Ctrl+Minus zoom out, Ctrl+0 reset zoom, Escape close panel, " +
-                        "? show this help.",
-                );
+                liveRegion.announce(i18n.t("shell.shortcutHelpAnnounce"));
             }
         }
     };
@@ -329,12 +326,12 @@ export function mountViewerShell(
         if (prev.page !== next.page && next.pageCount > 0) {
             announcePageDebounced(next.page, next.pageCount);
         } else if (prev.zoom !== next.zoom) {
-            liveRegion.announce(`Zoom ${Math.round(next.zoom * 100)}%`);
+            liveRegion.announce(i18n.t("shell.zoomPercent", { percent: Math.round(next.zoom * 100) }));
         } else if (prev.activePanel !== next.activePanel) {
             if (next.activePanel !== null) {
-                liveRegion.announce(`${next.activePanel} panel opened`);
+                liveRegion.announce(i18n.t("shell.panelOpened", { panel: next.activePanel }));
             } else {
-                liveRegion.announce("Panel closed");
+                liveRegion.announce(i18n.t("shell.panelClosed"));
             }
         }
     });
@@ -353,7 +350,7 @@ export function mountViewerShell(
 
     // Print dialog (mounted to layout root so it covers toolbar + viewport)
     const printDialog = createPrintDialog();
-    printDialog.mount(layout, store, {
+    printDialog.mount(layout, store, i18n, {
         onPrint: (result: PrintDialogResult) => {
             store.dispatch({ type: "HIDE_PRINT_DIALOG" });
             callbacks.onPrint?.(result);

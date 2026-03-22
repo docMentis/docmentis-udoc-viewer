@@ -3,6 +3,7 @@ import { subscribeSelector } from "../../framework/selectors";
 import { on } from "../../framework/events";
 import type { ViewerState, ScrollMode, LayoutMode, PageRotation, SpacingMode } from "../state";
 import type { Action } from "../actions";
+import type { I18n } from "../i18n/index.js";
 import {
     ICON_VIEW_MODE,
     ICON_SCROLL_SPREAD,
@@ -44,15 +45,15 @@ interface MenuOption<T> {
 }
 
 const SCROLL_OPTIONS: MenuOption<ScrollMode>[] = [
-    { value: "spread", icon: ICON_SCROLL_SPREAD, label: "Spread" },
-    { value: "continuous", icon: ICON_SCROLL_CONTINUOUS, label: "Continuous" },
+    { value: "spread", icon: ICON_SCROLL_SPREAD, label: "viewMode.spread" },
+    { value: "continuous", icon: ICON_SCROLL_CONTINUOUS, label: "viewMode.continuous" },
 ];
 
 const LAYOUT_OPTIONS: MenuOption<LayoutMode>[] = [
-    { value: "single-page", icon: ICON_LAYOUT_SINGLE, label: "Single" },
-    { value: "double-page", icon: ICON_LAYOUT_DOUBLE, label: "Double" },
-    { value: "double-page-odd-right", icon: ICON_LAYOUT_DOUBLE_ODD_RIGHT, label: "Cover Right" },
-    { value: "double-page-odd-left", icon: ICON_LAYOUT_DOUBLE_ODD_LEFT, label: "Cover Left" },
+    { value: "single-page", icon: ICON_LAYOUT_SINGLE, label: "viewMode.single" },
+    { value: "double-page", icon: ICON_LAYOUT_DOUBLE, label: "viewMode.double" },
+    { value: "double-page-odd-right", icon: ICON_LAYOUT_DOUBLE_ODD_RIGHT, label: "viewMode.coverRight" },
+    { value: "double-page-odd-left", icon: ICON_LAYOUT_DOUBLE_ODD_LEFT, label: "viewMode.coverLeft" },
 ];
 
 const ROTATION_OPTIONS: MenuOption<PageRotation>[] = [
@@ -63,10 +64,10 @@ const ROTATION_OPTIONS: MenuOption<PageRotation>[] = [
 ];
 
 const SPACING_OPTIONS: MenuOption<SpacingMode>[] = [
-    { value: "all", icon: ICON_SPACING_ALL, label: "All" },
-    { value: "none", icon: ICON_SPACING_NONE, label: "None" },
-    { value: "spread-only", icon: ICON_SPACING_SPREAD, label: "Spread" },
-    { value: "page-only", icon: ICON_SPACING_PAGE, label: "Page" },
+    { value: "all", icon: ICON_SPACING_ALL, label: "viewMode.spacingAll" },
+    { value: "none", icon: ICON_SPACING_NONE, label: "viewMode.spacingNone" },
+    { value: "spread-only", icon: ICON_SPACING_SPREAD, label: "viewMode.spacingSpread" },
+    { value: "page-only", icon: ICON_SPACING_PAGE, label: "viewMode.spacingPage" },
 ];
 
 export function createViewModeMenu() {
@@ -96,6 +97,7 @@ export function createViewModeMenu() {
     /** Listeners created inside buildDropdown; cleared on each rebuild */
     let dropdownListeners: Array<() => void> = [];
     let storeRef: Store<ViewerState, Action> | null = null;
+    let i18nRef: I18n | null = null;
     let isOpen = false;
 
     interface SectionOptions {
@@ -139,8 +141,8 @@ export function createViewModeMenu() {
                 btn.classList.add("udoc-view-mode-menu__option--disabled");
             }
 
-            btn.title = opt.label;
-            btn.setAttribute("aria-label", opt.label);
+            btn.title = i18nRef ? i18nRef.t(opt.label) : opt.label;
+            btn.setAttribute("aria-label", i18nRef ? i18nRef.t(opt.label) : opt.label);
             btn.setAttribute("aria-pressed", String(isActive));
 
             const iconSpan = document.createElement("span");
@@ -174,28 +176,28 @@ export function createViewModeMenu() {
 
         // Scroll mode section
         dropdown.appendChild(
-            createSection("Scroll", SCROLL_OPTIONS, slice.scrollMode, (mode) => {
+            createSection(i18nRef!.t("viewMode.scroll"), SCROLL_OPTIONS, slice.scrollMode, (mode) => {
                 storeRef?.dispatch({ type: "SET_SCROLL_MODE", mode });
             }),
         );
 
         // Layout mode section
         dropdown.appendChild(
-            createSection("Layout", LAYOUT_OPTIONS, slice.layoutMode, (mode) => {
+            createSection(i18nRef!.t("viewMode.layout"), LAYOUT_OPTIONS, slice.layoutMode, (mode) => {
                 storeRef?.dispatch({ type: "SET_LAYOUT_MODE", mode });
             }),
         );
 
         // Page rotation section
         dropdown.appendChild(
-            createSection("Rotation", ROTATION_OPTIONS, slice.pageRotation, (rotation) => {
+            createSection(i18nRef!.t("viewMode.rotation"), ROTATION_OPTIONS, slice.pageRotation, (rotation) => {
                 storeRef?.dispatch({ type: "SET_PAGE_ROTATION", rotation });
             }),
         );
 
         // Spacing section
         dropdown.appendChild(
-            createSection("Spacing", SPACING_OPTIONS, slice.spacingMode, (mode) => {
+            createSection(i18nRef!.t("viewMode.spacing"), SPACING_OPTIONS, slice.spacingMode, (mode) => {
                 storeRef?.dispatch({ type: "SET_SPACING_MODE", mode });
             }),
         );
@@ -217,8 +219,13 @@ export function createViewModeMenu() {
         }
     }
 
-    function mount(store: Store<ViewerState, Action>): void {
+    function mount(store: Store<ViewerState, Action>, i18n: I18n): void {
         storeRef = store;
+        i18nRef = i18n;
+
+        toggleBtn.title = i18n.t("viewMode.label");
+        toggleBtn.setAttribute("aria-label", i18n.t("viewMode.label"));
+        dropdown.setAttribute("aria-label", i18n.t("viewMode.label"));
 
         // Toggle button click
         unsubEvents.push(

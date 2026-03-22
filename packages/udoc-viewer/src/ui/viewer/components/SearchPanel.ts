@@ -16,6 +16,7 @@ import { on } from "../../framework/events";
 import type { ViewerState, SearchMatch } from "../state";
 import type { Action } from "../actions";
 import { ICON_CHEVRON_UP, ICON_CHEVRON_DOWN, ICON_SEARCH } from "../icons";
+import type { I18n } from "../i18n/index.js";
 
 type SearchPanelSlice = {
     isOpen: boolean;
@@ -98,6 +99,7 @@ export function createSearchPanel() {
     // --- State management ---
     let unsubRender: (() => void) | null = null;
     let storeRef: Store<ViewerState, Action> | null = null;
+    let i18n: I18n | null = null;
     const unsubEvents: Array<() => void> = [];
     let lastSlice: SearchPanelSlice | null = null;
     // Track which matches array reference was used to build the result list
@@ -132,11 +134,14 @@ export function createSearchPanel() {
 
         // Update status text
         if (slice.textLoading) {
-            status.textContent = "Loading text\u2026";
+            status.textContent = i18n!.t("search.loadingText");
         } else if (slice.query && slice.matches.length === 0 && slice.textLoaded) {
-            status.textContent = "No results";
+            status.textContent = i18n!.t("search.noResults");
         } else if (slice.matches.length > 0) {
-            status.textContent = `${slice.activeIndex + 1} of ${slice.matches.length}`;
+            status.textContent = i18n!.t("search.resultStatus", {
+                current: slice.activeIndex + 1,
+                total: slice.matches.length,
+            });
         } else {
             status.textContent = "";
         }
@@ -168,7 +173,7 @@ export function createSearchPanel() {
                 currentPage = match.pageIndex;
                 const pageHeader = document.createElement("div");
                 pageHeader.className = "udoc-search-result__page-header";
-                pageHeader.textContent = `Page ${match.pageIndex + 1}`;
+                pageHeader.textContent = i18n!.t("search.pageHeader", { page: match.pageIndex + 1 });
                 results.appendChild(pageHeader);
             }
 
@@ -221,9 +226,20 @@ export function createSearchPanel() {
         }
     }
 
-    function mount(container: HTMLElement, store: Store<ViewerState, Action>): void {
+    function mount(container: HTMLElement, store: Store<ViewerState, Action>, i18nArg: I18n): void {
         container.appendChild(el);
         storeRef = store;
+        i18n = i18nArg;
+
+        input.placeholder = i18n.t("search.placeholder");
+        input.setAttribute("aria-label", i18n.t("search.label"));
+        caseBtn.title = i18n.t("search.matchCase");
+        caseBtn.setAttribute("aria-label", i18n.t("search.matchCase"));
+        prevBtn.title = i18n.t("search.previousMatch");
+        prevBtn.setAttribute("aria-label", i18n.t("search.previousMatch"));
+        nextBtn.title = i18n.t("search.nextMatch");
+        nextBtn.setAttribute("aria-label", i18n.t("search.nextMatch"));
+        results.setAttribute("aria-label", i18n.t("search.resultsLabel"));
 
         // Input handler
         unsubEvents.push(

@@ -3,6 +3,7 @@ import { subscribeSelector, shallowEqual } from "../../framework/selectors";
 import type { ViewerState } from "../state";
 import type { Action } from "../actions";
 import type { OutlineItem, Destination } from "../navigation";
+import type { I18n } from "../i18n/index.js";
 
 type OutlineSlice = {
     outline: OutlineItem[] | null;
@@ -23,6 +24,7 @@ export function createOutlinePanel() {
     el.className = "udoc-outline-panel";
 
     let storeRef: Store<ViewerState, Action> | null = null;
+    let i18nRef: I18n | null = null;
     let currentSlice: OutlineSlice | null = null;
     /** Track collapsed items by path (collapsed if in set) */
     const collapsedItems = new Set<string>();
@@ -263,13 +265,13 @@ export function createOutlinePanel() {
             el.removeAttribute("role");
             const empty = document.createElement("div");
             empty.className = "udoc-outline-panel__empty";
-            empty.textContent = "No outline available";
+            empty.textContent = i18nRef!.t("outline.empty");
             el.appendChild(empty);
             return;
         }
 
         el.setAttribute("role", "tree");
-        el.setAttribute("aria-label", "Document outline");
+        el.setAttribute("aria-label", i18nRef!.t("outline.label"));
 
         // Build outline items
         outline.forEach((item, index) => {
@@ -287,7 +289,7 @@ export function createOutlinePanel() {
         el.innerHTML = "";
         const loading = document.createElement("div");
         loading.className = "udoc-outline-panel__loading";
-        loading.textContent = "Loading outline...";
+        loading.textContent = i18nRef!.t("outline.loading");
         el.appendChild(loading);
     }
 
@@ -315,9 +317,10 @@ export function createOutlinePanel() {
         currentSlice = slice;
     }
 
-    function mount(container: HTMLElement, store: Store<ViewerState, Action>): void {
+    function mount(container: HTMLElement, store: Store<ViewerState, Action>, i18n: I18n): void {
         container.appendChild(el);
         storeRef = store;
+        i18nRef = i18n;
 
         // Apply initial state
         applyState(selectOutlineSlice(store.getState()));

@@ -5,6 +5,7 @@
 import type { Store } from "../../framework/store";
 import type { ViewerState } from "../state";
 import type { Action } from "../actions";
+import type { I18n } from "../i18n/index.js";
 
 export function createLoadingOverlay(showAttribution = true) {
     // Create overlay container
@@ -70,8 +71,9 @@ export function createLoadingOverlay(showAttribution = true) {
     let showTimer: ReturnType<typeof setTimeout> | null = null;
     const SHOW_DELAY_MS = 300;
 
-    function mount(container: HTMLElement, store: Store<ViewerState, Action>): void {
+    function mount(container: HTMLElement, store: Store<ViewerState, Action>, i18n: I18n): void {
         container.appendChild(overlay);
+        progressText.textContent = i18n.t("loading.loading");
 
         unsubRender = store.subscribeRender((prev, next) => {
             // Show/hide overlay (with delay before showing)
@@ -103,24 +105,27 @@ export function createLoadingOverlay(showAttribution = true) {
 
                 if (printCurrentPage === 0) {
                     progressFill.style.width = "0%";
-                    progressText.textContent = "Preparing to print...";
+                    progressText.textContent = i18n.t("loading.preparingPrint");
                 } else {
                     const percent = Math.round((printCurrentPage / printTotalPages) * 100);
                     progressFill.style.width = `${percent}%`;
-                    progressText.textContent = `Rendering page ${printCurrentPage} of ${printTotalPages}...`;
+                    progressText.textContent = i18n.t("loading.renderingPage", {
+                        current: printCurrentPage,
+                        total: printTotalPages,
+                    });
                 }
             } else if (next.isProcessing) {
                 progressContainer.style.display = "";
                 progressFill.style.width = "100%";
                 progressFill.classList.add("udoc-loading-progress-fill--indeterminate");
-                progressText.textContent = "Processing document...";
+                progressText.textContent = i18n.t("loading.processing");
             } else if (next.isDownloading) {
                 const { downloadLoaded, downloadTotal } = next;
 
                 if (downloadLoaded === 0 && downloadTotal === 0) {
                     // Connecting state - show only spinner, hide progress bar
                     progressContainer.style.display = "none";
-                    progressText.textContent = "Connecting...";
+                    progressText.textContent = i18n.t("loading.connecting");
                 } else if (downloadTotal > 0) {
                     // Known total - show determinate progress
                     progressContainer.style.display = "";
@@ -131,7 +136,11 @@ export function createLoadingOverlay(showAttribution = true) {
                     // Format size display
                     const loadedMB = (downloadLoaded / (1024 * 1024)).toFixed(1);
                     const totalMB = (downloadTotal / (1024 * 1024)).toFixed(1);
-                    progressText.textContent = `${loadedMB} / ${totalMB} MB (${percent}%)`;
+                    progressText.textContent = i18n.t("loading.progressSize", {
+                        loaded: loadedMB,
+                        total: totalMB,
+                        percent,
+                    });
                 } else {
                     // Unknown total but data is flowing - show indeterminate progress
                     progressContainer.style.display = "";
@@ -139,7 +148,7 @@ export function createLoadingOverlay(showAttribution = true) {
                     progressFill.classList.add("udoc-loading-progress-fill--indeterminate");
 
                     const loadedMB = (downloadLoaded / (1024 * 1024)).toFixed(1);
-                    progressText.textContent = `${loadedMB} MB loaded...`;
+                    progressText.textContent = i18n.t("loading.progressLoaded", { loaded: loadedMB });
                 }
             }
         });

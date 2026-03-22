@@ -6,6 +6,7 @@ import type { Action } from "../actions";
 import { setupRovingTabindex } from "../a11y";
 import { ICON_CHEVRON_LEFT, ICON_CHEVRON_RIGHT, ICON_CHEVRON_DOWN, ICON_ZOOM_IN, ICON_ZOOM_OUT } from "../icons";
 import { createViewModeMenu } from "./ViewModeMenu";
+import type { I18n } from "../i18n/index.js";
 
 interface FloatingToolbarSlice {
     floatingToolbarVisible: boolean;
@@ -156,14 +157,30 @@ export function createFloatingToolbar() {
     const unsubEvents: Array<() => void> = [];
     let rovingTabindex: ReturnType<typeof setupRovingTabindex> | null = null;
 
-    function mount(container: HTMLElement, store: Store<ViewerState, Action>): void {
+    function mount(container: HTMLElement, store: Store<ViewerState, Action>, i18n: I18n): void {
         container.appendChild(el);
+
+        el.setAttribute("aria-label", i18n.t("floatingToolbar.label"));
+        prevBtn.title = i18n.t("toolbar.previousPage");
+        prevBtn.setAttribute("aria-label", i18n.t("toolbar.previousPage"));
+        pageInput.setAttribute("aria-label", i18n.t("toolbar.pageNumber"));
+        nextBtn.title = i18n.t("toolbar.nextPage");
+        nextBtn.setAttribute("aria-label", i18n.t("toolbar.nextPage"));
+        zoomOutBtn.title = i18n.t("toolbar.zoomOut");
+        zoomOutBtn.setAttribute("aria-label", i18n.t("toolbar.zoomOut"));
+        zoomInput.title = i18n.t("toolbar.zoomLevel");
+        zoomInput.setAttribute("aria-label", i18n.t("toolbar.zoomLevel"));
+        zoomChevron.title = i18n.t("toolbar.zoomOptions");
+        zoomChevron.setAttribute("aria-label", i18n.t("toolbar.zoomOptions"));
+        zoomDropdown.setAttribute("aria-label", i18n.t("toolbar.zoomLevels"));
+        zoomInBtn.title = i18n.t("toolbar.zoomIn");
+        zoomInBtn.setAttribute("aria-label", i18n.t("toolbar.zoomIn"));
 
         // Roving tabindex: single Tab stop, arrow keys between buttons
         rovingTabindex = setupRovingTabindex(el, ".udoc-floating-toolbar__btn, input");
 
         // Mount view mode menu
-        viewModeMenu.mount(store);
+        viewModeMenu.mount(store, i18n);
 
         // Event handlers
         unsubEvents.push(
@@ -290,9 +307,9 @@ export function createFloatingToolbar() {
         unsubEvents.push(() => document.removeEventListener("keydown", handleEscape));
 
         const ZOOM_MODE_OPTIONS: Array<{ mode: ZoomMode; label: string }> = [
-            { mode: "fit-spread-width", label: "Fit Width" },
-            { mode: "fit-spread-height", label: "Fit Height" },
-            { mode: "fit-spread", label: "Fit Page" },
+            { mode: "fit-spread-width", label: i18n.t("zoom.fitWidth") },
+            { mode: "fit-spread-height", label: i18n.t("zoom.fitHeight") },
+            { mode: "fit-spread", label: i18n.t("zoom.fitPage") },
         ];
 
         const buildZoomDropdown = (slice: FloatingToolbarSlice) => {

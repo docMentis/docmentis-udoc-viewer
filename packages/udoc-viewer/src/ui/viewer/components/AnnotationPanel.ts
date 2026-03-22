@@ -15,6 +15,7 @@ import type { ViewerState } from "../state";
 import type { Action } from "../actions";
 import type { Annotation } from "../annotation";
 import { ICON_CHEVRON_DOWN, ICON_CHEVRON_RIGHT, ICON_COMMENTS } from "../icons";
+import type { I18n } from "../i18n/index.js";
 
 // Icons for annotation types
 const ICON_STICKY_NOTE = `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4l4 4 4-4h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>`;
@@ -88,12 +89,13 @@ export function createAnnotationPanel() {
 
     let unsubRender: (() => void) | null = null;
     let storeRef: Store<ViewerState, Action> | null = null;
+    let i18nRef: I18n | null = null;
     function renderPlaceholder(): void {
         el.innerHTML = `
             <div class="udoc-annotation-panel__placeholder">
                 <div class="udoc-annotation-panel__placeholder-icon">${ICON_COMMENTS}</div>
-                <div class="udoc-annotation-panel__placeholder-title">Comments</div>
-                <div class="udoc-annotation-panel__placeholder-message">No comments in this document</div>
+                <div class="udoc-annotation-panel__placeholder-title">${i18nRef!.t("annotations.comments")}</div>
+                <div class="udoc-annotation-panel__placeholder-message">${i18nRef!.t("annotations.noComments")}</div>
             </div>
         `;
     }
@@ -101,7 +103,7 @@ export function createAnnotationPanel() {
     function renderLoading(): void {
         el.innerHTML = `
             <div class="udoc-annotation-panel__loading">
-                Loading comments...
+                ${i18nRef!.t("annotations.loading")}
             </div>
         `;
     }
@@ -158,8 +160,8 @@ export function createAnnotationPanel() {
         if (annotation.replies && annotation.replies.length > 0) {
             const toggleBtn = document.createElement("button");
             toggleBtn.className = "udoc-comment-toggle";
-            toggleBtn.innerHTML = `${ICON_CHEVRON_RIGHT}<span>${annotation.replies.length} ${annotation.replies.length === 1 ? "reply" : "replies"}</span>`;
-            toggleBtn.title = "Show replies";
+            toggleBtn.innerHTML = `${ICON_CHEVRON_RIGHT}<span>${annotation.replies.length === 1 ? i18nRef!.t("annotations.replyCountSingle") : i18nRef!.t("annotations.replyCount", { count: annotation.replies.length })}</span>`;
+            toggleBtn.title = i18nRef!.t("annotations.showReplies");
             body.appendChild(toggleBtn);
         }
 
@@ -199,11 +201,11 @@ export function createAnnotationPanel() {
                 if (isCollapsed) {
                     repliesContainer.classList.remove("udoc-comment-replies--collapsed");
                     toggleBtn.classList.add("udoc-comment-toggle--expanded");
-                    toggleBtn.title = "Hide replies";
+                    toggleBtn.title = i18nRef!.t("annotations.hideReplies");
                 } else {
                     repliesContainer.classList.add("udoc-comment-replies--collapsed");
                     toggleBtn.classList.remove("udoc-comment-toggle--expanded");
-                    toggleBtn.title = "Show replies";
+                    toggleBtn.title = i18nRef!.t("annotations.showReplies");
                 }
             });
         }
@@ -254,7 +256,7 @@ export function createAnnotationPanel() {
             // Page header
             const pageHeader = document.createElement("div");
             pageHeader.className = "udoc-comments-page-header";
-            pageHeader.innerHTML = `${ICON_CHEVRON_DOWN}<span>Page ${pageIndex + 1}</span><span class="udoc-comments-page-count">${annotations.length}</span>`;
+            pageHeader.innerHTML = `${ICON_CHEVRON_DOWN}<span>${i18nRef!.t("annotations.pageHeader", { page: pageIndex + 1 })}</span><span class="udoc-comments-page-count">${annotations.length}</span>`;
             pageGroup.appendChild(pageHeader);
 
             // Page content
@@ -287,9 +289,10 @@ export function createAnnotationPanel() {
         render(slice);
     }
 
-    function mount(container: HTMLElement, store: Store<ViewerState, Action>): void {
+    function mount(container: HTMLElement, store: Store<ViewerState, Action>, i18n: I18n): void {
         container.appendChild(el);
         storeRef = store;
+        i18nRef = i18n;
 
         applyState(selectAnnotationPanel(store.getState()));
         unsubRender = subscribeSelector(store, selectAnnotationPanel, applyState, {

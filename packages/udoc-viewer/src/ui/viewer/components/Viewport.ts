@@ -16,6 +16,7 @@ import type { NavigationTarget, Destination } from "../navigation";
 import { showAnnotationPopup, closeAnnotationPopup, type Annotation } from "../annotation";
 import type { TextRun } from "../text";
 import type { WorkerClient } from "../../../worker/index.js";
+import type { I18n } from "../i18n/index.js";
 import {
     calculateSpreads,
     calculateSpreadLayouts,
@@ -641,12 +642,12 @@ export function createViewport(showAttribution = true) {
     const RENDER_DEBOUNCE_MS = 50;
     const unsubEvents: Array<() => void> = [];
 
-    function mount(parent: HTMLElement, store: Store<ViewerState, Action>, wc: WorkerClient): void {
+    function mount(parent: HTMLElement, store: Store<ViewerState, Action>, wc: WorkerClient, i18n?: I18n): void {
         parent.appendChild(el);
         workerClient = wc;
         storeRef = store;
 
-        floatingToolbar.mount(el, store);
+        floatingToolbar.mount(el, store, i18n!);
 
         currentSlice = selectViewport(store.getState());
         scheduleUpdate();
