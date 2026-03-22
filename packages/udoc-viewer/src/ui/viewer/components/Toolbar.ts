@@ -290,11 +290,18 @@ export function createToolbar() {
         zoomDropdown.setAttribute("aria-label", i18n.t("toolbar.zoomLevels"));
         zoomInBtn.title = i18n.t("toolbar.zoomIn");
         zoomInBtn.setAttribute("aria-label", i18n.t("toolbar.zoomIn"));
+        menuBtn.title = i18n.t("toolbar.menu");
+        searchBtn.title = i18n.t("toolbar.search");
         searchBtn.setAttribute("aria-label", i18n.t("toolbar.search"));
+        commentsBtn.title = i18n.t("toolbar.comments");
         commentsBtn.setAttribute("aria-label", i18n.t("toolbar.comments"));
+        printBtn.title = i18n.t("toolbar.print");
         printBtn.setAttribute("aria-label", i18n.t("toolbar.print"));
+        downloadBtn.title = i18n.t("toolbar.download");
         downloadBtn.setAttribute("aria-label", i18n.t("toolbar.download"));
+        themeBtn.title = i18n.t("toolbar.darkMode");
         themeBtn.setAttribute("aria-label", i18n.t("toolbar.darkMode"));
+        fullscreenBtn.title = i18n.t("toolbar.fullscreen");
         fullscreenBtn.setAttribute("aria-label", i18n.t("toolbar.fullscreen"));
 
         const ZOOM_MODE_OPTIONS: Array<{ mode: ZoomMode; label: string }> = [
@@ -565,7 +572,11 @@ export function createToolbar() {
                       ? ICON_THEME_SYSTEM
                       : ICON_THEME_LIGHT;
             const themeLabel =
-                slice.theme === "light" ? "Dark mode" : slice.theme === "dark" ? "System theme" : "Light mode";
+                slice.theme === "light"
+                    ? i18n.t("toolbar.darkMode")
+                    : slice.theme === "dark"
+                      ? i18n.t("toolbar.systemTheme")
+                      : i18n.t("toolbar.lightMode");
             themeBtn.innerHTML = themeIcon;
             themeBtn.setAttribute("aria-label", themeLabel);
             themeBtn.title = themeLabel;
@@ -579,7 +590,9 @@ export function createToolbar() {
             // Fullscreen button visibility and icon
             fullscreenBtn.style.display = slice.fullscreenButtonVisible ? "" : "none";
             fullscreenBtn.innerHTML = slice.isFullscreen ? ICON_FULLSCREEN_EXIT : ICON_FULLSCREEN;
-            fullscreenBtn.setAttribute("aria-label", slice.isFullscreen ? "Exit fullscreen" : "Fullscreen");
+            const fsLabel = slice.isFullscreen ? i18n.t("toolbar.exitFullscreen") : i18n.t("toolbar.fullscreen");
+            fullscreenBtn.setAttribute("aria-label", fsLabel);
+            fullscreenBtn.title = fsLabel;
 
             // Center section visibility (show when floating toolbar is hidden)
             const showCenter = slice.toolbarVisible && !slice.floatingToolbarVisible;

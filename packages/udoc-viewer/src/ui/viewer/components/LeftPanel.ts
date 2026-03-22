@@ -224,7 +224,9 @@ export function createLeftPanel() {
         // Update tab labels with i18n
         for (const [tabId, btn] of tabButtons) {
             const labelKey = tabId === "thumbnail" ? "leftPanel.thumbnails" : `leftPanel.${tabId}`;
-            btn.setAttribute("aria-label", i18n.t(labelKey));
+            const label = i18n.t(labelKey);
+            btn.setAttribute("aria-label", label);
+            btn.title = label;
         }
 
         // Tab click handlers
