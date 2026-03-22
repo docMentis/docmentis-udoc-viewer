@@ -139,6 +139,12 @@ export const ptBR: TranslationKeys = {
     "thumbnails.label": "Miniaturas das páginas",
     "thumbnails.pageLabel": "Página {page}",
 
+    // Spread and viewport
+    "spread.pageLabel": "Página {page}",
+    "spread.pageContent": "Conteúdo da página {page}",
+    "spread.rendering": "Renderizando...",
+    "viewport.documentContent": "Conteúdo do documento",
+
     // Left panel tabs
     "leftPanel.tabs": "Abas do painel",
     "leftPanel.thumbnails": "Miniaturas",

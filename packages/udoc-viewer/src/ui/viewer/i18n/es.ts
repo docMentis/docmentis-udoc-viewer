@@ -139,6 +139,12 @@ export const es: TranslationKeys = {
     "thumbnails.label": "Miniaturas de páginas",
     "thumbnails.pageLabel": "Página {page}",
 
+    // Spread and viewport
+    "spread.pageLabel": "Página {page}",
+    "spread.pageContent": "Contenido de la página {page}",
+    "spread.rendering": "Renderizando...",
+    "viewport.documentContent": "Contenido del documento",
+
     // Left panel tabs
     "leftPanel.tabs": "Pestañas del panel",
     "leftPanel.thumbnails": "Miniaturas",

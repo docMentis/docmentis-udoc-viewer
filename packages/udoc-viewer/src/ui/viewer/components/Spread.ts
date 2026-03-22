@@ -5,6 +5,7 @@ import { getDevicePixelRatio, toCssPixels, toDevicePixels, snapToDevice } from "
 import { renderAnnotationsToLayer, type Annotation } from "../annotation";
 import { renderTextToLayer, attachSelectionController, type TextRun } from "../text";
 import type { SearchMatch } from "../state";
+import type { I18n } from "../i18n/index.js";
 
 export interface HighlightedAnnotation {
     pageIndex: number;
@@ -100,7 +101,7 @@ function formatCssSize(value: number): string {
  * Spread component - renders one or two pages side by side.
  * Empty slots render as blank placeholders that preserve layout.
  */
-export function createSpread(data: SpreadData, showAttribution = true) {
+export function createSpread(data: SpreadData, showAttribution = true, i18n?: I18n) {
     const el = document.createElement("div");
     el.className = "udoc-spread";
     el.dataset.spreadIndex = String(data.index);
@@ -128,7 +129,10 @@ export function createSpread(data: SpreadData, showAttribution = true) {
         if (pageNumber !== null) {
             container.dataset.page = String(pageNumber);
             container.setAttribute("role", "group");
-            container.setAttribute("aria-label", `Page ${pageNumber}`);
+            container.setAttribute(
+                "aria-label",
+                i18n ? i18n.t("spread.pageLabel", { page: pageNumber }) : `Page ${pageNumber}`,
+            );
             container.classList.add("udoc-spread__slot--loading");
 
             // Preview canvas (behind main canvas) — shows low-res preview while full-res renders
@@ -144,8 +148,11 @@ export function createSpread(data: SpreadData, showAttribution = true) {
             canvas.className = "udoc-spread__canvas";
             canvas.style.position = "absolute";
             canvas.style.transformOrigin = "center";
-            canvas.setAttribute("aria-label", `Page ${pageNumber} content`);
-            canvas.textContent = `Page ${pageNumber}`;
+            canvas.setAttribute(
+                "aria-label",
+                i18n ? i18n.t("spread.pageContent", { page: pageNumber }) : `Page ${pageNumber} content`,
+            );
+            canvas.textContent = i18n ? i18n.t("spread.pageLabel", { page: pageNumber }) : `Page ${pageNumber}`;
             container.appendChild(canvas);
 
             // Text layer (above canvas, below annotations) - for text selection
@@ -183,7 +190,7 @@ export function createSpread(data: SpreadData, showAttribution = true) {
                 }
                 const renderingText = document.createElement("span");
                 renderingText.className = "udoc-spread__slot-attribution-text";
-                renderingText.textContent = "Rendering...";
+                renderingText.textContent = i18n ? i18n.t("spread.rendering") : "Rendering...";
                 renderingIndicator.appendChild(renderingText);
                 container.appendChild(renderingIndicator);
             }

@@ -137,6 +137,14 @@ export interface TranslationKeys {
     "thumbnails.label": string;
     "thumbnails.pageLabel": string; // "Page {page}"
 
+    // Spread / page rendering
+    "spread.pageLabel": string; // "Page {page}"
+    "spread.pageContent": string; // "Page {page} content"
+    "spread.rendering": string;
+
+    // Viewport
+    "viewport.documentContent": string;
+
     // Left panel tabs
     "leftPanel.tabs": string;
     "leftPanel.thumbnails": string;

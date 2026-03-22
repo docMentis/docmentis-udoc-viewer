@@ -611,6 +611,7 @@ export function createViewport(showAttribution = true) {
 
     let workerClient: WorkerClient | null = null;
     let storeRef: Store<ViewerState, Action> | null = null;
+    let i18nRef: I18n | null = null;
     let unsubRender: (() => void) | null = null;
     let unsubScroll: (() => void) | null = null;
     let unsubNavigation: (() => void) | null = null;
@@ -646,6 +647,11 @@ export function createViewport(showAttribution = true) {
         parent.appendChild(el);
         workerClient = wc;
         storeRef = store;
+        i18nRef = i18n ?? null;
+
+        if (i18n) {
+            el.setAttribute("aria-label", i18n.t("viewport.documentContent"));
+        }
 
         floatingToolbar.mount(el, store, i18n!);
 
@@ -1156,7 +1162,7 @@ export function createViewport(showAttribution = true) {
                 let spreadComp = spreadComponents.get(i);
                 if (!spreadComp) {
                     const spreadData = state.spreads[i];
-                    spreadComp = createSpread(spreadData, showAttribution);
+                    spreadComp = createSpread(spreadData, showAttribution, i18nRef ?? undefined);
                     spreadComp.mount(container);
                     spreadComponents.set(i, spreadComp);
                 }
@@ -1226,7 +1232,7 @@ export function createViewport(showAttribution = true) {
         let spreadComp = spreadComponents.get(spreadIndex);
         if (!spreadComp) {
             const spreadData = state.spreads[spreadIndex];
-            spreadComp = createSpread(spreadData, showAttribution);
+            spreadComp = createSpread(spreadData, showAttribution, i18nRef ?? undefined);
             spreadComp.mount(container);
             spreadComponents.set(spreadIndex, spreadComp);
         }

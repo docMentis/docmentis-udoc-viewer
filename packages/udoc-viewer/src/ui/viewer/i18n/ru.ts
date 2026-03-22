@@ -140,6 +140,12 @@ export const ru: TranslationKeys = {
     "thumbnails.label": "Миниатюры страниц",
     "thumbnails.pageLabel": "Страница {page}",
 
+    // Spread and viewport
+    "spread.pageLabel": "Страница {page}",
+    "spread.pageContent": "Содержимое страницы {page}",
+    "spread.rendering": "Отрисовка...",
+    "viewport.documentContent": "Содержимое документа",
+
     // Left panel tabs
     "leftPanel.tabs": "Вкладки панели",
     "leftPanel.thumbnails": "Миниатюры",

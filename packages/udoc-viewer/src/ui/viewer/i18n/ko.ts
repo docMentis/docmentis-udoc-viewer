@@ -140,6 +140,12 @@ export const ko: TranslationKeys = {
     "thumbnails.label": "페이지 미리보기",
     "thumbnails.pageLabel": "{page}페이지",
 
+    // Spread and viewport
+    "spread.pageLabel": "{page}페이지",
+    "spread.pageContent": "{page}페이지 콘텐츠",
+    "spread.rendering": "렌더링 중...",
+    "viewport.documentContent": "문서 콘텐츠",
+
     // Left panel tabs
     "leftPanel.tabs": "패널 탭",
     "leftPanel.thumbnails": "미리보기",

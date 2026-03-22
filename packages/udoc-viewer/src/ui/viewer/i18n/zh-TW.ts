@@ -139,6 +139,12 @@ export const zhTW: TranslationKeys = {
     "thumbnails.label": "頁面縮圖",
     "thumbnails.pageLabel": "第 {page} 頁",
 
+    // Spread and viewport
+    "spread.pageLabel": "第 {page} 頁",
+    "spread.pageContent": "第 {page} 頁內容",
+    "spread.rendering": "渲染中...",
+    "viewport.documentContent": "文件內容",
+
     // Left panel tabs
     "leftPanel.tabs": "面板分頁",
     "leftPanel.thumbnails": "縮圖",

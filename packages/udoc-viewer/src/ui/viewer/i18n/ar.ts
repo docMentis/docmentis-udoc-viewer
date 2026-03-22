@@ -139,6 +139,12 @@ export const ar: TranslationKeys = {
     "thumbnails.label": "صور مصغرة للصفحات",
     "thumbnails.pageLabel": "صفحة {page}",
 
+    // Spread and viewport
+    "spread.pageLabel": "صفحة {page}",
+    "spread.pageContent": "محتوى الصفحة {page}",
+    "spread.rendering": "جارٍ العرض...",
+    "viewport.documentContent": "محتوى المستند",
+
     // Left panel tabs
     "leftPanel.tabs": "علامات تبويب اللوحة",
     "leftPanel.thumbnails": "صور مصغرة",

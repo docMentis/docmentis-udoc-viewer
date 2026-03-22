@@ -139,6 +139,12 @@ export const zhCN: TranslationKeys = {
     "thumbnails.label": "页面缩略图",
     "thumbnails.pageLabel": "第 {page} 页",
 
+    // Spread and viewport
+    "spread.pageLabel": "第 {page} 页",
+    "spread.pageContent": "第 {page} 页内容",
+    "spread.rendering": "渲染中...",
+    "viewport.documentContent": "文档内容",
+
     // Left panel tabs
     "leftPanel.tabs": "面板选项卡",
     "leftPanel.thumbnails": "缩略图",

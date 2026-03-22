@@ -140,6 +140,12 @@ export const ja: TranslationKeys = {
     "thumbnails.label": "ページサムネイル",
     "thumbnails.pageLabel": "{page}ページ",
 
+    // Spread and viewport
+    "spread.pageLabel": "{page} ページ",
+    "spread.pageContent": "{page} ページの内容",
+    "spread.rendering": "レンダリング中...",
+    "viewport.documentContent": "ドキュメントコンテンツ",
+
     // Left panel tabs
     "leftPanel.tabs": "パネルタブ",
     "leftPanel.thumbnails": "サムネイル",
