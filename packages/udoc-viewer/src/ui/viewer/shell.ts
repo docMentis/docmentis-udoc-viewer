@@ -115,6 +115,27 @@ export function mountViewerShell(
     const liveRegion = createLiveRegion();
     layout.appendChild(liveRegion.el);
 
+    // Debounced page announcement to avoid rapid-fire in continuous scroll
+    let pageAnnounceTimer: ReturnType<typeof setTimeout> | null = null;
+    function announcePageDebounced(page: number, pageCount: number): void {
+        if (pageAnnounceTimer) clearTimeout(pageAnnounceTimer);
+        pageAnnounceTimer = setTimeout(() => {
+            liveRegion.announce(`Page ${page} of ${pageCount}`);
+            pageAnnounceTimer = null;
+        }, 500);
+    }
+
+    // Keyboard shortcut help (screen-reader accessible)
+    const shortcutHelp = document.createElement("div");
+    shortcutHelp.id = "udoc-shortcut-help";
+    shortcutHelp.className = "udoc-sr-only";
+    shortcutHelp.textContent =
+        "Keyboard shortcuts: F6 to navigate regions, Ctrl+F to search, Ctrl+P to print, " +
+        "Ctrl+Plus to zoom in, Ctrl+Minus to zoom out, Ctrl+0 to reset zoom, Escape to close panels. " +
+        "Press ? for a list of shortcuts.";
+    layout.appendChild(shortcutHelp);
+    layout.setAttribute("aria-describedby", "udoc-shortcut-help");
+
     // Always create fresh mutable collections to prevent sharing across viewers
     const mergedInitialState: ViewerState = {
         ...initialState,
@@ -230,6 +251,19 @@ export function mountViewerShell(
                 store.dispatch({ type: "CLOSE_PANEL" });
             }
         }
+
+        // ? key: announce keyboard shortcuts
+        if (e.key === "?" && !e.ctrlKey && !e.metaKey) {
+            // Don't trigger when typing in an input
+            const tag = (document.activeElement as HTMLElement)?.tagName;
+            if (tag !== "INPUT" && tag !== "TEXTAREA" && tag !== "SELECT") {
+                liveRegion.announce(
+                    "Keyboard shortcuts: F6 navigate regions, Ctrl+F search, Ctrl+P print, " +
+                        "Ctrl+Plus zoom in, Ctrl+Minus zoom out, Ctrl+0 reset zoom, Escape close panel, " +
+                        "? show this help.",
+                );
+            }
+        }
     };
     layout.addEventListener("keydown", handleKeyDown);
 
@@ -293,7 +327,7 @@ export function mountViewerShell(
 
         // --- Live region announcements for screen readers ---
         if (prev.page !== next.page && next.pageCount > 0) {
-            liveRegion.announce(`Page ${next.page} of ${next.pageCount}`);
+            announcePageDebounced(next.page, next.pageCount);
         } else if (prev.zoom !== next.zoom) {
             liveRegion.announce(`Zoom ${Math.round(next.zoom * 100)}%`);
         } else if (prev.activePanel !== next.activePanel) {
@@ -339,6 +373,7 @@ export function mountViewerShell(
 
     function destroy(): void {
         cleanupSystemListener();
+        if (pageAnnounceTimer) clearTimeout(pageAnnounceTimer);
         liveRegion.destroy();
         layout.removeEventListener("keydown", handleKeyDown);
         panelOverlay.removeEventListener("click", handleOverlayClick);
