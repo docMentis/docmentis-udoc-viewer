@@ -51,6 +51,7 @@ export function createFloatingToolbar() {
     prevBtn.className = "udoc-floating-toolbar__btn";
     prevBtn.innerHTML = ICON_CHEVRON_LEFT;
     prevBtn.title = "Previous page";
+    prevBtn.setAttribute("aria-label", "Previous page");
 
     const pageInfo = document.createElement("div");
     pageInfo.className = "udoc-floating-toolbar__page-info";
@@ -59,6 +60,7 @@ export function createFloatingToolbar() {
     pageInput.className = "udoc-floating-toolbar__page-input";
     pageInput.type = "text";
     pageInput.inputMode = "numeric";
+    pageInput.setAttribute("aria-label", "Page number");
 
     const pageTotal = document.createElement("span");
     pageTotal.className = "udoc-floating-toolbar__page-total";
@@ -70,6 +72,7 @@ export function createFloatingToolbar() {
     nextBtn.className = "udoc-floating-toolbar__btn";
     nextBtn.innerHTML = ICON_CHEVRON_RIGHT;
     nextBtn.title = "Next page";
+    nextBtn.setAttribute("aria-label", "Next page");
 
     navSection.appendChild(prevBtn);
     navSection.appendChild(pageInfo);
@@ -87,6 +90,7 @@ export function createFloatingToolbar() {
     zoomOutBtn.className = "udoc-floating-toolbar__btn";
     zoomOutBtn.innerHTML = ICON_ZOOM_OUT;
     zoomOutBtn.title = "Zoom out";
+    zoomOutBtn.setAttribute("aria-label", "Zoom out");
 
     // Zoom dropdown container
     const zoomDropdownContainer = document.createElement("div");
@@ -100,17 +104,23 @@ export function createFloatingToolbar() {
     zoomInput.type = "text";
     zoomInput.inputMode = "numeric";
     zoomInput.title = "Zoom level";
+    zoomInput.setAttribute("aria-label", "Zoom level");
 
     const zoomChevron = document.createElement("button");
     zoomChevron.className = "udoc-zoom-dropdown__chevron";
     zoomChevron.innerHTML = ICON_CHEVRON_DOWN;
     zoomChevron.title = "Zoom options";
+    zoomChevron.setAttribute("aria-label", "Zoom options");
+    zoomChevron.setAttribute("aria-haspopup", "listbox");
+    zoomChevron.setAttribute("aria-expanded", "false");
 
     zoomToggle.appendChild(zoomInput);
     zoomToggle.appendChild(zoomChevron);
 
     const zoomDropdown = document.createElement("div");
     zoomDropdown.className = "udoc-zoom-dropdown__menu";
+    zoomDropdown.setAttribute("role", "listbox");
+    zoomDropdown.setAttribute("aria-label", "Zoom levels");
     zoomDropdown.style.display = "none";
 
     zoomDropdownContainer.appendChild(zoomToggle);
@@ -120,6 +130,7 @@ export function createFloatingToolbar() {
     zoomInBtn.className = "udoc-floating-toolbar__btn";
     zoomInBtn.innerHTML = ICON_ZOOM_IN;
     zoomInBtn.title = "Zoom in";
+    zoomInBtn.setAttribute("aria-label", "Zoom in");
 
     zoomSection.appendChild(zoomOutBtn);
     zoomSection.appendChild(zoomDropdownContainer);
@@ -195,6 +206,7 @@ export function createFloatingToolbar() {
                 isZoomDropdownOpen = true;
                 zoomDropdown.style.display = "block";
                 zoomChevron.classList.add("udoc-zoom-dropdown__chevron--active");
+                zoomChevron.setAttribute("aria-expanded", "true");
             }
         };
 
@@ -203,6 +215,7 @@ export function createFloatingToolbar() {
                 isZoomDropdownOpen = false;
                 zoomDropdown.style.display = "none";
                 zoomChevron.classList.remove("udoc-zoom-dropdown__chevron--active");
+                zoomChevron.setAttribute("aria-expanded", "false");
             }
         };
 
@@ -285,11 +298,14 @@ export function createFloatingToolbar() {
             for (const step of slice.zoomSteps) {
                 const item = document.createElement("button");
                 item.className = "udoc-zoom-dropdown__item";
+                item.setAttribute("role", "option");
                 const stepPercent = Math.round(step * 100);
                 const currentPercent = Math.round(slice.zoom * 100);
-                if (slice.zoomMode === "custom" && stepPercent === currentPercent) {
+                const isActive = slice.zoomMode === "custom" && stepPercent === currentPercent;
+                if (isActive) {
                     item.classList.add("udoc-zoom-dropdown__item--active");
                 }
+                item.setAttribute("aria-selected", String(isActive));
                 item.textContent = `${stepPercent}%`;
                 item.addEventListener("click", (e) => {
                     e.stopPropagation();
@@ -303,6 +319,7 @@ export function createFloatingToolbar() {
             // Divider
             const dividerEl = document.createElement("div");
             dividerEl.className = "udoc-zoom-dropdown__divider";
+            dividerEl.setAttribute("role", "separator");
             zoomDropdown.appendChild(dividerEl);
 
             // Zoom mode options
@@ -312,9 +329,12 @@ export function createFloatingToolbar() {
             for (const opt of ZOOM_MODE_OPTIONS) {
                 const item = document.createElement("button");
                 item.className = "udoc-zoom-dropdown__item";
-                if (slice.zoomMode === opt.mode) {
+                item.setAttribute("role", "option");
+                const isActive = slice.zoomMode === opt.mode;
+                if (isActive) {
                     item.classList.add("udoc-zoom-dropdown__item--active");
                 }
+                item.setAttribute("aria-selected", String(isActive));
                 item.textContent = opt.label;
                 item.addEventListener("click", (e) => {
                     e.stopPropagation();

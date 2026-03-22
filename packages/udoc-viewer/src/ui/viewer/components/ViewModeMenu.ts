@@ -78,11 +78,16 @@ export function createViewModeMenu() {
     toggleBtn.className = "udoc-floating-toolbar__btn";
     toggleBtn.innerHTML = ICON_VIEW_MODE;
     toggleBtn.title = "View settings";
+    toggleBtn.setAttribute("aria-label", "View settings");
+    toggleBtn.setAttribute("aria-haspopup", "true");
+    toggleBtn.setAttribute("aria-expanded", "false");
     el.appendChild(toggleBtn);
 
     // Dropdown panel
     const dropdown = document.createElement("div");
     dropdown.className = "udoc-view-mode-menu__dropdown";
+    dropdown.setAttribute("role", "group");
+    dropdown.setAttribute("aria-label", "View settings");
     dropdown.style.display = "none";
     el.appendChild(dropdown);
 
@@ -116,6 +121,8 @@ export function createViewModeMenu() {
 
         const optionsContainer = document.createElement("div");
         optionsContainer.className = "udoc-view-mode-menu__options";
+        optionsContainer.setAttribute("role", "radiogroup");
+        optionsContainer.setAttribute("aria-label", title);
 
         for (const opt of options) {
             const btn = document.createElement("button");
@@ -133,6 +140,8 @@ export function createViewModeMenu() {
             }
 
             btn.title = opt.label;
+            btn.setAttribute("aria-label", opt.label);
+            btn.setAttribute("aria-pressed", String(isActive));
 
             const iconSpan = document.createElement("span");
             iconSpan.className = "udoc-view-mode-menu__option-icon";
@@ -196,6 +205,7 @@ export function createViewModeMenu() {
         isOpen = !isOpen;
         dropdown.style.display = isOpen ? "block" : "none";
         toggleBtn.classList.toggle("udoc-floating-toolbar__btn--active", isOpen);
+        toggleBtn.setAttribute("aria-expanded", String(isOpen));
     }
 
     function closeDropdown(): void {
@@ -203,6 +213,7 @@ export function createViewModeMenu() {
             isOpen = false;
             dropdown.style.display = "none";
             toggleBtn.classList.remove("udoc-floating-toolbar__btn--active");
+            toggleBtn.setAttribute("aria-expanded", "false");
         }
     }
 

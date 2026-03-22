@@ -2454,7 +2454,30 @@
     }
 }
 
-/* High contrast / forced colors */
+/* High contrast preference */
+@media (prefers-contrast: more) {
+    .udoc-viewer-root {
+        --udoc-border: #000;
+        --udoc-border-input: #000;
+        --udoc-text-muted: rgba(0, 0, 0, 0.7);
+        --udoc-text-faint: rgba(0, 0, 0, 0.6);
+        --udoc-primary-focus-ring: rgba(0, 102, 204, 0.5);
+    }
+
+    .udoc-viewer-root.udoc-viewer-dark {
+        --udoc-border: #aaa;
+        --udoc-border-input: #aaa;
+        --udoc-text-muted: rgba(255, 255, 255, 0.7);
+        --udoc-text-faint: rgba(255, 255, 255, 0.6);
+        --udoc-primary-focus-ring: rgba(77, 166, 255, 0.5);
+    }
+
+    .udoc-viewer-root :focus-visible {
+        outline-width: 3px;
+    }
+}
+
+/* Forced colors (Windows High Contrast) */
 @media (forced-colors: active) {
     .udoc-viewer-root .udoc-thumbnail-item--active {
         outline: 3px solid Highlight;

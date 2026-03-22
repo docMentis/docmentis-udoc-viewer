@@ -40,12 +40,16 @@ export function createLeftPanel() {
     // Tab bar
     const tabBar = document.createElement("div");
     tabBar.className = "udoc-left-panel__tabs";
+    tabBar.setAttribute("role", "tablist");
+    tabBar.setAttribute("aria-label", "Panel tabs");
 
     const tabButtons = new Map<LeftPanelTab, HTMLButtonElement>();
     for (const tab of TABS) {
         const btn = document.createElement("button");
         btn.className = "udoc-left-panel__tab";
         btn.setAttribute("aria-label", tab.label);
+        btn.setAttribute("role", "tab");
+        btn.setAttribute("aria-selected", "false");
         btn.setAttribute("data-tab", tab.id);
         btn.innerHTML = tab.icon;
         tabButtons.set(tab.id, btn);
@@ -55,6 +59,7 @@ export function createLeftPanel() {
     // Content area
     const content = document.createElement("div");
     content.className = "udoc-left-panel__content";
+    content.setAttribute("role", "tabpanel");
 
     // Resize handle
     const resizeHandle = document.createElement("div");
@@ -90,7 +95,9 @@ export function createLeftPanel() {
         }
 
         for (const [tabId, btn] of tabButtons) {
-            btn.classList.toggle("udoc-left-panel__tab--active", tabId === slice.activeTab);
+            const isActive = tabId === slice.activeTab;
+            btn.classList.toggle("udoc-left-panel__tab--active", isActive);
+            btn.setAttribute("aria-selected", String(isActive));
             // Hide individual tab buttons that are disabled
             btn.style.display = slice.disabledPanels.has(tabId) ? "none" : "";
         }

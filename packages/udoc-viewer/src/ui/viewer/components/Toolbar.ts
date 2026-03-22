@@ -181,16 +181,22 @@ export function createToolbar() {
     zoomInput.type = "text";
     zoomInput.inputMode = "numeric";
     zoomInput.title = "Zoom level";
+    zoomInput.setAttribute("aria-label", "Zoom level");
 
     const zoomChevron = document.createElement("button");
     zoomChevron.className = "udoc-zoom-dropdown__chevron";
     zoomChevron.innerHTML = ICON_CHEVRON_DOWN;
     zoomChevron.title = "Zoom options";
+    zoomChevron.setAttribute("aria-label", "Zoom options");
+    zoomChevron.setAttribute("aria-haspopup", "listbox");
+    zoomChevron.setAttribute("aria-expanded", "false");
 
     zoomToggle.append(zoomInput, zoomChevron);
 
     const zoomDropdown = document.createElement("div");
     zoomDropdown.className = "udoc-zoom-dropdown__menu";
+    zoomDropdown.setAttribute("role", "listbox");
+    zoomDropdown.setAttribute("aria-label", "Zoom levels");
     zoomDropdown.style.display = "none";
 
     zoomDropdownContainer.append(zoomToggle, zoomDropdown);
@@ -240,6 +246,7 @@ export function createToolbar() {
             isZoomDropdownOpen = true;
             zoomDropdown.style.display = "block";
             zoomChevron.classList.add("udoc-zoom-dropdown__chevron--active");
+            zoomChevron.setAttribute("aria-expanded", "true");
         }
     };
 
@@ -248,6 +255,7 @@ export function createToolbar() {
             isZoomDropdownOpen = false;
             zoomDropdown.style.display = "none";
             zoomChevron.classList.remove("udoc-zoom-dropdown__chevron--active");
+            zoomChevron.setAttribute("aria-expanded", "false");
         }
     };
 
@@ -272,11 +280,14 @@ export function createToolbar() {
         for (const step of slice.zoomSteps) {
             const item = document.createElement("button");
             item.className = "udoc-zoom-dropdown__item";
+            item.setAttribute("role", "option");
             const stepPercent = Math.round(step * 100);
             const currentPercent = Math.round(slice.zoom * 100);
-            if (slice.zoomMode === "custom" && stepPercent === currentPercent) {
+            const isActive = slice.zoomMode === "custom" && stepPercent === currentPercent;
+            if (isActive) {
                 item.classList.add("udoc-zoom-dropdown__item--active");
             }
+            item.setAttribute("aria-selected", String(isActive));
             item.textContent = `${stepPercent}%`;
             item.addEventListener("click", (e) => {
                 e.stopPropagation();
@@ -290,6 +301,7 @@ export function createToolbar() {
         // Divider
         const dividerEl = document.createElement("div");
         dividerEl.className = "udoc-zoom-dropdown__divider";
+        dividerEl.setAttribute("role", "separator");
         zoomDropdown.appendChild(dividerEl);
 
         // Zoom mode options
@@ -299,9 +311,12 @@ export function createToolbar() {
         for (const opt of ZOOM_MODE_OPTIONS) {
             const item = document.createElement("button");
             item.className = "udoc-zoom-dropdown__item";
-            if (slice.zoomMode === opt.mode) {
+            item.setAttribute("role", "option");
+            const isActive = slice.zoomMode === opt.mode;
+            if (isActive) {
                 item.classList.add("udoc-zoom-dropdown__item--active");
             }
+            item.setAttribute("aria-selected", String(isActive));
             item.textContent = opt.label;
             item.addEventListener("click", (e) => {
                 e.stopPropagation();

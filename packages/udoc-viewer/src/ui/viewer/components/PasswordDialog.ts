@@ -83,6 +83,7 @@ export function createPasswordDialog() {
     let callbacks: PasswordDialogCallbacks | null = null;
     let unsubRender: (() => void) | null = null;
     let cleanupTrap: (() => void) | null = null;
+    let previousFocus: HTMLElement | null = null;
 
     // Toggle password visibility
     toggleBtn.addEventListener("click", () => {
@@ -122,6 +123,8 @@ export function createPasswordDialog() {
             if (wasVisible !== isVisible) {
                 overlay.style.display = isVisible ? "" : "none";
                 if (isVisible) {
+                    // Save focus to restore on close
+                    previousFocus = document.activeElement as HTMLElement | null;
                     // Focus input when dialog appears
                     setTimeout(() => input.focus(), 0);
                     // Reset input
@@ -135,6 +138,10 @@ export function createPasswordDialog() {
                     if (cleanupTrap) {
                         cleanupTrap();
                         cleanupTrap = null;
+                    }
+                    if (previousFocus && previousFocus.focus) {
+                        previousFocus.focus();
+                        previousFocus = null;
                     }
                 }
             }
@@ -173,6 +180,7 @@ export function createPasswordDialog() {
             cleanupTrap = null;
         }
         callbacks = null;
+        previousFocus = null;
         overlay.remove();
     }
 

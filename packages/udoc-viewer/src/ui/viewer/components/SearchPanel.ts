@@ -55,7 +55,8 @@ export function createSearchPanel() {
     caseBtn.className = "udoc-search-panel__case";
     caseBtn.textContent = "Aa";
     caseBtn.title = "Match case";
-    caseBtn.setAttribute("aria-label", "Toggle case sensitivity");
+    caseBtn.setAttribute("aria-label", "Match case");
+    caseBtn.setAttribute("aria-pressed", "false");
 
     header.append(inputWrapper, caseBtn);
 
@@ -89,6 +90,8 @@ export function createSearchPanel() {
     // --- Result list ---
     const results = document.createElement("div");
     results.className = "udoc-search-panel__results";
+    results.setAttribute("role", "listbox");
+    results.setAttribute("aria-label", "Search results");
 
     el.append(header, nav, results);
 
@@ -120,6 +123,7 @@ export function createSearchPanel() {
 
         // Update case button
         caseBtn.classList.toggle("udoc-search-panel__case--active", slice.caseSensitive);
+        caseBtn.setAttribute("aria-pressed", String(slice.caseSensitive));
 
         // Update nav buttons
         const hasMatches = slice.matches.length > 0;
@@ -171,6 +175,7 @@ export function createSearchPanel() {
             // Result item
             const item = document.createElement("div");
             item.className = "udoc-search-result";
+            item.setAttribute("role", "option");
             item.dataset.matchIndex = String(matchGlobalIndex);
 
             const contextEl = document.createElement("span");
@@ -200,12 +205,16 @@ export function createSearchPanel() {
 
     function updateActiveResult(activeIndex: number): void {
         const prev = results.querySelector(".udoc-search-result--active");
-        if (prev) prev.classList.remove("udoc-search-result--active");
+        if (prev) {
+            prev.classList.remove("udoc-search-result--active");
+            prev.setAttribute("aria-selected", "false");
+        }
 
         if (activeIndex >= 0) {
             const active = results.querySelector(`[data-match-index="${activeIndex}"]`);
             if (active) {
                 active.classList.add("udoc-search-result--active");
+                active.setAttribute("aria-selected", "true");
                 // Scroll into view
                 active.scrollIntoView({ block: "nearest" });
             }
