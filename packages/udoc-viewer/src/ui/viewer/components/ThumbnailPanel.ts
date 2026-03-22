@@ -38,6 +38,47 @@ function selectThumbnailSlice(state: ViewerState): ThumbnailSlice {
 export function createThumbnailPanel() {
     const el = document.createElement("div");
     el.className = "udoc-thumbnail-panel";
+    el.setAttribute("role", "listbox");
+    el.setAttribute("aria-label", "Page thumbnails");
+    el.setAttribute("tabindex", "0");
+
+    /** Keyboard-focused page (for arrow key navigation, independent of current page) */
+    let focusedPage = 1;
+
+    el.addEventListener("keydown", (e: KeyboardEvent) => {
+        if (!storeRef || thumbnailItems.length === 0) return;
+
+        let handled = true;
+        switch (e.key) {
+            case "ArrowDown":
+                focusedPage = Math.min(focusedPage + 1, thumbnailItems.length);
+                break;
+            case "ArrowUp":
+                focusedPage = Math.max(focusedPage - 1, 1);
+                break;
+            case "Home":
+                focusedPage = 1;
+                break;
+            case "End":
+                focusedPage = thumbnailItems.length;
+                break;
+            case "Enter":
+            case " ":
+                storeRef.dispatch({ type: "NAVIGATE_TO_PAGE", page: focusedPage });
+                break;
+            default:
+                handled = false;
+        }
+
+        if (handled) {
+            e.preventDefault();
+            el.setAttribute("aria-activedescendant", `udoc-thumb-${focusedPage}`);
+            const item = thumbnailItems[focusedPage - 1];
+            if (item) {
+                item.container.scrollIntoView({ block: "nearest", behavior: "instant" });
+            }
+        }
+    });
 
     let mounted = false;
     let storeRef: Store<ViewerState, Action> | null = null;
@@ -53,6 +94,9 @@ export function createThumbnailPanel() {
         const container = document.createElement("div");
         container.className = "udoc-thumbnail-item";
         container.dataset.page = String(pageNumber);
+        container.setAttribute("role", "option");
+        container.setAttribute("aria-label", `Page ${pageNumber}`);
+        container.id = `udoc-thumb-${pageNumber}`;
 
         const canvas = document.createElement("canvas");
         canvas.className = "udoc-thumbnail-item__canvas";
@@ -238,7 +282,10 @@ export function createThumbnailPanel() {
         for (const item of thumbnailItems) {
             const isActive = item.pageNumber === currentPage;
             item.container.classList.toggle("udoc-thumbnail-item--active", isActive);
+            item.container.setAttribute("aria-selected", String(isActive));
         }
+        el.setAttribute("aria-activedescendant", `udoc-thumb-${currentPage}`);
+        focusedPage = currentPage;
     }
 
     function scrollActiveIntoView(currentPage: number): void {

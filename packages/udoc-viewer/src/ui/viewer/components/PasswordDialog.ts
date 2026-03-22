@@ -5,6 +5,7 @@
 import type { Store } from "../../framework/store";
 import type { ViewerState } from "../state";
 import type { Action } from "../actions";
+import { trapFocus } from "../a11y";
 
 export interface PasswordDialogCallbacks {
     onSubmit: (password: string) => void;
@@ -81,6 +82,7 @@ export function createPasswordDialog() {
 
     let callbacks: PasswordDialogCallbacks | null = null;
     let unsubRender: (() => void) | null = null;
+    let cleanupTrap: (() => void) | null = null;
 
     // Toggle password visibility
     toggleBtn.addEventListener("click", () => {
@@ -127,6 +129,13 @@ export function createPasswordDialog() {
                     input.type = "password";
                     eyeOpen.style.display = "";
                     eyeClosed.style.display = "none";
+                    // Trap focus inside dialog
+                    cleanupTrap = trapFocus(dialog);
+                } else {
+                    if (cleanupTrap) {
+                        cleanupTrap();
+                        cleanupTrap = null;
+                    }
                 }
             }
 
@@ -159,6 +168,10 @@ export function createPasswordDialog() {
 
     function destroy(): void {
         if (unsubRender) unsubRender();
+        if (cleanupTrap) {
+            cleanupTrap();
+            cleanupTrap = null;
+        }
         callbacks = null;
         overlay.remove();
     }

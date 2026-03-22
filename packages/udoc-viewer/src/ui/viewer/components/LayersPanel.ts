@@ -51,7 +51,9 @@ export function createLayersPanel() {
             const toggle = document.createElement("button");
             toggle.className = "udoc-layers-panel__toggle";
             toggle.type = "button";
-            toggle.setAttribute("aria-label", group.visible ? "Hide layer" : "Show layer");
+            toggle.setAttribute("role", "switch");
+            toggle.setAttribute("aria-checked", String(group.visible));
+            toggle.setAttribute("aria-label", `${group.name} layer visibility`);
             toggle.innerHTML = group.visible ? ICON_VISIBILITY : ICON_VISIBILITY_OFF;
             toggle.classList.toggle("udoc-layers-panel__toggle--hidden", !group.visible);
             if (group.locked) {

@@ -127,6 +127,8 @@ export function createSpread(data: SpreadData, showAttribution = true) {
 
         if (pageNumber !== null) {
             container.dataset.page = String(pageNumber);
+            container.setAttribute("role", "group");
+            container.setAttribute("aria-label", `Page ${pageNumber}`);
             container.classList.add("udoc-spread__slot--loading");
 
             // Preview canvas (behind main canvas) — shows low-res preview while full-res renders

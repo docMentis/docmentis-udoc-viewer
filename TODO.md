@@ -3,8 +3,8 @@
 ## High-Value UX Improvements
 
 - [ ] **Pinch-to-Zoom & Touch Gestures** — Add pinch-zoom, swipe-to-navigate, and long-press support for mobile/tablet users.
-- [ ] **Keyboard Accessibility** — Full keyboard navigation: Tab through panels, shortcuts for zoom/rotation/layout switching, focus management.
-- [ ] **ARIA / Screen Reader Support** — Consistent aria-labels, focus traps for dialogs, live regions for search results, landmark roles.
+- [x] **Keyboard Accessibility** — Full keyboard navigation: Tab through panels, shortcuts for zoom/rotation/layout switching, focus management.
+- [x] **ARIA / Screen Reader Support** — Consistent aria-labels, focus traps for dialogs, live regions for search results, landmark roles.
 - [ ] **Search UX Polish** — Whole-word match toggle, regex search, inline match count in search box, search history.
 - [ ] **Annotation Panel** — Implement filterable list of annotations by type/author/status with click-to-navigate.
 - [ ] **Comments Panel** — Discussion threads on specific pages/regions.

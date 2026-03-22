@@ -18,6 +18,7 @@ import { createPrintDialog } from "./components/PrintDialog";
 import type { PrintDialogResult } from "./components/PrintDialog";
 import { createLoadingOverlay } from "./components/LoadingOverlay";
 import { inlineStyles } from "./styles-inline.js";
+import { createLiveRegion } from "./a11y";
 
 export interface EngineAdapter {
     getPageInfo(doc: { id: string }, page: number): Promise<PageInfo>;
@@ -74,13 +75,45 @@ export function mountViewerShell(
     const rightPanelSlot = document.createElement("div");
     rightPanelSlot.className = "udoc-slot udoc-right-panel-slot";
 
+    // ARIA landmark roles for F6 region navigation
+    toolbarSlot.setAttribute("role", "region");
+    toolbarSlot.setAttribute("aria-label", "Toolbar");
+    toolbarSlot.setAttribute("tabindex", "-1");
+
+    leftPanelSlot.setAttribute("role", "region");
+    leftPanelSlot.setAttribute("aria-label", "Side panel");
+    leftPanelSlot.setAttribute("tabindex", "-1");
+
+    viewportSlot.setAttribute("role", "region");
+    viewportSlot.setAttribute("aria-label", "Document");
+    viewportSlot.setAttribute("tabindex", "-1");
+
+    rightPanelSlot.setAttribute("role", "region");
+    rightPanelSlot.setAttribute("aria-label", "Search and comments");
+    rightPanelSlot.setAttribute("tabindex", "-1");
+
+    // Skip navigation link
+    const skipLink = document.createElement("a");
+    skipLink.href = "#";
+    skipLink.className = "udoc-skip-link";
+    skipLink.textContent = "Skip to document";
+    skipLink.addEventListener("click", (e) => {
+        e.preventDefault();
+        const focusTarget = viewportSlot.querySelector<HTMLElement>('[tabindex="0"]') ?? viewportSlot;
+        focusTarget.focus();
+    });
+
     // Panel overlay for mobile (closes panels when tapping outside)
     const panelOverlay = document.createElement("div");
     panelOverlay.className = "udoc-panel-overlay";
 
     bodySlot.append(leftPanelSlot, viewportSlot, rightPanelSlot, panelOverlay);
-    layout.append(toolbarSlot, bodySlot);
+    layout.append(skipLink, toolbarSlot, bodySlot);
     root.appendChild(layout);
+
+    // Live region for screen reader announcements
+    const liveRegion = createLiveRegion();
+    layout.appendChild(liveRegion.el);
 
     // Always create fresh mutable collections to prevent sharing across viewers
     const mergedInitialState: ViewerState = {
@@ -169,6 +202,23 @@ export function mountViewerShell(
             }
         }
 
+        // F6: cycle focus between regions
+        if (e.key === "F6") {
+            e.preventDefault();
+            const regions = [toolbarSlot, leftPanelSlot, viewportSlot, rightPanelSlot].filter(
+                (r) => r.offsetParent !== null,
+            );
+            if (regions.length === 0) return;
+            const currentIndex = regions.findIndex((r) => r.contains(document.activeElement));
+            const direction = e.shiftKey ? -1 : 1;
+            const nextIndex = (currentIndex + direction + regions.length) % regions.length;
+            const target = regions[nextIndex];
+            const focusable = target.querySelector<HTMLElement>(
+                'button:not([disabled]), input:not([disabled]), [tabindex="0"]',
+            );
+            (focusable ?? target).focus();
+        }
+
         // Close panel or print dialog: Escape
         if (e.key === "Escape") {
             const state = store.getState();
@@ -218,7 +268,7 @@ export function mountViewerShell(
     }
 
     // Subscribe to panel state to toggle udoc-panel-open class,
-    // toolbar slot visibility, and theme changes
+    // toolbar slot visibility, theme changes, and live region announcements
     const unsubPanelClass = store.subscribeRender((prev, next) => {
         if ((prev.activePanel === null) !== (next.activePanel === null)) {
             layout.classList.toggle("udoc-panel-open", next.activePanel !== null);
@@ -239,6 +289,19 @@ export function mountViewerShell(
             requestAnimationFrame(() => {
                 store.dispatch({ type: "ENABLE_PANEL_TRANSITIONS" });
             });
+        }
+
+        // --- Live region announcements for screen readers ---
+        if (prev.page !== next.page && next.pageCount > 0) {
+            liveRegion.announce(`Page ${next.page} of ${next.pageCount}`);
+        } else if (prev.zoom !== next.zoom) {
+            liveRegion.announce(`Zoom ${Math.round(next.zoom * 100)}%`);
+        } else if (prev.activePanel !== next.activePanel) {
+            if (next.activePanel !== null) {
+                liveRegion.announce(`${next.activePanel} panel opened`);
+            } else {
+                liveRegion.announce("Panel closed");
+            }
         }
     });
 
@@ -276,6 +339,7 @@ export function mountViewerShell(
 
     function destroy(): void {
         cleanupSystemListener();
+        liveRegion.destroy();
         layout.removeEventListener("keydown", handleKeyDown);
         panelOverlay.removeEventListener("click", handleOverlayClick);
         unsubPanelClass();

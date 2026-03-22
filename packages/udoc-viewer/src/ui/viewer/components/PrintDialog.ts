@@ -5,6 +5,7 @@
 import type { Store } from "../../framework/store";
 import type { ViewerState } from "../state";
 import type { Action } from "../actions";
+import { trapFocus } from "../a11y";
 
 export type PrintPageRange =
     | { kind: "all" }
@@ -123,6 +124,8 @@ export function createPrintDialog() {
 
     let callbacks: PrintDialogCallbacks | null = null;
     let unsubRender: (() => void) | null = null;
+    let cleanupTrap: (() => void) | null = null;
+    let previousFocus: HTMLElement | null = null;
     let pageCount = 1;
 
     function getSelectedRange(): string {
@@ -237,6 +240,8 @@ export function createPrintDialog() {
             if (wasVisible !== isVisible) {
                 overlay.style.display = isVisible ? "" : "none";
                 if (isVisible) {
+                    // Save focus to restore on close
+                    previousFocus = document.activeElement as HTMLElement | null;
                     // Reset state
                     const allRadio = dialog.querySelector<HTMLInputElement>('input[value="all"]');
                     if (allRadio) allRadio.checked = true;
@@ -249,6 +254,18 @@ export function createPrintDialog() {
                     updateInputStates();
                     // Focus the print button
                     setTimeout(() => printBtn.focus(), 0);
+                    // Trap focus inside dialog
+                    cleanupTrap = trapFocus(dialog);
+                } else {
+                    if (cleanupTrap) {
+                        cleanupTrap();
+                        cleanupTrap = null;
+                    }
+                    // Restore focus to the element that opened the dialog
+                    if (previousFocus && previousFocus.focus) {
+                        previousFocus.focus();
+                        previousFocus = null;
+                    }
                 }
             }
 
@@ -272,7 +289,12 @@ export function createPrintDialog() {
 
     function destroy(): void {
         if (unsubRender) unsubRender();
+        if (cleanupTrap) {
+            cleanupTrap();
+            cleanupTrap = null;
+        }
         callbacks = null;
+        previousFocus = null;
         overlay.remove();
     }
 

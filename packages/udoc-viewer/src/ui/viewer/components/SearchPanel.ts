@@ -65,6 +65,8 @@ export function createSearchPanel() {
 
     const status = document.createElement("span");
     status.className = "udoc-search-panel__status";
+    status.setAttribute("role", "status");
+    status.setAttribute("aria-live", "polite");
 
     const navButtons = document.createElement("div");
     navButtons.className = "udoc-search-panel__nav-buttons";

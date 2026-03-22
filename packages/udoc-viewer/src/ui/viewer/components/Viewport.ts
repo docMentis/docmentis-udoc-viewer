@@ -419,6 +419,9 @@ function computeViewportUpdate(
 export function createViewport(showAttribution = true) {
     const el = document.createElement("div");
     el.className = "udoc-viewport";
+    el.setAttribute("role", "document");
+    el.setAttribute("aria-label", "Document content");
+    el.setAttribute("tabindex", "0");
 
     const scrollArea = document.createElement("div");
     scrollArea.className = "udoc-viewport__scroll";

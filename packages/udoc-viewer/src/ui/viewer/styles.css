@@ -2398,3 +2398,80 @@
 .udoc-viewer-root.udoc-viewer-dark .udoc-search-highlight {
     mix-blend-mode: screen;
 }
+
+/* === Accessibility === */
+
+/* Screen-reader-only utility (visually hidden but accessible) */
+.udoc-viewer-root .udoc-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Skip navigation link */
+.udoc-viewer-root .udoc-skip-link {
+    position: absolute;
+    top: -100px;
+    left: 0;
+    z-index: 10000;
+    padding: 8px 16px;
+    background: var(--udoc-bg-surface);
+    color: var(--udoc-text-heading);
+    text-decoration: none;
+    font-size: 14px;
+    border-radius: 0 0 4px 0;
+    box-shadow: var(--udoc-shadow-sm);
+}
+
+.udoc-viewer-root .udoc-skip-link:focus {
+    top: 0;
+}
+
+/* Keyboard focus indicators */
+.udoc-viewer-root :focus-visible {
+    outline: 2px solid var(--udoc-primary);
+    outline-offset: 2px;
+}
+
+.udoc-viewer-root :focus:not(:focus-visible) {
+    outline: none;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .udoc-viewer-root,
+    .udoc-viewer-root * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* High contrast / forced colors */
+@media (forced-colors: active) {
+    .udoc-viewer-root .udoc-thumbnail-item--active {
+        outline: 3px solid Highlight;
+    }
+
+    .udoc-viewer-root .udoc-toolbar__btn,
+    .udoc-viewer-root .udoc-floating-toolbar__btn,
+    .udoc-viewer-root .udoc-left-panel__tab {
+        border: 1px solid ButtonText;
+    }
+
+    .udoc-viewer-root .udoc-left-panel__tab--active {
+        background: Highlight;
+        color: HighlightText;
+    }
+
+    .udoc-viewer-root .udoc-search-highlight {
+        outline: 2px solid Highlight;
+    }
+}
