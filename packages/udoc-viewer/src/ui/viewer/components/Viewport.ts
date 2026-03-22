@@ -439,7 +439,7 @@ export function createViewport(showAttribution = true) {
     if (showAttribution) {
         const attrClass = "_" + Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 10);
         const attrHref = "https://docmentis.com";
-        const attrText = "Powered by docMentis";
+        const attrHtml = `Powered by <span class="${attrClass}-doc">doc</span><span class="${attrClass}-mentis">Mentis</span>`;
         const attrLinkAttrs = { target: "_blank", rel: "noopener" };
 
         // Inject dynamic styles for the random class name
@@ -452,21 +452,34 @@ export function createViewport(showAttribution = true) {
                 padding: 2px 6px;
                 font-size: 12px;
                 font-weight: 500;
-                color: rgba(0, 0, 0, 0.3);
+                color: #0f172a;
                 text-decoration: none;
                 text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
                 z-index: 10;
-                transition: color 0.15s ease;
+                white-space: nowrap;
+                opacity: 0.35;
+                transition: opacity 0.15s ease;
             }
             .${attrClass}:hover {
-                color: rgba(0, 0, 0, 0.6);
+                opacity: 0.7;
+            }
+            .${attrClass}-doc {
+                color: #0f172a;
+                font-weight: 700;
+            }
+            .${attrClass}-mentis {
+                color: #4f46e5;
+                font-weight: 700;
             }
             .udoc-viewer-dark .${attrClass} {
-                color: rgba(255, 255, 255, 0.3);
+                color: rgba(255, 255, 255, 0.5);
                 text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
             }
-            .udoc-viewer-dark .${attrClass}:hover {
-                color: rgba(255, 255, 255, 0.6);
+            .udoc-viewer-dark .${attrClass}-doc {
+                color: #e2e8f0;
+            }
+            .udoc-viewer-dark .${attrClass}-mentis {
+                color: #818cf8;
             }
             @media (max-width: 768px) {
                 .${attrClass} {
@@ -484,7 +497,7 @@ export function createViewport(showAttribution = true) {
             el2.href = attrHref;
             el2.target = attrLinkAttrs.target;
             el2.rel = attrLinkAttrs.rel;
-            el2.textContent = attrText;
+            el2.innerHTML = attrHtml;
             return el2;
         }
 
