@@ -6,6 +6,28 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+### Features
+
+- SVG format support in viewer, demo, and WordPress block
+- Internationalization (i18n) with 11 built-in locales and browser language detection
+- Comprehensive accessibility: ARIA patterns, roving tabindex, resize handles, keyboard shortcut help
+- Style attribution "docMentis" with brand colors
+- SVG image support for OOXML documents (svgBlip) (engine)
+- SVG format detection in WASM document loader (engine)
+- Deferred SVG rasterization at render time for sharp zoom (engine)
+- PPTX color map (p:clrMap) and background inheritance (engine)
+- Complete placeholder inheritance for bodyPr, shape style, xfrm, geometry, and more (engine)
+- Cursor-based z-order compositing for PPTX layout/slide shapes (engine)
+
+### Bug Fixes
+
+- Missing tooltips and hardcoded labels in applyState
+- Chrome placeholder properties leaking into content placeholders (engine)
+- Text outline (a:ln on defRPr) for outlined/stroked text (engine)
+- Inherit custGeom clip path from layout placeholder for pictures (engine)
+- Inherit placeholder fill, bounds, and table GraphicFrame bounds from layout (engine)
+- Non-trailing decor z-order compositing for correct slide rendering (engine)
+
 ## [0.6.10] - 2026-03-20
 
 ### Features
