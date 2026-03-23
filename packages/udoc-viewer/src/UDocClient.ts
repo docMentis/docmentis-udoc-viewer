@@ -356,6 +356,14 @@ export interface ViewerOptions {
     maxZoom?: number;
 
     /**
+     * Enable slide transition animations for PPTX documents.
+     * When true, transitions defined in the presentation will play
+     * when navigating between slides in spread (single-page) mode.
+     * @default false
+     */
+    enableTransitions?: boolean;
+
+    /**
      * Locale for UI strings.
      *
      * Built-in locales: `en`, `zh-CN`, `zh-TW`, `ja`, `ko`, `es`, `fr`, `de`, `pt-BR`, `ar`, `ru`.

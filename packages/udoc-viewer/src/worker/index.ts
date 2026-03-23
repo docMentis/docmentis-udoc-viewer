@@ -1,6 +1,13 @@
 export { WorkerClient, makeRenderKey } from "./WorkerClient.js";
 export type {
     PageInfo,
+    PageTransition,
+    TransitionEffect,
+    Orientation,
+    SideDirection,
+    CornerDirection,
+    EightDirection,
+    InOutDirection,
     LicenseResult,
     Composition,
     ComposePick,

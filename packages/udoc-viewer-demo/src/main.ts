@@ -65,6 +65,7 @@ let viewer: UDocViewer | null = null;
 let client: UDocClient | null = null;
 let gpuEnabled = false;
 let hideAttribution = false;
+let enableTransitions = false;
 let currentLocale = "en";
 let currentDocSource: string | File | null = null;
 let currentDocName: string | null = null;
@@ -123,6 +124,7 @@ async function createViewer() {
     viewer = await client.createViewer({
         container: viewerContainer,
         hideAttribution,
+        enableTransitions,
         locale: currentLocale,
         enablePerformanceCounter: true,
         onPerformanceLog: (entry) => {
@@ -386,6 +388,15 @@ const OPTION_GROUPS: ToggleGroup[] = [
                         client = null;
                         viewer = null;
                     }
+                    await createViewer();
+                },
+            },
+            {
+                label: "Slide Transitions (Beta)",
+                hint: "PPTX only",
+                onChange: async (checked) => {
+                    enableTransitions = checked;
+                    // Transition setting is applied at viewer creation — must recreate
                     await createViewer();
                 },
             },

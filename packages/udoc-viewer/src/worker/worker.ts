@@ -161,9 +161,13 @@ export type WorkerResponse =
     | { type: "authenticate"; success: false; error: string }
     | { type: "getPageCount"; success: true; pageCount: number }
     | { type: "getPageCount"; success: false; error: string }
-    | { type: "getPageInfo"; success: true; width: number; height: number; rotation: number }
+    | { type: "getPageInfo"; success: true; width: number; height: number; rotation: number; transition?: unknown }
     | { type: "getPageInfo"; success: false; error: string }
-    | { type: "getAllPageInfo"; success: true; pages: Array<{ width: number; height: number; rotation: number }> }
+    | {
+          type: "getAllPageInfo";
+          success: true;
+          pages: Array<{ width: number; height: number; rotation: number; transition?: unknown }>;
+      }
     | { type: "getAllPageInfo"; success: false; error: string }
     | { type: "getPageLayout"; success: true; layout: string }
     | { type: "getPageLayout"; success: false; error: string }
@@ -344,28 +348,21 @@ async function handleMessage(event: MessageEvent<WorkerRequest & { _id?: number 
 
             case "getPageInfo": {
                 ensureInitialized();
-                const info = wasm!.page_info(request.documentId, request.pageIndex) as {
-                    width: number;
-                    height: number;
-                    rotation: number;
-                };
+                const info = wasm!.page_info(request.documentId, request.pageIndex);
                 respond({
                     type: "getPageInfo",
                     success: true,
                     width: info.width,
                     height: info.height,
                     rotation: info.rotation,
+                    transition: info.transition,
                 });
                 break;
             }
 
             case "getAllPageInfo": {
                 ensureInitialized();
-                const pages = wasm!.all_page_info(request.documentId) as Array<{
-                    width: number;
-                    height: number;
-                    rotation: number;
-                }>;
+                const pages = wasm!.all_page_info(request.documentId);
                 respond({ type: "getAllPageInfo", success: true, pages });
                 break;
             }

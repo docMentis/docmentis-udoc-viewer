@@ -259,12 +259,12 @@ if (!('encodeInto' in cachedTextEncoder)) {
 
 let WASM_VECTOR_LEN = 0;
 
-function __wasm_bindgen_func_elem_2543(arg0, arg1, arg2) {
-    wasm.__wasm_bindgen_func_elem_2543(arg0, arg1, addHeapObject(arg2));
+function __wasm_bindgen_func_elem_2571(arg0, arg1, arg2) {
+    wasm.__wasm_bindgen_func_elem_2571(arg0, arg1, addHeapObject(arg2));
 }
 
-function __wasm_bindgen_func_elem_16785(arg0, arg1, arg2, arg3) {
-    wasm.__wasm_bindgen_func_elem_16785(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
+function __wasm_bindgen_func_elem_16837(arg0, arg1, arg2, arg3) {
+    wasm.__wasm_bindgen_func_elem_16837(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
 }
 
 const __wbindgen_enum_GpuBufferBindingType = ["uniform", "storage", "read-only-storage"];
@@ -617,10 +617,10 @@ export class Wasm {
     /**
      * Get info for all pages in one call.
      *
-     * Returns an array of `{width, height, rotation}` objects, one per page.
+     * Returns an array of `PageInfo` objects, one per page.
      * More efficient than calling `page_info` for each page.
      * @param {string} id
-     * @returns {any}
+     * @returns {PageInfo[]}
      */
     all_page_info(id) {
         try {
@@ -1462,7 +1462,7 @@ export class Wasm {
      * Get info for a specific page.
      * @param {string} id
      * @param {number} page_index
-     * @returns {any}
+     * @returns {PageInfo}
      */
     page_info(id, page_index) {
         try {
@@ -1902,7 +1902,7 @@ function __wbg_get_imports() {
                 const a = state0.a;
                 state0.a = 0;
                 try {
-                    return __wasm_bindgen_func_elem_16785(a, state0.b, arg0, arg1);
+                    return __wasm_bindgen_func_elem_16837(a, state0.b, arg0, arg1);
                 } finally {
                     state0.a = a;
                 }
@@ -2389,7 +2389,7 @@ function __wbg_get_imports() {
     };
     imports.wbg.__wbindgen_cast_d5be308fce034eae = function(arg0, arg1) {
         // Cast intrinsic for `Closure(Closure { dtor_idx: 210, function: Function { arguments: [Externref], shim_idx: 211, ret: Unit, inner_ret: Some(Unit) }, mutable: true }) -> Externref`.
-        const ret = makeMutClosure(arg0, arg1, wasm.__wasm_bindgen_func_elem_2527, __wasm_bindgen_func_elem_2543);
+        const ret = makeMutClosure(arg0, arg1, wasm.__wasm_bindgen_func_elem_2555, __wasm_bindgen_func_elem_2571);
         return addHeapObject(ret);
     };
     imports.wbg.__wbindgen_cast_d6cd19b81560fd6e = function(arg0) {

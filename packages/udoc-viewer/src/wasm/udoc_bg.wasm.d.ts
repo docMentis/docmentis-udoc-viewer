@@ -45,9 +45,9 @@ export const wasm_render_page_to_rgba: (a: number, b: number, c: number, d: numb
 export const wasm_set_license: (a: number, b: number, c: number, d: number) => void;
 export const wasm_set_visibility_group_visible: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
 export const wasm_setup: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
-export const __wasm_bindgen_func_elem_2543: (a: number, b: number, c: number) => void;
-export const __wasm_bindgen_func_elem_2527: (a: number, b: number) => void;
-export const __wasm_bindgen_func_elem_16785: (a: number, b: number, c: number, d: number) => void;
+export const __wasm_bindgen_func_elem_2571: (a: number, b: number, c: number) => void;
+export const __wasm_bindgen_func_elem_2555: (a: number, b: number) => void;
+export const __wasm_bindgen_func_elem_16837: (a: number, b: number, c: number, d: number) => void;
 export const __wbindgen_export: (a: number, b: number) => number;
 export const __wbindgen_export2: (a: number, b: number, c: number, d: number) => number;
 export const __wbindgen_export3: (a: number) => void;

@@ -31,6 +31,7 @@ import { createSpread, type SpreadComponent } from "./Spread";
 import { createFloatingToolbar } from "./FloatingToolbar";
 import { on } from "../../framework/events";
 import { getDevicePixelRatio, snapToDevice, toCssPixels, toDevicePixels } from "../layout";
+import { runTransition, type TransitionHandle } from "../transition";
 
 interface HighlightedAnnotation {
     pageIndex: number;
@@ -656,6 +657,11 @@ export function createViewport(showAttribution = true) {
     const RENDER_DEBOUNCE_MS = 50;
     const unsubEvents: Array<() => void> = [];
 
+    // Slide transition state
+    let activeTransition: TransitionHandle | null = null;
+    let transitionOverlay: HTMLElement | null = null;
+    let previousSpreadIndex: number | null = null;
+
     function mount(parent: HTMLElement, store: Store<ViewerState, Action>, wc: WorkerClient, i18n?: I18n): void {
         parent.appendChild(el);
         workerClient = wc;
@@ -1228,6 +1234,60 @@ export function createViewport(showAttribution = true) {
         updateCurrentPageFromScroll(scrollTop, metrics.innerHeight, state);
     }
 
+    /**
+     * Cancel any active transition and remove the snapshot overlay.
+     * Safe to call at any time — no-ops when nothing is active.
+     */
+    function cleanupTransition(): void {
+        if (activeTransition) {
+            activeTransition.cancel();
+            activeTransition = null;
+        }
+        if (transitionOverlay) {
+            transitionOverlay.remove();
+            transitionOverlay = null;
+        }
+    }
+
+    /**
+     * Capture a static snapshot of a spread element for use as a transition overlay.
+     * Deep-clones the DOM, copies canvas contents (cloneNode doesn't copy pixels),
+     * and strips non-visual layers (text, annotation, search) to reduce DOM weight.
+     */
+    function captureSnapshot(spreadComp: SpreadComponent): HTMLElement | null {
+        const el = spreadComp.getElement();
+        const snapshot = el.cloneNode(true) as HTMLElement;
+
+        // Copy canvas pixel data (cloneNode doesn't preserve canvas content)
+        const originalCanvases = el.querySelectorAll("canvas");
+        const clonedCanvases = snapshot.querySelectorAll("canvas");
+        let hasContent = false;
+        for (let i = 0; i < originalCanvases.length; i++) {
+            const orig = originalCanvases[i];
+            const clone = clonedCanvases[i];
+            if (orig && clone && orig.width > 0 && orig.height > 0) {
+                clone.width = orig.width;
+                clone.height = orig.height;
+                const ctx = clone.getContext("2d");
+                if (ctx) {
+                    ctx.drawImage(orig, 0, 0);
+                    hasContent = true;
+                }
+            }
+        }
+        if (!hasContent) return null;
+
+        // Strip non-visual layers — they add DOM weight and stale content
+        for (const layer of snapshot.querySelectorAll(
+            ".udoc-text-layer, .udoc-annotation-layer, .udoc-search-highlight-layer",
+        )) {
+            layer.remove();
+        }
+
+        snapshot.style.pointerEvents = "none";
+        return snapshot;
+    }
+
     function showSingleSpread(slice: ViewportSlice, _metrics: ViewportMetrics, state: LayoutState): void {
         if (!workerClient || !slice.docId) return;
 
@@ -1235,6 +1295,53 @@ export function createViewport(showAttribution = true) {
         const layout = state.layouts[spreadIndex];
         if (!layout) return;
 
+        const isNewSpread = previousSpreadIndex !== null && spreadIndex !== previousSpreadIndex;
+
+        // If a transition is playing and this is just a state refresh (annotations,
+        // text, search), update the spread layers without touching the animation.
+        if (activeTransition && !isNewSpread) {
+            const spreadComp = spreadComponents.get(spreadIndex);
+            if (spreadComp) {
+                const layoutOptions = {
+                    pageInfos: slice.pageInfos,
+                    scale: state.scale,
+                    dpi: slice.dpi,
+                    rotation: slice.pageRotation,
+                    pageSpacing: slice.pageSpacing,
+                };
+                spreadComp.updateAnnotations(slice.pageAnnotations, layoutOptions, slice.highlightedAnnotation);
+                spreadComp.updateTextLayer(slice.pageText, layoutOptions);
+                spreadComp.updateSearchHighlights(slice.searchMatches, slice.searchActiveIndex, layoutOptions);
+            }
+            lastVisibleRange = { start: spreadIndex, end: spreadIndex };
+            return;
+        }
+
+        const forward = previousSpreadIndex !== null ? spreadIndex > previousSpreadIndex : true;
+
+        // Get transition from target page's PageInfo (0-based index)
+        const targetPageIndex = getSpreadPrimaryPage(state.spreads[spreadIndex]) - 1;
+        const pageTransition = isNewSpread ? slice.pageInfos[targetPageIndex]?.transition : undefined;
+        const wantTransition =
+            isNewSpread &&
+            pageTransition != null &&
+            pageTransition.effect.type !== "replace" &&
+            storeRef !== null &&
+            storeRef.getState().transitionsEnabled;
+
+        // Capture a snapshot of the outgoing spread BEFORE destroying it
+        let snapshot: HTMLElement | null = null;
+        if (wantTransition) {
+            const outgoingComp = spreadComponents.get(previousSpreadIndex!);
+            if (outgoingComp) {
+                snapshot = captureSnapshot(outgoingComp);
+            }
+        }
+
+        // Cancel any prior transition / remove stale overlay
+        cleanupTransition();
+
+        // ---- Original spread lifecycle (unchanged) ----
         for (const [index, spread] of spreadComponents) {
             if (index !== spreadIndex) {
                 spread.destroy();
@@ -1273,6 +1380,27 @@ export function createViewport(showAttribution = true) {
         spreadEl.style.right = "0px";
         spreadEl.style.width = "";
         spreadEl.style.transform = "none";
+
+        // ---- Transition animation (snapshot overlay) ----
+        if (snapshot && wantTransition) {
+            // Insert snapshot BEFORE the spread so the spread naturally paints on top
+            // (later siblings render above earlier ones for positioned elements).
+            // This avoids setting zIndex on the incoming spread, which would create
+            // a new stacking context and cause a 1px sub-pixel shift.
+            container.insertBefore(snapshot, spreadEl);
+            transitionOverlay = snapshot;
+
+            activeTransition = runTransition(snapshot, spreadEl, pageTransition!, forward, () => {
+                // Transition complete — remove the static snapshot
+                if (transitionOverlay) {
+                    transitionOverlay.remove();
+                    transitionOverlay = null;
+                }
+                activeTransition = null;
+            });
+        }
+
+        previousSpreadIndex = spreadIndex;
 
         // Skip render during resize animation (renders debounced separately)
         if (!rendersPaused) {
@@ -1404,12 +1532,14 @@ export function createViewport(showAttribution = true) {
     }
 
     function clearSpreads(): void {
+        cleanupTransition();
         for (const spread of spreadComponents.values()) {
             spread.destroy();
         }
         spreadComponents.clear();
         lastOverflowX = null;
         lastOverflowY = null;
+        previousSpreadIndex = null;
     }
 
     function destroy(): void {

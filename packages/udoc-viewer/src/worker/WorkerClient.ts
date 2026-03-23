@@ -19,6 +19,16 @@ import type {
     WorkerResponse,
 } from "./worker.js";
 
+import type {
+    Orientation,
+    SideDirection,
+    CornerDirection,
+    EightDirection,
+    InOutDirection,
+    TransitionEffect,
+    PageTransition,
+} from "../wasm/udoc.js";
+
 import { WORKER_INLINE } from "./worker-inline.js";
 
 export type {
@@ -33,11 +43,24 @@ export type {
 
 export type { LicenseResult };
 
+// Re-export transition types from WASM (single source of truth)
+export type {
+    Orientation,
+    SideDirection,
+    CornerDirection,
+    EightDirection,
+    InOutDirection,
+    TransitionEffect,
+    PageTransition,
+};
+
 export interface PageInfo {
     width: number;
     height: number;
     /** Document rotation in degrees (0, 90, 180, or 270) */
     rotation: 0 | 90 | 180 | 270;
+    /** Slide transition (PPTX only) */
+    transition?: PageTransition;
 }
 
 // =============================================================================
@@ -340,7 +363,12 @@ export class WorkerClient {
         try {
             const response = (await this.send({ type: "getPageInfo", documentId, pageIndex })) as PageInfo;
             if (eventId) counter?.markEnd(eventId);
-            return { width: response.width, height: response.height, rotation: response.rotation ?? 0 };
+            return {
+                width: response.width,
+                height: response.height,
+                rotation: response.rotation ?? 0,
+                transition: response.transition,
+            };
         } catch (error) {
             if (eventId) counter?.markEnd(eventId, false, (error as Error).message);
             throw error;

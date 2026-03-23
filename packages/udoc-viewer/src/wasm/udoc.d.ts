@@ -1,6 +1,56 @@
 /* tslint:disable */
 /* eslint-disable */
 
+export type Orientation = "horizontal" | "vertical";
+export type SideDirection = "left" | "right" | "up" | "down";
+export type CornerDirection = "leftUp" | "rightUp" | "leftDown" | "rightDown";
+export type EightDirection = SideDirection | CornerDirection;
+export type InOutDirection = "in" | "out";
+
+export type TransitionEffect =
+  | { type: "blinds"; orientation: Orientation }
+  | { type: "checker"; orientation: Orientation }
+  | { type: "circle" }
+  | { type: "dissolve" }
+  | { type: "comb"; orientation: Orientation }
+  | { type: "cover"; direction: EightDirection }
+  | { type: "cut"; throughBlack: boolean }
+  | { type: "diamond" }
+  | { type: "fade"; throughBlack: boolean }
+  | { type: "newsflash" }
+  | { type: "plus" }
+  | { type: "pull"; direction: EightDirection }
+  | { type: "push"; direction: SideDirection }
+  | { type: "random" }
+  | { type: "randomBar"; orientation: Orientation }
+  | { type: "split"; orientation: Orientation; inOut: InOutDirection }
+  | { type: "strips"; direction: CornerDirection }
+  | { type: "wedge" }
+  | { type: "wheel"; spokes: number }
+  | { type: "wipe"; direction: SideDirection }
+  | { type: "zoom"; inOut: InOutDirection }
+  | { type: "box"; inOut: InOutDirection }
+  | { type: "glitter"; direction: SideDirection }
+  | { type: "fly"; direction: SideDirection }
+  | { type: "uncover"; direction: EightDirection }
+  | { type: "replace" };
+
+export interface PageTransition {
+  effect: TransitionEffect;
+  durationMs?: number;
+  advanceOnClick?: boolean;
+  advanceAfterMs?: number;
+}
+
+export interface PageInfo {
+  width: number;
+  height: number;
+  rotation: number;
+  transition?: PageTransition;
+}
+
+
+
 export class Wasm {
   free(): void;
   [Symbol.dispose](): void;
@@ -120,10 +170,10 @@ export class Wasm {
   /**
    * Get info for all pages in one call.
    *
-   * Returns an array of `{width, height, rotation}` objects, one per page.
+   * Returns an array of `PageInfo` objects, one per page.
    * More efficient than calling `page_info` for each page.
    */
-  all_page_info(id: string): any;
+  all_page_info(id: string): PageInfo[];
   /**
    * Get text content for a specific page (for text selection).
    *
@@ -436,7 +486,7 @@ export class Wasm {
   /**
    * Get info for a specific page.
    */
-  page_info(id: string, page_index: number): any;
+  page_info(id: string, page_index: number): PageInfo;
   /**
    * Get the number of documents currently loaded.
    */
@@ -491,9 +541,9 @@ export interface InitOutput {
   readonly wasm_set_license: (a: number, b: number, c: number, d: number) => void;
   readonly wasm_set_visibility_group_visible: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
   readonly wasm_setup: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
-  readonly __wasm_bindgen_func_elem_2543: (a: number, b: number, c: number) => void;
-  readonly __wasm_bindgen_func_elem_2527: (a: number, b: number) => void;
-  readonly __wasm_bindgen_func_elem_16785: (a: number, b: number, c: number, d: number) => void;
+  readonly __wasm_bindgen_func_elem_2571: (a: number, b: number, c: number) => void;
+  readonly __wasm_bindgen_func_elem_2555: (a: number, b: number) => void;
+  readonly __wasm_bindgen_func_elem_16837: (a: number, b: number, c: number, d: number) => void;
   readonly __wbindgen_export: (a: number, b: number) => number;
   readonly __wbindgen_export2: (a: number, b: number, c: number, d: number) => number;
   readonly __wbindgen_export3: (a: number) => void;
