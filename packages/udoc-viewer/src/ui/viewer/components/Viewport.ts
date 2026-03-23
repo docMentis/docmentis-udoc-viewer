@@ -660,6 +660,7 @@ export function createViewport(showAttribution = true) {
     // Slide transition state
     let activeTransition: TransitionHandle | null = null;
     let transitionOverlay: HTMLElement | null = null;
+    let transitionPending = false; // true while waiting for render before starting transition
     let previousSpreadIndex: number | null = null;
 
     function mount(parent: HTMLElement, store: Store<ViewerState, Action>, wc: WorkerClient, i18n?: I18n): void {
@@ -1239,6 +1240,7 @@ export function createViewport(showAttribution = true) {
      * Safe to call at any time — no-ops when nothing is active.
      */
     function cleanupTransition(): void {
+        transitionPending = false;
         if (activeTransition) {
             activeTransition.cancel();
             activeTransition = null;
@@ -1297,9 +1299,10 @@ export function createViewport(showAttribution = true) {
 
         const isNewSpread = previousSpreadIndex !== null && spreadIndex !== previousSpreadIndex;
 
-        // If a transition is playing and this is just a state refresh (annotations,
-        // text, search), update the spread layers without touching the animation.
-        if (activeTransition && !isNewSpread) {
+        // If a transition is playing (or pending render) and this is just a state
+        // refresh (annotations, text, search), update the spread layers without
+        // touching the animation.
+        if ((activeTransition || transitionPending) && !isNewSpread) {
             const spreadComp = spreadComponents.get(spreadIndex);
             if (spreadComp) {
                 const layoutOptions = {
@@ -1381,29 +1384,67 @@ export function createViewport(showAttribution = true) {
         spreadEl.style.width = "";
         spreadEl.style.transform = "none";
 
-        // ---- Transition animation (snapshot overlay) ----
+        // ---- Render + Transition ----
+        // When a transition is active, render the incoming spread FIRST so the
+        // user never sees a "loading" placeholder during the animation.  The
+        // snapshot overlay covers the incoming spread while it renders.
         if (snapshot && wantTransition) {
-            // Insert snapshot BEFORE the spread so the spread naturally paints on top
-            // (later siblings render above earlier ones for positioned elements).
-            // This avoids setting zIndex on the incoming spread, which would create
-            // a new stacking context and cause a 1px sub-pixel shift.
+            // Insert snapshot BEFORE the spread so it covers the incoming page
+            // while rendering.  Later siblings render above earlier ones for
+            // positioned elements, so the spread naturally paints on top once
+            // the transition begins.
             container.insertBefore(snapshot, spreadEl);
             transitionOverlay = snapshot;
 
-            activeTransition = runTransition(snapshot, spreadEl, pageTransition!, forward, () => {
-                // Transition complete — remove the static snapshot
-                if (transitionOverlay) {
-                    transitionOverlay.remove();
-                    transitionOverlay = null;
-                }
-                activeTransition = null;
-            });
-        }
+            // Ensure the snapshot fully covers the incoming spread until we are
+            // ready to animate.  Give it z-index so it paints on top.
+            snapshot.style.zIndex = "1";
+            transitionPending = true;
 
-        previousSpreadIndex = spreadIndex;
+            const capturedSpreadComp = spreadComp;
+            const capturedTransition = pageTransition!;
+            const capturedForward = forward;
 
-        // Skip render during resize animation (renders debounced separately)
-        if (!rendersPaused) {
+            // Kick off render, then start transition once pixels are ready
+            if (!rendersPaused) {
+                capturedSpreadComp
+                    .render(workerClient, {
+                        docId: slice.docId,
+                        scale: state.scale,
+                        dpi: slice.dpi,
+                    })
+                    .then(() => {
+                        // Bail if the transition was cancelled while waiting
+                        if (transitionOverlay !== snapshot) return;
+                        transitionPending = false;
+
+                        // Clear the cover z-index — the transition engine
+                        // manages z-order from here.
+                        snapshot!.style.zIndex = "";
+
+                        activeTransition = runTransition(
+                            snapshot!,
+                            spreadEl,
+                            capturedTransition,
+                            capturedForward,
+                            () => {
+                                if (transitionOverlay === snapshot) {
+                                    transitionOverlay.remove();
+                                    transitionOverlay = null;
+                                }
+                                activeTransition = null;
+                            },
+                        );
+                    });
+
+                // Prerender adjacent pages for smooth page flipping
+                const dpr = getDevicePixelRatio();
+                const pointsToPixels = getPointsToPixels(slice.dpi);
+                const renderScale = pointsToPixels * state.scale * dpr;
+                workerClient.prerenderAdjacentPages(slice.docId, slice.page, renderScale, slice.pageInfos.length);
+            }
+        } else if (!rendersPaused) {
+            // No transition — render immediately as before
             spreadComp.render(workerClient, {
                 docId: slice.docId,
                 scale: state.scale,
@@ -1417,6 +1458,7 @@ export function createViewport(showAttribution = true) {
             workerClient.prerenderAdjacentPages(slice.docId, slice.page, renderScale, slice.pageInfos.length);
         }
 
+        previousSpreadIndex = spreadIndex;
         lastVisibleRange = { start: spreadIndex, end: spreadIndex };
         // Only clear layoutDirty if renders actually happened
         if (!rendersPaused) {

@@ -293,28 +293,46 @@ function resolveEffect(effect: TransitionEffect, forward: boolean): FrameFn | nu
             return plusEffect;
 
         case "wedge":
-            return crossfade;
+            return wedgeEffect;
 
         case "wheel":
-            return crossfade;
+            return wheelSweepEffect(effect.spokes, true);
 
         case "newsflash":
             return circleEffect;
 
         case "blinds":
-            return crossfade;
+            return blindsEffect(effect.orientation);
 
         case "checker":
             return crossfade;
 
         case "comb":
-            return crossfade;
+            return combEffect(effect.orientation);
 
         case "strips":
             return stripsEffect(effect.direction);
 
-        case "random":
-            return crossfade;
+        case "random": {
+            const options: FrameFn[] = [
+                crossfade,
+                fadeThroughBlack,
+                wipeEffect("left"),
+                wipeEffect("right"),
+                wipeEffect("up"),
+                wipeEffect("down"),
+                pushEffect("left"),
+                pushEffect("right"),
+                blindsEffect("horizontal"),
+                blindsEffect("vertical"),
+                circleEffect,
+                diamondEffect,
+                plusEffect,
+                splitEffect("horizontal", "out"),
+                splitEffect("vertical", "out"),
+            ];
+            return options[Math.floor(Math.random() * options.length)];
+        }
 
         case "randomBar":
             return crossfade;
@@ -366,7 +384,7 @@ function resolveEffect(effect: TransitionEffect, forward: boolean): FrameFn | nu
             return effect.throughBlack ? fadeThroughBlack : wipeEffect(effect.direction);
 
         case "wheelReverse":
-            return crossfade;
+            return wheelSweepEffect(effect.spokes, false);
 
         case "morph":
             return crossfade;
@@ -551,4 +569,162 @@ function stripsEffect(dir: CornerDirection): FrameFn {
         outgoing.style.transform = eightDirToTranslate(dir as EightDirection, t);
         outgoing.style.opacity = `${1 - t}`;
     };
+}
+
+// ---------------------------------------------------------------------------
+// Blinds / Comb
+// ---------------------------------------------------------------------------
+
+const BLIND_STRIPS = 6;
+
+/**
+ * Blinds: N parallel strips revealed simultaneously.
+ * Horizontal = horizontal bars growing downward; vertical = vertical bars growing rightward.
+ */
+function blindsEffect(orientation: "horizontal" | "vertical"): FrameFn {
+    const N = BLIND_STRIPS;
+    return (t, _outgoing, incoming) => {
+        if (t >= 1) {
+            incoming.style.clipPath = "none";
+            return;
+        }
+        const points: string[] = [];
+        if (orientation === "horizontal") {
+            const stripH = 100 / N;
+            for (let i = 0; i < N; i++) {
+                const top = i * stripH;
+                const bot = top + t * stripH;
+                points.push(`0% ${top}%`, `100% ${top}%`, `100% ${bot}%`, `0% ${bot}%`, `0% ${top}%`);
+            }
+        } else {
+            const stripW = 100 / N;
+            for (let i = 0; i < N; i++) {
+                const left = i * stripW;
+                const right = left + t * stripW;
+                points.push(`${left}% 0%`, `${right}% 0%`, `${right}% 100%`, `${left}% 100%`, `${left}% 0%`);
+            }
+        }
+        incoming.style.clipPath = `polygon(${points.join(", ")})`;
+    };
+}
+
+/**
+ * Comb: N strips revealed from alternating directions.
+ * Horizontal = even strips from left, odd from right.
+ * Vertical = even strips from top, odd from bottom.
+ */
+function combEffect(orientation: "horizontal" | "vertical"): FrameFn {
+    const N = BLIND_STRIPS;
+    return (t, _outgoing, incoming) => {
+        if (t >= 1) {
+            incoming.style.clipPath = "none";
+            return;
+        }
+        const points: string[] = [];
+        if (orientation === "horizontal") {
+            const stripH = 100 / N;
+            for (let i = 0; i < N; i++) {
+                const top = i * stripH;
+                const bot = (i + 1) * stripH;
+                if (i % 2 === 0) {
+                    const r = t * 100;
+                    points.push(`0% ${top}%`, `${r}% ${top}%`, `${r}% ${bot}%`, `0% ${bot}%`, `0% ${top}%`);
+                } else {
+                    const l = (1 - t) * 100;
+                    points.push(`100% ${top}%`, `${l}% ${top}%`, `${l}% ${bot}%`, `100% ${bot}%`, `100% ${top}%`);
+                }
+            }
+        } else {
+            const stripW = 100 / N;
+            for (let i = 0; i < N; i++) {
+                const left = i * stripW;
+                const right = (i + 1) * stripW;
+                if (i % 2 === 0) {
+                    const b = t * 100;
+                    points.push(`${left}% 0%`, `${right}% 0%`, `${right}% ${b}%`, `${left}% ${b}%`, `${left}% 0%`);
+                } else {
+                    const tp = (1 - t) * 100;
+                    points.push(
+                        `${left}% 100%`,
+                        `${right}% 100%`,
+                        `${right}% ${tp}%`,
+                        `${left}% ${tp}%`,
+                        `${left}% 100%`,
+                    );
+                }
+            }
+        }
+        incoming.style.clipPath = `polygon(${points.join(", ")})`;
+    };
+}
+
+// ---------------------------------------------------------------------------
+// Wheel / Wedge
+// ---------------------------------------------------------------------------
+
+/** Arc resolution for wheel/wedge polygon approximation. */
+const ARC_STEPS = 12;
+/** Radius large enough to fully cover a rectangular element from center. */
+const SWEEP_RADIUS = 75;
+
+/**
+ * Wheel: N spokes sweep from 12 o'clock, revealing N sectors simultaneously.
+ * @param clockwise  true = clockwise (wheel), false = counter-clockwise (wheelReverse)
+ */
+function wheelSweepEffect(spokes: number, clockwise: boolean): FrameFn {
+    const n = Math.max(1, spokes);
+    const dir = clockwise ? 1 : -1;
+    return (t, _outgoing, incoming) => {
+        if (t >= 1) {
+            incoming.style.clipPath = "none";
+            return;
+        }
+        if (t <= 0) {
+            incoming.style.clipPath = "polygon(50% 50%, 50% 50%, 50% 50%)";
+            return;
+        }
+        const sectorAngle = 360 / n;
+        const sweep = t * sectorAngle;
+        const points: string[] = [];
+        for (let s = 0; s < n; s++) {
+            const startDeg = -90 + s * sectorAngle;
+            points.push("50% 50%");
+            for (let j = 0; j <= ARC_STEPS; j++) {
+                const deg = startDeg + dir * (j / ARC_STEPS) * sweep;
+                const rad = (deg * Math.PI) / 180;
+                points.push(`${50 + SWEEP_RADIUS * Math.cos(rad)}% ${50 + SWEEP_RADIUS * Math.sin(rad)}%`);
+            }
+            points.push("50% 50%");
+        }
+        incoming.style.clipPath = `polygon(${points.join(", ")})`;
+    };
+}
+
+/**
+ * Wedge: two sectors expand symmetrically from 12 o'clock (one CW, one CCW).
+ */
+function wedgeEffect(t: number, _outgoing: HTMLElement, incoming: HTMLElement): void {
+    if (t >= 1) {
+        incoming.style.clipPath = "none";
+        return;
+    }
+    if (t <= 0) {
+        incoming.style.clipPath = "polygon(50% 50%, 50% 50%, 50% 50%)";
+        return;
+    }
+    const sweep = t * 180;
+    const points: string[] = ["50% 50%"];
+    // Counter-clockwise half
+    for (let j = ARC_STEPS; j >= 0; j--) {
+        const deg = -90 - (j / ARC_STEPS) * sweep;
+        const rad = (deg * Math.PI) / 180;
+        points.push(`${50 + SWEEP_RADIUS * Math.cos(rad)}% ${50 + SWEEP_RADIUS * Math.sin(rad)}%`);
+    }
+    // Clockwise half
+    for (let j = 0; j <= ARC_STEPS; j++) {
+        const deg = -90 + (j / ARC_STEPS) * sweep;
+        const rad = (deg * Math.PI) / 180;
+        points.push(`${50 + SWEEP_RADIUS * Math.cos(rad)}% ${50 + SWEEP_RADIUS * Math.sin(rad)}%`);
+    }
+    incoming.style.clipPath = `polygon(${points.join(", ")})`;
 }
