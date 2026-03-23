@@ -15,6 +15,7 @@ const ALLOWED_MEDIA_TYPES = [
     "application/pdf",
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    "image/svg+xml",
     "image/png",
     "image/jpeg",
     "image/gif",

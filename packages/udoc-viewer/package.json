@@ -3,7 +3,7 @@
     "version": "0.6.10",
     "type": "module",
     "license": "MIT",
-    "description": "Universal document viewer for the web — open-source, framework-agnostic viewer powered by a built-from-scratch WebAssembly engine for high-fidelity rendering across PDF, DOCX, PPTX, and images.",
+    "description": "Universal document viewer for the web — open-source, framework-agnostic viewer powered by a built-from-scratch WebAssembly engine for high-fidelity rendering across PDF, DOCX, PPTX, SVG, and images.",
     "homepage": "https://www.docmentis.com",
     "repository": {
         "type": "git",
@@ -21,6 +21,8 @@
         "docx-viewer",
         "pptx",
         "pptx-viewer",
+        "svg",
+        "svg-viewer",
         "image",
         "image-viewer",
         "document",
