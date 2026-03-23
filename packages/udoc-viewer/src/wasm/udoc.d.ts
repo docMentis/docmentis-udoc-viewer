@@ -6,8 +6,13 @@ export type SideDirection = "left" | "right" | "up" | "down";
 export type CornerDirection = "leftUp" | "rightUp" | "leftDown" | "rightDown";
 export type EightDirection = SideDirection | CornerDirection;
 export type InOutDirection = "in" | "out";
+export type RippleDirection = "center" | CornerDirection;
+export type GlitterPattern = "diamond" | "hexagon";
+export type ShredPattern = "strip" | "rectangle";
+export type MorphOption = "byObject" | "byWord" | "byChar";
 
 export type TransitionEffect =
+  // ECMA-376 base effects
   | { type: "blinds"; orientation: Orientation }
   | { type: "checker"; orientation: Orientation }
   | { type: "circle" }
@@ -29,11 +34,33 @@ export type TransitionEffect =
   | { type: "wheel"; spokes: number }
   | { type: "wipe"; direction: SideDirection }
   | { type: "zoom"; inOut: InOutDirection }
+  // PDF-only effects
   | { type: "box"; inOut: InOutDirection }
-  | { type: "glitter"; direction: SideDirection }
+  | { type: "glitter"; direction: SideDirection; pattern: GlitterPattern }
   | { type: "fly"; direction: SideDirection }
   | { type: "uncover"; direction: EightDirection }
-  | { type: "replace" };
+  | { type: "replace" }
+  // PPTX 2010+ effects (p14)
+  | { type: "vortex"; direction: SideDirection }
+  | { type: "switch"; direction: SideDirection }
+  | { type: "flip"; direction: SideDirection }
+  | { type: "ripple"; direction: RippleDirection }
+  | { type: "honeycomb" }
+  | { type: "prism"; direction: SideDirection; isContent: boolean; isInverted: boolean }
+  | { type: "doors"; orientation: Orientation }
+  | { type: "window"; orientation: Orientation }
+  | { type: "ferris"; direction: SideDirection }
+  | { type: "gallery"; direction: SideDirection }
+  | { type: "conveyor"; direction: SideDirection }
+  | { type: "pan"; direction: SideDirection }
+  | { type: "warp"; inOut: InOutDirection }
+  | { type: "flythrough"; inOut: InOutDirection; hasBounce: boolean }
+  | { type: "flash" }
+  | { type: "shred"; pattern: ShredPattern; inOut: InOutDirection }
+  | { type: "reveal"; throughBlack: boolean; direction: SideDirection }
+  | { type: "wheelReverse"; spokes: number }
+  // PPTX 2015+ effects (p159)
+  | { type: "morph"; option: MorphOption };
 
 export interface PageTransition {
   effect: TransitionEffect;
@@ -541,9 +568,9 @@ export interface InitOutput {
   readonly wasm_set_license: (a: number, b: number, c: number, d: number) => void;
   readonly wasm_set_visibility_group_visible: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
   readonly wasm_setup: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
-  readonly __wasm_bindgen_func_elem_2571: (a: number, b: number, c: number) => void;
-  readonly __wasm_bindgen_func_elem_2555: (a: number, b: number) => void;
-  readonly __wasm_bindgen_func_elem_16837: (a: number, b: number, c: number, d: number) => void;
+  readonly __wasm_bindgen_func_elem_2579: (a: number, b: number, c: number) => void;
+  readonly __wasm_bindgen_func_elem_2563: (a: number, b: number) => void;
+  readonly __wasm_bindgen_func_elem_16861: (a: number, b: number, c: number, d: number) => void;
   readonly __wbindgen_export: (a: number, b: number) => number;
   readonly __wbindgen_export2: (a: number, b: number, c: number, d: number) => number;
   readonly __wbindgen_export3: (a: number) => void;

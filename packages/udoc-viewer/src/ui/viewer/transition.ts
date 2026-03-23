@@ -319,6 +319,58 @@ function resolveEffect(effect: TransitionEffect, forward: boolean): FrameFn | nu
         case "randomBar":
             return crossfade;
 
+        // PPTX 2010+ effects (p14)
+        case "vortex":
+            return shrinkOutgoing;
+
+        case "switch":
+        case "flip":
+        case "gallery":
+        case "conveyor":
+            return flyEffect(effect.direction);
+
+        case "ripple":
+            return circleEffect;
+
+        case "honeycomb":
+            return crossfade;
+
+        case "prism":
+            return wipeEffect(effect.direction);
+
+        case "doors":
+            return splitEffect(effect.orientation, "out");
+
+        case "window":
+            return splitEffect(effect.orientation, "in");
+
+        case "ferris":
+            return flyEffect(effect.direction);
+
+        case "pan": {
+            const dir = forward ? effect.direction : oppositeSide(effect.direction);
+            return pushEffect(dir);
+        }
+
+        case "warp":
+        case "flythrough":
+            return effect.inOut === "in" ? revealFromCenter : shrinkOutgoing;
+
+        case "flash":
+            return fadeThroughBlack;
+
+        case "shred":
+            return effect.inOut === "in" ? revealFromCenter : shrinkOutgoing;
+
+        case "reveal":
+            return effect.throughBlack ? fadeThroughBlack : wipeEffect(effect.direction);
+
+        case "wheelReverse":
+            return crossfade;
+
+        case "morph":
+            return crossfade;
+
         default:
             return crossfade;
     }
