@@ -6,6 +6,8 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+## [0.6.11] - 2026-03-22
+
 ### Features
 
 - SVG format support in viewer, demo, and WordPress block
