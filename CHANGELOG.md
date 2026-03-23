@@ -6,6 +6,17 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+### Features
+
+- PPTX slide transition support with animated playback
+- PPTX 2010+ (p14) and 2015+ (p15) extended transition types (engine)
+- Strongly typed TypeScript definitions for the page transition API (engine)
+- Page transition model with PPTX and PDF loader support (engine)
+
+### Bug Fixes
+
+- Separate default paragraph properties (defPPr) from level-specific text properties (engine)
+
 ## [0.6.11] - 2026-03-22
 
 ### Features
