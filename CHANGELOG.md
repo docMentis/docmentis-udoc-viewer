@@ -6,6 +6,8 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+## [0.6.12] - 2026-03-24
+
 ### Features
 
 - PPTX slide transition support with animated playback including blinds, comb, wheel, wedge, checker, and randomBar transitions
