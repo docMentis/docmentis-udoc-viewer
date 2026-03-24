@@ -245,7 +245,7 @@ function resolveEffect(effect: TransitionEffect, forward: boolean): FrameFn | nu
             return effect.throughBlack ? cutThroughBlack : null;
 
         case "dissolve":
-            return crossfade;
+            return dissolveEffect();
 
         case "push": {
             const dir = forward ? effect.direction : oppositeSide(effect.direction);
@@ -561,13 +561,58 @@ function plusEffect(t: number, _outgoing: HTMLElement, incoming: HTMLElement): v
 }
 
 /**
- * Strips: snapshot slides away diagonally on top, incoming visible underneath.
+ * Strips: diagonal wipe that reveals the incoming slide from a corner.
+ * The reveal starts at the corner and sweeps diagonally across.
  */
 function stripsEffect(dir: CornerDirection): FrameFn {
-    return (t, outgoing, _incoming) => {
-        outgoing.style.zIndex = "1";
-        outgoing.style.transform = eightDirToTranslate(dir as EightDirection, t);
-        outgoing.style.opacity = `${1 - t}`;
+    return (t, _outgoing, incoming) => {
+        if (t >= 1) {
+            incoming.style.clipPath = "none";
+            return;
+        }
+        if (t <= 0) {
+            incoming.style.clipPath = "polygon(0% 0%, 0% 0%, 0% 0%)";
+            return;
+        }
+        // d goes from 0 to 200 — the diagonal sweep distance across the rectangle
+        const d = t * 200;
+        let points: string;
+
+        if (d <= 100) {
+            // Triangle phase: expanding triangle from the corner
+            switch (dir) {
+                case "rightDown":
+                    points = `0% 0%, ${d}% 0%, 0% ${d}%`;
+                    break;
+                case "leftDown":
+                    points = `100% 0%, ${100 - d}% 0%, 100% ${d}%`;
+                    break;
+                case "rightUp":
+                    points = `0% 100%, ${d}% 100%, 0% ${100 - d}%`;
+                    break;
+                case "leftUp":
+                    points = `100% 100%, ${100 - d}% 100%, 100% ${100 - d}%`;
+                    break;
+            }
+        } else {
+            // Quadrilateral phase: the diagonal has passed the opposite edges
+            const e = d - 100;
+            switch (dir) {
+                case "rightDown":
+                    points = `0% 0%, 100% 0%, 100% ${e}%, ${e}% 100%, 0% 100%`;
+                    break;
+                case "leftDown":
+                    points = `100% 0%, 0% 0%, 0% ${e}%, ${100 - e}% 100%, 100% 100%`;
+                    break;
+                case "rightUp":
+                    points = `0% 100%, 100% 100%, 100% ${100 - e}%, ${e}% 0%, 0% 0%`;
+                    break;
+                case "leftUp":
+                    points = `100% 100%, 0% 100%, 0% ${100 - e}%, ${100 - e}% 0%, 100% 0%`;
+                    break;
+            }
+        }
+        incoming.style.clipPath = `polygon(${points})`;
     };
 }
 
@@ -744,13 +789,17 @@ const CHECKER_COLS = 8;
 const CHECKER_ROWS = 6;
 
 /**
- * Checker: grid of rectangles that grow simultaneously from their centers.
- * Horizontal = columns expand rightward; vertical = rows expand downward.
- * Each cell reveals independently, creating the classic checkerboard pattern.
+ * Checker: grid of cells revealed in a checkerboard pattern that sweeps
+ * directionally. "Across" (horizontal) sweeps left-to-right; "Down"
+ * (vertical) sweeps top-to-bottom. Cells snap fully visible once the
+ * sweep reaches them, with checkerboard-phase offset so alternating
+ * cells appear at different times.
  */
 function checkerEffect(orientation: "horizontal" | "vertical"): FrameFn {
     const cols = orientation === "horizontal" ? CHECKER_COLS : CHECKER_ROWS;
     const rows = orientation === "horizontal" ? CHECKER_ROWS : CHECKER_COLS;
+    // Total sweep distance: primary dimension + 1 extra step for phase offset
+    const sweepLen = (orientation === "horizontal" ? cols : rows) + 1;
     return (t, _outgoing, incoming) => {
         if (t >= 1) {
             incoming.style.clipPath = "none";
@@ -758,29 +807,27 @@ function checkerEffect(orientation: "horizontal" | "vertical"): FrameFn {
         }
         const cellW = 100 / cols;
         const cellH = 100 / rows;
-        // Each rectangle is anchored through the origin (0% 0%) so that
-        // bridges between scattered cells retrace and produce zero net
-        // winding — no visible triangles between cells.
+        const sweep = t * sweepLen; // 0 → sweepLen
+
         const points: string[] = [];
         for (let r = 0; r < rows; r++) {
             for (let c = 0; c < cols; c++) {
-                // Checkerboard: only reveal cells where (row + col) is even
-                // at the start; all cells revealed by t=1
-                const phase = (r + c) % 2 === 0 ? 0 : 0.5;
-                const localT = Math.max(0, Math.min(1, (t - phase) / (1 - phase)));
-                if (localT <= 0) continue;
+                // Primary position along sweep direction
+                const pos = orientation === "horizontal" ? c : r;
+                // Checkerboard offset: alternating cells are delayed by 1 step
+                const phase = (r + c) % 2;
+                // Cell appears when sweep passes pos + phase
+                if (sweep < pos + phase) continue;
 
                 const left = c * cellW;
                 const top = r * cellH;
-                const right = left + localT * cellW;
-                const bot = top + localT * cellH;
 
                 points.push(
                     "0% 0%",
                     `${left}% ${top}%`,
-                    `${right}% ${top}%`,
-                    `${right}% ${bot}%`,
-                    `${left}% ${bot}%`,
+                    `${left + cellW}% ${top}%`,
+                    `${left + cellW}% ${top + cellH}%`,
+                    `${left}% ${top + cellH}%`,
                     `${left}% ${top}%`,
                     "0% 0%",
                 );
@@ -793,6 +840,63 @@ function checkerEffect(orientation: "horizontal" | "vertical"): FrameFn {
         }
     };
 }
+
+// ---------------------------------------------------------------------------
+// Dissolve
+// ---------------------------------------------------------------------------
+
+const DISSOLVE_COLS = 12;
+const DISSOLVE_ROWS = 8;
+
+/**
+ * Dissolve: random grid cells appear progressively, approximating PowerPoint's
+ * pixelated dissolve pattern. Cells snap fully visible in shuffled order.
+ */
+function dissolveEffect(): FrameFn {
+    const total = DISSOLVE_COLS * DISSOLVE_ROWS;
+    // Fisher-Yates shuffle — computed once per transition
+    const order = Array.from({ length: total }, (_, i) => i);
+    for (let i = total - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [order[i], order[j]] = [order[j], order[i]];
+    }
+
+    return (t, _outgoing, incoming) => {
+        if (t >= 1) {
+            incoming.style.clipPath = "none";
+            return;
+        }
+        const revealed = Math.ceil(t * total);
+        if (revealed <= 0) {
+            incoming.style.clipPath = "polygon(0% 0%, 0% 0%, 0% 0%)";
+            return;
+        }
+        const cellW = 100 / DISSOLVE_COLS;
+        const cellH = 100 / DISSOLVE_ROWS;
+        const points: string[] = [];
+        for (let k = 0; k < revealed; k++) {
+            const idx = order[k];
+            const c = idx % DISSOLVE_COLS;
+            const r = Math.floor(idx / DISSOLVE_COLS);
+            const left = c * cellW;
+            const top = r * cellH;
+            points.push(
+                "0% 0%",
+                `${left}% ${top}%`,
+                `${left + cellW}% ${top}%`,
+                `${left + cellW}% ${top + cellH}%`,
+                `${left}% ${top + cellH}%`,
+                `${left}% ${top}%`,
+                "0% 0%",
+            );
+        }
+        incoming.style.clipPath = `polygon(${points.join(", ")})`;
+    };
+}
+
+// ---------------------------------------------------------------------------
+// Random Bar
+// ---------------------------------------------------------------------------
 
 const RANDOM_BAR_COUNT = 10;
 
