@@ -120,12 +120,15 @@ function resetOutgoing(el: HTMLElement): void {
     el.style.opacity = "";
     el.style.clipPath = "";
     el.style.transform = "none";
+    el.style.filter = "";
 }
 
 /** Reset the incoming spread — only clear opacity/clip-path. NEVER touch transform or zIndex. */
 function resetIncoming(el: HTMLElement): void {
     el.style.opacity = "";
     el.style.clipPath = "";
+    el.style.maskImage = "";
+    el.style.setProperty("-webkit-mask-image", "");
 }
 
 // ---------------------------------------------------------------------------
@@ -258,7 +261,7 @@ function resolveEffect(effect: TransitionEffect, forward: boolean): FrameFn | nu
         }
 
         case "cover":
-            return coverEffect(effect.direction);
+            return coverEffect(oppositeEightDir(effect.direction));
 
         case "uncover":
             return uncoverEffect(effect.direction);
@@ -408,30 +411,43 @@ function resolveEffect(effect: TransitionEffect, forward: boolean): FrameFn | nu
 //   - Effects where the snapshot must be on top set outgoing.style.zIndex = "1".
 //   - We NEVER set zIndex on the incoming element.
 
-/** Simple crossfade. */
+/** Simple crossfade — outgoing on top, faded out to reveal incoming below. */
 function crossfade(t: number, outgoing: HTMLElement, _incoming: HTMLElement): void {
+    outgoing.style.zIndex = "1";
     outgoing.style.opacity = `${1 - t}`;
 }
 
-/** Fade through black: outgoing fades out first, then incoming fades in. */
-function fadeThroughBlack(t: number, outgoing: HTMLElement, incoming: HTMLElement): void {
+/**
+ * Fade through black: outgoing dims to solid black, then black fades out
+ * to reveal incoming. Uses CSS brightness filter so the "black" is real,
+ * not dependent on the viewer background color.
+ */
+function fadeThroughBlack(t: number, outgoing: HTMLElement, _incoming: HTMLElement): void {
+    outgoing.style.zIndex = "1";
     if (t < 0.5) {
-        outgoing.style.opacity = `${1 - t * 2}`;
-        incoming.style.opacity = "0";
+        // Outgoing content dims to black
+        outgoing.style.filter = `brightness(${1 - t * 2})`;
+        outgoing.style.opacity = "1";
     } else {
-        outgoing.style.opacity = "0";
-        incoming.style.opacity = `${(t - 0.5) * 2}`;
+        // Black overlay fades out, revealing incoming below
+        outgoing.style.filter = "brightness(0)";
+        outgoing.style.opacity = `${1 - (t - 0.5) * 2}`;
     }
 }
 
-/** Hard cut through black. */
-function cutThroughBlack(t: number, outgoing: HTMLElement, incoming: HTMLElement): void {
+/**
+ * Hard cut through black: instant switch to black, then instant switch
+ * to new slide. Uses brightness(0) for actual black.
+ */
+function cutThroughBlack(t: number, outgoing: HTMLElement, _incoming: HTMLElement): void {
+    outgoing.style.zIndex = "1";
     if (t < 0.5) {
-        outgoing.style.opacity = `${1 - t * 2}`;
-        incoming.style.opacity = "0";
+        // Show solid black (outgoing rendered as black)
+        outgoing.style.filter = "brightness(0)";
+        outgoing.style.opacity = "1";
     } else {
+        // Remove outgoing entirely, incoming visible below
         outgoing.style.opacity = "0";
-        incoming.style.opacity = "1";
     }
 }
 
@@ -536,12 +552,28 @@ function flyEffect(dir: SideDirection): FrameFn {
 }
 
 /**
- * Circle reveal from center.
- * Uses 71% radius (≈ sqrt(50² + 50²)) to fully cover rectangular corners.
+ * Circle reveal from center with soft/feathered edge.
+ * Uses mask-image radial gradient for a blurred boundary like PowerPoint.
+ * Radius 71% ≈ sqrt(50² + 50²) to fully cover rectangular corners.
  */
 function circleEffect(t: number, _outgoing: HTMLElement, incoming: HTMLElement): void {
+    if (t >= 1) {
+        incoming.style.maskImage = "";
+        incoming.style.setProperty("-webkit-mask-image", "");
+        return;
+    }
+    if (t <= 0) {
+        const mask = "radial-gradient(circle 0% at 50% 50%, #000 0%, transparent 0%)";
+        incoming.style.maskImage = mask;
+        incoming.style.setProperty("-webkit-mask-image", mask);
+        return;
+    }
     const r = t * 71;
-    incoming.style.clipPath = `circle(${r}% at 50% 50%)`;
+    const edge = Math.max(1, r * 0.12); // ~12% of radius for soft edge
+    const inner = Math.max(0, r - edge);
+    const mask = `radial-gradient(circle ${r}% at 50% 50%, #000 ${inner}%, transparent ${r + 0.5}%)`;
+    incoming.style.maskImage = mask;
+    incoming.style.setProperty("-webkit-mask-image", mask);
 }
 
 /** Diamond reveal from center. */
@@ -623,33 +655,101 @@ function stripsEffect(dir: CornerDirection): FrameFn {
 const BLIND_STRIPS = 6;
 
 /**
- * Blinds: N parallel strips revealed simultaneously.
- * Horizontal = horizontal bars growing downward; vertical = vertical bars growing rightward.
+ * Blinds: 3D flip effect per strip.
+ * First half:  outgoing strips narrow toward their top/left edge (rotating away).
+ * Second half: incoming strips widen from their top/left edge (rotating toward viewer).
+ * Simulates each strip flipping over to reveal the new slide on its back.
  */
 function blindsEffect(orientation: "horizontal" | "vertical"): FrameFn {
     const N = BLIND_STRIPS;
-    return (t, _outgoing, incoming) => {
+    return (t, outgoing, incoming) => {
         if (t >= 1) {
             incoming.style.clipPath = "none";
+            outgoing.style.clipPath = "polygon(0% 0%, 0% 0%, 0% 0%)";
             return;
         }
-        const points: string[] = [];
-        if (orientation === "horizontal") {
-            const stripH = 100 / N;
-            for (let i = 0; i < N; i++) {
-                const top = i * stripH;
-                const bot = top + t * stripH;
-                points.push(`0% ${top}%`, `100% ${top}%`, `100% ${bot}%`, `0% ${bot}%`, `0% ${top}%`);
-            }
-        } else {
-            const stripW = 100 / N;
-            for (let i = 0; i < N; i++) {
-                const left = i * stripW;
-                const right = left + t * stripW;
-                points.push(`${left}% 0%`, `${right}% 0%`, `${right}% 100%`, `${left}% 100%`, `${left}% 0%`);
-            }
+        if (t <= 0) {
+            outgoing.style.zIndex = "1";
+            incoming.style.clipPath = "polygon(0% 0%, 0% 0%, 0% 0%)";
+            return;
         }
-        incoming.style.clipPath = `polygon(${points.join(", ")})`;
+
+        if (t < 0.5) {
+            // First half: outgoing strips narrow (flip away from viewer)
+            outgoing.style.zIndex = "1";
+            const frac = 1 - t * 2; // 1 → 0
+            const outPoints: string[] = [];
+            if (orientation === "horizontal") {
+                const stripH = 100 / N;
+                for (let i = 0; i < N; i++) {
+                    const top = i * stripH;
+                    const bot = top + frac * stripH;
+                    outPoints.push(
+                        "0% 0%",
+                        `0% ${top}%`,
+                        `100% ${top}%`,
+                        `100% ${bot}%`,
+                        `0% ${bot}%`,
+                        `0% ${top}%`,
+                        "0% 0%",
+                    );
+                }
+            } else {
+                const stripW = 100 / N;
+                for (let i = 0; i < N; i++) {
+                    const left = i * stripW;
+                    const right = left + frac * stripW;
+                    outPoints.push(
+                        "0% 0%",
+                        `${left}% 0%`,
+                        `${right}% 0%`,
+                        `${right}% 100%`,
+                        `${left}% 100%`,
+                        `${left}% 0%`,
+                        "0% 0%",
+                    );
+                }
+            }
+            outgoing.style.clipPath = `polygon(${outPoints.join(", ")})`;
+            incoming.style.clipPath = "polygon(0% 0%, 0% 0%, 0% 0%)";
+        } else {
+            // Second half: incoming strips widen (flip toward viewer)
+            outgoing.style.opacity = "0";
+            const frac = (t - 0.5) * 2; // 0 → 1
+            const inPoints: string[] = [];
+            if (orientation === "horizontal") {
+                const stripH = 100 / N;
+                for (let i = 0; i < N; i++) {
+                    const top = i * stripH;
+                    const bot = top + frac * stripH;
+                    inPoints.push(
+                        "0% 0%",
+                        `0% ${top}%`,
+                        `100% ${top}%`,
+                        `100% ${bot}%`,
+                        `0% ${bot}%`,
+                        `0% ${top}%`,
+                        "0% 0%",
+                    );
+                }
+            } else {
+                const stripW = 100 / N;
+                for (let i = 0; i < N; i++) {
+                    const left = i * stripW;
+                    const right = left + frac * stripW;
+                    inPoints.push(
+                        "0% 0%",
+                        `${left}% 0%`,
+                        `${right}% 0%`,
+                        `${right}% 100%`,
+                        `${left}% 100%`,
+                        `${left}% 0%`,
+                        "0% 0%",
+                    );
+                }
+            }
+            incoming.style.clipPath = `polygon(${inPoints.join(", ")})`;
+        }
     };
 }
 
@@ -789,55 +889,114 @@ const CHECKER_COLS = 8;
 const CHECKER_ROWS = 6;
 
 /**
- * Checker: grid of cells revealed in a checkerboard pattern that sweeps
- * directionally. "Across" (horizontal) sweeps left-to-right; "Down"
- * (vertical) sweeps top-to-bottom. Cells snap fully visible once the
- * sweep reaches them, with checkerboard-phase offset so alternating
- * cells appear at different times.
+ * Checker: 3D flip effect per cell in a checkerboard pattern.
+ * Each cell flips individually: outgoing cell narrows (first half),
+ * then incoming cell widens (second half). The flip is staggered
+ * by position, sweeping "across" or "down" with checkerboard offset.
  */
 function checkerEffect(orientation: "horizontal" | "vertical"): FrameFn {
     const cols = orientation === "horizontal" ? CHECKER_COLS : CHECKER_ROWS;
     const rows = orientation === "horizontal" ? CHECKER_ROWS : CHECKER_COLS;
-    // Total sweep distance: primary dimension + 1 extra step for phase offset
     const sweepLen = (orientation === "horizontal" ? cols : rows) + 1;
-    return (t, _outgoing, incoming) => {
+    // Each cell's flip takes 1 sweep-unit. Total time = sweepLen + 1 (for flip duration)
+    const totalLen = sweepLen + 1;
+
+    return (t, outgoing, incoming) => {
         if (t >= 1) {
             incoming.style.clipPath = "none";
+            outgoing.style.clipPath = "polygon(0% 0%, 0% 0%, 0% 0%)";
             return;
         }
         const cellW = 100 / cols;
         const cellH = 100 / rows;
-        const sweep = t * sweepLen; // 0 → sweepLen
+        const sweep = t * totalLen;
 
-        const points: string[] = [];
+        const outPoints: string[] = [];
+        const inPoints: string[] = [];
+
         for (let r = 0; r < rows; r++) {
             for (let c = 0; c < cols; c++) {
-                // Primary position along sweep direction
                 const pos = orientation === "horizontal" ? c : r;
-                // Checkerboard offset: alternating cells are delayed by 1 step
                 const phase = (r + c) % 2;
-                // Cell appears when sweep passes pos + phase
-                if (sweep < pos + phase) continue;
+                const cellStart = pos + phase;
+                // cellT: 0 = not started, 0→0.5 = outgoing shrinks, 0.5→1 = incoming grows
+                const cellT = Math.max(0, Math.min(1, sweep - cellStart));
 
                 const left = c * cellW;
                 const top = r * cellH;
 
-                points.push(
-                    "0% 0%",
-                    `${left}% ${top}%`,
-                    `${left + cellW}% ${top}%`,
-                    `${left + cellW}% ${top + cellH}%`,
-                    `${left}% ${top + cellH}%`,
-                    `${left}% ${top}%`,
-                    "0% 0%",
-                );
+                if (cellT <= 0) {
+                    // Cell hasn't started flipping — outgoing fully visible
+                    outPoints.push(
+                        "0% 0%",
+                        `${left}% ${top}%`,
+                        `${left + cellW}% ${top}%`,
+                        `${left + cellW}% ${top + cellH}%`,
+                        `${left}% ${top + cellH}%`,
+                        `${left}% ${top}%`,
+                        "0% 0%",
+                    );
+                } else if (cellT < 0.5) {
+                    // First half: outgoing cell narrows (flip away)
+                    const frac = 1 - cellT * 2;
+                    if (orientation === "horizontal") {
+                        const bot = top + frac * cellH;
+                        outPoints.push(
+                            "0% 0%",
+                            `${left}% ${top}%`,
+                            `${left + cellW}% ${top}%`,
+                            `${left + cellW}% ${bot}%`,
+                            `${left}% ${bot}%`,
+                            `${left}% ${top}%`,
+                            "0% 0%",
+                        );
+                    } else {
+                        const right = left + frac * cellW;
+                        outPoints.push(
+                            "0% 0%",
+                            `${left}% ${top}%`,
+                            `${right}% ${top}%`,
+                            `${right}% ${top + cellH}%`,
+                            `${left}% ${top + cellH}%`,
+                            `${left}% ${top}%`,
+                            "0% 0%",
+                        );
+                    }
+                } else {
+                    // Second half: incoming cell widens (flip toward viewer)
+                    const frac = (cellT - 0.5) * 2;
+                    if (orientation === "horizontal") {
+                        const bot = top + frac * cellH;
+                        inPoints.push(
+                            "0% 0%",
+                            `${left}% ${top}%`,
+                            `${left + cellW}% ${top}%`,
+                            `${left + cellW}% ${bot}%`,
+                            `${left}% ${bot}%`,
+                            `${left}% ${top}%`,
+                            "0% 0%",
+                        );
+                    } else {
+                        const right = left + frac * cellW;
+                        inPoints.push(
+                            "0% 0%",
+                            `${left}% ${top}%`,
+                            `${right}% ${top}%`,
+                            `${right}% ${top + cellH}%`,
+                            `${left}% ${top + cellH}%`,
+                            `${left}% ${top}%`,
+                            "0% 0%",
+                        );
+                    }
+                }
             }
         }
-        if (points.length === 0) {
-            incoming.style.clipPath = "polygon(0% 0%, 0% 0%, 0% 0%)";
-        } else {
-            incoming.style.clipPath = `polygon(${points.join(", ")})`;
-        }
+
+        outgoing.style.zIndex = "1";
+        outgoing.style.clipPath = outPoints.length
+            ? `polygon(${outPoints.join(", ")})`
+            : "polygon(0% 0%, 0% 0%, 0% 0%)";
+        incoming.style.clipPath = inPoints.length ? `polygon(${inPoints.join(", ")})` : "polygon(0% 0%, 0% 0%, 0% 0%)";
     };
 }
 
