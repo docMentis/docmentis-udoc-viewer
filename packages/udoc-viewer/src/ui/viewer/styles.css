@@ -280,7 +280,8 @@
     display: flex;
     align-items: center;
     gap: 4px;
-    padding: 6px 10px;
+    height: 40px;
+    padding: 0 10px;
     background: var(--udoc-bg-surface);
     border-radius: 8px;
     box-shadow: var(--udoc-shadow-toolbar);
@@ -2479,11 +2480,6 @@
     }
 
     .udoc-viewer-root .udoc-toolbar__btn--nav {
-        min-width: 44px;
-        min-height: 44px;
-    }
-
-    .udoc-viewer-root .udoc-floating-toolbar__btn {
         min-width: 44px;
         min-height: 44px;
     }
