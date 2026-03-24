@@ -27,104 +27,180 @@
                 height: 100vh;
             }
 
-            /* Desktop: Left panel */
+            /* Desktop: Left panel — children each handle 12px horizontal padding */
             .demo-panel {
                 width: 300px;
-                background: #f0f5fa;
+                background: #f8fafc;
                 display: flex;
                 flex-direction: column;
                 flex-shrink: 0;
+                border-right: none;
             }
-            .demo-panel-section {
-                padding: 12px 16px;
-                border-bottom: 1px solid #d0dce8;
+            .panel-header {
+                padding: 16px 12px;
+                border-bottom: 1px solid #e2e8f0;
             }
-            .demo-panel-section-title {
-                font-size: 11px;
+            .panel-logo {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                margin-bottom: 14px;
+            }
+            .panel-logo-icon {
+                width: 30px;
+                height: 30px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .panel-logo-icon svg {
+                width: 30px;
+                height: 30px;
+            }
+            .panel-logo-text {
+                font-size: 14px;
+                font-weight: 700;
+                color: #1e293b;
+                letter-spacing: -0.3px;
+            }
+            .panel-logo-badge {
+                font-size: 10px;
                 font-weight: 600;
-                color: #ffffff;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-                background: #5a8cb8;
-                padding: 8px 10px;
+                color: #4f46e5;
+                background: #eef2ff;
+                padding: 2px 6px;
                 border-radius: 4px;
-                margin: 10px 2px 6px 10px;
+                margin-left: auto;
+            }
+            .panel-actions {
+                display: flex;
+                gap: 8px;
             }
             .demo-btn {
-                display: block;
-                width: 100%;
-                padding: 10px 12px;
-                background: #5a8cb8;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 6px;
+                flex: 1;
+                padding: 8px 12px;
+                background: #818cf8;
                 color: white;
                 border: none;
-                border-radius: 4px;
+                border-radius: 6px;
                 cursor: pointer;
-                font-size: 13px;
-                text-align: left;
+                font-size: 12px;
+                font-weight: 500;
+                transition: all 0.15s;
             }
             .demo-btn:hover {
-                background: #4a78a0;
+                background: #6366f1;
             }
             .demo-btn svg {
-                width: 16px;
-                height: 16px;
-                vertical-align: middle;
-                margin-right: 8px;
+                width: 15px;
+                height: 15px;
+                flex-shrink: 0;
+            }
+
+            /* Document list */
+            .panel-section-label {
+                font-size: 10px;
+                font-weight: 600;
+                color: #94a3b8;
+                text-transform: uppercase;
+                letter-spacing: 0.8px;
+                padding: 14px 12px 6px;
             }
             .document-list {
                 flex: 1;
                 overflow-y: auto;
-                padding: 8px;
-            }
-            .document-item {
-                display: block;
-                width: 100%;
-                padding: 8px 12px;
-                background: none;
-                border: none;
-                border-radius: 4px;
-                cursor: pointer;
-                font-size: 13px;
-                text-align: left;
-                color: #333;
-                margin-left: 12px;
-                width: calc(100% - 12px);
-            }
-            .document-item:hover {
-                background: #e0eaf2;
-            }
-            .document-item.active {
-                background: #c4d8ea;
-                color: #2c4e6a;
+                padding: 0 12px 8px;
             }
             .category-header {
-                font-size: 12px;
+                font-size: 11px;
                 font-weight: 600;
-                color: #4a6a88;
-                padding: 10px 12px 6px;
-                background: #e8f0f5;
-            }
-            .category-header:not(:has(+ .category-description)) {
-                border-bottom: 1px solid #d0dce8;
+                color: #64748b;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                padding: 10px 0 4px;
             }
             .category-header:not(:first-child) {
-                margin-top: 12px;
+                margin-top: 6px;
             }
             .category-description {
                 font-size: 11px;
-                color: #5580a0;
-                padding: 6px 12px 8px;
-                background: #e8f0f5;
-                border-bottom: 1px solid #d0dce8;
+                color: #94a3b8;
+                padding: 0 0 4px;
+            }
+            .document-item {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                width: 100%;
+                padding: 7px 0;
+                background: none;
+                border: none;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 13px;
+                text-align: left;
+                color: #475569;
+                transition: all 0.12s;
+            }
+            .document-item:hover {
+                background: #f1f5f9;
+                color: #1e293b;
+            }
+            .document-item.active {
+                background: #e0e7ff;
+                color: #3730a3;
+                font-weight: 500;
+            }
+            .document-item .doc-icon {
+                width: 16px;
+                height: 16px;
+                flex-shrink: 0;
+            }
+            .document-item .doc-icon.pdf {
+                color: #dc2626;
+            }
+            .document-item .doc-icon.docx {
+                color: #2563eb;
+            }
+            .document-item .doc-icon.pptx {
+                color: #ea580c;
+            }
+            .document-item .doc-icon.img {
+                color: #16a34a;
             }
 
             /* Options panel */
-            .collapsible .demo-panel-section-title {
-                cursor: pointer;
+            .collapsible {
+                margin-top: auto;
+                padding: 12px;
+            }
+            .collapsible .options-toggle-btn {
                 display: flex;
                 align-items: center;
-                justify-content: space-between;
+                gap: 8px;
+                width: 100%;
+                padding: 10px;
+                background: #818cf8;
+                border: none;
+                border-radius: 6px;
+                cursor: pointer;
                 user-select: none;
+                font-size: 12px;
+                font-weight: 600;
+                color: white;
+                transition: all 0.15s;
+            }
+            .collapsible .options-toggle-btn:hover {
+                background: #6366f1;
+            }
+            .collapsible .options-toggle-btn .gear-icon {
+                width: 15px;
+                height: 15px;
+                fill: currentColor;
             }
             .collapsible .section-chevron {
                 width: 14px;
@@ -144,34 +220,34 @@
                 max-height: 0;
             }
             .options-section {
-                padding: 8px 20px;
+                padding: 10px 0 2px;
             }
             .options-group {
-                margin-bottom: 8px;
+                margin-bottom: 10px;
             }
             .options-group-title {
                 font-size: 10px;
                 font-weight: 600;
-                color: #5580a0;
+                color: #94a3b8;
                 text-transform: uppercase;
                 letter-spacing: 0.4px;
-                margin-bottom: 4px;
+                margin-bottom: 6px;
             }
             .option-row {
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
-                padding: 3px 0;
+                padding: 4px 0;
             }
             .option-label {
                 font-size: 12px;
-                color: #3a5068;
+                color: #475569;
                 cursor: pointer;
                 user-select: none;
             }
             .option-hint {
                 font-size: 10px;
-                color: #8aa4b8;
+                color: #94a3b8;
                 margin-left: 4px;
             }
             .option-toggle {
@@ -188,7 +264,7 @@
             .option-toggle .slider {
                 position: absolute;
                 inset: 0;
-                background: #c0d0dc;
+                background: #cbd5e1;
                 border-radius: 9px;
                 cursor: pointer;
                 transition: background 0.2s;
@@ -205,23 +281,24 @@
                 transition: transform 0.2s;
             }
             .option-toggle input:checked + .slider {
-                background: #5a8cb8;
+                background: #6366f1;
             }
             .option-toggle input:checked + .slider::before {
                 transform: translateX(14px);
             }
             .option-select {
                 font-size: 12px;
-                padding: 2px 6px;
-                border: 1px solid #c0d0dc;
-                border-radius: 4px;
+                padding: 3px 8px;
+                border: 1px solid #e2e8f0;
+                border-radius: 6px;
                 background: white;
-                color: #3a5068;
+                color: #334155;
                 cursor: pointer;
                 outline: none;
+                transition: border-color 0.15s;
             }
             .option-select:focus {
-                border-color: #5a8cb8;
+                border-color: #4f46e5;
             }
 
             /* Viewer panel */
@@ -230,7 +307,7 @@
                 display: flex;
                 flex-direction: column;
                 overflow: hidden;
-                background: #f0f5fa;
+                background: #f8fafc;
             }
             .viewer-wrapper {
                 flex: 1;
@@ -241,7 +318,11 @@
                 width: 100%;
                 height: 100%;
                 overflow: hidden;
-                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+                border-radius: 0;
+                box-shadow:
+                    0 1px 3px rgba(0, 0, 0, 0.12),
+                    0 4px 16px rgba(0, 0, 0, 0.12),
+                    0 8px 32px rgba(79, 70, 229, 0.08);
             }
             #file-input {
                 display: none;
@@ -253,8 +334,8 @@
                 align-items: center;
                 gap: 8px;
                 padding: 8px 12px;
-                background: #f0f5fa;
-                border-bottom: 1px solid #d0dce8;
+                background: #f8fafc;
+                border-bottom: 1px solid #e2e8f0;
                 flex-shrink: 0;
             }
             .topbar-btn {
@@ -263,7 +344,7 @@
                 justify-content: center;
                 width: 36px;
                 height: 36px;
-                background: #5a8cb8;
+                background: #4f46e5;
                 border: none;
                 border-radius: 6px;
                 cursor: pointer;
@@ -271,7 +352,7 @@
                 transition: background 0.15s;
             }
             .topbar-btn:hover {
-                background: #4a78a0;
+                background: #4338ca;
             }
             .topbar-btn svg {
                 width: 18px;
@@ -281,7 +362,7 @@
             .topbar-divider {
                 width: 1px;
                 height: 24px;
-                background: #d0dce8;
+                background: #e2e8f0;
                 margin: 0 4px;
             }
 
@@ -298,10 +379,10 @@
                 width: 100%;
                 padding: 8px 12px;
                 background: white;
-                border: 1px solid #d0dce8;
+                border: 1px solid #e2e8f0;
                 border-radius: 6px;
                 cursor: pointer;
-                color: #3a5068;
+                color: #334155;
                 font-size: 14px;
                 text-align: left;
                 transition:
@@ -309,8 +390,8 @@
                     border-color 0.15s;
             }
             .doc-selector-btn:hover {
-                background: #f0f5fa;
-                border-color: #a8c0d8;
+                background: #f8fafc;
+                border-color: #c7d2fe;
             }
             .doc-selector-btn .doc-name {
                 flex: 1;
@@ -321,7 +402,7 @@
             .doc-selector-btn .chevron {
                 width: 16px;
                 height: 16px;
-                fill: #5580a0;
+                fill: #64748b;
                 flex-shrink: 0;
                 transition: transform 0.2s;
             }
@@ -338,7 +419,7 @@
                 overflow-y: auto;
                 background: white;
                 border-radius: 8px;
-                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
                 z-index: 100;
             }
             .doc-selector.open .doc-dropdown {
@@ -348,19 +429,19 @@
                 padding: 10px 12px 6px;
                 font-size: 11px;
                 font-weight: 600;
-                color: #5580a0;
+                color: #64748b;
                 text-transform: uppercase;
                 letter-spacing: 0.5px;
-                background: #f0f5fa;
+                background: #f8fafc;
             }
             .doc-dropdown-category:not(:first-child) {
-                border-top: 1px solid #d0dce8;
+                border-top: 1px solid #e2e8f0;
             }
             .doc-dropdown-desc {
                 padding: 4px 12px 8px;
                 font-size: 11px;
-                color: #5a8cb8;
-                background: #f0f5fa;
+                color: #64748b;
+                background: #f8fafc;
             }
             .doc-dropdown-item {
                 display: block;
@@ -370,15 +451,15 @@
                 background: none;
                 text-align: left;
                 font-size: 14px;
-                color: #333;
+                color: #334155;
                 cursor: pointer;
                 transition: background 0.1s;
             }
             .doc-dropdown-item:hover {
-                background: #f0f5fa;
+                background: #eef2ff;
             }
             .doc-dropdown-item.active {
-                background: #5a8cb8;
+                background: #4f46e5;
                 color: white;
             }
 
@@ -414,37 +495,63 @@
         <div class="demo-container">
             <!-- Desktop: Left sidebar -->
             <div class="demo-panel" id="demo-panel">
-                <div class="demo-panel-section" style="display: flex; gap: 8px">
-                    <button class="demo-btn" id="open-file-btn" style="flex: 1">
-                        <svg viewBox="0 0 24 24" fill="currentColor">
-                            <path
-                                d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h6l2 2h6a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2zM5 6v12h14V10h-6.83l-2-2H5z"
-                            />
-                        </svg>
-                        Open File
-                    </button>
-                    <button class="demo-btn" id="open-url-btn" style="flex: 1">
-                        <svg viewBox="0 0 24 24" fill="currentColor">
-                            <path
-                                d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"
-                            />
-                        </svg>
-                        Open URL
-                    </button>
+                <div class="panel-header">
+                    <div class="panel-logo">
+                        <div class="panel-logo-icon">
+                            <svg viewBox="0 0 215.2 215.2">
+                                <rect width="215.2" height="215.2" rx="32" ry="32" fill="white" />
+                                <g transform="translate(14.43, 24.92)">
+                                    <path
+                                        d="M37.12 129.54L37.12 129.54Q28.29 129.54 21.31 125.18Q14.34 120.83 10.37 113.15Q6.40 105.47 6.40 95.87L6.40 95.87Q6.40 86.02 10.43 78.40Q14.46 70.78 21.57 66.37Q28.67 61.95 37.50 61.95L37.50 61.95Q44.42 61.95 49.66 64.51Q54.91 67.07 58.11 71.81L58.11 71.81L58.11 35.84L75.39 35.84L75.39 128L60.03 128L58.11 119.17L58.11 119.17Q56.19 121.86 53.31 124.29Q50.43 126.72 46.46 128.13Q42.50 129.54 37.12 129.54ZM41.22 114.43L41.22 114.43Q46.34 114.43 50.24 112.06Q54.14 109.70 56.32 105.47Q58.50 101.25 58.50 95.74L58.50 95.74Q58.50 90.24 56.32 86.02Q54.14 81.79 50.24 79.42Q46.34 77.06 41.22 77.06L41.22 77.06Q36.35 77.06 32.38 79.42Q28.42 81.79 26.18 86.02Q23.94 90.24 23.94 95.62L23.94 95.62Q23.94 101.25 26.18 105.47Q28.42 109.70 32.32 112.06Q36.22 114.43 41.22 114.43Z"
+                                        fill="#0f172a"
+                                    />
+                                    <path
+                                        d="M101.50 128L84.22 128L84.22 38.40L104.83 38.40L132.22 94.34L132.22 94.34L159.36 38.40L179.97 38.40L179.97 128L162.69 128L162.69 67.84L162.69 67.84L139.01 115.46L125.31 115.46L101.50 67.84L101.50 67.84L101.50 128Z"
+                                        fill="#4f46e5"
+                                    />
+                                </g>
+                            </svg>
+                        </div>
+                        <span class="panel-logo-text">udoc-viewer</span>
+                        <span class="panel-logo-badge">Demo</span>
+                    </div>
+                    <div class="panel-actions">
+                        <button class="demo-btn" id="open-file-btn">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path
+                                    d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h6l2 2h6a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2zM5 6v12h14V10h-6.83l-2-2H5z"
+                                />
+                            </svg>
+                            Open File
+                        </button>
+                        <button class="demo-btn" id="open-url-btn">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path
+                                    d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"
+                                />
+                            </svg>
+                            Open URL
+                        </button>
+                    </div>
                 </div>
 
-                <div class="demo-panel-section-title">Sample Documents</div>
+                <div class="panel-section-label">Sample Documents</div>
                 <div class="document-list" id="document-list"></div>
 
                 <div class="collapsible collapsed" id="options-panel">
-                    <div class="demo-panel-section-title" id="options-toggle">
+                    <button class="options-toggle-btn" id="options-toggle">
+                        <svg class="gear-icon" viewBox="0 0 24 24">
+                            <path
+                                d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.49.49 0 0 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1 1 12 8.4a3.6 3.6 0 0 1 0 7.2z"
+                            />
+                        </svg>
                         Viewer Options
-                        <svg class="section-chevron" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z" /></svg>
-                    </div>
+                        <svg class="section-chevron" style="margin-left: auto" viewBox="0 0 24 24">
+                            <path d="M7 10l5 5 5-5z" />
+                        </svg>
+                    </button>
                     <div class="section-content">
-                        <div class="demo-panel-section">
-                            <div class="options-section" id="options-section"></div>
-                        </div>
+                        <div class="options-section" id="options-section"></div>
                     </div>
                 </div>
             </div>

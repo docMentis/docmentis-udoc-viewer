@@ -195,6 +195,17 @@ function toggleDocDropdown() {
 // Store button pairs for syncing selection between desktop and mobile
 const documentButtonPairs: Map<string, { desktop: HTMLButtonElement; mobile: HTMLButtonElement }> = new Map();
 
+const DOC_TYPE_ICONS: Record<string, string> = {
+    // PDF: document with lines
+    pdf: '<path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>',
+    // DOCX: document with A text
+    docx: '<path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 2l5 5h-5V4zM6 20V4h5v7h7v9H6z"/><path d="M9.5 13.5L12 19l2.5-5.5h1.3L12.7 20h-1.4L8.2 13.5z"/>',
+    // PPTX: presentation/slides
+    pptx: '<path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/><path d="M7 17h10v-2H7v2zm5-10l-5 8h10l-5-8z"/>',
+    // Image: landscape photo
+    img: '<path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>',
+};
+
 function populateDocumentLists() {
     for (const category of sampleCategories) {
         // Desktop: Add category header
@@ -223,11 +234,19 @@ function populateDocumentLists() {
         }
 
         // Add documents in this category
+        const iconType = category.name === "Image" ? "img" : category.name.toLowerCase();
         for (const doc of category.documents) {
             // Desktop button
             const desktopBtn = document.createElement("button");
             desktopBtn.className = "document-item";
-            desktopBtn.textContent = doc.name;
+            const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+            icon.setAttribute("viewBox", "0 0 24 24");
+            icon.setAttribute("fill", "currentColor");
+            icon.classList.add("doc-icon", iconType);
+            icon.innerHTML = DOC_TYPE_ICONS[iconType] ?? DOC_TYPE_ICONS.pdf;
+            const nameSpan = document.createElement("span");
+            nameSpan.textContent = doc.name;
+            desktopBtn.append(icon, nameSpan);
 
             // Mobile button
             const mobileBtn = document.createElement("button");
