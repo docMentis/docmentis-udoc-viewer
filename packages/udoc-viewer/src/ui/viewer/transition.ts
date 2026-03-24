@@ -305,7 +305,7 @@ function resolveEffect(effect: TransitionEffect, forward: boolean): FrameFn | nu
             return blindsEffect(effect.orientation);
 
         case "checker":
-            return crossfade;
+            return checkerEffect(effect.orientation);
 
         case "comb":
             return combEffect(effect.orientation);
@@ -335,7 +335,7 @@ function resolveEffect(effect: TransitionEffect, forward: boolean): FrameFn | nu
         }
 
         case "randomBar":
-            return crossfade;
+            return randomBarEffect(effect.orientation);
 
         // PPTX 2010+ effects (p14)
         case "vortex":
@@ -620,38 +620,45 @@ function combEffect(orientation: "horizontal" | "vertical"): FrameFn {
             incoming.style.clipPath = "none";
             return;
         }
+        // Each rectangle is anchored through the origin (0% 0%) so that
+        // bridges between non-adjacent strips retrace and produce zero
+        // net winding — no visible triangles between strips.
         const points: string[] = [];
         if (orientation === "horizontal") {
             const stripH = 100 / N;
             for (let i = 0; i < N; i++) {
                 const top = i * stripH;
                 const bot = (i + 1) * stripH;
+                points.push("0% 0%");
                 if (i % 2 === 0) {
                     const r = t * 100;
                     points.push(`0% ${top}%`, `${r}% ${top}%`, `${r}% ${bot}%`, `0% ${bot}%`, `0% ${top}%`);
                 } else {
                     const l = (1 - t) * 100;
-                    points.push(`100% ${top}%`, `${l}% ${top}%`, `${l}% ${bot}%`, `100% ${bot}%`, `100% ${top}%`);
+                    points.push(`${l}% ${top}%`, `100% ${top}%`, `100% ${bot}%`, `${l}% ${bot}%`, `${l}% ${top}%`);
                 }
+                points.push("0% 0%");
             }
         } else {
             const stripW = 100 / N;
             for (let i = 0; i < N; i++) {
                 const left = i * stripW;
                 const right = (i + 1) * stripW;
+                points.push("0% 0%");
                 if (i % 2 === 0) {
                     const b = t * 100;
                     points.push(`${left}% 0%`, `${right}% 0%`, `${right}% ${b}%`, `${left}% ${b}%`, `${left}% 0%`);
                 } else {
                     const tp = (1 - t) * 100;
                     points.push(
-                        `${left}% 100%`,
-                        `${right}% 100%`,
-                        `${right}% ${tp}%`,
                         `${left}% ${tp}%`,
+                        `${right}% ${tp}%`,
+                        `${right}% 100%`,
                         `${left}% 100%`,
+                        `${left}% ${tp}%`,
                     );
                 }
+                points.push("0% 0%");
             }
         }
         incoming.style.clipPath = `polygon(${points.join(", ")})`;
@@ -727,4 +734,127 @@ function wedgeEffect(t: number, _outgoing: HTMLElement, incoming: HTMLElement): 
         points.push(`${50 + SWEEP_RADIUS * Math.cos(rad)}% ${50 + SWEEP_RADIUS * Math.sin(rad)}%`);
     }
     incoming.style.clipPath = `polygon(${points.join(", ")})`;
+}
+
+// ---------------------------------------------------------------------------
+// Checker / Random Bar
+// ---------------------------------------------------------------------------
+
+const CHECKER_COLS = 8;
+const CHECKER_ROWS = 6;
+
+/**
+ * Checker: grid of rectangles that grow simultaneously from their centers.
+ * Horizontal = columns expand rightward; vertical = rows expand downward.
+ * Each cell reveals independently, creating the classic checkerboard pattern.
+ */
+function checkerEffect(orientation: "horizontal" | "vertical"): FrameFn {
+    const cols = orientation === "horizontal" ? CHECKER_COLS : CHECKER_ROWS;
+    const rows = orientation === "horizontal" ? CHECKER_ROWS : CHECKER_COLS;
+    return (t, _outgoing, incoming) => {
+        if (t >= 1) {
+            incoming.style.clipPath = "none";
+            return;
+        }
+        const cellW = 100 / cols;
+        const cellH = 100 / rows;
+        // Each rectangle is anchored through the origin (0% 0%) so that
+        // bridges between scattered cells retrace and produce zero net
+        // winding — no visible triangles between cells.
+        const points: string[] = [];
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+                // Checkerboard: only reveal cells where (row + col) is even
+                // at the start; all cells revealed by t=1
+                const phase = (r + c) % 2 === 0 ? 0 : 0.5;
+                const localT = Math.max(0, Math.min(1, (t - phase) / (1 - phase)));
+                if (localT <= 0) continue;
+
+                const left = c * cellW;
+                const top = r * cellH;
+                const right = left + localT * cellW;
+                const bot = top + localT * cellH;
+
+                points.push(
+                    "0% 0%",
+                    `${left}% ${top}%`,
+                    `${right}% ${top}%`,
+                    `${right}% ${bot}%`,
+                    `${left}% ${bot}%`,
+                    `${left}% ${top}%`,
+                    "0% 0%",
+                );
+            }
+        }
+        if (points.length === 0) {
+            incoming.style.clipPath = "polygon(0% 0%, 0% 0%, 0% 0%)";
+        } else {
+            incoming.style.clipPath = `polygon(${points.join(", ")})`;
+        }
+    };
+}
+
+const RANDOM_BAR_COUNT = 10;
+
+/**
+ * Random Bar: bars revealed in shuffled order.
+ * Each bar fully appears before the next starts, creating a staggered wipe.
+ */
+function randomBarEffect(orientation: "horizontal" | "vertical"): FrameFn {
+    const N = RANDOM_BAR_COUNT;
+    // Fisher-Yates shuffle — computed once per transition
+    const order = Array.from({ length: N }, (_, i) => i);
+    for (let i = N - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [order[i], order[j]] = [order[j], order[i]];
+    }
+
+    return (t, _outgoing, incoming) => {
+        if (t >= 1) {
+            incoming.style.clipPath = "none";
+            return;
+        }
+        // How many bars are fully or partially revealed
+        const progress = t * N;
+        const revealed = Math.floor(progress);
+        const partial = progress - revealed;
+
+        const points: string[] = [];
+
+        for (let k = 0; k <= revealed && k < N; k++) {
+            const barIndex = order[k];
+            const barT = k < revealed ? 1 : partial;
+            if (barT <= 0) continue;
+
+            if (orientation === "horizontal") {
+                const stripH = 100 / N;
+                const top = barIndex * stripH;
+                const right = barT * 100;
+                points.push(
+                    `0% ${top}%`,
+                    `${right}% ${top}%`,
+                    `${right}% ${top + stripH}%`,
+                    `0% ${top + stripH}%`,
+                    `0% ${top}%`,
+                );
+            } else {
+                const stripW = 100 / N;
+                const left = barIndex * stripW;
+                const bot = barT * 100;
+                points.push(
+                    `${left}% 0%`,
+                    `${left + stripW}% 0%`,
+                    `${left + stripW}% ${bot}%`,
+                    `${left}% ${bot}%`,
+                    `${left}% 0%`,
+                );
+            }
+        }
+
+        if (points.length === 0) {
+            incoming.style.clipPath = "polygon(0% 0%, 0% 0%, 0% 0%)";
+        } else {
+            incoming.style.clipPath = `polygon(${points.join(", ")})`;
+        }
+    };
 }

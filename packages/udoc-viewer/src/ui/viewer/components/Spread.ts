@@ -38,6 +38,7 @@ interface PageSlotElement {
     pendingKey: string | null;
     previewRenderKey: string;
     renderToken: number;
+    loadingTimer: ReturnType<typeof setTimeout> | null;
     cssWidth: number;
     cssHeight: number;
     /** Last rendered annotations (for change detection) */
@@ -135,7 +136,11 @@ export function createSpread(data: SpreadData, showAttribution = true, i18n?: I1
                 "aria-label",
                 i18n ? i18n.t("spread.pageLabel", { page: pageNumber }) : `Page ${pageNumber}`,
             );
-            container.classList.add("udoc-spread__slot--loading");
+            // Delay showing the loading indicator — if render completes quickly
+            // (cached/prerendered), the user never sees it.
+            const loadingTimer = setTimeout(() => {
+                container.classList.add("udoc-spread__slot--loading");
+            }, 200);
 
             // Preview canvas (behind main canvas) — shows low-res preview while full-res renders
             const previewCanvas = document.createElement("canvas");
@@ -298,6 +303,7 @@ export function createSpread(data: SpreadData, showAttribution = true, i18n?: I1
                 pendingKey: null,
                 previewRenderKey: "",
                 renderToken: 0,
+                loadingTimer,
                 cssWidth: 0,
                 cssHeight: 0,
                 lastAnnotations: null,
@@ -326,6 +332,7 @@ export function createSpread(data: SpreadData, showAttribution = true, i18n?: I1
             pendingKey: null,
             previewRenderKey: "",
             renderToken: 0,
+            loadingTimer: null,
             cssWidth: 0,
             cssHeight: 0,
             lastAnnotations: null,
@@ -518,6 +525,10 @@ export function createSpread(data: SpreadData, showAttribution = true, i18n?: I1
                             drawToCanvas(slotEl.previewCanvas!, result, slotEl, dpr);
                             slotEl.previewCanvas!.style.display = "block";
                             slotEl.previewRenderKey = previewKey;
+                            if (slotEl.loadingTimer) {
+                                clearTimeout(slotEl.loadingTimer);
+                                slotEl.loadingTimer = null;
+                            }
                             slotEl.container.classList.remove("udoc-spread__slot--loading");
                         })
                         .catch(() => {
@@ -540,6 +551,10 @@ export function createSpread(data: SpreadData, showAttribution = true, i18n?: I1
                 }
 
                 drawToCanvas(slotEl.canvas, result, slotEl, dpr);
+                if (slotEl.loadingTimer) {
+                    clearTimeout(slotEl.loadingTimer);
+                    slotEl.loadingTimer = null;
+                }
                 slotEl.container.classList.remove("udoc-spread__slot--loading");
 
                 // Hide preview canvas now that full-res is ready
