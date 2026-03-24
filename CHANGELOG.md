@@ -8,13 +8,23 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ### Features
 
-- PPTX slide transition support with animated playback
-- PPTX 2010+ (p14) and 2015+ (p15) extended transition types (engine)
+- PPTX slide transition support with animated playback including blinds, comb, wheel, wedge, checker, and randomBar transitions
+- PPTX 2010+ (p14) and 2015+ (p159) extended transition types
+- Viewer options moved to a modal dialog with refined demo UI
+- Unified work queue to prioritize renders over annotations and text extraction
+- Redesigned demo UI to match docmentis.com site style
 - Strongly typed TypeScript definitions for the page transition API (engine)
 - Page transition model with PPTX and PDF loader support (engine)
+- PowerPoint 2010+ and 2015+ transition support (engine)
 
 ### Bug Fixes
 
+- Normalize floating toolbar height to 40px across all screen sizes
+- Fix crossfade, fade, cut, blinds, checker, circle, and cover transition fidelity
+- Improve dissolve, strips, and checker transitions to match PowerPoint behavior
+- Handle negative srcRect crop values in PPTX image placement (engine)
+- Force character-level line break for oversized words in text layout (engine)
+- Improve PPTX line spacing and baseline positioning (engine)
 - Separate default paragraph properties (defPPr) from level-specific text properties (engine)
 
 ## [0.6.11] - 2026-03-22
