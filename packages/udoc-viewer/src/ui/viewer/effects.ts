@@ -89,18 +89,12 @@ export function createEffects(store: Store<ViewerState, Action>, engine: EngineA
         }),
     );
 
-    // Annotation loading effect: load annotations on-demand for visible pages
-    // Deferred to avoid blocking page renders (worker processes requests sequentially)
-    let annotationLoadTimeout: ReturnType<typeof setTimeout> | null = null;
+    // Annotation loading effect: load annotations on-demand for visible pages.
+    // Yields one rAF so the Viewport (which also defers to rAF) can submit render
+    // requests first. The unified work queue then ensures renders complete before annotations.
     unsubscribers.push(
         store.subscribeEffect(async (prev, next) => {
             if (!next.doc) return;
-
-            // Clear any pending annotation load when state changes
-            if (annotationLoadTimeout) {
-                clearTimeout(annotationLoadTimeout);
-                annotationLoadTimeout = null;
-            }
 
             // Load annotations for current page and adjacent pages (for spread mode)
             const pagesToLoad = getPagesToLoad(next);
@@ -112,54 +106,39 @@ export function createEffects(store: Store<ViewerState, Action>, engine: EngineA
 
             if (pagesToActuallyLoad.length === 0) return;
 
-            // Defer annotation loading to let render requests go first
             const doc = next.doc;
             const gen = docGeneration;
-            annotationLoadTimeout = setTimeout(async () => {
-                annotationLoadTimeout = null;
-                for (const pageIndex of pagesToActuallyLoad) {
-                    if (gen !== docGeneration) return; // document changed, discard
-                    // Re-check state in case it changed during the delay
-                    const currentState = store.getState();
-                    if (currentState.pageAnnotations.has(pageIndex)) continue;
-                    if (currentState.annotationsLoading.has(pageIndex)) continue;
 
-                    store.dispatch({ type: "LOAD_PAGE_ANNOTATIONS", pageIndex });
-                    try {
-                        const annotations = await engine.getPageAnnotations(doc, pageIndex);
-                        if (gen !== docGeneration) return; // stale
-                        store.dispatch({ type: "SET_PAGE_ANNOTATIONS", pageIndex, annotations });
-                    } catch (error) {
-                        if (gen !== docGeneration) return; // stale
-                        console.error(`Failed to load annotations for page ${pageIndex}`, error);
-                        store.dispatch({ type: "SET_PAGE_ANNOTATIONS", pageIndex, annotations: [] });
-                    }
+            // Yield to rAF so the Viewport submits render requests first
+            await new Promise((r) => requestAnimationFrame(r));
+            if (gen !== docGeneration) return;
+
+            for (const pageIndex of pagesToActuallyLoad) {
+                if (gen !== docGeneration) return; // document changed, discard
+                const currentState = store.getState();
+                if (currentState.pageAnnotations.has(pageIndex)) continue;
+                if (currentState.annotationsLoading.has(pageIndex)) continue;
+
+                store.dispatch({ type: "LOAD_PAGE_ANNOTATIONS", pageIndex });
+                try {
+                    const annotations = await engine.getPageAnnotations(doc, pageIndex);
+                    if (gen !== docGeneration) return; // stale
+                    store.dispatch({ type: "SET_PAGE_ANNOTATIONS", pageIndex, annotations });
+                } catch (error) {
+                    if (gen !== docGeneration) return; // stale
+                    console.error(`Failed to load annotations for page ${pageIndex}`, error);
+                    store.dispatch({ type: "SET_PAGE_ANNOTATIONS", pageIndex, annotations: [] });
                 }
-            }, 100); // 100ms delay to let render requests go first
+            }
         }),
     );
 
-    // Cleanup annotation load timeout on destroy
-    const cleanupAnnotationTimeout = () => {
-        if (annotationLoadTimeout) {
-            clearTimeout(annotationLoadTimeout);
-            annotationLoadTimeout = null;
-        }
-    };
-    unsubscribers.push(cleanupAnnotationTimeout);
-
-    // Text loading effect: load text on-demand for visible pages (for text selection)
-    // Deferred to avoid blocking page renders (worker processes requests sequentially)
-    let textLoadTimeout: ReturnType<typeof setTimeout> | null = null;
+    // Text loading effect: load text on-demand for visible pages (for text selection).
+    // Yields one rAF so the Viewport can submit render requests first.
+    // The unified work queue then ensures renders and annotations complete before text.
     unsubscribers.push(
         store.subscribeEffect(async (prev, next) => {
             if (!next.doc) return;
-
-            // Clear any pending text load when state changes
-            if (textLoadTimeout) {
-                clearTimeout(textLoadTimeout);
-                textLoadTimeout = null;
-            }
 
             // Load text for current page and adjacent pages (for spread mode)
             const pagesToLoad = getPagesToLoad(next);
@@ -171,41 +150,32 @@ export function createEffects(store: Store<ViewerState, Action>, engine: EngineA
 
             if (pagesToActuallyLoad.length === 0) return;
 
-            // Defer text loading to let render requests go first
             const doc = next.doc;
             const gen = docGeneration;
-            textLoadTimeout = setTimeout(async () => {
-                textLoadTimeout = null;
-                for (const pageIndex of pagesToActuallyLoad) {
-                    if (gen !== docGeneration) return; // document changed, discard
-                    // Re-check state in case it changed during the delay
-                    const currentState = store.getState();
-                    if (currentState.pageText.has(pageIndex)) continue;
-                    if (currentState.textLoading.has(pageIndex)) continue;
 
-                    store.dispatch({ type: "LOAD_PAGE_TEXT", pageIndex });
-                    try {
-                        const text = await engine.getPageText(doc, pageIndex);
-                        if (gen !== docGeneration) return; // stale
-                        store.dispatch({ type: "SET_PAGE_TEXT", pageIndex, text });
-                    } catch (error) {
-                        if (gen !== docGeneration) return; // stale
-                        console.error(`Failed to load text for page ${pageIndex}`, error);
-                        store.dispatch({ type: "SET_PAGE_TEXT", pageIndex, text: [] });
-                    }
+            // Yield to rAF so the Viewport submits render requests first
+            await new Promise((r) => requestAnimationFrame(r));
+            if (gen !== docGeneration) return;
+
+            for (const pageIndex of pagesToActuallyLoad) {
+                if (gen !== docGeneration) return; // document changed, discard
+                const currentState = store.getState();
+                if (currentState.pageText.has(pageIndex)) continue;
+                if (currentState.textLoading.has(pageIndex)) continue;
+
+                store.dispatch({ type: "LOAD_PAGE_TEXT", pageIndex });
+                try {
+                    const text = await engine.getPageText(doc, pageIndex);
+                    if (gen !== docGeneration) return; // stale
+                    store.dispatch({ type: "SET_PAGE_TEXT", pageIndex, text });
+                } catch (error) {
+                    if (gen !== docGeneration) return; // stale
+                    console.error(`Failed to load text for page ${pageIndex}`, error);
+                    store.dispatch({ type: "SET_PAGE_TEXT", pageIndex, text: [] });
                 }
-            }, 150); // 150ms delay (slightly longer than annotations since text is lower priority)
+            }
         }),
     );
-
-    // Cleanup text load timeout on destroy
-    const cleanupTextTimeout = () => {
-        if (textLoadTimeout) {
-            clearTimeout(textLoadTimeout);
-            textLoadTimeout = null;
-        }
-    };
-    unsubscribers.push(cleanupTextTimeout);
 
     // Comments panel effect: load ALL annotations when comments panel is opened
     unsubscribers.push(

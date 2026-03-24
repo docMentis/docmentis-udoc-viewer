@@ -83,9 +83,37 @@ export interface RenderResult {
 }
 
 interface QueuedRequest extends RenderRequest {
+    kind: "render";
     priority: number;
     resolve: (result: RenderResult) => void;
     reject: (error: Error) => void;
+}
+
+interface QueuedAnnotationItem {
+    kind: "annotation";
+    docId: string;
+    page: number; // 1-based (matches render convention)
+    priority: number;
+    resolve: (result: unknown[]) => void;
+    reject: (error: Error) => void;
+}
+
+interface QueuedTextItem {
+    kind: "text";
+    docId: string;
+    page: number; // 1-based (matches render convention)
+    priority: number;
+    resolve: (result: unknown[]) => void;
+    reject: (error: Error) => void;
+}
+
+type QueuedWorkItem = QueuedRequest | QueuedAnnotationItem | QueuedTextItem;
+
+function makeWorkKey(item: QueuedWorkItem): string {
+    if (item.kind === "render") {
+        return `render:${makeRenderKey(item.docId, item.page, item.type, item.scale)}`;
+    }
+    return `${item.kind}:${item.docId}:${item.page}`;
 }
 
 interface CacheEntry {
@@ -117,8 +145,8 @@ export class WorkerClient {
     private pageRenderCache = new Map<string, CacheEntry>();
     private thumbnailRenderCache = new Map<string, CacheEntry>();
     private previewRenderCache = new Map<string, CacheEntry>();
-    private renderQueue: QueuedRequest[] = [];
-    private currentRender: { key: string; promise: Promise<RenderResult> } | null = null;
+    private workQueue: QueuedWorkItem[] = [];
+    private currentWork: { key: string; promise: Promise<unknown> } | null = null;
     private maxPageCacheSize = 100;
     private maxThumbnailCacheSize = 500;
     private maxPreviewCacheSize = 50;
@@ -429,38 +457,110 @@ export class WorkerClient {
 
     /**
      * Get annotations for a specific page.
+     * Routed through the unified work queue so renders take priority.
      */
     async getPageAnnotations(documentId: string, pageIndex: number): Promise<unknown[]> {
-        const counter = this.getCounter(documentId);
-        const eventId = counter?.markStart("getPageAnnotations", { pageIndex });
-        try {
-            const response = (await this.send({ type: "getPageAnnotations", documentId, pageIndex })) as {
-                annotations: unknown[];
-            };
-            if (eventId) counter?.markEnd(eventId);
-            return response.annotations;
-        } catch (error) {
-            if (eventId) counter?.markEnd(eventId, false, (error as Error).message);
-            throw error;
-        }
+        return this.requestAnnotations(documentId, pageIndex);
     }
 
     /**
      * Get text content for a specific page (for text selection).
+     * Routed through the unified work queue so renders take priority.
      */
     async getPageText(documentId: string, pageIndex: number): Promise<unknown[]> {
-        const counter = this.getCounter(documentId);
-        const eventId = counter?.markStart("getPageText", { pageIndex });
-        try {
-            const response = (await this.send({ type: "getPageText", documentId, pageIndex })) as {
-                text: unknown[];
-            };
-            if (eventId) counter?.markEnd(eventId);
-            return response.text;
-        } catch (error) {
-            if (eventId) counter?.markEnd(eventId, false, (error as Error).message);
-            throw error;
+        return this.requestText(documentId, pageIndex);
+    }
+
+    /**
+     * Request annotations via the unified work queue.
+     * Lower priority than renders — waits for pending renders to complete first.
+     */
+    requestAnnotations(docId: string, pageIndex: number): Promise<unknown[]> {
+        const page = pageIndex + 1; // Convert 0-based to 1-based
+        const key = `annotation:${docId}:${page}`;
+
+        // Check if already in-flight
+        if (this.currentWork?.key === key) {
+            return this.currentWork.promise as Promise<unknown[]>;
         }
+
+        // Check if already queued (dedup)
+        const queued = this.workQueue.find(
+            (q): q is QueuedAnnotationItem => q.kind === "annotation" && q.docId === docId && q.page === page,
+        );
+        if (queued) {
+            return new Promise((resolve, reject) => {
+                const originalResolve = queued.resolve;
+                const originalReject = queued.reject;
+                queued.resolve = (result: unknown[]) => {
+                    originalResolve(result);
+                    resolve(result);
+                };
+                queued.reject = (error: Error) => {
+                    originalReject(error);
+                    reject(error);
+                };
+            });
+        }
+
+        return new Promise((resolve, reject) => {
+            this.workQueue.push({
+                kind: "annotation",
+                docId,
+                page,
+                priority: 0,
+                resolve: resolve as (r: unknown[]) => void,
+                reject,
+            });
+            this.sortQueue();
+            this.processWorkQueue();
+        });
+    }
+
+    /**
+     * Request text content via the unified work queue.
+     * Lowest priority — waits for pending renders and annotations to complete first.
+     */
+    requestText(docId: string, pageIndex: number): Promise<unknown[]> {
+        const page = pageIndex + 1; // Convert 0-based to 1-based
+        const key = `text:${docId}:${page}`;
+
+        // Check if already in-flight
+        if (this.currentWork?.key === key) {
+            return this.currentWork.promise as Promise<unknown[]>;
+        }
+
+        // Check if already queued (dedup)
+        const queued = this.workQueue.find(
+            (q): q is QueuedTextItem => q.kind === "text" && q.docId === docId && q.page === page,
+        );
+        if (queued) {
+            return new Promise((resolve, reject) => {
+                const originalResolve = queued.resolve;
+                const originalReject = queued.reject;
+                queued.resolve = (result: unknown[]) => {
+                    originalResolve(result);
+                    resolve(result);
+                };
+                queued.reject = (error: Error) => {
+                    originalReject(error);
+                    reject(error);
+                };
+            });
+        }
+
+        return new Promise((resolve, reject) => {
+            this.workQueue.push({
+                kind: "text",
+                docId,
+                page,
+                priority: 0,
+                resolve: resolve as (r: unknown[]) => void,
+                reject,
+            });
+            this.sortQueue();
+            this.processWorkQueue();
+        });
     }
 
     /**
@@ -693,13 +793,18 @@ export class WorkerClient {
         }
 
         // Check if already in-flight
-        if (this.currentRender?.key === key) {
-            return this.currentRender.promise;
+        if (this.currentWork?.key === key) {
+            return this.currentWork.promise as Promise<RenderResult>;
         }
 
         // Check if already queued with same parameters
-        const queued = this.renderQueue.find(
-            (q) => q.docId === req.docId && q.page === req.page && q.type === req.type && q.scale === req.scale,
+        const queued = this.workQueue.find(
+            (q): q is QueuedRequest =>
+                q.kind === "render" &&
+                q.docId === req.docId &&
+                q.page === req.page &&
+                q.type === req.type &&
+                q.scale === req.scale,
         );
         if (queued) {
             return new Promise((resolve, reject) => {
@@ -723,15 +828,16 @@ export class WorkerClient {
         // Queue the request
         return new Promise((resolve, reject) => {
             const queuedReq: QueuedRequest = {
+                kind: "render",
                 ...req,
                 priority: 0, // Priority is now determined by distance-based sorting
                 resolve,
                 reject,
             };
 
-            this.renderQueue.push(queuedReq);
+            this.workQueue.push(queuedReq);
             this.sortQueue(); // Sort to place request in correct position based on current focus
-            this.processRenderQueue();
+            this.processWorkQueue();
         });
     }
 
@@ -740,10 +846,11 @@ export class WorkerClient {
      * Does not cancel in-flight requests.
      */
     private cancelQueuedRequestsForPage(docId: string, page: number, type: RenderType): void {
-        this.renderQueue = this.renderQueue.filter((req) => {
-            const shouldCancel = req.docId === docId && req.page === page && req.type === type;
+        this.workQueue = this.workQueue.filter((item) => {
+            if (item.kind !== "render") return true;
+            const shouldCancel = item.docId === docId && item.page === page && item.type === type;
             if (shouldCancel) {
-                req.reject(new Error("Request cancelled"));
+                item.reject(new Error("Request cancelled"));
             }
             return !shouldCancel;
         });
@@ -768,14 +875,15 @@ export class WorkerClient {
      * Does not cancel in-flight requests.
      */
     cancelRenders(docId?: string, page?: number, type?: RenderType): void {
-        this.renderQueue = this.renderQueue.filter((req) => {
+        this.workQueue = this.workQueue.filter((item) => {
+            if (item.kind !== "render") return true;
             const match =
-                (docId === undefined || req.docId === docId) &&
-                (page === undefined || req.page === page) &&
-                (type === undefined || req.type === type);
+                (docId === undefined || item.docId === docId) &&
+                (page === undefined || item.page === page) &&
+                (type === undefined || item.type === type);
 
             if (match) {
-                req.reject(new Error("Request cancelled"));
+                item.reject(new Error("Request cancelled"));
             }
             return !match;
         });
@@ -857,7 +965,7 @@ export class WorkerClient {
     boostPageRenderPriority(docId: string, focusPage: number): void {
         this.pageFocus = { docId, page: focusPage };
         this.sortQueue();
-        this.processRenderQueue();
+        this.processWorkQueue();
     }
 
     /**
@@ -867,7 +975,7 @@ export class WorkerClient {
     boostThumbnailRenderPriority(docId: string, focusPage: number): void {
         this.thumbnailFocus = { docId, page: focusPage };
         this.sortQueue();
-        this.processRenderQueue();
+        this.processWorkQueue();
     }
 
     private static readonly PRERENDER_RANGE = 2; // Prerender pages within ±2 of current
@@ -961,71 +1069,89 @@ export class WorkerClient {
     private static readonly BOOST_RANGE = 5; // Boost pages within ±5 of focus (11 pages total)
 
     /**
-     * Sort requests by boost priority using stored page and thumbnail focuses.
-     * Order: boosted pages -> boosted thumbnails -> normal pages -> normal thumbnails.
+     * Sort work queue by priority using stored page and thumbnail focuses.
+     * Order: previews -> boosted pages -> boosted annotations -> boosted text ->
+     *        boosted thumbnails -> normal pages -> normal annotations -> normal text -> normal thumbnails.
      * "Boosted" means within BOOST_RANGE of the respective focus.
      * Within each group, sorted by distance to respective focus.
      */
     private sortQueue(): void {
-        if (this.renderQueue.length === 0) return;
+        if (this.workQueue.length === 0) return;
 
         const pageFocus = this.pageFocus;
         const thumbnailFocus = this.thumbnailFocus;
 
-        // Categorize requests into 5 groups (previews first — they are tiny and near-instant)
-        const previewRequests: QueuedRequest[] = [];
-        const boostedPages: QueuedRequest[] = [];
-        const boostedThumbnails: QueuedRequest[] = [];
-        const normalPages: QueuedRequest[] = [];
-        const normalThumbnails: QueuedRequest[] = [];
+        // 9 priority groups
+        const previewRenders: QueuedWorkItem[] = [];
+        const boostedPages: QueuedWorkItem[] = [];
+        const boostedAnnotations: QueuedWorkItem[] = [];
+        const boostedText: QueuedWorkItem[] = [];
+        const boostedThumbnails: QueuedWorkItem[] = [];
+        const normalPages: QueuedWorkItem[] = [];
+        const normalAnnotations: QueuedWorkItem[] = [];
+        const normalText: QueuedWorkItem[] = [];
+        const normalThumbnails: QueuedWorkItem[] = [];
 
-        for (const req of this.renderQueue) {
-            if (req.type === "preview") {
-                previewRequests.push(req);
-            } else if (req.type === "page") {
-                const distance =
-                    pageFocus && req.docId === pageFocus.docId ? Math.abs(req.page - pageFocus.page) : Infinity;
-                if (distance <= WorkerClient.BOOST_RANGE) {
-                    boostedPages.push(req);
+        for (const item of this.workQueue) {
+            if (item.kind === "render") {
+                if (item.type === "preview") {
+                    previewRenders.push(item);
+                } else if (item.type === "page") {
+                    const distance =
+                        pageFocus && item.docId === pageFocus.docId ? Math.abs(item.page - pageFocus.page) : Infinity;
+                    (distance <= WorkerClient.BOOST_RANGE ? boostedPages : normalPages).push(item);
                 } else {
-                    normalPages.push(req);
+                    // thumbnail
+                    const distance =
+                        thumbnailFocus && item.docId === thumbnailFocus.docId
+                            ? Math.abs(item.page - thumbnailFocus.page)
+                            : Infinity;
+                    (distance <= WorkerClient.BOOST_RANGE ? boostedThumbnails : normalThumbnails).push(item);
                 }
             } else {
+                // annotation or text — use pageFocus for distance
                 const distance =
-                    thumbnailFocus && req.docId === thumbnailFocus.docId
-                        ? Math.abs(req.page - thumbnailFocus.page)
-                        : Infinity;
-                if (distance <= WorkerClient.BOOST_RANGE) {
-                    boostedThumbnails.push(req);
+                    pageFocus && item.docId === pageFocus.docId ? Math.abs(item.page - pageFocus.page) : Infinity;
+                const boosted = distance <= WorkerClient.BOOST_RANGE;
+                if (item.kind === "annotation") {
+                    (boosted ? boostedAnnotations : normalAnnotations).push(item);
                 } else {
-                    normalThumbnails.push(req);
+                    (boosted ? boostedText : normalText).push(item);
                 }
             }
         }
 
-        // Sort boosted requests by distance to their respective focus
+        // Sort groups by distance to their respective focus
+        const sortByPageDist = (a: QueuedWorkItem, b: QueuedWorkItem) => {
+            const ad = pageFocus && a.docId === pageFocus.docId ? Math.abs(a.page - pageFocus.page) : Infinity;
+            const bd = pageFocus && b.docId === pageFocus.docId ? Math.abs(b.page - pageFocus.page) : Infinity;
+            return ad - bd;
+        };
+
         if (pageFocus) {
-            boostedPages.sort((a, b) => {
-                const aDistance = a.docId === pageFocus.docId ? Math.abs(a.page - pageFocus.page) : Infinity;
-                const bDistance = b.docId === pageFocus.docId ? Math.abs(b.page - pageFocus.page) : Infinity;
-                return aDistance - bDistance;
-            });
+            boostedPages.sort(sortByPageDist);
+            boostedAnnotations.sort(sortByPageDist);
+            boostedText.sort(sortByPageDist);
         }
 
         if (thumbnailFocus) {
             boostedThumbnails.sort((a, b) => {
-                const aDistance = a.docId === thumbnailFocus.docId ? Math.abs(a.page - thumbnailFocus.page) : Infinity;
-                const bDistance = b.docId === thumbnailFocus.docId ? Math.abs(b.page - thumbnailFocus.page) : Infinity;
-                return aDistance - bDistance;
+                const ad = a.docId === thumbnailFocus.docId ? Math.abs(a.page - thumbnailFocus.page) : Infinity;
+                const bd = b.docId === thumbnailFocus.docId ? Math.abs(b.page - thumbnailFocus.page) : Infinity;
+                return ad - bd;
             });
         }
 
-        // Rebuild queue: previews -> boosted pages -> boosted thumbnails -> normal pages -> normal thumbnails
-        this.renderQueue = [
-            ...previewRequests,
+        // Rebuild queue in priority order
+        this.workQueue = [
+            ...previewRenders,
             ...boostedPages,
+            ...boostedAnnotations,
+            ...boostedText,
             ...boostedThumbnails,
             ...normalPages,
+            ...normalAnnotations,
+            ...normalText,
             ...normalThumbnails,
         ];
     }
@@ -1035,10 +1161,10 @@ export class WorkerClient {
      */
     destroyRenderResources(): void {
         // Cancel all pending renders
-        for (const req of this.renderQueue) {
+        for (const req of this.workQueue) {
             req.reject(new Error("WorkerClient destroyed"));
         }
-        this.renderQueue = [];
+        this.workQueue = [];
 
         // Close all cached page bitmaps
         for (const entry of this.pageRenderCache.values()) {
@@ -1059,34 +1185,41 @@ export class WorkerClient {
         this.previewRenderCache.clear();
     }
 
-    private processRenderQueue(): void {
-        // Only one render at a time (WASM is single-threaded)
-        if (this.currentRender) return;
-        if (this.renderQueue.length === 0) return;
+    private processWorkQueue(): void {
+        // Only one request at a time (WASM is single-threaded)
+        if (this.currentWork) return;
+        if (this.workQueue.length === 0) return;
 
-        const req = this.renderQueue.shift();
-        if (!req) return;
+        const item = this.workQueue.shift()!;
+        const key = makeWorkKey(item);
 
-        const key = makeRenderKey(req.docId, req.page, req.type, req.scale);
-        const cache = this.getCache(req.type);
+        let promise: Promise<unknown>;
 
-        // Double-check cache (might have been filled while queued)
-        const cached = cache.get(key);
-        if (cached) {
-            cached.lastAccess = Date.now();
-            req.resolve(cached.result);
-            // Continue processing queue
-            this.processRenderQueue();
-            return;
+        if (item.kind === "render") {
+            const renderKey = makeRenderKey(item.docId, item.page, item.type, item.scale);
+            const cache = this.getCache(item.type);
+
+            // Double-check cache (might have been filled while queued)
+            const cached = cache.get(renderKey);
+            if (cached) {
+                cached.lastAccess = Date.now();
+                item.resolve(cached.result);
+                // Continue processing queue
+                this.processWorkQueue();
+                return;
+            }
+
+            promise = this.doRender(item, renderKey);
+        } else if (item.kind === "annotation") {
+            promise = this.doAnnotation(item);
+        } else {
+            promise = this.doText(item);
         }
 
-        // Start the render
-        const promise = this.doRender(req, key);
-        this.currentRender = { key, promise };
-
+        this.currentWork = { key, promise };
         promise.finally(() => {
-            this.currentRender = null;
-            this.processRenderQueue();
+            this.currentWork = null;
+            this.processWorkQueue();
         });
     }
 
@@ -1133,6 +1266,46 @@ export class WorkerClient {
         } catch (error) {
             if (eventId) counter?.markEnd(eventId, false, (error as Error).message);
             req.reject(error instanceof Error ? error : new Error(String(error)));
+            throw error;
+        }
+    }
+
+    private async doAnnotation(item: QueuedAnnotationItem): Promise<unknown[]> {
+        const pageIndex = item.page - 1;
+        const counter = this.getCounter(item.docId);
+        const eventId = counter?.markStart("getPageAnnotations", { pageIndex });
+        try {
+            const response = (await this.send({
+                type: "getPageAnnotations",
+                documentId: item.docId,
+                pageIndex,
+            })) as { annotations: unknown[] };
+            if (eventId) counter?.markEnd(eventId);
+            item.resolve(response.annotations);
+            return response.annotations;
+        } catch (error) {
+            if (eventId) counter?.markEnd(eventId, false, (error as Error).message);
+            item.reject(error instanceof Error ? error : new Error(String(error)));
+            throw error;
+        }
+    }
+
+    private async doText(item: QueuedTextItem): Promise<unknown[]> {
+        const pageIndex = item.page - 1;
+        const counter = this.getCounter(item.docId);
+        const eventId = counter?.markStart("getPageText", { pageIndex });
+        try {
+            const response = (await this.send({
+                type: "getPageText",
+                documentId: item.docId,
+                pageIndex,
+            })) as { text: unknown[] };
+            if (eventId) counter?.markEnd(eventId);
+            item.resolve(response.text);
+            return response.text;
+        } catch (error) {
+            if (eventId) counter?.markEnd(eventId, false, (error as Error).message);
+            item.reject(error instanceof Error ? error : new Error(String(error)));
             throw error;
         }
     }
