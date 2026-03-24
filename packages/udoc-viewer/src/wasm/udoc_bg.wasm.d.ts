@@ -47,7 +47,7 @@ export const wasm_set_visibility_group_visible: (a: number, b: number, c: number
 export const wasm_setup: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
 export const __wasm_bindgen_func_elem_2579: (a: number, b: number, c: number) => void;
 export const __wasm_bindgen_func_elem_2563: (a: number, b: number) => void;
-export const __wasm_bindgen_func_elem_16841: (a: number, b: number, c: number, d: number) => void;
+export const __wasm_bindgen_func_elem_16842: (a: number, b: number, c: number, d: number) => void;
 export const __wbindgen_export: (a: number, b: number) => number;
 export const __wbindgen_export2: (a: number, b: number, c: number, d: number) => number;
 export const __wbindgen_export3: (a: number) => void;
