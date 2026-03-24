@@ -29,7 +29,7 @@
 
             /* Desktop: Left panel — children each handle 12px horizontal padding */
             .demo-panel {
-                width: 300px;
+                width: 320px;
                 background: #f8fafc;
                 display: flex;
                 flex-direction: column;
@@ -37,40 +37,8 @@
                 border-right: none;
             }
             .panel-header {
-                padding: 16px 12px;
+                padding: 24px 12px 16px 24px;
                 border-bottom: 1px solid #e2e8f0;
-            }
-            .panel-logo {
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                margin-bottom: 14px;
-            }
-            .panel-logo-icon {
-                width: 30px;
-                height: 30px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-            .panel-logo-icon svg {
-                width: 30px;
-                height: 30px;
-            }
-            .panel-logo-text {
-                font-size: 14px;
-                font-weight: 700;
-                color: #1e293b;
-                letter-spacing: -0.3px;
-            }
-            .panel-logo-badge {
-                font-size: 10px;
-                font-weight: 600;
-                color: #4f46e5;
-                background: #eef2ff;
-                padding: 2px 6px;
-                border-radius: 4px;
-                margin-left: auto;
             }
             .panel-actions {
                 display: flex;
@@ -83,7 +51,7 @@
                 gap: 6px;
                 flex: 1;
                 padding: 8px 12px;
-                background: #818cf8;
+                background: #4f46e5;
                 color: white;
                 border: none;
                 border-radius: 6px;
@@ -93,7 +61,7 @@
                 transition: all 0.15s;
             }
             .demo-btn:hover {
-                background: #6366f1;
+                background: #4338ca;
             }
             .demo-btn svg {
                 width: 15px;
@@ -108,12 +76,12 @@
                 color: #94a3b8;
                 text-transform: uppercase;
                 letter-spacing: 0.8px;
-                padding: 14px 12px 6px;
+                padding: 14px 12px 6px 24px;
             }
             .document-list {
                 flex: 1;
                 overflow-y: auto;
-                padding: 0 12px 8px;
+                padding: 0 12px 8px 24px;
             }
             .category-header {
                 font-size: 11px;
@@ -136,7 +104,7 @@
                 align-items: center;
                 gap: 8px;
                 width: 100%;
-                padding: 7px 0;
+                padding: 7px;
                 background: none;
                 border: none;
                 border-radius: 6px;
@@ -173,18 +141,18 @@
                 color: #16a34a;
             }
 
-            /* Options panel */
-            .collapsible {
+            /* Options button (desktop sidebar) */
+            .options-btn-container {
                 margin-top: auto;
-                padding: 12px;
+                padding: 12px 12px 24px 24px;
             }
-            .collapsible .options-toggle-btn {
+            .options-open-btn {
                 display: flex;
                 align-items: center;
                 gap: 8px;
                 width: 100%;
                 padding: 10px;
-                background: #818cf8;
+                background: #4f46e5;
                 border: none;
                 border-radius: 6px;
                 cursor: pointer;
@@ -194,33 +162,78 @@
                 color: white;
                 transition: all 0.15s;
             }
-            .collapsible .options-toggle-btn:hover {
-                background: #6366f1;
+            .options-open-btn:hover {
+                background: #4338ca;
             }
-            .collapsible .options-toggle-btn .gear-icon {
+            .options-open-btn .gear-icon {
                 width: 15px;
                 height: 15px;
                 fill: currentColor;
             }
-            .collapsible .section-chevron {
-                width: 14px;
-                height: 14px;
+
+            /* Options modal */
+            .options-overlay {
+                display: none;
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.4);
+                z-index: 200;
+                align-items: center;
+                justify-content: center;
+            }
+            .options-overlay.open {
+                display: flex;
+            }
+            .options-modal {
+                background: white;
+                border-radius: 12px;
+                width: 420px;
+                max-width: calc(100vw - 32px);
+                max-height: calc(100vh - 64px);
+                display: flex;
+                flex-direction: column;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            }
+            .options-modal-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 16px 20px;
+                border-bottom: 1px solid #e2e8f0;
+            }
+            .options-modal-title {
+                font-size: 15px;
+                font-weight: 700;
+                color: #1e293b;
+            }
+            .options-modal-close {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 28px;
+                height: 28px;
+                background: none;
+                border: none;
+                border-radius: 6px;
+                cursor: pointer;
+                color: #64748b;
+                transition: all 0.15s;
+            }
+            .options-modal-close:hover {
+                background: #f1f5f9;
+                color: #1e293b;
+            }
+            .options-modal-close svg {
+                width: 18px;
+                height: 18px;
                 fill: currentColor;
-                transition: transform 0.2s;
             }
-            .collapsible.collapsed .section-chevron {
-                transform: rotate(-90deg);
-            }
-            .collapsible .section-content {
-                overflow: hidden;
-                transition: max-height 0.25s ease;
-                max-height: 700px;
-            }
-            .collapsible.collapsed .section-content {
-                max-height: 0;
+            .options-modal-body {
+                overflow-y: auto;
+                padding: 16px 20px;
             }
             .options-section {
-                padding: 10px 0 2px;
+                padding: 0;
             }
             .options-group {
                 margin-bottom: 10px;
@@ -281,7 +294,7 @@
                 transition: transform 0.2s;
             }
             .option-toggle input:checked + .slider {
-                background: #6366f1;
+                background: #4f46e5;
             }
             .option-toggle input:checked + .slider::before {
                 transform: translateX(14px);
@@ -496,25 +509,6 @@
             <!-- Desktop: Left sidebar -->
             <div class="demo-panel" id="demo-panel">
                 <div class="panel-header">
-                    <div class="panel-logo">
-                        <div class="panel-logo-icon">
-                            <svg viewBox="0 0 215.2 215.2">
-                                <rect width="215.2" height="215.2" rx="32" ry="32" fill="white" />
-                                <g transform="translate(14.43, 24.92)">
-                                    <path
-                                        d="M37.12 129.54L37.12 129.54Q28.29 129.54 21.31 125.18Q14.34 120.83 10.37 113.15Q6.40 105.47 6.40 95.87L6.40 95.87Q6.40 86.02 10.43 78.40Q14.46 70.78 21.57 66.37Q28.67 61.95 37.50 61.95L37.50 61.95Q44.42 61.95 49.66 64.51Q54.91 67.07 58.11 71.81L58.11 71.81L58.11 35.84L75.39 35.84L75.39 128L60.03 128L58.11 119.17L58.11 119.17Q56.19 121.86 53.31 124.29Q50.43 126.72 46.46 128.13Q42.50 129.54 37.12 129.54ZM41.22 114.43L41.22 114.43Q46.34 114.43 50.24 112.06Q54.14 109.70 56.32 105.47Q58.50 101.25 58.50 95.74L58.50 95.74Q58.50 90.24 56.32 86.02Q54.14 81.79 50.24 79.42Q46.34 77.06 41.22 77.06L41.22 77.06Q36.35 77.06 32.38 79.42Q28.42 81.79 26.18 86.02Q23.94 90.24 23.94 95.62L23.94 95.62Q23.94 101.25 26.18 105.47Q28.42 109.70 32.32 112.06Q36.22 114.43 41.22 114.43Z"
-                                        fill="#0f172a"
-                                    />
-                                    <path
-                                        d="M101.50 128L84.22 128L84.22 38.40L104.83 38.40L132.22 94.34L132.22 94.34L159.36 38.40L179.97 38.40L179.97 128L162.69 128L162.69 67.84L162.69 67.84L139.01 115.46L125.31 115.46L101.50 67.84L101.50 67.84L101.50 128Z"
-                                        fill="#4f46e5"
-                                    />
-                                </g>
-                            </svg>
-                        </div>
-                        <span class="panel-logo-text">udoc-viewer</span>
-                        <span class="panel-logo-badge">Demo</span>
-                    </div>
                     <div class="panel-actions">
                         <button class="demo-btn" id="open-file-btn">
                             <svg viewBox="0 0 24 24" fill="currentColor">
@@ -538,21 +532,15 @@
                 <div class="panel-section-label">Sample Documents</div>
                 <div class="document-list" id="document-list"></div>
 
-                <div class="collapsible collapsed" id="options-panel">
-                    <button class="options-toggle-btn" id="options-toggle">
+                <div class="options-btn-container">
+                    <button class="options-open-btn" id="options-open-btn">
                         <svg class="gear-icon" viewBox="0 0 24 24">
                             <path
                                 d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.49.49 0 0 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1 1 12 8.4a3.6 3.6 0 0 1 0 7.2z"
                             />
                         </svg>
                         Viewer Options
-                        <svg class="section-chevron" style="margin-left: auto" viewBox="0 0 24 24">
-                            <path d="M7 10l5 5 5-5z" />
-                        </svg>
                     </button>
-                    <div class="section-content">
-                        <div class="options-section" id="options-section"></div>
-                    </div>
                 </div>
             </div>
 
@@ -574,6 +562,13 @@
                             />
                         </svg>
                     </button>
+                    <button class="topbar-btn" id="mobile-options-btn" title="Viewer Options">
+                        <svg viewBox="0 0 24 24">
+                            <path
+                                d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.49.49 0 0 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1 1 12 8.4a3.6 3.6 0 0 1 0 7.2z"
+                            />
+                        </svg>
+                    </button>
                     <div class="topbar-divider"></div>
                     <div class="doc-selector" id="doc-selector">
                         <button class="doc-selector-btn" id="doc-selector-btn">
@@ -588,6 +583,24 @@
 
                 <div class="viewer-wrapper">
                     <div id="viewer"></div>
+                </div>
+            </div>
+        </div>
+        <!-- Options modal -->
+        <div class="options-overlay" id="options-overlay">
+            <div class="options-modal">
+                <div class="options-modal-header">
+                    <span class="options-modal-title">Viewer Options</span>
+                    <button class="options-modal-close" id="options-modal-close">
+                        <svg viewBox="0 0 24 24">
+                            <path
+                                d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                            />
+                        </svg>
+                    </button>
+                </div>
+                <div class="options-modal-body">
+                    <div class="options-section" id="options-section"></div>
                 </div>
             </div>
         </div>

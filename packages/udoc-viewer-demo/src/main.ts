@@ -506,11 +506,24 @@ function setupOptionsPanel() {
     }
 }
 
-function setupOptionsToggle() {
-    const toggle = document.getElementById("options-toggle")!;
-    const panel = document.getElementById("options-panel")!;
-    toggle.addEventListener("click", () => {
-        panel.classList.toggle("collapsed");
+function setupOptionsModal() {
+    const overlay = document.getElementById("options-overlay")!;
+    const closeBtn = document.getElementById("options-modal-close")!;
+    const desktopOpenBtn = document.getElementById("options-open-btn")!;
+    const mobileOpenBtn = document.getElementById("mobile-options-btn")!;
+
+    function openModal() {
+        overlay.classList.add("open");
+    }
+    function closeModal() {
+        overlay.classList.remove("open");
+    }
+
+    desktopOpenBtn.addEventListener("click", openModal);
+    mobileOpenBtn.addEventListener("click", openModal);
+    closeBtn.addEventListener("click", closeModal);
+    overlay.addEventListener("click", (e) => {
+        if (e.target === overlay) closeModal();
     });
 }
 
@@ -518,7 +531,7 @@ async function main() {
     populateDocumentLists();
     setupEventListeners();
     setupOptionsPanel();
-    setupOptionsToggle();
+    setupOptionsModal();
 
     // Create initial viewer
     await createViewer();
