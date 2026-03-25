@@ -425,9 +425,16 @@ export function createViewport(showAttribution = true) {
     el.setAttribute("aria-label", "Document content");
     el.setAttribute("tabindex", "0");
 
+    // Content area wraps scroll + attribution so the attribution positions
+    // relative to the content area, not the full viewport (which includes the
+    // floating toolbar footer on small screens).
+    const contentArea = document.createElement("div");
+    contentArea.className = "udoc-viewport__content";
+    el.appendChild(contentArea);
+
     const scrollArea = document.createElement("div");
     scrollArea.className = "udoc-viewport__scroll";
-    el.appendChild(scrollArea);
+    contentArea.appendChild(scrollArea);
 
     const container = document.createElement("div");
     container.className = "udoc-viewport__container";
@@ -482,15 +489,8 @@ export function createViewport(showAttribution = true) {
             .udoc-viewer-dark .${attrClass}-mentis {
                 color: #818cf8;
             }
-            @media (max-width: 768px) {
-                .${attrClass} {
-                    bottom: 48px;
-                    right: 10px;
-                    font-size: 11px;
-                }
-            }
         `;
-        el.appendChild(attrStyle);
+        contentArea.appendChild(attrStyle);
 
         function createAttribution(): HTMLAnchorElement {
             const el2 = document.createElement("a");
@@ -503,20 +503,20 @@ export function createViewport(showAttribution = true) {
         }
 
         let attribution = createAttribution();
-        el.appendChild(attribution);
+        contentArea.appendChild(attribution);
 
         // Protect attribution against removal and modification
         attrObserver = new MutationObserver((mutations) => {
             let needsRestore = false;
 
             // Check if attribution was removed from DOM
-            if (!el.contains(attribution)) {
+            if (!contentArea.contains(attribution)) {
                 needsRestore = true;
             }
 
             // Check if style element was removed
-            if (!el.contains(attrStyle)) {
-                el.appendChild(attrStyle);
+            if (!contentArea.contains(attrStyle)) {
+                contentArea.appendChild(attrStyle);
             }
 
             // Check for attribute tampering on the attribution itself
@@ -536,17 +536,17 @@ export function createViewport(showAttribution = true) {
 
             if (needsRestore) {
                 // Remove old attribution if still in DOM but corrupted
-                if (el.contains(attribution)) {
+                if (contentArea.contains(attribution)) {
                     attribution.remove();
                 }
                 // Create fresh attribution
                 attribution = createAttribution();
-                el.appendChild(attribution);
+                contentArea.appendChild(attribution);
             }
         });
 
         // Observe the parent for child removal and the attribution for attribute/content changes
-        attrObserver.observe(el, { childList: true, subtree: false });
+        attrObserver.observe(contentArea, { childList: true, subtree: false });
         attrObserver.observe(attribution, {
             attributes: true,
             childList: true,
@@ -557,13 +557,13 @@ export function createViewport(showAttribution = true) {
         // Periodic integrity check (catches CSS-based hiding)
         attrIntegrityCheck = setInterval(() => {
             // Restore style element if removed
-            if (!el.contains(attrStyle)) {
-                el.appendChild(attrStyle);
+            if (!contentArea.contains(attrStyle)) {
+                contentArea.appendChild(attrStyle);
             }
             // Restore attribution if removed
-            if (!el.contains(attribution)) {
+            if (!contentArea.contains(attribution)) {
                 attribution = createAttribution();
-                el.appendChild(attribution);
+                contentArea.appendChild(attribution);
                 attrObserver!.observe(attribution, {
                     attributes: true,
                     childList: true,
