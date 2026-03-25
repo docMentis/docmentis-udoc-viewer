@@ -180,6 +180,8 @@
 
 .udoc-viewer-root .udoc-toolbar-slot {
     flex: 0 0 auto;
+    position: relative;
+    z-index: 10;
 }
 
 .udoc-viewer-root .udoc-body-slot {
@@ -424,6 +426,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    width: 24px;
+    height: 100%;
     padding: 2px 2px;
     border: none;
     border-left: 1px solid var(--udoc-subtle-hover);
@@ -431,6 +435,11 @@
     background: transparent;
     color: var(--udoc-text-muted);
     cursor: pointer;
+}
+
+.udoc-viewer-root .udoc-zoom-dropdown__chevron svg {
+    width: 14px;
+    height: 14px;
 }
 
 .udoc-viewer-root .udoc-zoom-dropdown__chevron:hover {
@@ -1672,7 +1681,9 @@
 
     /* Convert floating bar to full-width footer toolbar */
     .udoc-viewer-root .udoc-floating-toolbar {
-        position: static;
+        position: relative;
+        bottom: auto;
+        left: auto;
         flex: 0 0 auto;
         transform: none;
         border-radius: 0;
@@ -1687,18 +1698,6 @@
     /* Hide fullscreen button on mobile */
     .udoc-viewer-root .udoc-toolbar__btn--fullscreen {
         display: none;
-    }
-
-    /* Touch targets for mobile */
-    .udoc-viewer-root .udoc-floating-toolbar__btn {
-        padding: 6px;
-        min-width: 28px;
-        min-height: 28px;
-    }
-
-    .udoc-viewer-root .udoc-floating-toolbar__btn svg {
-        width: 18px;
-        height: 18px;
     }
 
     /* Larger panel tab buttons for touch */
@@ -1724,7 +1723,8 @@
     }
 
     .udoc-viewer-root .udoc-toolbar__btn {
-        padding: 8px;
+        box-sizing: border-box;
+        padding: 6px;
     }
 
     /* View mode menu - right align */
@@ -2481,18 +2481,8 @@
     outline-offset: -2px;
 }
 
-/* Touch target sizes for coarse pointers */
+/* Touch target sizes for coarse pointers (panels and side UI only — toolbars handle their own sizing) */
 @media (pointer: coarse) {
-    .udoc-viewer-root .udoc-toolbar__btn {
-        min-width: 44px;
-        min-height: 44px;
-    }
-
-    .udoc-viewer-root .udoc-toolbar__btn--nav {
-        min-width: 44px;
-        min-height: 44px;
-    }
-
     .udoc-viewer-root .udoc-left-panel__tab {
         width: 44px;
         height: 44px;
@@ -2500,11 +2490,6 @@
 
     .udoc-viewer-root .udoc-left-panel__tabs {
         width: 44px;
-    }
-
-    .udoc-viewer-root .udoc-zoom-dropdown__chevron {
-        min-width: 44px;
-        min-height: 44px;
     }
 
     .udoc-viewer-root .udoc-outline-item__toggle {
