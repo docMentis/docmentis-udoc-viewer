@@ -6,6 +6,8 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+## [0.6.13] - 2026-03-24
+
 ### Features
 
 - Floating toolbar becomes a layout footer on small screens instead of an overlay, eliminating the need for scroll padding and conditional attribution positioning
