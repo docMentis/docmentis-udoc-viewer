@@ -6,6 +6,20 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+### Features
+
+- Floating toolbar becomes a layout footer on small screens instead of an overlay, eliminating the need for scroll padding and conditional attribution positioning
+
+### Bug Fixes
+
+- Fix toolbar button and zoom chevron sizing on touch devices — `pointer: coarse` min-size overrides caused buttons to overflow the 40px toolbar
+- Fix dropdown menu z-index for zoom and view mode menus in both the floating toolbar footer and the header toolbar
+- Left-align inline toolbar controls when floating toolbar is hidden
+- Correct XLSX row height, cell margins, and text alignment (engine)
+- Align right/center text within cell bounds instead of overflow area in XLSX (engine)
+- Default vertical alignment to bottom for XLSX cells (engine)
+- Implement StUniversalMeasure parsing across all OOXML call sites (engine)
+
 ## [0.6.12] - 2026-03-24
 
 ### Features
