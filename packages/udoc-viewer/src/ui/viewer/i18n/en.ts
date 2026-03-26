@@ -128,11 +128,17 @@ export const en: TranslationKeys = {
     // Outline panel
     "outline.label": "Document outline",
     "outline.loading": "Loading outline...",
-    "outline.empty": "No outline available",
+    "outline.empty": "No outline in this document",
+
+    // Bookmarks panel
+    "bookmarks.empty": "No bookmarks in this document",
 
     // Layers panel
     "layers.loading": "Loading layers...",
     "layers.empty": "No layers in this document",
+
+    // Attachments panel
+    "attachments.empty": "No attachments in this document",
     "layers.visibility": "{name} layer visibility",
 
     // Thumbnail panel

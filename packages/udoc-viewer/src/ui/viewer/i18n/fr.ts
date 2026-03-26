@@ -129,11 +129,17 @@ export const fr: TranslationKeys = {
     // Outline panel
     "outline.label": "Sommaire du document",
     "outline.loading": "Chargement du sommaire...",
-    "outline.empty": "Aucun sommaire disponible",
+    "outline.empty": "Aucun sommaire dans ce document",
+
+    // Bookmarks panel
+    "bookmarks.empty": "Aucun signet dans ce document",
 
     // Layers panel
     "layers.loading": "Chargement des calques...",
     "layers.empty": "Aucun calque dans ce document",
+
+    // Attachments panel
+    "attachments.empty": "Aucune pièce jointe dans ce document",
     "layers.visibility": "Visibilité du calque {name}",
 
     // Thumbnail panel

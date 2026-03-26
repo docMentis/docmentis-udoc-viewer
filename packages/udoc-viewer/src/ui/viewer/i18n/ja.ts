@@ -129,11 +129,17 @@ export const ja: TranslationKeys = {
     // Outline panel
     "outline.label": "文書のアウトライン",
     "outline.loading": "アウトラインを読み込み中...",
-    "outline.empty": "アウトラインはありません",
+    "outline.empty": "この文書にアウトラインはありません",
+
+    // Bookmarks panel
+    "bookmarks.empty": "この文書にブックマークはありません",
 
     // Layers panel
     "layers.loading": "レイヤーを読み込み中...",
     "layers.empty": "この文書にレイヤーはありません",
+
+    // Attachments panel
+    "attachments.empty": "この文書に添付ファイルはありません",
     "layers.visibility": "{name}レイヤーの表示切替",
 
     // Thumbnail panel

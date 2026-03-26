@@ -8,7 +8,9 @@ import type { I18n } from "../i18n/index.js";
 import { ICON_THUMBNAIL, ICON_OUTLINE, ICON_BOOKMARK, ICON_LAYERS, ICON_ATTACHMENT } from "../icons";
 import { createThumbnailPanel, type ThumbnailPanelComponent } from "./ThumbnailPanel";
 import { createOutlinePanel, type OutlinePanelComponent } from "./OutlinePanel";
+import { createBookmarksPanel, type BookmarksPanelComponent } from "./BookmarksPanel";
 import { createLayersPanel, type LayersPanelComponent } from "./LayersPanel";
+import { createAttachmentsPanel, type AttachmentsPanelComponent } from "./AttachmentsPanel";
 
 interface TabConfig {
     id: LeftPanelTab;
@@ -85,7 +87,9 @@ export function createLeftPanel() {
     // Panel content components
     let thumbnailPanel: ThumbnailPanelComponent | null = null;
     let outlinePanel: OutlinePanelComponent | null = null;
+    let bookmarksPanel: BookmarksPanelComponent | null = null;
     let layersPanel: LayersPanelComponent | null = null;
+    let attachmentsPanel: AttachmentsPanelComponent | null = null;
     let storeRef: Store<ViewerState, Action> | null = null;
     let workerClientRef: WorkerClient | null = null;
     let i18nRef: I18n | null = null;
@@ -132,9 +136,17 @@ export function createLeftPanel() {
             outlinePanel.destroy();
             outlinePanel = null;
         }
+        if (bookmarksPanel) {
+            bookmarksPanel.destroy();
+            bookmarksPanel = null;
+        }
         if (layersPanel) {
             layersPanel.destroy();
             layersPanel = null;
+        }
+        if (attachmentsPanel) {
+            attachmentsPanel.destroy();
+            attachmentsPanel = null;
         }
 
         // Mount new content based on active tab
@@ -144,9 +156,15 @@ export function createLeftPanel() {
         } else if (activeTab === "outline" && storeRef) {
             outlinePanel = createOutlinePanel();
             outlinePanel.mount(content, storeRef, i18nRef!);
+        } else if (activeTab === "bookmarks") {
+            bookmarksPanel = createBookmarksPanel();
+            bookmarksPanel.mount(content, i18nRef!);
         } else if (activeTab === "layers" && storeRef && workerClientRef) {
             layersPanel = createLayersPanel();
             layersPanel.mount(content, storeRef, workerClientRef, i18nRef!);
+        } else if (activeTab === "attachments") {
+            attachmentsPanel = createAttachmentsPanel();
+            attachmentsPanel.mount(content, i18nRef!);
         }
     }
 
@@ -273,9 +291,17 @@ export function createLeftPanel() {
             outlinePanel.destroy();
             outlinePanel = null;
         }
+        if (bookmarksPanel) {
+            bookmarksPanel.destroy();
+            bookmarksPanel = null;
+        }
         if (layersPanel) {
             layersPanel.destroy();
             layersPanel = null;
+        }
+        if (attachmentsPanel) {
+            attachmentsPanel.destroy();
+            attachmentsPanel = null;
         }
 
         storeRef = null;

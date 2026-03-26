@@ -128,11 +128,17 @@ export const ptBR: TranslationKeys = {
     // Outline panel
     "outline.label": "Sumário do documento",
     "outline.loading": "Carregando sumário...",
-    "outline.empty": "Nenhum sumário disponível",
+    "outline.empty": "Nenhum sumário neste documento",
+
+    // Bookmarks panel
+    "bookmarks.empty": "Nenhum marcador neste documento",
 
     // Layers panel
     "layers.loading": "Carregando camadas...",
     "layers.empty": "Nenhuma camada neste documento",
+
+    // Attachments panel
+    "attachments.empty": "Nenhum anexo neste documento",
     "layers.visibility": "Visibilidade da camada {name}",
 
     // Thumbnail panel

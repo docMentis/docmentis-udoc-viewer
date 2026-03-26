@@ -128,11 +128,17 @@ export const ar: TranslationKeys = {
     // Outline panel
     "outline.label": "فهرس المستند",
     "outline.loading": "جارٍ تحميل الفهرس...",
-    "outline.empty": "لا يوجد فهرس متاح",
+    "outline.empty": "لا يوجد فهرس في هذا المستند",
+
+    // Bookmarks panel
+    "bookmarks.empty": "لا توجد إشارات مرجعية في هذا المستند",
 
     // Layers panel
     "layers.loading": "جارٍ تحميل الطبقات...",
     "layers.empty": "لا توجد طبقات في هذا المستند",
+
+    // Attachments panel
+    "attachments.empty": "لا توجد مرفقات في هذا المستند",
     "layers.visibility": "إظهار/إخفاء طبقة {name}",
 
     // Thumbnail panel

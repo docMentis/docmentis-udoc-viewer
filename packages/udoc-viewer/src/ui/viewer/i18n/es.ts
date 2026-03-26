@@ -128,11 +128,17 @@ export const es: TranslationKeys = {
     // Outline panel
     "outline.label": "Índice del documento",
     "outline.loading": "Cargando índice...",
-    "outline.empty": "No hay índice disponible",
+    "outline.empty": "No hay índice en este documento",
+
+    // Bookmarks panel
+    "bookmarks.empty": "No hay marcadores en este documento",
 
     // Layers panel
     "layers.loading": "Cargando capas...",
     "layers.empty": "No hay capas en este documento",
+
+    // Attachments panel
+    "attachments.empty": "No hay adjuntos en este documento",
     "layers.visibility": "Visibilidad de la capa {name}",
 
     // Thumbnail panel

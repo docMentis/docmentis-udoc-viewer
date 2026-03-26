@@ -128,9 +128,15 @@ export interface TranslationKeys {
     "outline.loading": string;
     "outline.empty": string;
 
+    // Bookmarks panel
+    "bookmarks.empty": string;
+
     // Layers panel
     "layers.loading": string;
     "layers.empty": string;
+
+    // Attachments panel
+    "attachments.empty": string;
     "layers.visibility": string; // "{name} layer visibility"
 
     // Thumbnail panel

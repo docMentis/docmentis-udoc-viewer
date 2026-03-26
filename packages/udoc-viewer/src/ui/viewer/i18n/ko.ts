@@ -129,11 +129,17 @@ export const ko: TranslationKeys = {
     // Outline panel
     "outline.label": "문서 개요",
     "outline.loading": "개요 로딩 중...",
-    "outline.empty": "사용 가능한 개요가 없습니다",
+    "outline.empty": "이 문서에 개요가 없습니다",
+
+    // Bookmarks panel
+    "bookmarks.empty": "이 문서에 북마크가 없습니다",
 
     // Layers panel
     "layers.loading": "레이어 로딩 중...",
     "layers.empty": "이 문서에 레이어가 없습니다",
+
+    // Attachments panel
+    "attachments.empty": "이 문서에 첨부 파일이 없습니다",
     "layers.visibility": "{name} 레이어 표시 전환",
 
     // Thumbnail panel

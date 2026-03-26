@@ -37,7 +37,7 @@ export function createLayersPanel() {
 
         if (groups.length === 0) {
             const empty = document.createElement("div");
-            empty.className = "udoc-layers-panel__empty";
+            empty.className = "udoc-panel-empty";
             empty.textContent = i18nRef!.t("layers.empty");
             el.appendChild(empty);
             return;

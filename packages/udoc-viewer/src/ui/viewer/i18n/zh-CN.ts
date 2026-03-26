@@ -128,11 +128,17 @@ export const zhCN: TranslationKeys = {
     // Outline panel
     "outline.label": "文档大纲",
     "outline.loading": "正在加载大纲…",
-    "outline.empty": "暂无大纲",
+    "outline.empty": "此文档暂无大纲",
+
+    // Bookmarks panel
+    "bookmarks.empty": "此文档暂无书签",
 
     // Layers panel
     "layers.loading": "正在加载图层…",
     "layers.empty": "此文档暂无图层",
+
+    // Attachments panel
+    "attachments.empty": "此文档暂无附件",
     "layers.visibility": "{name} 图层可见性",
 
     // Thumbnail panel

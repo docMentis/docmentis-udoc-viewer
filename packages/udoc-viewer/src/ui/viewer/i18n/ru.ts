@@ -129,11 +129,17 @@ export const ru: TranslationKeys = {
     // Outline panel
     "outline.label": "Оглавление документа",
     "outline.loading": "Загрузка оглавления...",
-    "outline.empty": "Оглавление отсутствует",
+    "outline.empty": "В этом документе нет оглавления",
+
+    // Bookmarks panel
+    "bookmarks.empty": "В этом документе нет закладок",
 
     // Layers panel
     "layers.loading": "Загрузка слоёв...",
     "layers.empty": "В этом документе нет слоёв",
+
+    // Attachments panel
+    "attachments.empty": "В этом документе нет вложений",
     "layers.visibility": "Видимость слоя «{name}»",
 
     // Thumbnail panel

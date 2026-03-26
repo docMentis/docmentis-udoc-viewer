@@ -128,11 +128,17 @@ export const zhTW: TranslationKeys = {
     // Outline panel
     "outline.label": "文件大綱",
     "outline.loading": "正在載入大綱…",
-    "outline.empty": "沒有大綱",
+    "outline.empty": "此文件沒有大綱",
+
+    // Bookmarks panel
+    "bookmarks.empty": "此文件沒有書籤",
 
     // Layers panel
     "layers.loading": "正在載入圖層…",
     "layers.empty": "此文件沒有圖層",
+
+    // Attachments panel
+    "attachments.empty": "此文件沒有附件",
     "layers.visibility": "{name} 圖層可見性",
 
     // Thumbnail panel

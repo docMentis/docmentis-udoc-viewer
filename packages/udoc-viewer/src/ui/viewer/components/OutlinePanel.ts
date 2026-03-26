@@ -264,7 +264,7 @@ export function createOutlinePanel() {
         if (outline.length === 0) {
             el.removeAttribute("role");
             const empty = document.createElement("div");
-            empty.className = "udoc-outline-panel__empty";
+            empty.className = "udoc-panel-empty";
             empty.textContent = i18nRef!.t("outline.empty");
             el.appendChild(empty);
             return;

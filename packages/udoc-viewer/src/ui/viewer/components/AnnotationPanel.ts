@@ -91,13 +91,7 @@ export function createAnnotationPanel() {
     let storeRef: Store<ViewerState, Action> | null = null;
     let i18nRef: I18n | null = null;
     function renderPlaceholder(): void {
-        el.innerHTML = `
-            <div class="udoc-annotation-panel__placeholder">
-                <div class="udoc-annotation-panel__placeholder-icon">${ICON_COMMENTS}</div>
-                <div class="udoc-annotation-panel__placeholder-title">${i18nRef!.t("annotations.comments")}</div>
-                <div class="udoc-annotation-panel__placeholder-message">${i18nRef!.t("annotations.noComments")}</div>
-            </div>
-        `;
+        el.innerHTML = `<div class="udoc-panel-empty">${i18nRef!.t("annotations.noComments")}</div>`;
     }
 
     function renderLoading(): void {

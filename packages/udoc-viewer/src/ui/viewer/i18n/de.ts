@@ -129,11 +129,17 @@ export const de: TranslationKeys = {
     // Outline panel
     "outline.label": "Dokumentgliederung",
     "outline.loading": "Gliederung wird geladen...",
-    "outline.empty": "Keine Gliederung verfügbar",
+    "outline.empty": "Keine Gliederung in diesem Dokument",
+
+    // Bookmarks panel
+    "bookmarks.empty": "Keine Lesezeichen in diesem Dokument",
 
     // Layers panel
     "layers.loading": "Ebenen werden geladen...",
     "layers.empty": "Keine Ebenen in diesem Dokument",
+
+    // Attachments panel
+    "attachments.empty": "Keine Anhänge in diesem Dokument",
     "layers.visibility": "Sichtbarkeit der Ebene {name}",
 
     // Thumbnail panel
