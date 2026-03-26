@@ -1069,11 +1069,14 @@ export class WorkerClient {
     private static readonly BOOST_RANGE = 5; // Boost pages within ±5 of focus (11 pages total)
 
     /**
-     * Sort work queue by priority using stored page and thumbnail focuses.
-     * Order: previews -> boosted pages -> boosted annotations -> boosted text ->
-     *        boosted thumbnails -> normal pages -> normal annotations -> normal text -> normal thumbnails.
-     * "Boosted" means within BOOST_RANGE of the respective focus.
-     * Within each group, sorted by distance to respective focus.
+     * Sort work queue by priority: page-proximity first, then type within each page.
+     *
+     * For page-focused items (pages, previews, annotations, text):
+     *   Grouped by distance to pageFocus, closest first. Within each page,
+     *   ordered: preview → page render → annotation → text.
+     *   Boosted pages (within BOOST_RANGE) come before all non-boosted pages.
+     *
+     * Thumbnails use thumbnailFocus independently and come after all page items.
      */
     private sortQueue(): void {
         if (this.workQueue.length === 0) return;
@@ -1081,79 +1084,51 @@ export class WorkerClient {
         const pageFocus = this.pageFocus;
         const thumbnailFocus = this.thumbnailFocus;
 
-        // 9 priority groups
-        const previewRenders: QueuedWorkItem[] = [];
-        const boostedPages: QueuedWorkItem[] = [];
-        const boostedAnnotations: QueuedWorkItem[] = [];
-        const boostedText: QueuedWorkItem[] = [];
-        const boostedThumbnails: QueuedWorkItem[] = [];
-        const normalPages: QueuedWorkItem[] = [];
-        const normalAnnotations: QueuedWorkItem[] = [];
-        const normalText: QueuedWorkItem[] = [];
-        const normalThumbnails: QueuedWorkItem[] = [];
+        const pageItems: QueuedWorkItem[] = [];
+        const thumbnailItems: QueuedWorkItem[] = [];
 
         for (const item of this.workQueue) {
-            if (item.kind === "render") {
-                if (item.type === "preview") {
-                    previewRenders.push(item);
-                } else if (item.type === "page") {
-                    const distance =
-                        pageFocus && item.docId === pageFocus.docId ? Math.abs(item.page - pageFocus.page) : Infinity;
-                    (distance <= WorkerClient.BOOST_RANGE ? boostedPages : normalPages).push(item);
-                } else {
-                    // thumbnail
-                    const distance =
-                        thumbnailFocus && item.docId === thumbnailFocus.docId
-                            ? Math.abs(item.page - thumbnailFocus.page)
-                            : Infinity;
-                    (distance <= WorkerClient.BOOST_RANGE ? boostedThumbnails : normalThumbnails).push(item);
-                }
+            if (item.kind === "render" && item.type === "thumbnail") {
+                thumbnailItems.push(item);
             } else {
-                // annotation or text — use pageFocus for distance
-                const distance =
-                    pageFocus && item.docId === pageFocus.docId ? Math.abs(item.page - pageFocus.page) : Infinity;
-                const boosted = distance <= WorkerClient.BOOST_RANGE;
-                if (item.kind === "annotation") {
-                    (boosted ? boostedAnnotations : normalAnnotations).push(item);
-                } else {
-                    (boosted ? boostedText : normalText).push(item);
-                }
+                pageItems.push(item);
             }
         }
 
-        // Sort groups by distance to their respective focus
-        const sortByPageDist = (a: QueuedWorkItem, b: QueuedWorkItem) => {
-            const ad = pageFocus && a.docId === pageFocus.docId ? Math.abs(a.page - pageFocus.page) : Infinity;
-            const bd = pageFocus && b.docId === pageFocus.docId ? Math.abs(b.page - pageFocus.page) : Infinity;
-            return ad - bd;
+        // Sort page items: by distance to focus, then by type within same page
+        const typeOrder = (item: QueuedWorkItem): number => {
+            if (item.kind === "render" && item.type === "preview") return 0;
+            if (item.kind === "render" && item.type === "page") return 1;
+            if (item.kind === "annotation") return 2;
+            // text
+            return 3;
         };
 
-        if (pageFocus) {
-            boostedPages.sort(sortByPageDist);
-            boostedAnnotations.sort(sortByPageDist);
-            boostedText.sort(sortByPageDist);
-        }
+        pageItems.sort((a, b) => {
+            const ad = pageFocus && a.docId === pageFocus.docId ? Math.abs(a.page - pageFocus.page) : Infinity;
+            const bd = pageFocus && b.docId === pageFocus.docId ? Math.abs(b.page - pageFocus.page) : Infinity;
 
-        if (thumbnailFocus) {
-            boostedThumbnails.sort((a, b) => {
-                const ad = a.docId === thumbnailFocus.docId ? Math.abs(a.page - thumbnailFocus.page) : Infinity;
-                const bd = b.docId === thumbnailFocus.docId ? Math.abs(b.page - thumbnailFocus.page) : Infinity;
-                return ad - bd;
-            });
-        }
+            // Boosted vs non-boosted
+            const aBoosted = ad <= WorkerClient.BOOST_RANGE;
+            const bBoosted = bd <= WorkerClient.BOOST_RANGE;
+            if (aBoosted !== bBoosted) return aBoosted ? -1 : 1;
 
-        // Rebuild queue in priority order
-        this.workQueue = [
-            ...previewRenders,
-            ...boostedPages,
-            ...boostedAnnotations,
-            ...boostedText,
-            ...boostedThumbnails,
-            ...normalPages,
-            ...normalAnnotations,
-            ...normalText,
-            ...normalThumbnails,
-        ];
+            // Same distance → order by type; different distance → closer first
+            if (ad !== bd) return ad - bd;
+            return typeOrder(a) - typeOrder(b);
+        });
+
+        // Sort thumbnails by distance to thumbnail focus
+        thumbnailItems.sort((a, b) => {
+            const ad =
+                thumbnailFocus && a.docId === thumbnailFocus.docId ? Math.abs(a.page - thumbnailFocus.page) : Infinity;
+            const bd =
+                thumbnailFocus && b.docId === thumbnailFocus.docId ? Math.abs(b.page - thumbnailFocus.page) : Infinity;
+            return ad - bd;
+        });
+
+        // Page items first, then thumbnails
+        this.workQueue = [...pageItems, ...thumbnailItems];
     }
 
     /**
