@@ -6,6 +6,28 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+### Features
+
+- Expose `parseFontInfo` API for extracting font metadata from raw binary files
+- Add mobile toolbar overflow menu for better small-screen usability
+- Font metadata extraction via WASM for binary font files (engine)
+- Kern attribute support for improved PPTX text spacing (engine)
+- Persist search results across panel close/reopen and add clear button
+
+### Bug Fixes
+
+- Unify empty state UI across all panels
+- Remove panel shadow bleed and match mobile toolbar colors
+- Sort render queue by page proximity for faster visible-page rendering
+- Fix search panel layout and interaction issues on mobile
+- Comprehensive Noto Sans glyph fallback for text and bullet characters (engine)
+- Move ICC transform caches from thread-local to render session scope (engine)
+- Prevent WASM out-of-memory on large documents with LRU cache eviction (engine)
+- Disable anti-aliasing for axis-aligned rectangle fills (engine)
+- Fix row height calculation in grid layout (engine)
+- Fix XLSX column width formula and theme font resolution (engine)
+- Detect and break form XObject cycles in PDF loader (engine)
+
 ## [0.6.13] - 2026-03-24
 
 ### Features
