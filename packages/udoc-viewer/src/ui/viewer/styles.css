@@ -2243,6 +2243,36 @@
     outline: none;
 }
 
+.udoc-viewer-root .udoc-search-panel__clear {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    margin-right: 4px;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--udoc-text-placeholder);
+    cursor: pointer;
+    padding: 0;
+    flex-shrink: 0;
+}
+
+.udoc-viewer-root .udoc-search-panel__clear:hover {
+    background: var(--udoc-hover-overlay);
+    color: var(--udoc-text-body);
+}
+
+.udoc-viewer-root .udoc-search-panel__clear svg {
+    width: 14px;
+    height: 14px;
+}
+
+.udoc-viewer-root .udoc-search-panel__clear:focus-visible {
+    outline: none;
+}
+
 .udoc-viewer-root .udoc-search-panel__case {
     display: flex;
     align-items: center;

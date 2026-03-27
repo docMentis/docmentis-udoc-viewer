@@ -275,17 +275,10 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
             if (state.disabledPanels.has(action.panel)) return state;
             const newPanel = state.activePanel === action.panel ? null : action.panel;
             if (state.activePanel === newPanel) return state;
-            // Clear search state when toggling away from search panel
-            if (state.activePanel === "search" && newPanel !== "search") {
-                return { ...state, activePanel: newPanel, searchQuery: "", searchMatches: [], searchActiveIndex: -1 };
-            }
             return { ...state, activePanel: newPanel };
         }
         case "CLOSE_PANEL": {
             if (state.activePanel === null) return state;
-            if (state.activePanel === "search") {
-                return { ...state, activePanel: null, searchQuery: "", searchMatches: [], searchActiveIndex: -1 };
-            }
             return { ...state, activePanel: null };
         }
         case "SET_LEFT_PANEL_WIDTH": {

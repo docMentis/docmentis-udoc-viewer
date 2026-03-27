@@ -15,7 +15,7 @@ import { subscribeSelector } from "../../framework/selectors";
 import { on } from "../../framework/events";
 import type { ViewerState, SearchMatch } from "../state";
 import type { Action } from "../actions";
-import { ICON_CHEVRON_UP, ICON_CHEVRON_DOWN, ICON_SEARCH } from "../icons";
+import { ICON_CHEVRON_UP, ICON_CHEVRON_DOWN, ICON_SEARCH, ICON_CLEAR } from "../icons";
 import type { I18n } from "../i18n/index.js";
 
 type SearchPanelSlice = {
@@ -50,7 +50,14 @@ export function createSearchPanel() {
     input.placeholder = "Search in document...";
     input.setAttribute("aria-label", "Search text");
 
-    inputWrapper.append(inputIcon, input);
+    const clearBtn = document.createElement("button");
+    clearBtn.className = "udoc-search-panel__clear";
+    clearBtn.innerHTML = ICON_CLEAR;
+    clearBtn.title = "Clear search";
+    clearBtn.setAttribute("aria-label", "Clear search");
+    clearBtn.style.display = "none";
+
+    inputWrapper.append(inputIcon, input, clearBtn);
 
     const caseBtn = document.createElement("button");
     caseBtn.className = "udoc-search-panel__case";
@@ -123,6 +130,9 @@ export function createSearchPanel() {
         if (input.value !== slice.query) {
             input.value = slice.query;
         }
+
+        // Show/hide clear button based on query
+        clearBtn.style.display = slice.query ? "" : "none";
 
         // Update case button
         caseBtn.classList.toggle("udoc-search-panel__case--active", slice.caseSensitive);
@@ -274,6 +284,16 @@ export function createSearchPanel() {
                 if (storeRef) {
                     const current = storeRef.getState().searchCaseSensitive;
                     storeRef.dispatch({ type: "SET_SEARCH_CASE_SENSITIVE", caseSensitive: !current });
+                }
+            }),
+        );
+
+        // Clear search button
+        unsubEvents.push(
+            on(clearBtn, "click", () => {
+                if (storeRef) {
+                    storeRef.dispatch({ type: "CLEAR_SEARCH" });
+                    input.focus({ preventScroll: true });
                 }
             }),
         );
