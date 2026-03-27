@@ -40,6 +40,7 @@ export const zhCN: TranslationKeys = {
     "toolbar.zoomLevel": "缩放级别",
     "toolbar.zoomOptions": "缩放选项",
     "toolbar.zoomLevels": "缩放级别",
+    "toolbar.more": "更多",
 
     // Zoom modes
     "zoom.fitWidth": "适合宽度",

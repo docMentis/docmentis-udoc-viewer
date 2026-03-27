@@ -40,6 +40,7 @@ export const ja: TranslationKeys = {
     "toolbar.zoomLevel": "ズームレベル",
     "toolbar.zoomOptions": "ズームオプション",
     "toolbar.zoomLevels": "ズームレベル一覧",
+    "toolbar.more": "その他",
 
     // Zoom modes
     "zoom.fitWidth": "幅に合わせる",

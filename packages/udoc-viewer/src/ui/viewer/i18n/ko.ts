@@ -40,6 +40,7 @@ export const ko: TranslationKeys = {
     "toolbar.zoomLevel": "확대/축소 수준",
     "toolbar.zoomOptions": "확대/축소 옵션",
     "toolbar.zoomLevels": "확대/축소 수준 목록",
+    "toolbar.more": "더보기",
 
     // Zoom modes
     "zoom.fitWidth": "너비에 맞추기",

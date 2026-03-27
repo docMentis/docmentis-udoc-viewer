@@ -40,6 +40,7 @@ export const de: TranslationKeys = {
     "toolbar.zoomLevel": "Zoomstufe",
     "toolbar.zoomOptions": "Zoomoptionen",
     "toolbar.zoomLevels": "Zoomstufen",
+    "toolbar.more": "Mehr",
 
     // Zoom modes
     "zoom.fitWidth": "Breite anpassen",

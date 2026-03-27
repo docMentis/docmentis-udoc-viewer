@@ -38,6 +38,7 @@ export interface TranslationKeys {
     "toolbar.zoomLevel": string;
     "toolbar.zoomOptions": string;
     "toolbar.zoomLevels": string;
+    "toolbar.more": string;
 
     // Zoom modes (shared between Toolbar and FloatingToolbar)
     "zoom.fitWidth": string;

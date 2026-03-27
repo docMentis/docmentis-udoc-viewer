@@ -113,9 +113,10 @@ export function createSearchPanel() {
         }
         el.style.display = "";
 
-        // Auto-focus input when panel opens
+        // Auto-focus input when panel opens (preventScroll avoids viewport
+        // shift while the mobile slide-in transition is still running)
         if (lastSlice && !lastSlice.isOpen && slice.isOpen) {
-            requestAnimationFrame(() => input.focus());
+            requestAnimationFrame(() => input.focus({ preventScroll: true }));
         }
 
         // Update input value only if it differs (avoid cursor jump)

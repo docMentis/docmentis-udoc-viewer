@@ -8,6 +8,7 @@ import type { Action } from "../actions";
 import { setupRovingTabindex } from "../a11y";
 import {
     ICON_MENU,
+    ICON_MORE,
     ICON_SEARCH,
     ICON_COMMENTS,
     ICON_FULLSCREEN,
@@ -233,7 +234,22 @@ export function createToolbar() {
     const downloadBtn = createButton("udoc-toolbar__btn--download", "Download", ICON_DOWNLOAD);
     const themeBtn = createButton("udoc-toolbar__btn--theme", "Toggle theme", ICON_THEME_DARK);
     const fullscreenBtn = createButton("udoc-toolbar__btn--fullscreen", "Fullscreen", ICON_FULLSCREEN);
-    rightSection.append(searchBtn, commentsBtn, printBtn, downloadBtn, themeBtn, fullscreenBtn);
+    // Overflow menu (visible only on mobile)
+    const overflowContainer = document.createElement("div");
+    overflowContainer.className = "udoc-overflow-menu";
+
+    const overflowBtn = createButton("udoc-toolbar__btn--more", "More", ICON_MORE);
+    overflowBtn.setAttribute("aria-haspopup", "true");
+    overflowBtn.setAttribute("aria-expanded", "false");
+
+    const overflowDropdown = document.createElement("div");
+    overflowDropdown.className = "udoc-overflow-menu__dropdown";
+    overflowDropdown.setAttribute("role", "menu");
+    overflowDropdown.style.display = "none";
+
+    overflowContainer.append(overflowBtn, overflowDropdown);
+
+    rightSection.append(searchBtn, commentsBtn, printBtn, downloadBtn, themeBtn, fullscreenBtn, overflowContainer);
 
     el.append(leftSection, centerSection, rightSection);
 
@@ -245,6 +261,24 @@ export function createToolbar() {
     let onPrintCallback: (() => void) | null = null;
 
     // Zoom dropdown local state
+    let isOverflowOpen = false;
+
+    const openOverflow = () => {
+        if (!isOverflowOpen) {
+            isOverflowOpen = true;
+            overflowDropdown.style.display = "block";
+            overflowBtn.setAttribute("aria-expanded", "true");
+        }
+    };
+
+    const closeOverflow = () => {
+        if (isOverflowOpen) {
+            isOverflowOpen = false;
+            overflowDropdown.style.display = "none";
+            overflowBtn.setAttribute("aria-expanded", "false");
+        }
+    };
+
     let isZoomDropdownOpen = false;
 
     const openZoomDropdown = () => {
@@ -546,6 +580,37 @@ export function createToolbar() {
         document.addEventListener("keydown", handleEscape);
         unsubEvents.push(() => document.removeEventListener("keydown", handleEscape));
 
+        // Wire overflow menu
+        overflowBtn.title = i18n.t("toolbar.more");
+        overflowBtn.setAttribute("aria-label", i18n.t("toolbar.more"));
+
+        const onOverflowClick = (e: MouseEvent) => {
+            e.stopPropagation();
+            if (isOverflowOpen) {
+                closeOverflow();
+            } else {
+                openOverflow();
+            }
+        };
+        overflowBtn.addEventListener("click", onOverflowClick);
+        unsubEvents.push(() => overflowBtn.removeEventListener("click", onOverflowClick));
+
+        const handleOverflowOutsideClick = (e: MouseEvent) => {
+            if (!overflowContainer.contains(e.target as Node)) {
+                closeOverflow();
+            }
+        };
+        document.addEventListener("click", handleOverflowOutsideClick);
+        unsubEvents.push(() => document.removeEventListener("click", handleOverflowOutsideClick));
+
+        const handleOverflowEscape = (e: KeyboardEvent) => {
+            if (e.key === "Escape") {
+                closeOverflow();
+            }
+        };
+        document.addEventListener("keydown", handleOverflowEscape);
+        unsubEvents.push(() => document.removeEventListener("keydown", handleOverflowEscape));
+
         // Subscribe to state changes
         const applyState = (slice: ToolbarSlice) => {
             // Toolbar visibility
@@ -593,6 +658,54 @@ export function createToolbar() {
             const fsLabel = slice.isFullscreen ? i18n.t("toolbar.exitFullscreen") : i18n.t("toolbar.fullscreen");
             fullscreenBtn.setAttribute("aria-label", fsLabel);
             fullscreenBtn.title = fsLabel;
+
+            // Rebuild overflow menu items
+            {
+                overflowDropdown.innerHTML = "";
+
+                type OverflowItem = { icon: string; label: string; action: () => void };
+                const items: OverflowItem[] = [];
+
+                const searchVisible = slice.rightPanelVisible && !slice.disabledPanels.has("search");
+                if (searchVisible) {
+                    items.push({ icon: ICON_SEARCH, label: i18n.t("toolbar.search"), action: onSearchClick });
+                }
+
+                const commentsVisible = slice.rightPanelVisible && !slice.disabledPanels.has("comments");
+                if (commentsVisible) {
+                    items.push({ icon: ICON_COMMENTS, label: i18n.t("toolbar.comments"), action: onCommentsClick });
+                }
+
+                if (slice.printButtonVisible) {
+                    items.push({ icon: ICON_PRINT, label: i18n.t("toolbar.print"), action: onPrintClick });
+                }
+
+                if (slice.downloadButtonVisible) {
+                    items.push({ icon: ICON_DOWNLOAD, label: i18n.t("toolbar.download"), action: onDownloadClick });
+                }
+
+                if (!slice.themeSwitchingDisabled) {
+                    items.push({ icon: themeIcon, label: themeLabel, action: onThemeClick });
+                }
+
+                if (slice.fullscreenButtonVisible) {
+                    const fsIcon = slice.isFullscreen ? ICON_FULLSCREEN_EXIT : ICON_FULLSCREEN;
+                    items.push({ icon: fsIcon, label: fsLabel, action: onFullscreenClick });
+                }
+
+                for (const item of items) {
+                    const menuItem = document.createElement("button");
+                    menuItem.className = "udoc-overflow-menu__item";
+                    menuItem.setAttribute("role", "menuitem");
+                    menuItem.innerHTML = `<span class="udoc-overflow-menu__item-icon">${item.icon}</span><span class="udoc-overflow-menu__item-label">${item.label}</span>`;
+                    menuItem.addEventListener("click", (e) => {
+                        e.stopPropagation();
+                        closeOverflow();
+                        item.action();
+                    });
+                    overflowDropdown.appendChild(menuItem);
+                }
+            }
 
             // Center section visibility (show when floating toolbar is hidden)
             const showCenter = slice.toolbarVisible && !slice.floatingToolbarVisible;

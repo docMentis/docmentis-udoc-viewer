@@ -965,6 +965,58 @@
     justify-content: flex-start;
 }
 
+/* Overflow menu (hidden on desktop, shown on mobile) */
+.udoc-viewer-root .udoc-overflow-menu {
+    display: none;
+    position: relative;
+}
+
+.udoc-viewer-root .udoc-overflow-menu__dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 4px;
+    min-width: 180px;
+    background: var(--udoc-bg-surface);
+    border: 1px solid var(--udoc-border);
+    border-radius: 8px;
+    box-shadow: var(--udoc-shadow-dialog);
+    padding: 4px 0;
+    z-index: 200;
+}
+
+.udoc-viewer-root .udoc-overflow-menu__item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 10px 14px;
+    border: none;
+    background: transparent;
+    color: var(--udoc-text-body);
+    font-size: 14px;
+    cursor: pointer;
+    text-align: left;
+}
+
+.udoc-viewer-root .udoc-overflow-menu__item:hover {
+    background: var(--udoc-hover-overlay);
+}
+
+.udoc-viewer-root .udoc-overflow-menu__item-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+.udoc-viewer-root .udoc-overflow-menu__item-icon svg {
+    width: 18px;
+    height: 18px;
+}
+
 .udoc-viewer-root .udoc-toolbar__group {
     display: flex;
     align-items: center;
@@ -1657,9 +1709,23 @@
         justify-content: center;
     }
 
-    /* Hide fullscreen button on mobile */
+    /* Raise toolbar above slide-out panels so overflow dropdown is not hidden */
+    .udoc-viewer-root .udoc-toolbar-slot {
+        z-index: 160;
+    }
+
+    /* Hide individual right-section buttons on mobile; show overflow menu */
+    .udoc-viewer-root .udoc-toolbar__btn--search,
+    .udoc-viewer-root .udoc-toolbar__btn--comments,
+    .udoc-viewer-root .udoc-toolbar__btn--print,
+    .udoc-viewer-root .udoc-toolbar__btn--download,
+    .udoc-viewer-root .udoc-toolbar__btn--theme,
     .udoc-viewer-root .udoc-toolbar__btn--fullscreen {
-        display: none;
+        display: none !important;
+    }
+
+    .udoc-viewer-root .udoc-overflow-menu {
+        display: block;
     }
 
     /* Larger panel tab buttons for touch */
@@ -2170,6 +2236,11 @@
     font-size: 13px;
     min-width: 0;
     background: transparent;
+}
+
+/* Suppress focus ring on the inner input — the wrapper handles :focus-within */
+.udoc-viewer-root .udoc-search-panel__input:focus-visible {
+    outline: none;
 }
 
 .udoc-viewer-root .udoc-search-panel__case {

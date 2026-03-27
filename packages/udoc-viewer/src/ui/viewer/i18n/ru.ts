@@ -40,6 +40,7 @@ export const ru: TranslationKeys = {
     "toolbar.zoomLevel": "Уровень масштаба",
     "toolbar.zoomOptions": "Параметры масштаба",
     "toolbar.zoomLevels": "Уровни масштаба",
+    "toolbar.more": "Ещё",
 
     // Zoom modes
     "zoom.fitWidth": "По ширине",
