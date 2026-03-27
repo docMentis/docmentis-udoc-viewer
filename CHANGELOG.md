@@ -6,6 +6,8 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+## [0.6.14] - 2026-03-26
+
 ### Features
 
 - Expose `parseFontInfo` API for extracting font metadata from raw binary files
