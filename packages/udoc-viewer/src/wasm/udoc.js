@@ -259,12 +259,12 @@ if (!('encodeInto' in cachedTextEncoder)) {
 
 let WASM_VECTOR_LEN = 0;
 
-function __wasm_bindgen_func_elem_2579(arg0, arg1, arg2) {
-    wasm.__wasm_bindgen_func_elem_2579(arg0, arg1, addHeapObject(arg2));
+function __wasm_bindgen_func_elem_2589(arg0, arg1, arg2) {
+    wasm.__wasm_bindgen_func_elem_2589(arg0, arg1, addHeapObject(arg2));
 }
 
-function __wasm_bindgen_func_elem_16848(arg0, arg1, arg2, arg3) {
-    wasm.__wasm_bindgen_func_elem_16848(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
+function __wasm_bindgen_func_elem_17630(arg0, arg1, arg2, arg3) {
+    wasm.__wasm_bindgen_func_elem_17630(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
 }
 
 const __wbindgen_enum_GpuBufferBindingType = ["uniform", "storage", "read-only-storage"];
@@ -1484,6 +1484,52 @@ export class Wasm {
 }
 if (Symbol.dispose) Wasm.prototype[Symbol.dispose] = Wasm.prototype.free;
 
+/**
+ * Parse font binary data and return font metadata.
+ *
+ * Accepts raw font bytes (TTF, OTF, WOFF, WOFF2) and returns the typeface
+ * name, bold, and italic flags. Customers can use this to inspect font files,
+ * store the metadata alongside the binary in their own database, and later
+ * use it to craft entries for `registerFonts`.
+ *
+ * # Arguments
+ * * `data` - Raw font binary data
+ *
+ * # Returns
+ * An object with `{ typeface: string, bold: boolean, italic: boolean }`.
+ *
+ * # Example (JavaScript)
+ * ```js
+ * const fontBytes = new Uint8Array(await fetch("Roboto-Bold.woff2").then(r => r.arrayBuffer()));
+ * const info = parseFontInfo(fontBytes);
+ * // info = { typeface: "Roboto", bold: true, italic: false }
+ *
+ * // Store info + fontBytes in your database, then later:
+ * udoc.registerFonts([
+ *     { typeface: info.typeface, bold: info.bold, italic: info.italic, url: "https://..." },
+ * ]);
+ * ```
+ * @param {Uint8Array} data
+ * @returns {any}
+ */
+export function parseFontInfo(data) {
+    try {
+        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+        const ptr0 = passArray8ToWasm0(data, wasm.__wbindgen_export);
+        const len0 = WASM_VECTOR_LEN;
+        wasm.parseFontInfo(retptr, ptr0, len0);
+        var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
+        var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
+        var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
+        if (r2) {
+            throw takeObject(r1);
+        }
+        return takeObject(r0);
+    } finally {
+        wasm.__wbindgen_add_to_stack_pointer(16);
+    }
+}
+
 const EXPECTED_RESPONSE_TYPES = new Set(['basic', 'cors', 'default']);
 
 async function __wbg_load(module, imports) {
@@ -1902,7 +1948,7 @@ function __wbg_get_imports() {
                 const a = state0.a;
                 state0.a = 0;
                 try {
-                    return __wasm_bindgen_func_elem_16848(a, state0.b, arg0, arg1);
+                    return __wasm_bindgen_func_elem_17630(a, state0.b, arg0, arg1);
                 } finally {
                     state0.a = a;
                 }
@@ -2389,7 +2435,7 @@ function __wbg_get_imports() {
     };
     imports.wbg.__wbindgen_cast_d5be308fce034eae = function(arg0, arg1) {
         // Cast intrinsic for `Closure(Closure { dtor_idx: 210, function: Function { arguments: [Externref], shim_idx: 211, ret: Unit, inner_ret: Some(Unit) }, mutable: true }) -> Externref`.
-        const ret = makeMutClosure(arg0, arg1, wasm.__wasm_bindgen_func_elem_2563, __wasm_bindgen_func_elem_2579);
+        const ret = makeMutClosure(arg0, arg1, wasm.__wasm_bindgen_func_elem_2573, __wasm_bindgen_func_elem_2589);
         return addHeapObject(ret);
     };
     imports.wbg.__wbindgen_cast_d6cd19b81560fd6e = function(arg0) {

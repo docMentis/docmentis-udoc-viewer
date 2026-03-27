@@ -12,6 +12,7 @@ import type {
     ExtractedFont,
     ExtractedImage,
     FontEntry,
+    FontInfo,
     SplitByOutlineResult,
 } from "./worker/index.js";
 import { UDocViewer } from "./UDocViewer.js";
@@ -416,7 +417,7 @@ export interface Pick {
 /**
  * Re-export low-level types for advanced usage.
  */
-export type { Composition, ComposePick, ExtractedFont, ExtractedImage, FontEntry, SplitByOutlineResult };
+export type { Composition, ComposePick, ExtractedFont, ExtractedImage, FontEntry, FontInfo, SplitByOutlineResult };
 
 /**
  * SDK entry point for document viewing.
@@ -806,6 +807,32 @@ export class UDocClient {
                 await this.workerClient.unloadPdf(docId);
             }
         }
+    }
+
+    /**
+     * Parse font information from raw font binary data.
+     *
+     * Extracts the typeface name, bold, and italic properties from a font file.
+     * Useful for building a font registry before calling {@link registerFonts}.
+     *
+     * @param data - Raw font binary data (e.g., .ttf, .otf, .woff2)
+     * @returns Font information including typeface, bold, and italic
+     *
+     * @example
+     * ```ts
+     * const fontBytes = new Uint8Array(await fetch("Roboto-Bold.woff2").then(r => r.arrayBuffer()));
+     * const info = await client.parseFontInfo(fontBytes);
+     * // info = { typeface: "Roboto", bold: true, italic: false }
+     *
+     * // Use the info to register fonts:
+     * await client.registerFonts([
+     *     { typeface: info.typeface, bold: info.bold, italic: info.italic, url: "https://..." },
+     * ]);
+     * ```
+     */
+    async parseFontInfo(data: Uint8Array): Promise<FontInfo> {
+        this.ensureNotDestroyed();
+        return this.workerClient.parseFontInfo(data);
     }
 
     /**

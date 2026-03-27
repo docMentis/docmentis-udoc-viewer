@@ -54,6 +54,18 @@ export type {
     PageTransition,
 };
 
+/**
+ * Font information extracted from raw font binary data.
+ */
+export interface FontInfo {
+    /** Font typeface/family name (e.g., "Roboto", "Arial") */
+    typeface: string;
+    /** Whether the font is bold */
+    bold: boolean;
+    /** Whether the font is italic */
+    italic: boolean;
+}
+
 export interface PageInfo {
     width: number;
     height: number;
@@ -635,6 +647,19 @@ export class WorkerClient {
      * @param documentId - Document ID to extract fonts from
      * @returns Array of extracted fonts with metadata and data
      */
+    /**
+     * Parse font information from raw font binary data.
+     *
+     * @param data - Raw font binary data (e.g., .ttf, .otf, .woff2)
+     * @returns Font information including typeface, bold, and italic
+     */
+    async parseFontInfo(data: Uint8Array): Promise<FontInfo> {
+        const response = (await this.send({ type: "parseFontInfo", data })) as {
+            info: FontInfo;
+        };
+        return response.info;
+    }
+
     async pdfExtractFonts(documentId: string): Promise<ExtractedFont[]> {
         const response = (await this.send({ type: "pdfExtractFonts", documentId })) as {
             fonts: ExtractedFont[];

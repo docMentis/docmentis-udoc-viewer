@@ -14,6 +14,7 @@ export type {
     ExtractedFont,
     ExtractedImage,
     FontEntry,
+    FontInfo,
     OutlineSection,
     SplitByOutlineResult,
     RenderType,

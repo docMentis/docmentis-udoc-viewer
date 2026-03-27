@@ -520,11 +520,40 @@ export class Wasm {
   readonly document_count: number;
 }
 
+/**
+ * Parse font binary data and return font metadata.
+ *
+ * Accepts raw font bytes (TTF, OTF, WOFF, WOFF2) and returns the typeface
+ * name, bold, and italic flags. Customers can use this to inspect font files,
+ * store the metadata alongside the binary in their own database, and later
+ * use it to craft entries for `registerFonts`.
+ *
+ * # Arguments
+ * * `data` - Raw font binary data
+ *
+ * # Returns
+ * An object with `{ typeface: string, bold: boolean, italic: boolean }`.
+ *
+ * # Example (JavaScript)
+ * ```js
+ * const fontBytes = new Uint8Array(await fetch("Roboto-Bold.woff2").then(r => r.arrayBuffer()));
+ * const info = parseFontInfo(fontBytes);
+ * // info = { typeface: "Roboto", bold: true, italic: false }
+ *
+ * // Store info + fontBytes in your database, then later:
+ * udoc.registerFonts([
+ *     { typeface: info.typeface, bold: info.bold, italic: info.italic, url: "https://..." },
+ * ]);
+ * ```
+ */
+export function parseFontInfo(data: Uint8Array): any;
+
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
 export interface InitOutput {
   readonly memory: WebAssembly.Memory;
   readonly __wbg_wasm_free: (a: number, b: number) => void;
+  readonly parseFontInfo: (a: number, b: number, c: number) => void;
   readonly wasm_all_page_info: (a: number, b: number, c: number, d: number) => void;
   readonly wasm_authenticate: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
   readonly wasm_document_count: (a: number) => number;
@@ -568,9 +597,9 @@ export interface InitOutput {
   readonly wasm_set_license: (a: number, b: number, c: number, d: number) => void;
   readonly wasm_set_visibility_group_visible: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
   readonly wasm_setup: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
-  readonly __wasm_bindgen_func_elem_2579: (a: number, b: number, c: number) => void;
-  readonly __wasm_bindgen_func_elem_2563: (a: number, b: number) => void;
-  readonly __wasm_bindgen_func_elem_16848: (a: number, b: number, c: number, d: number) => void;
+  readonly __wasm_bindgen_func_elem_2589: (a: number, b: number, c: number) => void;
+  readonly __wasm_bindgen_func_elem_2573: (a: number, b: number) => void;
+  readonly __wasm_bindgen_func_elem_17630: (a: number, b: number, c: number, d: number) => void;
   readonly __wbindgen_export: (a: number, b: number) => number;
   readonly __wbindgen_export2: (a: number, b: number, c: number, d: number) => number;
   readonly __wbindgen_export3: (a: number) => void;

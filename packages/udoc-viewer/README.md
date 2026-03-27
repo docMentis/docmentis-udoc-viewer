@@ -594,6 +594,43 @@ await client.registerFonts([
 const client = await UDocClient.create({ googleFonts: false });
 ```
 
+#### Parsing Font Info
+
+When users upload custom font files, you typically don't know the typeface name or whether a file is the bold/italic variant. `parseFontInfo` extracts that metadata from the raw font binary, so you can store it in your own database alongside the font file. Later, when initializing the viewer, you retrieve that metadata and pass it to `registerFonts`.
+
+**Step 1: At upload time** — parse the font and store the metadata + file in your database/storage.
+
+```typescript
+// User uploads a font file
+const fontBytes = new Uint8Array(await fontFile.arrayBuffer());
+const info = await client.parseFontInfo(fontBytes);
+// info = { typeface: "Roboto", bold: true, italic: false }
+
+// Store font file to your storage (e.g., S3, GCS) and save metadata to your database
+await storage.upload(`fonts/${fontFile.name}`, fontBytes);
+await db.fonts.insert({
+    typeface: info.typeface,
+    bold: info.bold,
+    italic: info.italic,
+    url: `https://cdn.example.com/fonts/${fontFile.name}`,
+});
+```
+
+**Step 2: At viewing time** — retrieve stored metadata and register fonts before loading a document.
+
+```typescript
+// Fetch font entries from your database
+const fonts = await db.fonts.list();
+
+// Register all fonts with the viewer
+await client.registerFonts(fonts.map((f) => ({ typeface: f.typeface, bold: f.bold, italic: f.italic, url: f.url })));
+
+// Now load the document — registered fonts will be used during rendering
+await viewer.load(documentSource);
+```
+
+Supported font formats: OTF, TTF, WOFF, and WOFF2.
+
 ### Headless Rendering
 
 Render pages to images without UI:

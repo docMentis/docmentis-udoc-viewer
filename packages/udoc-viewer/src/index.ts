@@ -9,6 +9,7 @@ export type {
     Composition,
     ComposePick,
     FontEntry,
+    FontInfo,
 } from "./UDocClient.js";
 
 export { UDocViewer } from "./UDocViewer.js";

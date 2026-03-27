@@ -4,7 +4,7 @@
  * Handles WASM operations off the main thread to keep the UI responsive.
  */
 
-import init, { Wasm } from "../wasm/udoc.js";
+import init, { Wasm, parseFontInfo } from "../wasm/udoc.js";
 
 let wasm: Wasm | null = null;
 let gpuAvailable = false;
@@ -127,7 +127,8 @@ export type WorkerRequest =
     | { type: "registerFonts"; fonts: FontEntry[] }
     | { type: "enableGoogleFonts" }
     | { type: "getVisibilityGroups"; documentId: string }
-    | { type: "setVisibilityGroupVisible"; documentId: string; groupId: string; visible: boolean };
+    | { type: "setVisibilityGroupVisible"; documentId: string; groupId: string; visible: boolean }
+    | { type: "parseFontInfo"; data: Uint8Array };
 
 /**
  * Message types from worker to main thread.
@@ -202,7 +203,9 @@ export type WorkerResponse =
     | { type: "getVisibilityGroups"; success: true; groups: unknown[] }
     | { type: "getVisibilityGroups"; success: false; error: string }
     | { type: "setVisibilityGroupVisible"; success: true; updated: boolean }
-    | { type: "setVisibilityGroupVisible"; success: false; error: string };
+    | { type: "setVisibilityGroupVisible"; success: false; error: string }
+    | { type: "parseFontInfo"; success: true; info: { typeface: string; bold: boolean; italic: boolean } }
+    | { type: "parseFontInfo"; success: false; error: string };
 
 /** Current request ID for response matching. */
 let currentRequestId: number | undefined;
@@ -532,6 +535,13 @@ async function handleMessage(event: MessageEvent<WorkerRequest & { _id?: number 
                     request.visible,
                 );
                 respond({ type: "setVisibilityGroupVisible", success: true, updated });
+                break;
+            }
+
+            case "parseFontInfo": {
+                ensureInitialized();
+                const info = parseFontInfo(request.data) as { typeface: string; bold: boolean; italic: boolean };
+                respond({ type: "parseFontInfo", success: true, info });
                 break;
             }
 
