@@ -27,6 +27,7 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 - Fix row height calculation in grid layout (engine)
 - Fix XLSX column width formula and theme font resolution (engine)
 - Detect and break form XObject cycles in PDF loader (engine)
+- Support grayscale decode arrays for correct image inversion (engine)
 
 ## [0.6.13] - 2026-03-24
 
