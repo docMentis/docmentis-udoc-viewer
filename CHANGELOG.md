@@ -6,6 +6,8 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+## [0.6.15] - 2026-03-26
+
 ### Bug Fixes
 
 - Add Roboto to bullet text fallback fonts for geometric shape glyphs (engine)
