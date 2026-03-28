@@ -578,10 +578,36 @@ function circleEffect(t: number, _outgoing: HTMLElement, incoming: HTMLElement):
     incoming.style.setProperty("-webkit-mask-image", mask);
 }
 
-/** Diamond reveal from center. */
+/** Diamond reveal from center with feathered edge via SVG mask + blur. */
 function diamondEffect(t: number, _outgoing: HTMLElement, incoming: HTMLElement): void {
-    const p = t * 50;
-    incoming.style.clipPath = `polygon(50% ${50 - p}%, ${50 + p}% 50%, 50% ${50 + p}%, ${50 - p}% 50%)`;
+    if (t >= 1) {
+        incoming.style.maskImage = "";
+        incoming.style.setProperty("-webkit-mask-image", "");
+        return;
+    }
+    if (t <= 0) {
+        const mask = diamondMaskSvg(0, 0);
+        incoming.style.maskImage = mask;
+        incoming.style.setProperty("-webkit-mask-image", mask);
+        return;
+    }
+    const p = t * 100;
+    const blur = Math.max(0.5, p * 0.08);
+    const mask = diamondMaskSvg(p, blur);
+    incoming.style.maskImage = mask;
+    incoming.style.maskSize = "100% 100%";
+    incoming.style.setProperty("-webkit-mask-image", mask);
+    incoming.style.setProperty("-webkit-mask-size", "100% 100%");
+}
+
+function diamondMaskSvg(p: number, blur: number): string {
+    const svg =
+        `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none">` +
+        `<defs><filter id="b" x="-50%" y="-50%" width="200%" height="200%">` +
+        `<feGaussianBlur stdDeviation="${blur}"/></filter></defs>` +
+        `<polygon points="50,${50 - p} ${50 + p},50 50,${50 + p} ${50 - p},50" ` +
+        `fill="white" filter="url(#b)"/></svg>`;
+    return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
 }
 
 /** Plus/cross reveal from center. */
@@ -696,7 +722,7 @@ function blindsEffect(orientation: "horizontal" | "vertical"): FrameFn {
         // Staggered rotation: center strips start first, edges start last.
         // Each strip's local progress is derived from its distance to center.
         const hd = setup.halfDepth;
-        const stagger = 0.35; // fraction of total duration used for stagger spread
+        const stagger = 0.7; // fraction of total duration used for stagger spread
         const center = (N - 1) / 2;
 
         for (let i = 0; i < setup.flippers.length; i++) {
@@ -1161,8 +1187,8 @@ function createCheckerFace(
 // Dissolve
 // ---------------------------------------------------------------------------
 
-const DISSOLVE_COLS = 12;
-const DISSOLVE_ROWS = 8;
+const DISSOLVE_COLS = 60;
+const DISSOLVE_ROWS = 40;
 
 /**
  * Dissolve: random grid cells appear progressively, approximating PowerPoint's
