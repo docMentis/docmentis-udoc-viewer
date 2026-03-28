@@ -563,15 +563,17 @@ function circleEffect(t: number, _outgoing: HTMLElement, incoming: HTMLElement):
         return;
     }
     if (t <= 0) {
-        const mask = "radial-gradient(circle 0% at 50% 50%, #000 0%, transparent 0%)";
+        const mask = "radial-gradient(circle at 50% 50%, #000 0%, transparent 0%)";
         incoming.style.maskImage = mask;
         incoming.style.setProperty("-webkit-mask-image", mask);
         return;
     }
-    const r = t * 71;
-    const edge = Math.max(1, r * 0.12); // ~12% of radius for soft edge
+    // Color stops are relative to the gradient ray (farthest-corner by default),
+    // so r must reach 100% to fully cover the slide at t=1.
+    const r = t * 100;
+    const edge = Math.max(1, r * 0.15);
     const inner = Math.max(0, r - edge);
-    const mask = `radial-gradient(circle ${r}% at 50% 50%, #000 ${inner}%, transparent ${r + 0.5}%)`;
+    const mask = `radial-gradient(circle at 50% 50%, #000 ${inner}%, transparent ${r + 0.5}%)`;
     incoming.style.maskImage = mask;
     incoming.style.setProperty("-webkit-mask-image", mask);
 }
