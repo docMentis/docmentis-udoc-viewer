@@ -497,11 +497,7 @@ export class UDocClient {
         if (lastError) throw lastError;
 
         const client = new UDocClient(workerClient, options);
-
-        // Pass domain, version, and anonymous ID to WASM for telemetry
         const domain = typeof window !== "undefined" ? window.location.hostname : "localhost";
-        const distinctId = getOrCreateDistinctId();
-        await workerClient.setup(domain, UDocClient.version, distinctId);
 
         // Register font URLs before loading documents
         if (options.fonts?.length) {
@@ -524,11 +520,20 @@ export class UDocClient {
         }
 
         // Disable telemetry if requested (requires license with no_telemetry feature)
+        let telemetryDisabled = false;
         if (options.disableTelemetry) {
-            const disabled = await workerClient.disableTelemetry();
-            if (!disabled) {
+            telemetryDisabled = await workerClient.disableTelemetry();
+            if (!telemetryDisabled) {
                 console.warn("[udoc-viewer] disableTelemetry requires a license with the 'no_telemetry' feature.");
+            } else {
+                removeDistinctId();
             }
+        }
+
+        // Set up telemetry metadata (skipped when telemetry is disabled)
+        if (!telemetryDisabled) {
+            const distinctId = getOrCreateDistinctId();
+            await workerClient.setupTelemetry(domain, UDocClient.version, distinctId);
         }
 
         return client;
@@ -1018,6 +1023,14 @@ function getOrCreateDistinctId(): string {
         return id;
     } catch {
         return crypto.randomUUID();
+    }
+}
+
+function removeDistinctId(): void {
+    try {
+        localStorage.removeItem(DISTINCT_ID_KEY);
+    } catch {
+        // localStorage unavailable — nothing to remove
     }
 }
 

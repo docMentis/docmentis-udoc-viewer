@@ -46,7 +46,7 @@ export const wasm_render_page_to_png: (a: number, b: number, c: number, d: numbe
 export const wasm_render_page_to_rgba: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
 export const wasm_set_license: (a: number, b: number, c: number, d: number) => void;
 export const wasm_set_visibility_group_visible: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
-export const wasm_setup: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
+export const wasm_setup_telemetry: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
 export const __wasm_bindgen_func_elem_2591: (a: number, b: number, c: number) => void;
 export const __wasm_bindgen_func_elem_2575: (a: number, b: number) => void;
 export const __wasm_bindgen_func_elem_17632: (a: number, b: number, c: number, d: number) => void;

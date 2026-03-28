@@ -219,10 +219,10 @@ export class WorkerClient {
     }
 
     /**
-     * One-time setup: pass the embedding page's domain and SDK version to WASM.
+     * One-time telemetry setup: pass the embedding page's domain and SDK version to WASM.
      */
-    async setup(domain: string, viewerVersion: string, distinctId: string): Promise<void> {
-        await this.send({ type: "setup", domain, viewerVersion, distinctId });
+    async setupTelemetry(domain: string, viewerVersion: string, distinctId: string): Promise<void> {
+        await this.send({ type: "setupTelemetry", domain, viewerVersion, distinctId });
     }
 
     /**

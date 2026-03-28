@@ -864,6 +864,29 @@ export class Wasm {
         return takeObject(ret);
     }
     /**
+     * One-time telemetry setup: store the embedding page's domain, SDK version, and anonymous ID.
+     *
+     * Must be called after `new()` and before loading documents so that
+     * telemetry events include the correct metadata.
+     *
+     * # Arguments
+     * * `domain` - Hostname of the embedding page (e.g. from `window.location.hostname`)
+     * * `viewer_version` - SDK version string
+     * * `distinct_id` - Anonymous UUID for per-user tracking (persisted in localStorage)
+     * @param {string} domain
+     * @param {string} viewer_version
+     * @param {string} distinct_id
+     */
+    setup_telemetry(domain, viewer_version, distinct_id) {
+        const ptr0 = passStringToWasm0(domain, wasm.__wbindgen_export, wasm.__wbindgen_export2);
+        const len0 = WASM_VECTOR_LEN;
+        const ptr1 = passStringToWasm0(viewer_version, wasm.__wbindgen_export, wasm.__wbindgen_export2);
+        const len1 = WASM_VECTOR_LEN;
+        const ptr2 = passStringToWasm0(distinct_id, wasm.__wbindgen_export, wasm.__wbindgen_export2);
+        const len2 = WASM_VECTOR_LEN;
+        wasm.wasm_setup_telemetry(this.__wbg_ptr, ptr0, len0, ptr1, len1, ptr2, len2);
+    }
+    /**
      * Disable telemetry reporting.
      *
      * Only takes effect if the current license includes the `no_telemetry`
@@ -1236,29 +1259,6 @@ export class Wasm {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_export4(deferred3_0, deferred3_1, 1);
         }
-    }
-    /**
-     * One-time setup: store the embedding page's domain, SDK version, and anonymous ID.
-     *
-     * Must be called after `new()` and before loading documents so that
-     * telemetry events include the correct metadata.
-     *
-     * # Arguments
-     * * `domain` - Hostname of the embedding page (e.g. from `window.location.hostname`)
-     * * `viewer_version` - SDK version string
-     * * `distinct_id` - Anonymous UUID for per-user tracking (persisted in localStorage)
-     * @param {string} domain
-     * @param {string} viewer_version
-     * @param {string} distinct_id
-     */
-    setup(domain, viewer_version, distinct_id) {
-        const ptr0 = passStringToWasm0(domain, wasm.__wbindgen_export, wasm.__wbindgen_export2);
-        const len0 = WASM_VECTOR_LEN;
-        const ptr1 = passStringToWasm0(viewer_version, wasm.__wbindgen_export, wasm.__wbindgen_export2);
-        const len1 = WASM_VECTOR_LEN;
-        const ptr2 = passStringToWasm0(distinct_id, wasm.__wbindgen_export, wasm.__wbindgen_export2);
-        const len2 = WASM_VECTOR_LEN;
-        wasm.wasm_setup(this.__wbg_ptr, ptr0, len0, ptr1, len1, ptr2, len2);
     }
     /**
      * Check whether the GPU render backend is available.

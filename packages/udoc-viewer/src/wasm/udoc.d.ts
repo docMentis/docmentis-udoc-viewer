@@ -288,6 +288,18 @@ export class Wasm {
    */
   render_page_gpu(id: string, page_index: number, width: number, height: number): Promise<Uint8Array>;
   /**
+   * One-time telemetry setup: store the embedding page's domain, SDK version, and anonymous ID.
+   *
+   * Must be called after `new()` and before loading documents so that
+   * telemetry events include the correct metadata.
+   *
+   * # Arguments
+   * * `domain` - Hostname of the embedding page (e.g. from `window.location.hostname`)
+   * * `viewer_version` - SDK version string
+   * * `distinct_id` - Anonymous UUID for per-user tracking (persisted in localStorage)
+   */
+  setup_telemetry(domain: string, viewer_version: string, distinct_id: string): void;
+  /**
    * Disable telemetry reporting.
    *
    * Only takes effect if the current license includes the `no_telemetry`
@@ -442,18 +454,6 @@ export class Wasm {
    */
   load(bytes: Uint8Array): string;
   /**
-   * One-time setup: store the embedding page's domain, SDK version, and anonymous ID.
-   *
-   * Must be called after `new()` and before loading documents so that
-   * telemetry events include the correct metadata.
-   *
-   * # Arguments
-   * * `domain` - Hostname of the embedding page (e.g. from `window.location.hostname`)
-   * * `viewer_version` - SDK version string
-   * * `distinct_id` - Anonymous UUID for per-user tracking (persisted in localStorage)
-   */
-  setup(domain: string, viewer_version: string, distinct_id: string): void;
-  /**
    * Check whether the GPU render backend is available.
    */
   has_gpu(): boolean;
@@ -605,7 +605,7 @@ export interface InitOutput {
   readonly wasm_render_page_to_rgba: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
   readonly wasm_set_license: (a: number, b: number, c: number, d: number) => void;
   readonly wasm_set_visibility_group_visible: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
-  readonly wasm_setup: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
+  readonly wasm_setup_telemetry: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
   readonly __wasm_bindgen_func_elem_2591: (a: number, b: number, c: number) => void;
   readonly __wasm_bindgen_func_elem_2575: (a: number, b: number) => void;
   readonly __wasm_bindgen_func_elem_17632: (a: number, b: number, c: number, d: number) => void;
