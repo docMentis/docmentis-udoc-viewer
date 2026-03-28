@@ -1379,6 +1379,8 @@ img { display: block; }
                 return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
             case "pptx":
                 return "application/vnd.openxmlformats-officedocument.presentationml.presentation";
+            case "xlsx":
+                return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
             case "image":
                 return "application/octet-stream";
             case "pdf":
@@ -1408,6 +1410,8 @@ img { display: block; }
                 return "document.docx";
             case "pptx":
                 return "document.pptx";
+            case "xlsx":
+                return "document.xlsx";
             case "image":
                 return "image.png";
             case "pdf":

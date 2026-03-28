@@ -104,6 +104,7 @@ export type WorkerRequest =
     | { type: "loadImage"; id: string; bytes: Uint8Array }
     | { type: "loadPptx"; id: string; bytes: Uint8Array }
     | { type: "loadDocx"; id: string; bytes: Uint8Array }
+    | { type: "loadXlsx"; id: string; bytes: Uint8Array }
     | { type: "getDocumentFormat"; documentId: string }
     | { type: "unloadPdf"; documentId: string }
     | { type: "needsPassword"; documentId: string }
@@ -154,6 +155,8 @@ export type WorkerResponse =
     | { type: "loadPptx"; success: false; error: string }
     | { type: "loadDocx"; success: true; documentId: string }
     | { type: "loadDocx"; success: false; error: string }
+    | { type: "loadXlsx"; success: true; documentId: string }
+    | { type: "loadXlsx"; success: false; error: string }
     | { type: "unloadPdf"; success: true; removed: boolean }
     | { type: "unloadPdf"; success: false; error: string }
     | { type: "needsPassword"; success: true; needsPassword: boolean }
@@ -318,6 +321,13 @@ async function handleMessage(event: MessageEvent<WorkerRequest & { _id?: number 
                 ensureInitialized();
                 const documentId = wasm!.load_docx(request.bytes);
                 respond({ type: "loadDocx", success: true, documentId });
+                break;
+            }
+
+            case "loadXlsx": {
+                ensureInitialized();
+                const documentId = wasm!.load_xlsx(request.bytes);
+                respond({ type: "loadXlsx", success: true, documentId });
                 break;
             }
 

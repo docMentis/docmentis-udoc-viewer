@@ -268,7 +268,7 @@ export class WorkerClient {
 
     /**
      * Get the detected format of a loaded document.
-     * @returns The format string: "pdf", "docx", "pptx", or "image".
+     * @returns The format string: "pdf", "docx", "pptx", "xlsx", or "image".
      */
     async getDocumentFormat(documentId: string): Promise<string> {
         const response = (await this.send({

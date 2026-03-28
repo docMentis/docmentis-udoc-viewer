@@ -35,6 +35,10 @@ const sampleCategories: SampleCategory[] = [
         documents: [{ name: "James Webb Space Telescope", path: "./james-webb-space-telescope.pptx" }],
     },
     {
+        name: "XLSX",
+        documents: [{ name: "NASA Airborne Science Program", path: "./nasa_asp_schedule_2026_01.xlsx" }],
+    },
+    {
         name: "Image",
         description: "Public-domain NASA/JWST images.",
         documents: [
@@ -202,6 +206,8 @@ const DOC_TYPE_ICONS: Record<string, string> = {
     docx: '<path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 2l5 5h-5V4zM6 20V4h5v7h7v9H6z"/><path d="M9.5 13.5L12 19l2.5-5.5h1.3L12.7 20h-1.4L8.2 13.5z"/>',
     // PPTX: presentation/slides
     pptx: '<path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/><path d="M7 17h10v-2H7v2zm5-10l-5 8h10l-5-8z"/>',
+    // XLSX: spreadsheet/table grid
+    xlsx: '<path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 2v3H5V5h14zM5 19v-9h6v9H5zm8 0v-9h6v9h-6z"/>',
     // Image: landscape photo
     img: '<path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>',
 };
