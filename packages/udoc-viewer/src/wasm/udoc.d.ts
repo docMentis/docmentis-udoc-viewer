@@ -266,7 +266,7 @@ export class Wasm {
   /**
    * Get the format of a loaded document.
    *
-   * Returns one of: "pdf", "docx", "pptx", "image".
+   * Returns one of: "pdf", "docx", "pptx", "xlsx", "image".
    */
   document_format(id: string): string;
   /**
@@ -287,6 +287,14 @@ export class Wasm {
    * or if rendering fails.
    */
   render_page_gpu(id: string, page_index: number, width: number, height: number): Promise<Uint8Array>;
+  /**
+   * Disable telemetry reporting.
+   *
+   * Only takes effect if the current license includes the `no_telemetry`
+   * feature flag. Returns `true` if telemetry was disabled, `false` if the
+   * license does not permit it.
+   */
+  disable_telemetry(): boolean;
   /**
    * Extract all embedded fonts from a PDF document.
    *
@@ -423,7 +431,7 @@ export class Wasm {
    *
    * Inspects magic bytes to determine the format:
    * - `%PDF` → PDF
-   * - `PK\x03\x04` (ZIP) → inspects ZIP entries for `word/` (DOCX) or `ppt/` (PPTX)
+   * - `PK\x03\x04` (ZIP) → inspects ZIP entries for `word/` (DOCX), `ppt/` (PPTX), or `xl/` (XLSX)
    * - Image magic bytes (JPEG, PNG, GIF, BMP, TIFF, WebP) → Image
    *
    * # Arguments
@@ -556,6 +564,7 @@ export interface InitOutput {
   readonly parseFontInfo: (a: number, b: number, c: number) => void;
   readonly wasm_all_page_info: (a: number, b: number, c: number, d: number) => void;
   readonly wasm_authenticate: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
+  readonly wasm_disable_telemetry: (a: number) => number;
   readonly wasm_document_count: (a: number) => number;
   readonly wasm_document_format: (a: number, b: number, c: number, d: number) => void;
   readonly wasm_document_ids: (a: number, b: number) => void;
@@ -597,9 +606,9 @@ export interface InitOutput {
   readonly wasm_set_license: (a: number, b: number, c: number, d: number) => void;
   readonly wasm_set_visibility_group_visible: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
   readonly wasm_setup: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
-  readonly __wasm_bindgen_func_elem_2589: (a: number, b: number, c: number) => void;
-  readonly __wasm_bindgen_func_elem_2573: (a: number, b: number) => void;
-  readonly __wasm_bindgen_func_elem_17630: (a: number, b: number, c: number, d: number) => void;
+  readonly __wasm_bindgen_func_elem_2591: (a: number, b: number, c: number) => void;
+  readonly __wasm_bindgen_func_elem_2575: (a: number, b: number) => void;
+  readonly __wasm_bindgen_func_elem_17632: (a: number, b: number, c: number, d: number) => void;
   readonly __wbindgen_export: (a: number, b: number) => number;
   readonly __wbindgen_export2: (a: number, b: number, c: number, d: number) => number;
   readonly __wbindgen_export3: (a: number) => void;

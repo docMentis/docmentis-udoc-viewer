@@ -259,12 +259,12 @@ if (!('encodeInto' in cachedTextEncoder)) {
 
 let WASM_VECTOR_LEN = 0;
 
-function __wasm_bindgen_func_elem_2589(arg0, arg1, arg2) {
-    wasm.__wasm_bindgen_func_elem_2589(arg0, arg1, addHeapObject(arg2));
+function __wasm_bindgen_func_elem_2591(arg0, arg1, arg2) {
+    wasm.__wasm_bindgen_func_elem_2591(arg0, arg1, addHeapObject(arg2));
 }
 
-function __wasm_bindgen_func_elem_17630(arg0, arg1, arg2, arg3) {
-    wasm.__wasm_bindgen_func_elem_17630(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
+function __wasm_bindgen_func_elem_17632(arg0, arg1, arg2, arg3) {
+    wasm.__wasm_bindgen_func_elem_17632(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
 }
 
 const __wbindgen_enum_GpuBufferBindingType = ["uniform", "storage", "read-only-storage"];
@@ -798,7 +798,7 @@ export class Wasm {
     /**
      * Get the format of a loaded document.
      *
-     * Returns one of: "pdf", "docx", "pptx", "image".
+     * Returns one of: "pdf", "docx", "pptx", "xlsx", "image".
      * @param {string} id
      * @returns {string}
      */
@@ -862,6 +862,18 @@ export class Wasm {
         const len0 = WASM_VECTOR_LEN;
         const ret = wasm.wasm_render_page_gpu(this.__wbg_ptr, ptr0, len0, page_index, width, height);
         return takeObject(ret);
+    }
+    /**
+     * Disable telemetry reporting.
+     *
+     * Only takes effect if the current license includes the `no_telemetry`
+     * feature flag. Returns `true` if telemetry was disabled, `false` if the
+     * license does not permit it.
+     * @returns {boolean}
+     */
+    disable_telemetry() {
+        const ret = wasm.wasm_disable_telemetry(this.__wbg_ptr);
+        return ret !== 0;
     }
     /**
      * Extract all embedded fonts from a PDF document.
@@ -1188,7 +1200,7 @@ export class Wasm {
      *
      * Inspects magic bytes to determine the format:
      * - `%PDF` → PDF
-     * - `PK\x03\x04` (ZIP) → inspects ZIP entries for `word/` (DOCX) or `ppt/` (PPTX)
+     * - `PK\x03\x04` (ZIP) → inspects ZIP entries for `word/` (DOCX), `ppt/` (PPTX), or `xl/` (XLSX)
      * - Image magic bytes (JPEG, PNG, GIF, BMP, TIFF, WebP) → Image
      *
      * # Arguments
@@ -1948,7 +1960,7 @@ function __wbg_get_imports() {
                 const a = state0.a;
                 state0.a = 0;
                 try {
-                    return __wasm_bindgen_func_elem_17630(a, state0.b, arg0, arg1);
+                    return __wasm_bindgen_func_elem_17632(a, state0.b, arg0, arg1);
                 } finally {
                     state0.a = a;
                 }
@@ -2435,7 +2447,7 @@ function __wbg_get_imports() {
     };
     imports.wbg.__wbindgen_cast_d5be308fce034eae = function(arg0, arg1) {
         // Cast intrinsic for `Closure(Closure { dtor_idx: 210, function: Function { arguments: [Externref], shim_idx: 211, ret: Unit, inner_ret: Some(Unit) }, mutable: true }) -> Externref`.
-        const ret = makeMutClosure(arg0, arg1, wasm.__wasm_bindgen_func_elem_2573, __wasm_bindgen_func_elem_2589);
+        const ret = makeMutClosure(arg0, arg1, wasm.__wasm_bindgen_func_elem_2575, __wasm_bindgen_func_elem_2591);
         return addHeapObject(ret);
     };
     imports.wbg.__wbindgen_cast_d6cd19b81560fd6e = function(arg0) {

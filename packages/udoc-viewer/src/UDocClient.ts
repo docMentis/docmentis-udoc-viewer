@@ -125,6 +125,14 @@ export interface ClientOptions {
      * ```
      */
     fonts?: FontEntry[];
+
+    /**
+     * Disable anonymous telemetry reporting.
+     * Requires a valid license with the "no_telemetry" feature.
+     * Ignored without a qualifying license.
+     * @default false
+     */
+    disableTelemetry?: boolean;
 }
 
 /**
@@ -512,6 +520,14 @@ export class UDocClient {
 
             if (!result.valid) {
                 console.warn(`[udoc-viewer] License validation failed: ${result.error}`);
+            }
+        }
+
+        // Disable telemetry if requested (requires license with no_telemetry feature)
+        if (options.disableTelemetry) {
+            const disabled = await workerClient.disableTelemetry();
+            if (!disabled) {
+                console.warn("[udoc-viewer] disableTelemetry requires a license with the 'no_telemetry' feature.");
             }
         }
 

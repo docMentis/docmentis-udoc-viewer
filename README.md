@@ -181,6 +181,19 @@ udoc-viewer collects anonymous, non-personally-identifiable usage data to help u
 - IP addresses (disabled at the collection endpoint)
 - Any other personally identifiable information
 
+### Opting out
+
+Telemetry can be disabled with a license that includes the `no_telemetry` feature:
+
+```typescript
+const client = await UDocClient.create({
+    license: "eyJ2Ijox...",
+    disableTelemetry: true,
+});
+```
+
+Without a qualifying license the flag is silently ignored and a warning is logged to the console.
+
 ## Branding & Attribution
 
 udoc-viewer is free to use, including in commercial applications. A "Powered by docMentis" attribution link is shown by default.

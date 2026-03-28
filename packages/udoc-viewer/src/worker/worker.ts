@@ -97,6 +97,7 @@ export interface FontEntry {
 export type WorkerRequest =
     | { type: "init"; wasmUrl?: string; gpu?: boolean }
     | { type: "setup"; domain: string; viewerVersion: string; distinctId: string }
+    | { type: "disableTelemetry" }
     | { type: "setLicense"; license: string; domain: string }
     | { type: "getLicenseStatus" }
     | { type: "load"; id: string; bytes: Uint8Array }
@@ -139,6 +140,8 @@ export type WorkerResponse =
     | { type: "init"; success: false; error: string }
     | { type: "setup"; success: true }
     | { type: "setup"; success: false; error: string }
+    | { type: "disableTelemetry"; success: true; disabled: boolean }
+    | { type: "disableTelemetry"; success: false; error: string }
     | { type: "setLicense"; success: true; result: LicenseResult }
     | { type: "setLicense"; success: false; error: string }
     | { type: "getLicenseStatus"; success: true; result: LicenseResult }
@@ -265,6 +268,13 @@ async function handleMessage(event: MessageEvent<WorkerRequest & { _id?: number 
                 ensureInitialized();
                 wasm!.setup(request.domain, request.viewerVersion, request.distinctId);
                 respond({ type: "setup", success: true });
+                break;
+            }
+
+            case "disableTelemetry": {
+                ensureInitialized();
+                const disabled = wasm!.disable_telemetry();
+                respond({ type: "disableTelemetry", success: true, disabled });
                 break;
             }
 

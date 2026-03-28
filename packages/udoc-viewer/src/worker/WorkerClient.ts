@@ -226,6 +226,17 @@ export class WorkerClient {
     }
 
     /**
+     * Disable telemetry reporting. Requires a license with the "no_telemetry" feature.
+     * @returns true if telemetry was disabled, false if the license does not permit it.
+     */
+    async disableTelemetry(): Promise<boolean> {
+        const response = (await this.send({ type: "disableTelemetry" })) as {
+            disabled: boolean;
+        };
+        return response.disabled;
+    }
+
+    /**
      * Set the license key.
      * @param license - The license key string
      * @param domain - The current domain (from window.location.hostname)
