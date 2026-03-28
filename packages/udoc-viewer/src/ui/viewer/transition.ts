@@ -782,15 +782,16 @@ function setupBlinds3D(
         const flipper = document.createElement("div");
         flipper.style.position = "absolute";
         flipper.style.transformStyle = "preserve-3d";
+        const pad = 0.5; // half-pixel overlap to hide sub-pixel seams
         if (isH) {
             flipper.style.left = "0";
-            flipper.style.top = `${i * d}px`;
+            flipper.style.top = `${i * d - pad}px`;
             flipper.style.width = `${slideW}px`;
-            flipper.style.height = `${d}px`;
+            flipper.style.height = `${d + pad * 2}px`;
         } else {
             flipper.style.top = "0";
-            flipper.style.left = `${i * d}px`;
-            flipper.style.width = `${d}px`;
+            flipper.style.left = `${i * d - pad}px`;
+            flipper.style.width = `${d + pad * 2}px`;
             flipper.style.height = `${slideH}px`;
         }
         // transform-origin defaults to center — correct for box-centre rotation
@@ -988,115 +989,170 @@ const CHECKER_COLS = 8;
 const CHECKER_ROWS = 6;
 
 /**
- * Checker: 3D flip effect per cell in a checkerboard pattern.
- * Each cell flips individually: outgoing cell narrows (first half),
- * then incoming cell widens (second half). The flip is staggered
- * by position, sweeping "across" or "down" with checkerboard offset.
+ * Checker: 3D tile-flip effect in a checkerboard pattern.
+ *
+ * The slide is divided into a grid of tiles. Each tile is a 3D object
+ * with the outgoing slide on the front face and the incoming slide on
+ * the back face. Tiles flip 180° around the X axis (across/horizontal)
+ * or Y axis (down/vertical), staggered in a checkerboard sweep pattern.
  */
 function checkerEffect(orientation: "horizontal" | "vertical"): FrameFn {
-    const cols = orientation === "horizontal" ? CHECKER_COLS : CHECKER_ROWS;
-    const rows = orientation === "horizontal" ? CHECKER_ROWS : CHECKER_COLS;
-    const sweepLen = (orientation === "horizontal" ? cols : rows) + 1;
-    // Each cell's flip takes 1 sweep-unit. Total time = sweepLen + 1 (for flip duration)
-    const totalLen = sweepLen + 1;
+    const isH = orientation === "horizontal";
+    const cols = CHECKER_COLS;
+    const rows = CHECKER_ROWS;
+    let setup: { flippers: HTMLElement[] } | null = null;
+
+    // Sweep across columns (horizontal) or down rows (vertical),
+    // with checkerboard phase offset.
+    const sweepLen = (isH ? cols : rows) + 1;
+    const flipDur = 3; // each tile takes 3 sweep-units to flip
+    const totalLen = sweepLen + flipDur;
 
     return (t, outgoing, incoming) => {
         if (t >= 1) {
+            incoming.style.opacity = "";
             incoming.style.clipPath = "none";
-            outgoing.style.clipPath = "polygon(0% 0%, 0% 0%, 0% 0%)";
             return;
         }
-        const cellW = 100 / cols;
-        const cellH = 100 / rows;
-        const sweep = t * totalLen;
 
-        const outPoints: string[] = [];
-        const inPoints: string[] = [];
+        if (!setup) {
+            setup = setupChecker3D(outgoing, incoming, cols, rows, isH);
+        }
+
+        const sweep = t * totalLen;
 
         for (let r = 0; r < rows; r++) {
             for (let c = 0; c < cols; c++) {
-                const pos = orientation === "horizontal" ? c : r;
+                const idx = r * cols + c;
+                const pos = isH ? c : r;
                 const phase = (r + c) % 2;
                 const cellStart = pos + phase;
-                // cellT: 0 = not started, 0→0.5 = outgoing shrinks, 0.5→1 = incoming grows
-                const cellT = Math.max(0, Math.min(1, sweep - cellStart));
-
-                const left = c * cellW;
-                const top = r * cellH;
-
-                if (cellT <= 0) {
-                    // Cell hasn't started flipping — outgoing fully visible
-                    outPoints.push(
-                        "0% 0%",
-                        `${left}% ${top}%`,
-                        `${left + cellW}% ${top}%`,
-                        `${left + cellW}% ${top + cellH}%`,
-                        `${left}% ${top + cellH}%`,
-                        `${left}% ${top}%`,
-                        "0% 0%",
-                    );
-                } else if (cellT < 0.5) {
-                    // First half: outgoing cell narrows (flip away)
-                    const frac = 1 - cellT * 2;
-                    if (orientation === "horizontal") {
-                        const bot = top + frac * cellH;
-                        outPoints.push(
-                            "0% 0%",
-                            `${left}% ${top}%`,
-                            `${left + cellW}% ${top}%`,
-                            `${left + cellW}% ${bot}%`,
-                            `${left}% ${bot}%`,
-                            `${left}% ${top}%`,
-                            "0% 0%",
-                        );
-                    } else {
-                        const right = left + frac * cellW;
-                        outPoints.push(
-                            "0% 0%",
-                            `${left}% ${top}%`,
-                            `${right}% ${top}%`,
-                            `${right}% ${top + cellH}%`,
-                            `${left}% ${top + cellH}%`,
-                            `${left}% ${top}%`,
-                            "0% 0%",
-                        );
-                    }
-                } else {
-                    // Second half: incoming cell widens (flip toward viewer)
-                    const frac = (cellT - 0.5) * 2;
-                    if (orientation === "horizontal") {
-                        const bot = top + frac * cellH;
-                        inPoints.push(
-                            "0% 0%",
-                            `${left}% ${top}%`,
-                            `${left + cellW}% ${top}%`,
-                            `${left + cellW}% ${bot}%`,
-                            `${left}% ${bot}%`,
-                            `${left}% ${top}%`,
-                            "0% 0%",
-                        );
-                    } else {
-                        const right = left + frac * cellW;
-                        inPoints.push(
-                            "0% 0%",
-                            `${left}% ${top}%`,
-                            `${right}% ${top}%`,
-                            `${right}% ${top + cellH}%`,
-                            `${left}% ${top + cellH}%`,
-                            `${left}% ${top}%`,
-                            "0% 0%",
-                        );
-                    }
-                }
+                const cellT = Math.max(0, Math.min(1, (sweep - cellStart) / flipDur));
+                const angle = cellT * 180;
+                setup.flippers[idx].style.transform = isH ? `rotateY(-${angle}deg)` : `rotateX(${angle}deg)`;
             }
         }
-
-        outgoing.style.zIndex = "1";
-        outgoing.style.clipPath = outPoints.length
-            ? `polygon(${outPoints.join(", ")})`
-            : "polygon(0% 0%, 0% 0%, 0% 0%)";
-        incoming.style.clipPath = inPoints.length ? `polygon(${inPoints.join(", ")})` : "polygon(0% 0%, 0% 0%, 0% 0%)";
     };
+}
+
+/**
+ * Build a grid of 3D flipper tiles for the checker transition.
+ *
+ * DOM structure:
+ *   outgoing  [container]
+ *   ├── backdrop  [black background]
+ *   └── scene  [perspective, preserve-3d]
+ *       ├── flipper-0,0  [preserve-3d, rotateX/Y]
+ *       │   ├── front  [canvas tile of outgoing]
+ *       │   └── back   [canvas tile of incoming, rotated 180°]
+ *       ├── flipper-0,1  ...
+ *       └── ...
+ */
+function setupChecker3D(
+    outgoing: HTMLElement,
+    incoming: HTMLElement,
+    cols: number,
+    rows: number,
+    isH: boolean,
+): { flippers: HTMLElement[] } {
+    const outCanvas = outgoing.querySelector<HTMLCanvasElement>("canvas");
+    const inCanvas =
+        incoming.querySelector<HTMLCanvasElement>(".udoc-spread__canvas") ??
+        incoming.querySelector<HTMLCanvasElement>("canvas");
+
+    if (!outCanvas || !inCanvas || outCanvas.width === 0 || inCanvas.width === 0) {
+        return { flippers: [] };
+    }
+
+    const slideW = outgoing.offsetWidth;
+    const slideH = outgoing.offsetHeight;
+    const tileW = slideW / cols;
+    const tileH = slideH / rows;
+
+    outgoing.innerHTML = "";
+    outgoing.style.overflow = "visible";
+    outgoing.style.zIndex = "1";
+
+    incoming.style.opacity = "0";
+
+    const backdrop = document.createElement("div");
+    backdrop.style.position = "absolute";
+    backdrop.style.left = "0";
+    backdrop.style.top = "0";
+    backdrop.style.width = `${slideW}px`;
+    backdrop.style.height = `${slideH}px`;
+    backdrop.style.background = "#000";
+    outgoing.appendChild(backdrop);
+
+    const scene = document.createElement("div");
+    scene.style.position = "absolute";
+    scene.style.left = "0";
+    scene.style.top = "0";
+    scene.style.width = `${slideW}px`;
+    scene.style.height = `${slideH}px`;
+    scene.style.perspective = `${Math.max(slideW, slideH) * 2}px`;
+    scene.style.transformStyle = "preserve-3d";
+    outgoing.appendChild(scene);
+
+    const flippers: HTMLElement[] = [];
+
+    for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+            const flipper = document.createElement("div");
+            flipper.style.position = "absolute";
+            flipper.style.transformStyle = "preserve-3d";
+            const pad = 0.5; // half-pixel overlap to hide sub-pixel seams
+            flipper.style.left = `${c * tileW - pad}px`;
+            flipper.style.top = `${r * tileH - pad}px`;
+            flipper.style.width = `${tileW + pad * 2}px`;
+            flipper.style.height = `${tileH + pad * 2}px`;
+
+            const front = createCheckerFace(outCanvas, c, r, cols, rows);
+            front.style.backfaceVisibility = "hidden";
+
+            const back = createCheckerFace(inCanvas, c, r, cols, rows);
+            back.style.backfaceVisibility = "hidden";
+            back.style.transform = isH ? "rotateY(-180deg)" : "rotateX(180deg)";
+
+            flipper.appendChild(front);
+            flipper.appendChild(back);
+            scene.appendChild(flipper);
+            flippers.push(flipper);
+        }
+    }
+
+    return { flippers };
+}
+
+/** Create a canvas element showing one tile of a source canvas. */
+function createCheckerFace(
+    source: HTMLCanvasElement,
+    col: number,
+    row: number,
+    cols: number,
+    rows: number,
+): HTMLCanvasElement {
+    const canvas = document.createElement("canvas");
+    canvas.style.position = "absolute";
+    canvas.style.top = "0";
+    canvas.style.left = "0";
+    canvas.style.width = "100%";
+    canvas.style.height = "100%";
+    canvas.style.display = "block";
+
+    const tileW = Math.round(source.width / cols);
+    const tileH = Math.round(source.height / rows);
+    const sx = col * tileW;
+    const sy = row * tileH;
+    const sw = Math.min(tileW, source.width - sx);
+    const sh = Math.min(tileH, source.height - sy);
+
+    canvas.width = sw;
+    canvas.height = sh;
+    const ctx = canvas.getContext("2d");
+    if (ctx) ctx.drawImage(source, sx, sy, sw, sh, 0, 0, sw, sh);
+
+    return canvas;
 }
 
 // ---------------------------------------------------------------------------
