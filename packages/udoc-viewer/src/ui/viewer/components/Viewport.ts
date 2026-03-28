@@ -660,6 +660,7 @@ export function createViewport(showAttribution = true) {
     // Slide transition state
     let activeTransition: TransitionHandle | null = null;
     let transitionOverlay: HTMLElement | null = null;
+    let transitionShadow: HTMLElement | null = null;
     let previousSpreadIndex: number | null = null;
 
     function mount(parent: HTMLElement, store: Store<ViewerState, Action>, wc: WorkerClient, i18n?: I18n): void {
@@ -1247,6 +1248,10 @@ export function createViewport(showAttribution = true) {
             transitionOverlay.remove();
             transitionOverlay = null;
         }
+        if (transitionShadow) {
+            transitionShadow.remove();
+            transitionShadow = null;
+        }
     }
 
     /**
@@ -1291,7 +1296,6 @@ export function createViewport(showAttribution = true) {
         snapshot.style.width = `${refRect.width}px`;
         snapshot.style.height = `${refRect.height}px`;
         snapshot.style.pointerEvents = "none";
-        snapshot.style.boxShadow = "var(--udoc-shadow-page)";
         snapshot.appendChild(canvas);
 
         return snapshot;
@@ -1393,6 +1397,29 @@ export function createViewport(showAttribution = true) {
 
         // ---- Render + Transition ----
         if (snapshot && wantTransition) {
+            // Static shadow element — sits behind both snapshot and spread,
+            // stays untouched by any transition effect so the page shadow
+            // remains consistent regardless of clip-path/opacity/transform.
+            const slot = spreadEl.querySelector<HTMLElement>(".udoc-spread__slot");
+            if (slot) {
+                const shadowEl = document.createElement("div");
+                const containerRect = container.getBoundingClientRect();
+                const slotRect = slot.getBoundingClientRect();
+                shadowEl.style.position = "absolute";
+                shadowEl.style.left = `${slotRect.left - containerRect.left}px`;
+                shadowEl.style.top = `${slotRect.top - containerRect.top}px`;
+                shadowEl.style.width = `${slotRect.width}px`;
+                shadowEl.style.height = `${slotRect.height}px`;
+                shadowEl.style.boxShadow = "var(--udoc-shadow-page)";
+                shadowEl.style.pointerEvents = "none";
+                container.insertBefore(shadowEl, spreadEl);
+                transitionShadow = shadowEl;
+
+                // Hide the slot's own shadow so it doesn't double up or
+                // get clipped/faded by the transition effect.
+                slot.style.boxShadow = "none";
+            }
+
             // Insert snapshot BEFORE the spread.  Give it z-index so it fully
             // covers the incoming spread while we wait for the render to finish.
             container.insertBefore(snapshot, spreadEl);
@@ -1416,6 +1443,12 @@ export function createViewport(showAttribution = true) {
                             if (transitionOverlay === snapshot) {
                                 transitionOverlay!.remove();
                                 transitionOverlay = null;
+                            }
+                            // Restore slot shadow and remove static shadow
+                            if (slot) slot.style.boxShadow = "";
+                            if (transitionShadow) {
+                                transitionShadow.remove();
+                                transitionShadow = null;
                             }
                             activeTransition = null;
                         });

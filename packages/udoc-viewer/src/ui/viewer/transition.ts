@@ -761,7 +761,6 @@ function setupBlinds3D(
     backdrop.style.width = `${slideW}px`;
     backdrop.style.height = `${slideH}px`;
     backdrop.style.background = "#000";
-    backdrop.style.boxShadow = "var(--udoc-shadow-page)";
     outgoing.appendChild(backdrop);
 
     // 3D scene container — preserve-3d + perspective live here,
