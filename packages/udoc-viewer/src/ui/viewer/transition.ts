@@ -652,105 +652,209 @@ function stripsEffect(dir: CornerDirection): FrameFn {
 // Blinds / Comb
 // ---------------------------------------------------------------------------
 
-const BLIND_STRIPS = 6;
+const BLIND_STRIPS = 14;
 
 /**
- * Blinds: 3D flip effect per strip.
- * First half:  outgoing strips narrow toward their top/left edge (rotating away).
- * Second half: incoming strips widen from their top/left edge (rotating toward viewer).
- * Simulates each strip flipping over to reveal the new slide on its back.
+ * Blinds: CSS 3D box-rotation effect matching PowerPoint.
+ *
+ * Each strip is modelled as a 3D box whose cross-section is a square
+ * (depth === strip height). The front face shows the outgoing slide and the
+ * bottom face shows the incoming slide. All boxes rotate 90° around the X
+ * axis (horizontal) or Y axis (vertical) at the box centre, so the bottom
+ * face rolls into view like a real window blind.
+ *
+ * All faces share a single `preserve-3d` context rooted on the outgoing
+ * snapshot element, so the browser z-sorts faces across strips correctly.
  */
 function blindsEffect(orientation: "horizontal" | "vertical"): FrameFn {
     const N = BLIND_STRIPS;
+    const isH = orientation === "horizontal";
+    let setup: { flippers: HTMLElement[]; halfDepth: number } | null = null;
+
     return (t, outgoing, incoming) => {
         if (t >= 1) {
+            incoming.style.opacity = "";
             incoming.style.clipPath = "none";
-            outgoing.style.clipPath = "polygon(0% 0%, 0% 0%, 0% 0%)";
-            return;
-        }
-        if (t <= 0) {
-            outgoing.style.zIndex = "1";
-            incoming.style.clipPath = "polygon(0% 0%, 0% 0%, 0% 0%)";
+            // outgoing (now containing strips) is removed by onComplete
             return;
         }
 
-        if (t < 0.5) {
-            // First half: outgoing strips narrow (flip away from viewer)
+        // Lazy init: build 3D strip DOM on first frame
+        if (!setup) {
+            setup = setupBlinds3D(outgoing, incoming, N, isH);
+        }
+
+        // Fallback to crossfade if 3D setup failed (no canvases)
+        if (!setup || setup.flippers.length === 0) {
             outgoing.style.zIndex = "1";
-            const frac = 1 - t * 2; // 1 → 0
-            const outPoints: string[] = [];
-            if (orientation === "horizontal") {
-                const stripH = 100 / N;
-                for (let i = 0; i < N; i++) {
-                    const top = i * stripH;
-                    const bot = top + frac * stripH;
-                    outPoints.push(
-                        "0% 0%",
-                        `0% ${top}%`,
-                        `100% ${top}%`,
-                        `100% ${bot}%`,
-                        `0% ${bot}%`,
-                        `0% ${top}%`,
-                        "0% 0%",
-                    );
-                }
-            } else {
-                const stripW = 100 / N;
-                for (let i = 0; i < N; i++) {
-                    const left = i * stripW;
-                    const right = left + frac * stripW;
-                    outPoints.push(
-                        "0% 0%",
-                        `${left}% 0%`,
-                        `${right}% 0%`,
-                        `${right}% 100%`,
-                        `${left}% 100%`,
-                        `${left}% 0%`,
-                        "0% 0%",
-                    );
-                }
-            }
-            outgoing.style.clipPath = `polygon(${outPoints.join(", ")})`;
-            incoming.style.clipPath = "polygon(0% 0%, 0% 0%, 0% 0%)";
-        } else {
-            // Second half: incoming strips widen (flip toward viewer)
-            outgoing.style.opacity = "0";
-            const frac = (t - 0.5) * 2; // 0 → 1
-            const inPoints: string[] = [];
-            if (orientation === "horizontal") {
-                const stripH = 100 / N;
-                for (let i = 0; i < N; i++) {
-                    const top = i * stripH;
-                    const bot = top + frac * stripH;
-                    inPoints.push(
-                        "0% 0%",
-                        `0% ${top}%`,
-                        `100% ${top}%`,
-                        `100% ${bot}%`,
-                        `0% ${bot}%`,
-                        `0% ${top}%`,
-                        "0% 0%",
-                    );
-                }
-            } else {
-                const stripW = 100 / N;
-                for (let i = 0; i < N; i++) {
-                    const left = i * stripW;
-                    const right = left + frac * stripW;
-                    inPoints.push(
-                        "0% 0%",
-                        `${left}% 0%`,
-                        `${right}% 0%`,
-                        `${right}% 100%`,
-                        `${left}% 100%`,
-                        `${left}% 0%`,
-                        "0% 0%",
-                    );
-                }
-            }
-            incoming.style.clipPath = `polygon(${inPoints.join(", ")})`;
+            outgoing.style.opacity = `${1 - t}`;
+            return;
+        }
+
+        // Staggered rotation: center strips start first, edges start last.
+        // Each strip's local progress is derived from its distance to center.
+        const hd = setup.halfDepth;
+        const stagger = 0.35; // fraction of total duration used for stagger spread
+        const center = (N - 1) / 2;
+
+        for (let i = 0; i < setup.flippers.length; i++) {
+            const dist = Math.abs(i - center) / center; // 0 at center, 1 at edges
+            const delay = dist * stagger;
+            const stripT = Math.max(0, Math.min(1, (t - delay) / (1 - stagger)));
+            const angle = stripT * 90;
+            setup.flippers[i].style.transform = isH
+                ? `translateZ(-${hd}px) rotateX(${angle}deg)`
+                : `translateZ(-${hd}px) rotateY(-${angle}deg)`;
         }
     };
+}
+
+/**
+ * Build N 3D box-strip elements inside the outgoing snapshot.
+ *
+ * DOM structure (horizontal example):
+ *   outgoing  [perspective, preserve-3d]
+ *   ├── flipper-0  [preserve-3d, position: absolute, rotateX(angle)]
+ *   │   ├── front  [canvas, translateZ(d/2)]
+ *   │   └── bottom [canvas, rotateX(-90deg) translateZ(d/2)]
+ *   ├── flipper-1  ...
+ *   └── ...
+ */
+function setupBlinds3D(
+    outgoing: HTMLElement,
+    incoming: HTMLElement,
+    N: number,
+    isH: boolean,
+): { flippers: HTMLElement[]; halfDepth: number } {
+    const outCanvas =
+        outgoing.querySelector<HTMLCanvasElement>(".udoc-spread__canvas") ??
+        outgoing.querySelector<HTMLCanvasElement>("canvas");
+    const inCanvas =
+        incoming.querySelector<HTMLCanvasElement>(".udoc-spread__canvas") ??
+        incoming.querySelector<HTMLCanvasElement>("canvas");
+
+    if (!outCanvas || !inCanvas || outCanvas.width === 0 || inCanvas.width === 0) {
+        return { flippers: [], halfDepth: 0 };
+    }
+
+    // Measure the inner wrapper (the actual slide area), not the outer spread
+    // element which stretches to fill the viewport via left:0; right:0.
+    const outWrapper = outgoing.querySelector<HTMLElement>(".udoc-spread__wrapper");
+    const refEl = outWrapper ?? outgoing;
+    const slideW = refEl.offsetWidth;
+    const slideH = refEl.offsetHeight;
+    // Wrapper offset within the spread (the spread centers it via flexbox)
+    const offsetLeft = outWrapper ? outWrapper.offsetLeft : 0;
+    const offsetTop = outWrapper ? outWrapper.offsetTop : 0;
+    const d = isH ? slideH / N : slideW / N; // box depth = strip size (square cross-section)
+
+    // Repurpose the disposable snapshot as the container
+    outgoing.innerHTML = "";
+    outgoing.style.overflow = "visible";
+    outgoing.style.zIndex = "1";
+
+    // Hide the real spread during animation (resetIncoming restores on cancel)
+    incoming.style.opacity = "0";
+
+    // Black backdrop — flat 2D element, NOT inside the preserve-3d context.
+    // Sits behind the 3D scene in normal stacking order (DOM before scene).
+    const backdrop = document.createElement("div");
+    backdrop.style.position = "absolute";
+    backdrop.style.left = `${offsetLeft}px`;
+    backdrop.style.top = `${offsetTop}px`;
+    backdrop.style.width = `${slideW}px`;
+    backdrop.style.height = `${slideH}px`;
+    backdrop.style.background = "#000";
+    backdrop.style.boxShadow = "var(--udoc-shadow-page)";
+    outgoing.appendChild(backdrop);
+
+    // 3D scene container — preserve-3d + perspective live here,
+    // separate from the flat backdrop so it doesn't interfere.
+    const scene = document.createElement("div");
+    scene.style.position = "absolute";
+    scene.style.left = `${offsetLeft}px`;
+    scene.style.top = `${offsetTop}px`;
+    scene.style.width = `${slideW}px`;
+    scene.style.height = `${slideH}px`;
+    scene.style.perspective = `${(isH ? slideH : slideW) * 2}px`;
+    scene.style.transformStyle = "preserve-3d";
+    outgoing.appendChild(scene);
+
+    const flippers: HTMLElement[] = [];
+
+    for (let i = 0; i < N; i++) {
+        // Flipper — the rotating 3D box for this strip
+        const flipper = document.createElement("div");
+        flipper.style.position = "absolute";
+        flipper.style.transformStyle = "preserve-3d";
+        if (isH) {
+            flipper.style.left = "0";
+            flipper.style.top = `${i * d}px`;
+            flipper.style.width = `${slideW}px`;
+            flipper.style.height = `${d}px`;
+        } else {
+            flipper.style.top = "0";
+            flipper.style.left = `${i * d}px`;
+            flipper.style.width = `${d}px`;
+            flipper.style.height = `${slideH}px`;
+        }
+        // transform-origin defaults to center — correct for box-centre rotation
+
+        // Front face: outgoing content, pushed forward by d/2
+        const front = createBlindFace(outCanvas, i, N, isH);
+        front.style.backfaceVisibility = "hidden";
+        front.style.transform = `translateZ(${d / 2}px)`;
+
+        // Bottom/right face: incoming content, rotated into position then pushed out
+        const bottom = createBlindFace(inCanvas, i, N, isH);
+        bottom.style.backfaceVisibility = "hidden";
+        bottom.style.transform = isH
+            ? `rotateX(-90deg) translateZ(${d / 2}px)`
+            : `rotateY(90deg) translateZ(${d / 2}px)`;
+
+        flipper.appendChild(front);
+        flipper.appendChild(bottom);
+        scene.appendChild(flipper);
+        flippers.push(flipper);
+    }
+
+    return { flippers, halfDepth: d / 2 };
+}
+
+/** Create a canvas element showing one strip slice of a source canvas. */
+function createBlindFace(
+    source: HTMLCanvasElement,
+    index: number,
+    total: number,
+    isHorizontal: boolean,
+): HTMLCanvasElement {
+    const canvas = document.createElement("canvas");
+    canvas.style.position = "absolute";
+    canvas.style.top = "0";
+    canvas.style.left = "0";
+    canvas.style.width = "100%";
+    canvas.style.height = "100%";
+    canvas.style.display = "block";
+
+    if (isHorizontal) {
+        const stripH = Math.round(source.height / total);
+        const sy = index * stripH;
+        const sh = Math.min(stripH, source.height - sy);
+        canvas.width = source.width;
+        canvas.height = sh;
+        const ctx = canvas.getContext("2d");
+        if (ctx) ctx.drawImage(source, 0, sy, source.width, sh, 0, 0, source.width, sh);
+    } else {
+        const stripW = Math.round(source.width / total);
+        const sx = index * stripW;
+        const sw = Math.min(stripW, source.width - sx);
+        canvas.width = sw;
+        canvas.height = source.height;
+        const ctx = canvas.getContext("2d");
+        if (ctx) ctx.drawImage(source, sx, 0, sw, source.height, 0, 0, sw, source.height);
+    }
+
+    return canvas;
 }
 
 /**
