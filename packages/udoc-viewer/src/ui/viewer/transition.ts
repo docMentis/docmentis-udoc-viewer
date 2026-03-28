@@ -726,9 +726,9 @@ function setupBlinds3D(
     N: number,
     isH: boolean,
 ): { flippers: HTMLElement[]; halfDepth: number } {
-    const outCanvas =
-        outgoing.querySelector<HTMLCanvasElement>(".udoc-spread__canvas") ??
-        outgoing.querySelector<HTMLCanvasElement>("canvas");
+    // The outgoing snapshot is a div (positioned at the slot area) containing a canvas.
+    // The incoming is the real spread — find its main canvas.
+    const outCanvas = outgoing.querySelector<HTMLCanvasElement>("canvas");
     const inCanvas =
         incoming.querySelector<HTMLCanvasElement>(".udoc-spread__canvas") ??
         incoming.querySelector<HTMLCanvasElement>("canvas");
@@ -737,18 +737,14 @@ function setupBlinds3D(
         return { flippers: [], halfDepth: 0 };
     }
 
-    // Measure the inner wrapper (the actual slide area), not the outer spread
-    // element which stretches to fill the viewport via left:0; right:0.
-    const outWrapper = outgoing.querySelector<HTMLElement>(".udoc-spread__wrapper");
-    const refEl = outWrapper ?? outgoing;
-    const slideW = refEl.offsetWidth;
-    const slideH = refEl.offsetHeight;
-    // Wrapper offset within the spread (the spread centers it via flexbox)
-    const offsetLeft = outWrapper ? outWrapper.offsetLeft : 0;
-    const offsetTop = outWrapper ? outWrapper.offsetTop : 0;
+    // The snapshot is positioned exactly at the slot area — use its dimensions directly.
+    const slideW = outgoing.offsetWidth;
+    const slideH = outgoing.offsetHeight;
     const d = isH ? slideH / N : slideW / N; // box depth = strip size (square cross-section)
 
-    // Repurpose the disposable snapshot as the container
+    // Repurpose the disposable snapshot as the container.
+    // Since the snapshot is now a canvas positioned at the slot area,
+    // all children are placed at (0,0) relative to it — no offset needed.
     outgoing.innerHTML = "";
     outgoing.style.overflow = "visible";
     outgoing.style.zIndex = "1";
@@ -760,8 +756,8 @@ function setupBlinds3D(
     // Sits behind the 3D scene in normal stacking order (DOM before scene).
     const backdrop = document.createElement("div");
     backdrop.style.position = "absolute";
-    backdrop.style.left = `${offsetLeft}px`;
-    backdrop.style.top = `${offsetTop}px`;
+    backdrop.style.left = "0";
+    backdrop.style.top = "0";
     backdrop.style.width = `${slideW}px`;
     backdrop.style.height = `${slideH}px`;
     backdrop.style.background = "#000";
@@ -772,8 +768,8 @@ function setupBlinds3D(
     // separate from the flat backdrop so it doesn't interfere.
     const scene = document.createElement("div");
     scene.style.position = "absolute";
-    scene.style.left = `${offsetLeft}px`;
-    scene.style.top = `${offsetTop}px`;
+    scene.style.left = "0";
+    scene.style.top = "0";
     scene.style.width = `${slideW}px`;
     scene.style.height = `${slideH}px`;
     scene.style.perspective = `${(isH ? slideH : slideW) * 2}px`;

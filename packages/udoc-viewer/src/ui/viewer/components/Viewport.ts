@@ -1250,41 +1250,50 @@ export function createViewport(showAttribution = true) {
     }
 
     /**
-     * Capture a static snapshot of a spread element for use as a transition overlay.
-     * Deep-clones the DOM, copies canvas contents (cloneNode doesn't copy pixels),
-     * and strips non-visual layers (text, annotation, search) to reduce DOM weight.
+     * Capture a lightweight snapshot of the spread's visible content.
+     *
+     * Returns a div positioned absolutely at the slot's location in the
+     * container, containing a canvas with the rendered bitmap. The div
+     * carries the page shadow so the outgoing content retains its framing
+     * during transitions. Transition effects that restructure the snapshot
+     * (like blinds) can clear the div and rebuild its contents.
      */
     function captureSnapshot(spreadComp: SpreadComponent): HTMLElement | null {
         const el = spreadComp.getElement();
-        const snapshot = el.cloneNode(true) as HTMLElement;
 
-        // Copy canvas pixel data (cloneNode doesn't preserve canvas content)
-        const originalCanvases = el.querySelectorAll("canvas");
-        const clonedCanvases = snapshot.querySelectorAll("canvas");
-        let hasContent = false;
-        for (let i = 0; i < originalCanvases.length; i++) {
-            const orig = originalCanvases[i];
-            const clone = clonedCanvases[i];
-            if (orig && clone && orig.width > 0 && orig.height > 0) {
-                clone.width = orig.width;
-                clone.height = orig.height;
-                const ctx = clone.getContext("2d");
-                if (ctx) {
-                    ctx.drawImage(orig, 0, 0);
-                    hasContent = true;
-                }
-            }
-        }
-        if (!hasContent) return null;
+        // Find the main rendered canvas (prefer full-res over preview)
+        const mainCanvas =
+            el.querySelector<HTMLCanvasElement>(".udoc-spread__canvas") ??
+            el.querySelector<HTMLCanvasElement>("canvas");
+        if (!mainCanvas || mainCanvas.width === 0 || mainCanvas.height === 0) return null;
 
-        // Strip non-visual layers — they add DOM weight and stale content
-        for (const layer of snapshot.querySelectorAll(
-            ".udoc-text-layer, .udoc-annotation-layer, .udoc-search-highlight-layer",
-        )) {
-            layer.remove();
-        }
+        // Create a canvas snapshot with the same pixel content
+        const canvas = document.createElement("canvas");
+        canvas.width = mainCanvas.width;
+        canvas.height = mainCanvas.height;
+        canvas.style.display = "block";
+        canvas.style.width = "100%";
+        canvas.style.height = "100%";
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return null;
+        ctx.drawImage(mainCanvas, 0, 0);
 
+        // Position to match the slot's exact location in the container
+        const slot = mainCanvas.closest<HTMLElement>(".udoc-spread__slot");
+        const ref = slot ?? mainCanvas;
+        const containerRect = container.getBoundingClientRect();
+        const refRect = ref.getBoundingClientRect();
+
+        const snapshot = document.createElement("div");
+        snapshot.style.position = "absolute";
+        snapshot.style.left = `${refRect.left - containerRect.left}px`;
+        snapshot.style.top = `${refRect.top - containerRect.top}px`;
+        snapshot.style.width = `${refRect.width}px`;
+        snapshot.style.height = `${refRect.height}px`;
         snapshot.style.pointerEvents = "none";
+        snapshot.style.boxShadow = "var(--udoc-shadow-page)";
+        snapshot.appendChild(canvas);
+
         return snapshot;
     }
 
