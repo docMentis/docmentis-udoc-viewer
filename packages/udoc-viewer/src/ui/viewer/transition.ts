@@ -249,7 +249,7 @@ function resolveEffect(effect: TransitionEffect, forward: boolean): FrameFn | nu
 
         case "zoom":
         case "box":
-            return effect.inOut === "in" ? revealFromCenter : shrinkOutgoing;
+            return effect.inOut === "in" ? shrinkToCenter : shrinkOutgoing;
 
         case "fly": {
             const dir = forward ? effect.direction : oppositeSide(effect.direction);
@@ -350,13 +350,13 @@ function resolveEffect(effect: TransitionEffect, forward: boolean): FrameFn | nu
 
         case "warp":
         case "flythrough":
-            return effect.inOut === "in" ? revealFromCenter : shrinkOutgoing;
+            return effect.inOut === "in" ? shrinkToCenter : shrinkOutgoing;
 
         case "flash":
             return fadeThroughBlack;
 
         case "shred":
-            return effect.inOut === "in" ? revealFromCenter : shrinkOutgoing;
+            return effect.inOut === "in" ? shrinkToCenter : shrinkOutgoing;
 
         case "reveal":
             return effect.throughBlack ? fadeThroughBlack : wipeEffect(effect.direction);
@@ -551,11 +551,26 @@ function splitEffect(orientation: "horizontal" | "vertical", inOut: "in" | "out"
 }
 
 /**
- * Zoom/box in: incoming revealed from center via inset clip-path.
+ * Zoom/box in: outgoing slide clips inward from edges to center, revealing incoming underneath.
+ * Uses SVG mask with Gaussian blur for a feathered edge.
  */
-function revealFromCenter(t: number, _outgoing: HTMLElement, incoming: HTMLElement): void {
-    const p = (1 - t) * 50;
-    incoming.style.clipPath = `inset(${p}% ${p}% ${p}% ${p}%)`;
+function shrinkToCenter(t: number, outgoing: HTMLElement, _incoming: HTMLElement): void {
+    outgoing.style.zIndex = "1";
+    if (t <= 0) {
+        clearMask(outgoing);
+        return;
+    }
+    const p = t * 50;
+    const blur = Math.max(0.5, p * 0.08);
+    // White rect with an inverted (black) inset rect — masks away the center, keeping the outer ring.
+    // As p grows the outer ring shrinks toward the edges, revealing incoming underneath.
+    applyMask(
+        outgoing,
+        svgMask(
+            `<rect x="${p}" y="${p}" width="${100 - 2 * p}" height="${100 - 2 * p}" fill="white" filter="url(#b)"/>`,
+            blur,
+        ),
+    );
 }
 
 /**
