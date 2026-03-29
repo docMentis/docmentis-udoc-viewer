@@ -302,7 +302,7 @@ function resolveEffect(effect: TransitionEffect, forward: boolean): FrameFn | nu
             return wheelSweepEffect(effect.spokes, true);
 
         case "newsflash":
-            return circleEffect;
+            return newsflashEffect;
 
         case "blinds":
             return blindsEffect(effect.orientation);
@@ -643,6 +643,21 @@ function plusMaskSvg(p: number, blur: number): string {
         `${50 - p},${50 + p} 0,${50 + p} 0,${50 - p} ${50 - p},${50 - p}" ` +
         `fill="white" filter="url(#b)"/></svg>`;
     return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
+}
+
+/** Newsflash: incoming slide expands from a single pixel at center while rotating 360°. */
+function newsflashEffect(t: number, _outgoing: HTMLElement, incoming: HTMLElement): void {
+    if (t >= 1) {
+        incoming.style.transform = "";
+        incoming.style.opacity = "";
+        return;
+    }
+    // Scale from near-zero to 1, rotate a full 360°.
+    const scale = Math.max(0.01, t);
+    const deg = -t * 360;
+    incoming.style.transform = `scale(${scale}) rotate(${deg}deg)`;
+    incoming.style.transformOrigin = "50% 50%";
+    incoming.style.opacity = String(t);
 }
 
 /**
