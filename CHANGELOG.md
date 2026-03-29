@@ -6,6 +6,8 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+## [0.6.17] - 2026-03-29
+
 ### Bug Fixes
 
 - Store rasterized shadings in per-render ephemeral store instead of LRU cache (engine)
