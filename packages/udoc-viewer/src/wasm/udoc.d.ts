@@ -76,6 +76,25 @@ export interface PageInfo {
   transition?: PageTransition;
 }
 
+export type FontSource = "embedded" | "standard" | "googleFonts" | "url" | "local" | { custom: string };
+
+export interface ResolvedFontInfo {
+  familyName: string;
+  postscriptName?: string;
+  source: FontSource;
+  bold: boolean;
+  italic: boolean;
+}
+
+export interface FontUsageEntry {
+  /** What the document requested (e.g. "Calibri", bold, italic) */
+  spec: { typeface: string; bold: boolean; italic: boolean } | { fontId: string };
+  /** Primary resolution result */
+  resolved: ResolvedFontInfo;
+  /** Additional fonts used via glyph fallback */
+  fallbacks: ResolvedFontInfo[];
+}
+
 
 
 export class Wasm {
@@ -211,6 +230,23 @@ export class Wasm {
    * - `transform`: Combined transform matrix
    */
   get_page_text(id: string, page_index: number): any;
+  /**
+   * Get font usage information for a document.
+   *
+   * Returns an array of `FontUsageEntry` objects describing how each font
+   * spec in the document was resolved, including primary resolution and
+   * any glyph-fallback fonts used during text shaping.
+   *
+   * This information is populated during layout — call after rendering at
+   * least one page to get results.
+   *
+   * # Arguments
+   * * `id` - Document ID
+   *
+   * # Returns
+   * `FontUsageEntry[]` — see TypeScript types for shape.
+   */
+  get_font_usage(id: string): any;
   /**
    * Get current license status.
    */
@@ -571,6 +607,7 @@ export interface InitOutput {
   readonly wasm_enableGoogleFonts: (a: number) => void;
   readonly wasm_get_all_annotations: (a: number, b: number, c: number, d: number) => void;
   readonly wasm_get_bytes: (a: number, b: number, c: number, d: number) => void;
+  readonly wasm_get_font_usage: (a: number, b: number, c: number, d: number) => void;
   readonly wasm_get_limit: (a: number, b: number, c: number, d: bigint) => bigint;
   readonly wasm_get_outline: (a: number, b: number, c: number, d: number) => void;
   readonly wasm_get_page_annotations: (a: number, b: number, c: number, d: number, e: number) => void;
@@ -606,9 +643,9 @@ export interface InitOutput {
   readonly wasm_set_license: (a: number, b: number, c: number, d: number) => void;
   readonly wasm_set_visibility_group_visible: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
   readonly wasm_setup_telemetry: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
-  readonly __wasm_bindgen_func_elem_2591: (a: number, b: number, c: number) => void;
-  readonly __wasm_bindgen_func_elem_2575: (a: number, b: number) => void;
-  readonly __wasm_bindgen_func_elem_17632: (a: number, b: number, c: number, d: number) => void;
+  readonly __wasm_bindgen_func_elem_2633: (a: number, b: number, c: number) => void;
+  readonly __wasm_bindgen_func_elem_2617: (a: number, b: number) => void;
+  readonly __wasm_bindgen_func_elem_17344: (a: number, b: number, c: number, d: number) => void;
   readonly __wbindgen_export: (a: number, b: number) => number;
   readonly __wbindgen_export2: (a: number, b: number, c: number, d: number) => number;
   readonly __wbindgen_export3: (a: number) => void;
