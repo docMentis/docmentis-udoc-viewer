@@ -1056,27 +1056,30 @@ export function createViewport(showAttribution = true) {
             return;
         }
 
-        let viewportTopInLayout: number;
-
-        if (slice.scrollMode === "continuous") {
-            // In continuous mode, viewport top position is directly from scrollTop
-            viewportTopInLayout = scrollArea.scrollTop;
-        } else {
-            // In spread mode, the spread is centered in the viewport
-            // Calculate where the viewport top would be in layout coordinates
+        if (slice.scrollMode !== "continuous") {
+            // In spread mode, we know the current page directly from the slice.
+            // Track the scroll offset relative to the current spread so we can
+            // restore the position after layout changes (e.g. viewport resize).
             const spreadIndex = findSpreadForPage(state.spreads, slice.page);
+            const spread = state.spreads[spreadIndex];
             const layout = state.layouts[spreadIndex];
-            if (!layout) {
+            if (!layout || !spread) {
                 viewportTopPosition = null;
                 return;
             }
-            // The spread is positioned at getCenteredOffset from container top
             const spreadTopInContainer = getCenteredOffset(containerSize.height, layout.height);
-            // Account for any scroll within spread mode (for large spreads)
-            const viewportTopInContainer = scrollArea.scrollTop;
-            // Map to layout coordinates: layout.top is where this spread is in continuous layout
-            viewportTopInLayout = layout.top - spreadTopInContainer + viewportTopInContainer;
+            const offsetInSpread = scrollArea.scrollTop - spreadTopInContainer;
+            const offsetRatio = layout.height > 0 ? offsetInSpread / layout.height : 0;
+            viewportTopPosition = {
+                page: getSpreadPrimaryPage(spread),
+                offset: offsetRatio,
+                inSpacing: offsetInSpread < 0,
+            };
+            return;
         }
+
+        // In continuous mode, viewport top position is directly from scrollTop
+        const viewportTopInLayout = scrollArea.scrollTop;
 
         // Find which spread the viewport top is associated with
         for (let i = 0; i < state.layouts.length; i++) {
