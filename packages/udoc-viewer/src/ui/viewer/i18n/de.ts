@@ -143,6 +143,10 @@ export const de: TranslationKeys = {
     "attachments.empty": "Keine Anhänge in diesem Dokument",
     "layers.visibility": "Sichtbarkeit der Ebene {name}",
 
+    // Fonts panel
+    "fonts.loading": "Schriftarten werden geladen...",
+    "fonts.empty": "Keine Schriftartdaten verfügbar",
+
     // Thumbnail panel
     "thumbnails.label": "Seitenminiaturen",
     "thumbnails.pageLabel": "Seite {page}",
@@ -160,6 +164,7 @@ export const de: TranslationKeys = {
     "leftPanel.bookmarks": "Lesezeichen",
     "leftPanel.layers": "Ebenen",
     "leftPanel.attachments": "Anhänge",
+    "leftPanel.fonts": "Schriftarten",
     "leftPanel.resizeHandle": "Seitenleiste anpassen",
 
     // Right panel

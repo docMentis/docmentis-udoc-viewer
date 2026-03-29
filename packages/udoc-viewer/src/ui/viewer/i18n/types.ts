@@ -140,6 +140,10 @@ export interface TranslationKeys {
     "attachments.empty": string;
     "layers.visibility": string; // "{name} layer visibility"
 
+    // Fonts panel
+    "fonts.loading": string;
+    "fonts.empty": string;
+
     // Thumbnail panel
     "thumbnails.label": string;
     "thumbnails.pageLabel": string; // "Page {page}"
@@ -159,6 +163,7 @@ export interface TranslationKeys {
     "leftPanel.bookmarks": string;
     "leftPanel.layers": string;
     "leftPanel.attachments": string;
+    "leftPanel.fonts": string;
     "leftPanel.resizeHandle": string;
 
     // Right panel

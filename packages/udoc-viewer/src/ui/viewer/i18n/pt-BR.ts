@@ -142,6 +142,10 @@ export const ptBR: TranslationKeys = {
     "attachments.empty": "Nenhum anexo neste documento",
     "layers.visibility": "Visibilidade da camada {name}",
 
+    // Fonts panel
+    "fonts.loading": "Carregando fontes...",
+    "fonts.empty": "Nenhum dado de fonte disponível",
+
     // Thumbnail panel
     "thumbnails.label": "Miniaturas das páginas",
     "thumbnails.pageLabel": "Página {page}",
@@ -159,6 +163,7 @@ export const ptBR: TranslationKeys = {
     "leftPanel.bookmarks": "Marcadores",
     "leftPanel.layers": "Camadas",
     "leftPanel.attachments": "Anexos",
+    "leftPanel.fonts": "Fontes",
     "leftPanel.resizeHandle": "Redimensionar painel lateral",
 
     // Right panel

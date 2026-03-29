@@ -142,6 +142,10 @@ export const ar: TranslationKeys = {
     "attachments.empty": "لا توجد مرفقات في هذا المستند",
     "layers.visibility": "إظهار/إخفاء طبقة {name}",
 
+    // Fonts panel
+    "fonts.loading": "جارٍ تحميل الخطوط...",
+    "fonts.empty": "لا تتوفر بيانات خطوط",
+
     // Thumbnail panel
     "thumbnails.label": "صور مصغرة للصفحات",
     "thumbnails.pageLabel": "صفحة {page}",
@@ -159,6 +163,7 @@ export const ar: TranslationKeys = {
     "leftPanel.bookmarks": "الإشارات المرجعية",
     "leftPanel.layers": "الطبقات",
     "leftPanel.attachments": "المرفقات",
+    "leftPanel.fonts": "الخطوط",
     "leftPanel.resizeHandle": "تغيير حجم اللوحة الجانبية",
 
     // Right panel

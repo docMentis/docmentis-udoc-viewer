@@ -5,12 +5,13 @@ import { isLeftPanelTab } from "../state";
 import type { Action } from "../actions";
 import type { WorkerClient } from "../../../worker/index.js";
 import type { I18n } from "../i18n/index.js";
-import { ICON_THUMBNAIL, ICON_OUTLINE, ICON_BOOKMARK, ICON_LAYERS, ICON_ATTACHMENT } from "../icons";
+import { ICON_THUMBNAIL, ICON_OUTLINE, ICON_BOOKMARK, ICON_LAYERS, ICON_ATTACHMENT, ICON_FONTS } from "../icons";
 import { createThumbnailPanel, type ThumbnailPanelComponent } from "./ThumbnailPanel";
 import { createOutlinePanel, type OutlinePanelComponent } from "./OutlinePanel";
 import { createBookmarksPanel, type BookmarksPanelComponent } from "./BookmarksPanel";
 import { createLayersPanel, type LayersPanelComponent } from "./LayersPanel";
 import { createAttachmentsPanel, type AttachmentsPanelComponent } from "./AttachmentsPanel";
+import { createFontsPanel, type FontsPanelComponent } from "./FontsPanel";
 
 interface TabConfig {
     id: LeftPanelTab;
@@ -24,6 +25,7 @@ const TABS: TabConfig[] = [
     { id: "bookmarks", label: "Bookmarks", icon: ICON_BOOKMARK },
     { id: "layers", label: "Layers", icon: ICON_LAYERS },
     { id: "attachments", label: "Attachments", icon: ICON_ATTACHMENT },
+    { id: "fonts", label: "Fonts", icon: ICON_FONTS },
 ];
 
 type LeftPanelSlice = {
@@ -90,6 +92,7 @@ export function createLeftPanel() {
     let bookmarksPanel: BookmarksPanelComponent | null = null;
     let layersPanel: LayersPanelComponent | null = null;
     let attachmentsPanel: AttachmentsPanelComponent | null = null;
+    let fontsPanel: FontsPanelComponent | null = null;
     let storeRef: Store<ViewerState, Action> | null = null;
     let workerClientRef: WorkerClient | null = null;
     let i18nRef: I18n | null = null;
@@ -148,6 +151,10 @@ export function createLeftPanel() {
             attachmentsPanel.destroy();
             attachmentsPanel = null;
         }
+        if (fontsPanel) {
+            fontsPanel.destroy();
+            fontsPanel = null;
+        }
 
         // Mount new content based on active tab
         if (activeTab === "thumbnail" && storeRef && workerClientRef) {
@@ -165,6 +172,9 @@ export function createLeftPanel() {
         } else if (activeTab === "attachments") {
             attachmentsPanel = createAttachmentsPanel();
             attachmentsPanel.mount(content, i18nRef!);
+        } else if (activeTab === "fonts" && storeRef && workerClientRef) {
+            fontsPanel = createFontsPanel();
+            fontsPanel.mount(content, storeRef, workerClientRef, i18nRef!);
         }
     }
 
@@ -302,6 +312,10 @@ export function createLeftPanel() {
         if (attachmentsPanel) {
             attachmentsPanel.destroy();
             attachmentsPanel = null;
+        }
+        if (fontsPanel) {
+            fontsPanel.destroy();
+            fontsPanel = null;
         }
 
         storeRef = null;

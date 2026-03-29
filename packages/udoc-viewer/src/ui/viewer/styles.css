@@ -905,6 +905,95 @@
     height: 14px;
 }
 
+/* Fonts panel */
+.udoc-viewer-root .udoc-fonts-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 8px 0;
+}
+
+.udoc-viewer-root .udoc-fonts-panel__loading {
+    display: flex;
+    align-items: center;
+    padding: 6px 12px;
+    gap: 8px;
+    min-height: 32px;
+    color: var(--udoc-text-subtle);
+    font-size: 13px;
+}
+
+.udoc-viewer-root .udoc-fonts-panel__item {
+    display: flex;
+    flex-direction: column;
+    padding: 6px 12px;
+    gap: 2px;
+}
+
+.udoc-viewer-root .udoc-fonts-panel__item:hover {
+    background: var(--udoc-subtle-hover);
+}
+
+.udoc-viewer-root .udoc-fonts-panel__spec {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--udoc-text-heading);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.udoc-viewer-root .udoc-fonts-panel__tree {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    padding-left: 4px;
+}
+
+.udoc-viewer-root .udoc-fonts-panel__font-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 18px;
+}
+
+.udoc-viewer-root .udoc-fonts-panel__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    border: 1.5px solid var(--udoc-text-subtle);
+    flex-shrink: 0;
+}
+
+.udoc-viewer-root .udoc-fonts-panel__dot--primary {
+    background: var(--udoc-text-heading);
+    border-color: var(--udoc-text-heading);
+}
+
+.udoc-viewer-root .udoc-fonts-panel__font-name {
+    font-size: 12px;
+    color: var(--udoc-text-subtle);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.udoc-viewer-root .udoc-fonts-panel__font-row--fallback .udoc-fonts-panel__font-name {
+    color: var(--udoc-text-label);
+}
+
+.udoc-viewer-root .udoc-fonts-panel__source {
+    font-size: 10px;
+    padding: 1px 5px;
+    border-radius: 3px;
+    background: var(--udoc-hover-overlay);
+    color: var(--udoc-text-label);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
 .udoc-viewer-root .udoc-toolbar {
     display: flex;
     align-items: center;

@@ -143,6 +143,10 @@ export const ja: TranslationKeys = {
     "attachments.empty": "この文書に添付ファイルはありません",
     "layers.visibility": "{name}レイヤーの表示切替",
 
+    // Fonts panel
+    "fonts.loading": "フォントを読み込み中...",
+    "fonts.empty": "フォント使用データがありません",
+
     // Thumbnail panel
     "thumbnails.label": "ページサムネイル",
     "thumbnails.pageLabel": "{page}ページ",
@@ -160,6 +164,7 @@ export const ja: TranslationKeys = {
     "leftPanel.bookmarks": "ブックマーク",
     "leftPanel.layers": "レイヤー",
     "leftPanel.attachments": "添付ファイル",
+    "leftPanel.fonts": "フォント",
     "leftPanel.resizeHandle": "サイドパネルのサイズ変更",
 
     // Right panel

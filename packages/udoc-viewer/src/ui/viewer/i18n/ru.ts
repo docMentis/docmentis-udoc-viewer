@@ -143,6 +143,10 @@ export const ru: TranslationKeys = {
     "attachments.empty": "В этом документе нет вложений",
     "layers.visibility": "Видимость слоя «{name}»",
 
+    // Fonts panel
+    "fonts.loading": "Загрузка шрифтов...",
+    "fonts.empty": "Нет данных об использовании шрифтов",
+
     // Thumbnail panel
     "thumbnails.label": "Миниатюры страниц",
     "thumbnails.pageLabel": "Страница {page}",
@@ -160,6 +164,7 @@ export const ru: TranslationKeys = {
     "leftPanel.bookmarks": "Закладки",
     "leftPanel.layers": "Слои",
     "leftPanel.attachments": "Вложения",
+    "leftPanel.fonts": "Шрифты",
     "leftPanel.resizeHandle": "Изменить размер боковой панели",
 
     // Right panel

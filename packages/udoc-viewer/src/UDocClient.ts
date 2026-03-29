@@ -292,6 +292,12 @@ export interface ViewerOptions {
     disableAttachments?: boolean;
 
     /**
+     * Disable the fonts panel tab.
+     * @default false
+     */
+    disableFonts?: boolean;
+
+    /**
      * Disable the search panel tab.
      * @default false
      */

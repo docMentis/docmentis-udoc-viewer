@@ -142,6 +142,10 @@ export const en: TranslationKeys = {
     "attachments.empty": "No attachments in this document",
     "layers.visibility": "{name} layer visibility",
 
+    // Fonts panel
+    "fonts.loading": "Loading fonts...",
+    "fonts.empty": "No font usage data available",
+
     // Thumbnail panel
     "thumbnails.label": "Page thumbnails",
     "thumbnails.pageLabel": "Page {page}",
@@ -161,6 +165,7 @@ export const en: TranslationKeys = {
     "leftPanel.bookmarks": "Bookmarks",
     "leftPanel.layers": "Layers",
     "leftPanel.attachments": "Attachments",
+    "leftPanel.fonts": "Fonts",
     "leftPanel.resizeHandle": "Resize side panel",
 
     // Right panel

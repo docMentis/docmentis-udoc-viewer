@@ -143,6 +143,10 @@ export const ko: TranslationKeys = {
     "attachments.empty": "이 문서에 첨부 파일이 없습니다",
     "layers.visibility": "{name} 레이어 표시 전환",
 
+    // Fonts panel
+    "fonts.loading": "글꼴 로딩 중...",
+    "fonts.empty": "글꼴 사용 데이터가 없습니다",
+
     // Thumbnail panel
     "thumbnails.label": "페이지 미리보기",
     "thumbnails.pageLabel": "{page}페이지",
@@ -160,6 +164,7 @@ export const ko: TranslationKeys = {
     "leftPanel.bookmarks": "북마크",
     "leftPanel.layers": "레이어",
     "leftPanel.attachments": "첨부 파일",
+    "leftPanel.fonts": "글꼴",
     "leftPanel.resizeHandle": "사이드 패널 크기 조절",
 
     // Right panel

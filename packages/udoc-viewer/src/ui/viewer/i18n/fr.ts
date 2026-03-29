@@ -143,6 +143,10 @@ export const fr: TranslationKeys = {
     "attachments.empty": "Aucune pièce jointe dans ce document",
     "layers.visibility": "Visibilité du calque {name}",
 
+    // Fonts panel
+    "fonts.loading": "Chargement des polices...",
+    "fonts.empty": "Aucune donnée de police disponible",
+
     // Thumbnail panel
     "thumbnails.label": "Miniatures des pages",
     "thumbnails.pageLabel": "Page {page}",
@@ -160,6 +164,7 @@ export const fr: TranslationKeys = {
     "leftPanel.bookmarks": "Signets",
     "leftPanel.layers": "Calques",
     "leftPanel.attachments": "Pièces jointes",
+    "leftPanel.fonts": "Polices",
     "leftPanel.resizeHandle": "Redimensionner le panneau latéral",
 
     // Right panel

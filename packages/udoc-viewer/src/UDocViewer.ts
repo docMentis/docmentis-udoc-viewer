@@ -275,6 +275,7 @@ export class UDocViewer {
                         "bookmarks",
                         "layers",
                         "attachments",
+                        "fonts",
                         "search",
                         "comments",
                     ];
@@ -334,6 +335,7 @@ export class UDocViewer {
         if (options.disableBookmarks) disabled.push("bookmarks");
         if (options.disableLayers) disabled.push("layers");
         if (options.disableAttachments) disabled.push("attachments");
+        if (options.disableFonts) disabled.push("fonts");
         if (options.disableSearch) disabled.push("search");
         if (options.disableComments) disabled.push("comments");
         if (disabled.length > 0) {

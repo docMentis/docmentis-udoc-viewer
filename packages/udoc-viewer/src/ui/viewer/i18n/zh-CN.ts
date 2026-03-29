@@ -142,6 +142,10 @@ export const zhCN: TranslationKeys = {
     "attachments.empty": "此文档暂无附件",
     "layers.visibility": "{name} 图层可见性",
 
+    // Fonts panel
+    "fonts.loading": "正在加载字体…",
+    "fonts.empty": "暂无字体使用数据",
+
     // Thumbnail panel
     "thumbnails.label": "页面缩略图",
     "thumbnails.pageLabel": "第 {page} 页",
@@ -159,6 +163,7 @@ export const zhCN: TranslationKeys = {
     "leftPanel.bookmarks": "书签",
     "leftPanel.layers": "图层",
     "leftPanel.attachments": "附件",
+    "leftPanel.fonts": "字体",
     "leftPanel.resizeHandle": "调整侧边面板大小",
 
     // Right panel

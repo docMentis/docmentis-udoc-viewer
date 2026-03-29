@@ -36,11 +36,11 @@ export interface VisibilityGroup {
 // Panel types
 // -----------------------------------------------------------------------------
 
-export type LeftPanelTab = "thumbnail" | "outline" | "bookmarks" | "layers" | "attachments";
+export type LeftPanelTab = "thumbnail" | "outline" | "bookmarks" | "layers" | "attachments" | "fonts";
 export type RightPanelTab = "search" | "comments";
 export type PanelTab = LeftPanelTab | RightPanelTab;
 
-const LEFT_TABS: Set<PanelTab> = new Set(["thumbnail", "outline", "bookmarks", "layers", "attachments"]);
+const LEFT_TABS: Set<PanelTab> = new Set(["thumbnail", "outline", "bookmarks", "layers", "attachments", "fonts"]);
 export function isLeftPanelTab(tab: PanelTab): tab is LeftPanelTab {
     return LEFT_TABS.has(tab);
 }

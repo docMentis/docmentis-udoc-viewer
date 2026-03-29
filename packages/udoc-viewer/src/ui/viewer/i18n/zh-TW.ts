@@ -142,6 +142,10 @@ export const zhTW: TranslationKeys = {
     "attachments.empty": "此文件沒有附件",
     "layers.visibility": "{name} 圖層可見性",
 
+    // Fonts panel
+    "fonts.loading": "正在載入字型…",
+    "fonts.empty": "暫無字型使用資料",
+
     // Thumbnail panel
     "thumbnails.label": "頁面縮圖",
     "thumbnails.pageLabel": "第 {page} 頁",
@@ -159,6 +163,7 @@ export const zhTW: TranslationKeys = {
     "leftPanel.bookmarks": "書籤",
     "leftPanel.layers": "圖層",
     "leftPanel.attachments": "附件",
+    "leftPanel.fonts": "字型",
     "leftPanel.resizeHandle": "調整側邊面板大小",
 
     // Right panel
