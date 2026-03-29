@@ -610,14 +610,39 @@ function diamondMaskSvg(p: number, blur: number): string {
     return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
 }
 
-/** Plus/cross reveal from center. */
+/** Plus/cross reveal from center with feathered edge via SVG mask + blur. */
 function plusEffect(t: number, _outgoing: HTMLElement, incoming: HTMLElement): void {
-    const h = t * 50;
-    const v = t * 50;
-    incoming.style.clipPath =
-        `polygon(${50 - v}% 0%, ${50 + v}% 0%, ${50 + v}% ${50 - h}%, 100% ${50 - h}%, ` +
-        `100% ${50 + h}%, ${50 + v}% ${50 + h}%, ${50 + v}% 100%, ${50 - v}% 100%, ` +
-        `${50 - v}% ${50 + h}%, 0% ${50 + h}%, 0% ${50 - h}%, ${50 - v}% ${50 - h}%)`;
+    if (t >= 1) {
+        incoming.style.maskImage = "";
+        incoming.style.setProperty("-webkit-mask-image", "");
+        return;
+    }
+    if (t <= 0) {
+        const mask = plusMaskSvg(0, 0);
+        incoming.style.maskImage = mask;
+        incoming.style.setProperty("-webkit-mask-image", mask);
+        return;
+    }
+    const p = t * 50;
+    const blur = Math.max(0.5, p * 0.08);
+    const mask = plusMaskSvg(p, blur);
+    incoming.style.maskImage = mask;
+    incoming.style.maskSize = "100% 100%";
+    incoming.style.setProperty("-webkit-mask-image", mask);
+    incoming.style.setProperty("-webkit-mask-size", "100% 100%");
+}
+
+function plusMaskSvg(p: number, blur: number): string {
+    // Plus shape: a cross centered at (50,50) with arm half-widths of p
+    const svg =
+        `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none">` +
+        `<defs><filter id="b" x="-50%" y="-50%" width="200%" height="200%">` +
+        `<feGaussianBlur stdDeviation="${blur}"/></filter></defs>` +
+        `<polygon points="${50 - p},0 ${50 + p},0 ${50 + p},${50 - p} 100,${50 - p} ` +
+        `100,${50 + p} ${50 + p},${50 + p} ${50 + p},100 ${50 - p},100 ` +
+        `${50 - p},${50 + p} 0,${50 + p} 0,${50 - p} ${50 - p},${50 - p}" ` +
+        `fill="white" filter="url(#b)"/></svg>`;
+    return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
 }
 
 /**
