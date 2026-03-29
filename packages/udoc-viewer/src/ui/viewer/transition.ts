@@ -205,9 +205,9 @@ function revealInset(dir: SideDirection, t: number): string {
         case "left":
             return `inset(0 ${p}% 0 0)`;
         case "down":
-            return `inset(${p}% 0 0 0)`;
-        case "up":
             return `inset(0 0 ${p}% 0)`;
+        case "up":
+            return `inset(${p}% 0 0 0)`;
     }
 }
 
@@ -227,11 +227,8 @@ function eightDirToRevealInset(dir: EightDirection, t: number): string {
 // ---------------------------------------------------------------------------
 // Effect resolver
 //
-// PowerPoint always uses the direction defined on the slide, regardless of
-// whether the user navigates forward or backward. The `forward` flag is only
-// used for symmetric directional effects (push, wipe) where reversing the
-// direction feels natural. Shape reveals (cover, uncover, pull, strips) use
-// the authored direction as-is.
+// Always uses the direction defined on the slide, regardless of whether
+// the user navigates forward or backward.
 // ---------------------------------------------------------------------------
 
 type FrameFn = (t: number, outgoing: HTMLElement, incoming: HTMLElement) => void;
@@ -250,15 +247,11 @@ function resolveEffect(effect: TransitionEffect, forward: boolean): FrameFn | nu
         case "dissolve":
             return dissolveEffect();
 
-        case "push": {
-            const dir = forward ? effect.direction : oppositeSide(effect.direction);
-            return pushEffect(dir);
-        }
+        case "push":
+            return pushEffect(effect.direction);
 
-        case "wipe": {
-            const dir = forward ? effect.direction : oppositeSide(effect.direction);
-            return wipeEffect(dir);
-        }
+        case "wipe":
+            return wipeEffect(effect.direction);
 
         case "cover":
             return coverEffect(oppositeEightDir(effect.direction));
