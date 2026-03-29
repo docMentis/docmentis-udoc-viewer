@@ -6,6 +6,8 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+## [0.6.16] - 2026-03-29
+
 ### Features
 
 - Add fonts panel to left sidebar showing font usage in a tree view with primary/fallback indicators and source badges
