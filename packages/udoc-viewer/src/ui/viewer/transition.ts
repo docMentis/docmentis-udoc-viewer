@@ -453,19 +453,27 @@ function wipeEffect(dir: SideDirection): FrameFn {
         }
         const p = (1 - t) * 100;
         const blur = Math.max(0.5, t * 50 * 0.08);
+        // Extend the rect well beyond the viewBox on all non-moving edges so
+        // the Gaussian blur feathers only the leading (moving) edge.  The SVG
+        // viewBox clips the overflow, keeping the other edges crisp.
+        const E = 50; // extension beyond viewBox
         let rect: string;
         switch (dir) {
             case "right":
-                rect = `<rect x="${p}" y="0" width="${100 - p}" height="100" fill="white" filter="url(#b)"/>`;
+                // Moving edge: left side at x=p
+                rect = `<rect x="${p}" y="${-E}" width="${100 - p + E}" height="${100 + 2 * E}" fill="white" filter="url(#b)"/>`;
                 break;
             case "left":
-                rect = `<rect x="0" y="0" width="${100 - p}" height="100" fill="white" filter="url(#b)"/>`;
+                // Moving edge: right side at x=(100-p)
+                rect = `<rect x="${-E}" y="${-E}" width="${100 - p + E}" height="${100 + 2 * E}" fill="white" filter="url(#b)"/>`;
                 break;
             case "down":
-                rect = `<rect x="0" y="0" width="100" height="${100 - p}" fill="white" filter="url(#b)"/>`;
+                // Moving edge: bottom side of rect
+                rect = `<rect x="${-E}" y="${-E}" width="${100 + 2 * E}" height="${100 - p + E}" fill="white" filter="url(#b)"/>`;
                 break;
             case "up":
-                rect = `<rect x="0" y="${p}" width="100" height="${100 - p}" fill="white" filter="url(#b)"/>`;
+                // Moving edge: top side of rect at y=p
+                rect = `<rect x="${-E}" y="${p}" width="${100 + 2 * E}" height="${100 - p + E}" fill="white" filter="url(#b)"/>`;
                 break;
         }
         applyMask(incoming, svgMask(rect, blur));
@@ -507,8 +515,10 @@ function pullEffect(dir: EightDirection): FrameFn {
  */
 function splitEffect(orientation: "horizontal" | "vertical", inOut: "in" | "out"): FrameFn {
     const isH = orientation === "horizontal";
+    const E = 50; // extension beyond viewBox for non-moving edges
     if (inOut === "out") {
-        // Center outward: incoming starts fully clipped, opens from center
+        // Center outward: incoming starts fully clipped, opens from center.
+        // Two moving edges (top+bottom or left+right); extend perpendicular edges.
         return (t, _outgoing, incoming) => {
             if (t >= 1) {
                 clearMask(incoming);
@@ -517,12 +527,13 @@ function splitEffect(orientation: "horizontal" | "vertical", inOut: "in" | "out"
             const p = (1 - t) * 50;
             const blur = Math.max(0.5, t * 50 * 0.08);
             const rect = isH
-                ? `<rect x="0" y="${p}" width="100" height="${100 - 2 * p}" fill="white" filter="url(#b)"/>`
-                : `<rect x="${p}" y="0" width="${100 - 2 * p}" height="100" fill="white" filter="url(#b)"/>`;
+                ? `<rect x="${-E}" y="${p}" width="${100 + 2 * E}" height="${100 - 2 * p}" fill="white" filter="url(#b)"/>`
+                : `<rect x="${p}" y="${-E}" width="${100 - 2 * p}" height="${100 + 2 * E}" fill="white" filter="url(#b)"/>`;
             applyMask(incoming, svgMask(rect, blur));
         };
     } else {
-        // Edges inward: snapshot collapses toward center, revealing incoming at edges
+        // Edges inward: snapshot collapses toward center, revealing incoming at edges.
+        // Two moving edges; extend perpendicular edges.
         return (t, outgoing, _incoming) => {
             if (t >= 1) {
                 clearMask(outgoing);
@@ -532,8 +543,8 @@ function splitEffect(orientation: "horizontal" | "vertical", inOut: "in" | "out"
             const p = t * 50;
             const blur = Math.max(0.5, p * 0.08);
             const rect = isH
-                ? `<rect x="0" y="${p}" width="100" height="${100 - 2 * p}" fill="white" filter="url(#b)"/>`
-                : `<rect x="${p}" y="0" width="${100 - 2 * p}" height="100" fill="white" filter="url(#b)"/>`;
+                ? `<rect x="${-E}" y="${p}" width="${100 + 2 * E}" height="${100 - 2 * p}" fill="white" filter="url(#b)"/>`
+                : `<rect x="${p}" y="${-E}" width="${100 - 2 * p}" height="${100 + 2 * E}" fill="white" filter="url(#b)"/>`;
             applyMask(outgoing, svgMask(rect, blur));
         };
     }
@@ -648,14 +659,17 @@ function plusEffect(t: number, _outgoing: HTMLElement, incoming: HTMLElement): v
 }
 
 function plusMaskSvg(p: number, blur: number): string {
-    // Plus shape: a cross centered at (50,50) with arm half-widths of p
+    // Plus shape: a cross centered at (50,50) with arm half-widths of p.
+    // Arms extend beyond the viewBox (-E / 100+E) so only the inner concave
+    // corners get feathered, not the outer edges touching the slide boundary.
+    const E = 50;
     const svg =
         `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none">` +
         `<defs><filter id="b" x="-50%" y="-50%" width="200%" height="200%">` +
         `<feGaussianBlur stdDeviation="${blur}"/></filter></defs>` +
-        `<polygon points="${50 - p},0 ${50 + p},0 ${50 + p},${50 - p} 100,${50 - p} ` +
-        `100,${50 + p} ${50 + p},${50 + p} ${50 + p},100 ${50 - p},100 ` +
-        `${50 - p},${50 + p} 0,${50 + p} 0,${50 - p} ${50 - p},${50 - p}" ` +
+        `<polygon points="${50 - p},${-E} ${50 + p},${-E} ${50 + p},${50 - p} ${100 + E},${50 - p} ` +
+        `${100 + E},${50 + p} ${50 + p},${50 + p} ${50 + p},${100 + E} ${50 - p},${100 + E} ` +
+        `${50 - p},${50 + p} ${-E},${50 + p} ${-E},${50 - p} ${50 - p},${50 - p}" ` +
         `fill="white" filter="url(#b)"/></svg>`;
     return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
 }
@@ -680,6 +694,9 @@ function newsflashEffect(t: number, _outgoing: HTMLElement, incoming: HTMLElemen
  * The reveal starts at the corner and sweeps diagonally across.
  */
 function stripsEffect(dir: CornerDirection): FrameFn {
+    // Extend polygon edges that lie on the viewport boundary beyond the
+    // viewBox so only the diagonal (moving) edge gets feathered.
+    const E = 50;
     return (t, _outgoing, incoming) => {
         if (t >= 1) {
             clearMask(incoming);
@@ -696,32 +713,32 @@ function stripsEffect(dir: CornerDirection): FrameFn {
         if (d <= 100) {
             switch (dir) {
                 case "rightDown":
-                    points = `0,0 ${d},0 0,${d}`;
+                    points = `${-E},${-E} ${d},${-E} ${d},0 0,${d} ${-E},${d}`;
                     break;
                 case "leftDown":
-                    points = `100,0 ${100 - d},0 100,${d}`;
+                    points = `${100 + E},${-E} ${100 - d},${-E} ${100 - d},0 100,${d} ${100 + E},${d}`;
                     break;
                 case "rightUp":
-                    points = `0,100 ${d},100 0,${100 - d}`;
+                    points = `${-E},${100 + E} ${d},${100 + E} ${d},100 0,${100 - d} ${-E},${100 - d}`;
                     break;
                 case "leftUp":
-                    points = `100,100 ${100 - d},100 100,${100 - d}`;
+                    points = `${100 + E},${100 + E} ${100 - d},${100 + E} ${100 - d},100 100,${100 - d} ${100 + E},${100 - d}`;
                     break;
             }
         } else {
             const e = d - 100;
             switch (dir) {
                 case "rightDown":
-                    points = `0,0 100,0 100,${e} ${e},100 0,100`;
+                    points = `${-E},${-E} ${100 + E},${-E} ${100 + E},${e} ${e},${100 + E} ${-E},${100 + E}`;
                     break;
                 case "leftDown":
-                    points = `100,0 0,0 0,${e} ${100 - e},100 100,100`;
+                    points = `${100 + E},${-E} ${-E},${-E} ${-E},${e} ${100 - e},${100 + E} ${100 + E},${100 + E}`;
                     break;
                 case "rightUp":
-                    points = `0,100 100,100 100,${100 - e} ${e},0 0,0`;
+                    points = `${-E},${100 + E} ${100 + E},${100 + E} ${100 + E},${100 - e} ${e},${-E} ${-E},${-E}`;
                     break;
                 case "leftUp":
-                    points = `100,100 0,100 0,${100 - e} ${100 - e},0 100,0`;
+                    points = `${100 + E},${100 + E} ${-E},${100 + E} ${-E},${100 - e} ${100 - e},${-E} ${100 + E},${-E}`;
                     break;
             }
         }
