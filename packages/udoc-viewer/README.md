@@ -631,6 +631,42 @@ await viewer.load(documentSource);
 
 Supported font formats: OTF, TTF, WOFF, and WOFF2.
 
+#### Font Usage
+
+After rendering, you can inspect how each font request in the document was resolved — which font was matched, its source, and any glyph-fallback fonts used during text shaping.
+
+```typescript
+// Query font usage after at least one page has been rendered
+const fontUsage = await viewer.getFontUsage();
+
+for (const entry of fontUsage) {
+    // What the document requested
+    const spec =
+        "typeface" in entry.spec
+            ? `${entry.spec.typeface} (bold=${entry.spec.bold}, italic=${entry.spec.italic})`
+            : `fontId=${entry.spec.fontId}`;
+
+    // How it was resolved
+    const resolved = entry.resolved;
+    console.log(`${spec} → ${resolved.familyName} [${resolved.source}]`);
+
+    // Any additional fonts used via glyph fallback
+    for (const fb of entry.fallbacks) {
+        console.log(`  fallback: ${fb.familyName} [${fb.source}]`);
+    }
+}
+```
+
+Font usage is populated incrementally as pages are rendered. To react to changes, listen to the `font:usageChange` event:
+
+```typescript
+viewer.on("font:usageChange", ({ entries }) => {
+    console.log(`Font usage updated: ${entries.length} font specs resolved`);
+});
+```
+
+The `source` field on each resolved font indicates where it came from: `"embedded"` (bundled in the document), `"standard"` (built-in standard font), `"googleFonts"`, `"url"`, `"local"`, or `{ custom: string }` for registered custom fonts.
+
 ### Headless Rendering
 
 Render pages to images without UI:
