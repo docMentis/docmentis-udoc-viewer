@@ -236,15 +236,20 @@ export class WorkerClient {
     /**
      * Initialize the WASM module.
      */
-    async init(wasmUrl?: string, gpu?: boolean): Promise<void> {
-        await this.send({ type: "init", wasmUrl, gpu });
+    async init(
+        wasmUrl: string | undefined,
+        gpu: boolean | undefined,
+        domain: string,
+        viewerVersion: string,
+    ): Promise<void> {
+        await this.send({ type: "init", wasmUrl, gpu, domain, viewerVersion });
     }
 
     /**
-     * One-time telemetry setup: pass the embedding page's domain and SDK version to WASM.
+     * Set the anonymous distinct ID for telemetry tracking.
      */
-    async setupTelemetry(domain: string, viewerVersion: string, distinctId: string): Promise<void> {
-        await this.send({ type: "setupTelemetry", domain, viewerVersion, distinctId });
+    async setupTelemetry(distinctId: string): Promise<void> {
+        await this.send({ type: "setupTelemetry", distinctId });
     }
 
     /**

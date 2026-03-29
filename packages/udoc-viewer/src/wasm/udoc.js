@@ -259,12 +259,12 @@ if (!('encodeInto' in cachedTextEncoder)) {
 
 let WASM_VECTOR_LEN = 0;
 
-function __wasm_bindgen_func_elem_2633(arg0, arg1, arg2) {
-    wasm.__wasm_bindgen_func_elem_2633(arg0, arg1, addHeapObject(arg2));
+function __wasm_bindgen_func_elem_2634(arg0, arg1, arg2) {
+    wasm.__wasm_bindgen_func_elem_2634(arg0, arg1, addHeapObject(arg2));
 }
 
-function __wasm_bindgen_func_elem_17344(arg0, arg1, arg2, arg3) {
-    wasm.__wasm_bindgen_func_elem_17344(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
+function __wasm_bindgen_func_elem_17346(arg0, arg1, arg2, arg3) {
+    wasm.__wasm_bindgen_func_elem_17346(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
 }
 
 const __wbindgen_enum_GpuBufferBindingType = ["uniform", "storage", "read-only-storage"];
@@ -899,27 +899,20 @@ export class Wasm {
         return takeObject(ret);
     }
     /**
-     * One-time telemetry setup: store the embedding page's domain, SDK version, and anonymous ID.
+     * Set the anonymous distinct ID for telemetry tracking.
      *
-     * Must be called after `new()` and before loading documents so that
+     * Call this after `new()` once the ID has been read from localStorage
+     * (or generated). Must be called before loading documents so that
      * telemetry events include the correct metadata.
      *
      * # Arguments
-     * * `domain` - Hostname of the embedding page (e.g. from `window.location.hostname`)
-     * * `viewer_version` - SDK version string
      * * `distinct_id` - Anonymous UUID for per-user tracking (persisted in localStorage)
-     * @param {string} domain
-     * @param {string} viewer_version
      * @param {string} distinct_id
      */
-    setup_telemetry(domain, viewer_version, distinct_id) {
-        const ptr0 = passStringToWasm0(domain, wasm.__wbindgen_export, wasm.__wbindgen_export2);
+    setup_telemetry(distinct_id) {
+        const ptr0 = passStringToWasm0(distinct_id, wasm.__wbindgen_export, wasm.__wbindgen_export2);
         const len0 = WASM_VECTOR_LEN;
-        const ptr1 = passStringToWasm0(viewer_version, wasm.__wbindgen_export, wasm.__wbindgen_export2);
-        const len1 = WASM_VECTOR_LEN;
-        const ptr2 = passStringToWasm0(distinct_id, wasm.__wbindgen_export, wasm.__wbindgen_export2);
-        const len2 = WASM_VECTOR_LEN;
-        wasm.wasm_setup_telemetry(this.__wbg_ptr, ptr0, len0, ptr1, len1, ptr2, len2);
+        wasm.wasm_setup_telemetry(this.__wbg_ptr, ptr0, len0);
     }
     /**
      * Disable telemetry reporting.
@@ -1246,9 +1239,19 @@ export class Wasm {
     }
     /**
      * Create a new document viewer.
+     *
+     * # Arguments
+     * * `domain` - Hostname of the embedding page (e.g. from `window.location.hostname`)
+     * * `viewer_version` - SDK version string
+     * @param {string} domain
+     * @param {string} viewer_version
      */
-    constructor() {
-        const ret = wasm.wasm_new();
+    constructor(domain, viewer_version) {
+        const ptr0 = passStringToWasm0(domain, wasm.__wbindgen_export, wasm.__wbindgen_export2);
+        const len0 = WASM_VECTOR_LEN;
+        const ptr1 = passStringToWasm0(viewer_version, wasm.__wbindgen_export, wasm.__wbindgen_export2);
+        const len1 = WASM_VECTOR_LEN;
+        const ret = wasm.wasm_new(ptr0, len0, ptr1, len1);
         this.__wbg_ptr = ret >>> 0;
         WasmFinalization.register(this, this.__wbg_ptr, this);
         return this;
@@ -1995,7 +1998,7 @@ function __wbg_get_imports() {
                 const a = state0.a;
                 state0.a = 0;
                 try {
-                    return __wasm_bindgen_func_elem_17344(a, state0.b, arg0, arg1);
+                    return __wasm_bindgen_func_elem_17346(a, state0.b, arg0, arg1);
                 } finally {
                     state0.a = a;
                 }
@@ -2477,7 +2480,7 @@ function __wbg_get_imports() {
     };
     imports.wbg.__wbindgen_cast_9d97beea3493d3db = function(arg0, arg1) {
         // Cast intrinsic for `Closure(Closure { dtor_idx: 212, function: Function { arguments: [Externref], shim_idx: 213, ret: Unit, inner_ret: Some(Unit) }, mutable: true }) -> Externref`.
-        const ret = makeMutClosure(arg0, arg1, wasm.__wasm_bindgen_func_elem_2617, __wasm_bindgen_func_elem_2633);
+        const ret = makeMutClosure(arg0, arg1, wasm.__wasm_bindgen_func_elem_2618, __wasm_bindgen_func_elem_2634);
         return addHeapObject(ret);
     };
     imports.wbg.__wbindgen_cast_cb9088102bce6b30 = function(arg0, arg1) {

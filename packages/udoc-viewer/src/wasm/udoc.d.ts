@@ -324,17 +324,16 @@ export class Wasm {
    */
   render_page_gpu(id: string, page_index: number, width: number, height: number): Promise<Uint8Array>;
   /**
-   * One-time telemetry setup: store the embedding page's domain, SDK version, and anonymous ID.
+   * Set the anonymous distinct ID for telemetry tracking.
    *
-   * Must be called after `new()` and before loading documents so that
+   * Call this after `new()` once the ID has been read from localStorage
+   * (or generated). Must be called before loading documents so that
    * telemetry events include the correct metadata.
    *
    * # Arguments
-   * * `domain` - Hostname of the embedding page (e.g. from `window.location.hostname`)
-   * * `viewer_version` - SDK version string
    * * `distinct_id` - Anonymous UUID for per-user tracking (persisted in localStorage)
    */
-  setup_telemetry(domain: string, viewer_version: string, distinct_id: string): void;
+  setup_telemetry(distinct_id: string): void;
   /**
    * Disable telemetry reporting.
    *
@@ -472,8 +471,12 @@ export class Wasm {
   set_visibility_group_visible(id: string, group_id: string, visible: boolean): boolean;
   /**
    * Create a new document viewer.
+   *
+   * # Arguments
+   * * `domain` - Hostname of the embedding page (e.g. from `window.location.hostname`)
+   * * `viewer_version` - SDK version string
    */
-  constructor();
+  constructor(domain: string, viewer_version: string);
   /**
    * Load a document by auto-detecting its format from the file contents.
    *
@@ -625,7 +628,7 @@ export interface InitOutput {
   readonly wasm_load_pptx: (a: number, b: number, c: number, d: number) => void;
   readonly wasm_load_xlsx: (a: number, b: number, c: number, d: number) => void;
   readonly wasm_needs_password: (a: number, b: number, c: number, d: number) => void;
-  readonly wasm_new: () => number;
+  readonly wasm_new: (a: number, b: number, c: number, d: number) => number;
   readonly wasm_page_count: (a: number, b: number, c: number, d: number) => void;
   readonly wasm_page_info: (a: number, b: number, c: number, d: number, e: number) => void;
   readonly wasm_page_layout: (a: number, b: number, c: number, d: number) => void;
@@ -642,10 +645,10 @@ export interface InitOutput {
   readonly wasm_render_page_to_rgba: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
   readonly wasm_set_license: (a: number, b: number, c: number, d: number) => void;
   readonly wasm_set_visibility_group_visible: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
-  readonly wasm_setup_telemetry: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
-  readonly __wasm_bindgen_func_elem_2633: (a: number, b: number, c: number) => void;
-  readonly __wasm_bindgen_func_elem_2617: (a: number, b: number) => void;
-  readonly __wasm_bindgen_func_elem_17344: (a: number, b: number, c: number, d: number) => void;
+  readonly wasm_setup_telemetry: (a: number, b: number, c: number) => void;
+  readonly __wasm_bindgen_func_elem_2634: (a: number, b: number, c: number) => void;
+  readonly __wasm_bindgen_func_elem_2618: (a: number, b: number) => void;
+  readonly __wasm_bindgen_func_elem_17346: (a: number, b: number, c: number, d: number) => void;
   readonly __wbindgen_export: (a: number, b: number) => number;
   readonly __wbindgen_export2: (a: number, b: number, c: number, d: number) => number;
   readonly __wbindgen_export3: (a: number) => void;

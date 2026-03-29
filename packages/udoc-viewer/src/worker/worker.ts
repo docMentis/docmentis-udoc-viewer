@@ -95,8 +95,8 @@ export interface FontEntry {
 }
 
 export type WorkerRequest =
-    | { type: "init"; wasmUrl?: string; gpu?: boolean }
-    | { type: "setupTelemetry"; domain: string; viewerVersion: string; distinctId: string }
+    | { type: "init"; wasmUrl?: string; gpu?: boolean; domain: string; viewerVersion: string }
+    | { type: "setupTelemetry"; distinctId: string }
     | { type: "disableTelemetry" }
     | { type: "setLicense"; license: string; domain: string }
     | { type: "getLicenseStatus" }
@@ -255,7 +255,7 @@ async function handleMessage(event: MessageEvent<WorkerRequest & { _id?: number 
         switch (request.type) {
             case "init": {
                 await init(request.wasmUrl ? { module_or_path: request.wasmUrl } : undefined);
-                wasm = new Wasm();
+                wasm = new Wasm(request.domain, request.viewerVersion);
                 if (request.gpu) {
                     try {
                         gpuAvailable = await wasm.init_gpu();
@@ -269,7 +269,7 @@ async function handleMessage(event: MessageEvent<WorkerRequest & { _id?: number 
 
             case "setupTelemetry": {
                 ensureInitialized();
-                wasm!.setup_telemetry(request.domain, request.viewerVersion, request.distinctId);
+                wasm!.setup_telemetry(request.distinctId);
                 respond({ type: "setupTelemetry", success: true });
                 break;
             }

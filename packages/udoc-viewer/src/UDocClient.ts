@@ -490,10 +490,12 @@ export class UDocClient {
             wasmUrls.push(cdnUrl);
         }
 
+        const domain = typeof window !== "undefined" ? window.location.hostname : "localhost";
+
         let lastError: unknown;
         for (const wasmUrl of wasmUrls) {
             try {
-                await workerClient.init(wasmUrl, options.gpu);
+                await workerClient.init(wasmUrl, options.gpu, domain, UDocClient.version);
                 lastError = null;
                 break;
             } catch (e) {
@@ -503,7 +505,6 @@ export class UDocClient {
         if (lastError) throw lastError;
 
         const client = new UDocClient(workerClient, options);
-        const domain = typeof window !== "undefined" ? window.location.hostname : "localhost";
 
         // Register font URLs before loading documents
         if (options.fonts?.length) {
@@ -539,7 +540,7 @@ export class UDocClient {
         // Set up telemetry metadata (skipped when telemetry is disabled)
         if (!telemetryDisabled) {
             const distinctId = getOrCreateDistinctId();
-            await workerClient.setupTelemetry(domain, UDocClient.version, distinctId);
+            await workerClient.setupTelemetry(distinctId);
         }
 
         return client;
