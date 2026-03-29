@@ -818,9 +818,11 @@ function setupBlinds3D(
         return { flippers: [], halfDepth: 0 };
     }
 
-    // The snapshot is positioned exactly at the slot area — use its dimensions directly.
-    const slideW = outgoing.offsetWidth;
-    const slideH = outgoing.offsetHeight;
+    // Derive CSS dimensions from the canvas physical size / DPR so they are
+    // on exact device-pixel boundaries (the snapshot is built this way).
+    const dpr = window.devicePixelRatio || 1;
+    const slideW = outCanvas.width / dpr;
+    const slideH = outCanvas.height / dpr;
     const d = isH ? slideH / N : slideW / N; // box depth = strip size (square cross-section)
 
     // Repurpose the disposable snapshot as the container.
@@ -878,12 +880,12 @@ function setupBlinds3D(
         // transform-origin defaults to center — correct for box-centre rotation
 
         // Front face: outgoing content, pushed forward by d/2
-        const front = createBlindFace(outCanvas, i, N, isH);
+        const front = createBlindFace(outCanvas, i, N, isH, pad);
         front.style.backfaceVisibility = "hidden";
         front.style.transform = `translateZ(${d / 2}px)`;
 
         // Bottom/right face: incoming content, rotated into position then pushed out
-        const bottom = createBlindFace(inCanvas, i, N, isH);
+        const bottom = createBlindFace(inCanvas, i, N, isH, pad);
         bottom.style.backfaceVisibility = "hidden";
         bottom.style.transform = isH
             ? `rotateX(-90deg) translateZ(${d / 2}px)`
@@ -898,13 +900,18 @@ function setupBlinds3D(
     return { flippers, halfDepth: d / 2 };
 }
 
-/** Create a canvas element showing one strip slice of a source canvas. */
+/** Create a canvas element showing one strip slice of a source canvas.
+ *  The slice includes `pad` CSS-pixel overlap on each side so that
+ *  `width:100%; height:100%` fills the padded flipper without scaling. */
 function createBlindFace(
     source: HTMLCanvasElement,
     index: number,
     total: number,
     isHorizontal: boolean,
+    pad: number,
 ): HTMLCanvasElement {
+    const dpr = window.devicePixelRatio || 1;
+    const padPx = Math.ceil(pad * dpr); // padding in device pixels
     const canvas = document.createElement("canvas");
     canvas.style.position = "absolute";
     canvas.style.top = "0";
@@ -914,17 +921,21 @@ function createBlindFace(
     canvas.style.display = "block";
 
     if (isHorizontal) {
-        const stripH = Math.round(source.height / total);
-        const sy = index * stripH;
-        const sh = Math.min(stripH, source.height - sy);
+        const stripTop = Math.round((index * source.height) / total);
+        const stripBot = Math.round(((index + 1) * source.height) / total);
+        const sy = Math.max(0, stripTop - padPx);
+        const syEnd = Math.min(source.height, stripBot + padPx);
+        const sh = syEnd - sy;
         canvas.width = source.width;
         canvas.height = sh;
         const ctx = canvas.getContext("2d");
         if (ctx) ctx.drawImage(source, 0, sy, source.width, sh, 0, 0, source.width, sh);
     } else {
-        const stripW = Math.round(source.width / total);
-        const sx = index * stripW;
-        const sw = Math.min(stripW, source.width - sx);
+        const stripLeft = Math.round((index * source.width) / total);
+        const stripRight = Math.round(((index + 1) * source.width) / total);
+        const sx = Math.max(0, stripLeft - padPx);
+        const sxEnd = Math.min(source.width, stripRight + padPx);
+        const sw = sxEnd - sx;
         canvas.width = sw;
         canvas.height = source.height;
         const ctx = canvas.getContext("2d");
@@ -1148,8 +1159,11 @@ function setupChecker3D(
         return { flippers: [] };
     }
 
-    const slideW = outgoing.offsetWidth;
-    const slideH = outgoing.offsetHeight;
+    // Derive CSS dimensions from the canvas physical size / DPR so they are
+    // on exact device-pixel boundaries (the snapshot is built this way).
+    const dpr = window.devicePixelRatio || 1;
+    const slideW = outCanvas.width / dpr;
+    const slideH = outCanvas.height / dpr;
     const tileW = slideW / cols;
     const tileH = slideH / rows;
 
@@ -1191,10 +1205,10 @@ function setupChecker3D(
             flipper.style.width = `${tileW + pad * 2}px`;
             flipper.style.height = `${tileH + pad * 2}px`;
 
-            const front = createCheckerFace(outCanvas, c, r, cols, rows);
+            const front = createCheckerFace(outCanvas, c, r, cols, rows, pad);
             front.style.backfaceVisibility = "hidden";
 
-            const back = createCheckerFace(inCanvas, c, r, cols, rows);
+            const back = createCheckerFace(inCanvas, c, r, cols, rows, pad);
             back.style.backfaceVisibility = "hidden";
             back.style.transform = isH ? "rotateY(-180deg)" : "rotateX(180deg)";
 
@@ -1208,14 +1222,19 @@ function setupChecker3D(
     return { flippers };
 }
 
-/** Create a canvas element showing one tile of a source canvas. */
+/** Create a canvas element showing one tile of a source canvas.
+ *  The slice includes `pad` CSS-pixel overlap on each side so that
+ *  `width:100%; height:100%` fills the padded flipper without scaling. */
 function createCheckerFace(
     source: HTMLCanvasElement,
     col: number,
     row: number,
     cols: number,
     rows: number,
+    pad: number,
 ): HTMLCanvasElement {
+    const dpr = window.devicePixelRatio || 1;
+    const padPx = Math.ceil(pad * dpr);
     const canvas = document.createElement("canvas");
     canvas.style.position = "absolute";
     canvas.style.top = "0";
@@ -1224,12 +1243,17 @@ function createCheckerFace(
     canvas.style.height = "100%";
     canvas.style.display = "block";
 
-    const tileW = Math.round(source.width / cols);
-    const tileH = Math.round(source.height / rows);
-    const sx = col * tileW;
-    const sy = row * tileH;
-    const sw = Math.min(tileW, source.width - sx);
-    const sh = Math.min(tileH, source.height - sy);
+    const tileLeft = Math.round((col * source.width) / cols);
+    const tileRight = Math.round(((col + 1) * source.width) / cols);
+    const tileTop = Math.round((row * source.height) / rows);
+    const tileBot = Math.round(((row + 1) * source.height) / rows);
+
+    const sx = Math.max(0, tileLeft - padPx);
+    const sxEnd = Math.min(source.width, tileRight + padPx);
+    const sy = Math.max(0, tileTop - padPx);
+    const syEnd = Math.min(source.height, tileBot + padPx);
+    const sw = sxEnd - sx;
+    const sh = syEnd - sy;
 
     canvas.width = sw;
     canvas.height = sh;

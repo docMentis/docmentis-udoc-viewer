@@ -1275,29 +1275,37 @@ export function createViewport(showAttribution = true) {
             el.querySelector<HTMLCanvasElement>("canvas");
         if (!mainCanvas || mainCanvas.width === 0 || mainCanvas.height === 0) return null;
 
-        // Create a canvas snapshot with the same pixel content
+        // Copy the canvas at its native resolution — no resampling.
         const canvas = document.createElement("canvas");
         canvas.width = mainCanvas.width;
         canvas.height = mainCanvas.height;
         canvas.style.display = "block";
-        canvas.style.width = "100%";
-        canvas.style.height = "100%";
         const ctx = canvas.getContext("2d");
         if (!ctx) return null;
         ctx.drawImage(mainCanvas, 0, 0);
 
-        // Position to match the slot's exact location in the container
-        const slot = mainCanvas.closest<HTMLElement>(".udoc-spread__slot");
-        const ref = slot ?? mainCanvas;
+        // Size the snapshot so each canvas pixel maps 1:1 to a device pixel.
+        // Position is snapped to the device-pixel grid to avoid subpixel
+        // interpolation that causes 1-2px misalignment in strip/tile effects.
+        const dpr = window.devicePixelRatio || 1;
+        const cssW = mainCanvas.width / dpr;
+        const cssH = mainCanvas.height / dpr;
+        canvas.style.width = `${cssW}px`;
+        canvas.style.height = `${cssH}px`;
+
         const containerRect = container.getBoundingClientRect();
-        const refRect = ref.getBoundingClientRect();
+        const canvasRect = mainCanvas.getBoundingClientRect();
+        const rawLeft = canvasRect.left - containerRect.left;
+        const rawTop = canvasRect.top - containerRect.top;
+        const snappedLeft = Math.round(rawLeft * dpr) / dpr;
+        const snappedTop = Math.round(rawTop * dpr) / dpr;
 
         const snapshot = document.createElement("div");
         snapshot.style.position = "absolute";
-        snapshot.style.left = `${refRect.left - containerRect.left}px`;
-        snapshot.style.top = `${refRect.top - containerRect.top}px`;
-        snapshot.style.width = `${refRect.width}px`;
-        snapshot.style.height = `${refRect.height}px`;
+        snapshot.style.left = `${snappedLeft}px`;
+        snapshot.style.top = `${snappedTop}px`;
+        snapshot.style.width = `${cssW}px`;
+        snapshot.style.height = `${cssH}px`;
         snapshot.style.pointerEvents = "none";
         snapshot.appendChild(canvas);
 
