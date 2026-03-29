@@ -1044,7 +1044,7 @@ function wheelSweepEffect(spokes: number, clockwise: boolean): FrameFn {
             applyMask(incoming, svgMask(`<polygon points="50,50 50,50 50,50" fill="white" filter="url(#b)"/>`, 0));
             return;
         }
-        const blur = Math.max(0.3, t * 50 * 0.06);
+        const blur = Math.max(0.1, t * 50 * 0.01);
         const sectorAngle = 360 / n;
         const sweep = t * sectorAngle;
         let path = "";
