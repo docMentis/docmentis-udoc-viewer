@@ -5,7 +5,7 @@
  * Created via `client.createViewer()`.
  */
 
-import type { WorkerClient, PageInfo, RenderType } from "./worker/index.js";
+import type { WorkerClient, PageInfo, RenderType, FontUsageEntry } from "./worker/index.js";
 import type { ViewerOptions } from "./UDocClient.js";
 import { mountViewerShell, type ViewerShell, type InitialStateOverrides } from "./ui/viewer/shell.js";
 import type { PrintDialogResult, PrintPageRange, PrintQuality } from "./ui/viewer/components/PrintDialog.js";
@@ -139,6 +139,7 @@ export interface ViewerEventMap {
     "page:change": { page: number; previousPage: number };
     "ui:visibilityChange": { component: UIComponent; visible: boolean };
     "panel:change": { panel: PanelTab | null; previousPanel: PanelTab | null };
+    "font:usageChange": { entries: FontUsageEntry[] };
 }
 
 type EventHandler<K extends keyof ViewerEventMap> = (payload: ViewerEventMap[K]) => void;
@@ -163,6 +164,7 @@ export class UDocViewer {
     private currentFormat: DocumentFormat | null = null;
     private sourceFilename: string | null = null;
     private storeUnsub: (() => void) | null = null;
+    private fontUsageUnsub: (() => void) | null = null;
     private sdkVersion: string;
 
     /**
@@ -189,6 +191,14 @@ export class UDocViewer {
         } else {
             this._performanceCounter = new NoOpPerformanceCounter();
         }
+
+        // Subscribe to font usage changes from the worker
+        this.fontUsageUnsub = this.workerClient.onFontUsageChanged(async (docId) => {
+            if (this.documentId === docId) {
+                const entries = await this.workerClient.getFontUsage(docId);
+                this.emit("font:usageChange", { entries: entries as FontUsageEntry[] });
+            }
+        });
 
         if (options.container) {
             this.container = this.resolveContainer(options.container);
@@ -593,6 +603,20 @@ export class UDocViewer {
         this.ensureLoaded();
         const raw = await this.workerClient.getOutline(this.documentId!);
         return raw as OutlineItem[];
+    }
+
+    /**
+     * Get font usage information for the loaded document.
+     *
+     * Returns how each font spec in the document was resolved,
+     * including primary resolution and any glyph-fallback fonts.
+     * This information is populated during rendering — call after
+     * at least one page has been rendered for results.
+     */
+    async getFontUsage(): Promise<FontUsageEntry[]> {
+        this.ensureLoaded();
+        const raw = await this.workerClient.getFontUsage(this.documentId!);
+        return raw as FontUsageEntry[];
     }
 
     /**
@@ -1458,6 +1482,10 @@ img { display: block; }
         if (this.storeUnsub) {
             this.storeUnsub();
             this.storeUnsub = null;
+        }
+        if (this.fontUsageUnsub) {
+            this.fontUsageUnsub();
+            this.fontUsageUnsub = null;
         }
         if (this.uiShell) {
             this.uiShell.destroy();

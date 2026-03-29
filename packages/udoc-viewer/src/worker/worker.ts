@@ -130,7 +130,8 @@ export type WorkerRequest =
     | { type: "enableGoogleFonts" }
     | { type: "getVisibilityGroups"; documentId: string }
     | { type: "setVisibilityGroupVisible"; documentId: string; groupId: string; visible: boolean }
-    | { type: "parseFontInfo"; data: Uint8Array };
+    | { type: "parseFontInfo"; data: Uint8Array }
+    | { type: "getFontUsage"; documentId: string };
 
 /**
  * Message types from worker to main thread.
@@ -211,7 +212,9 @@ export type WorkerResponse =
     | { type: "setVisibilityGroupVisible"; success: true; updated: boolean }
     | { type: "setVisibilityGroupVisible"; success: false; error: string }
     | { type: "parseFontInfo"; success: true; info: { typeface: string; bold: boolean; italic: boolean } }
-    | { type: "parseFontInfo"; success: false; error: string };
+    | { type: "parseFontInfo"; success: false; error: string }
+    | { type: "getFontUsage"; success: true; entries: unknown[] }
+    | { type: "getFontUsage"; success: false; error: string };
 
 /** Current request ID for response matching. */
 let currentRequestId: number | undefined;
@@ -562,6 +565,13 @@ async function handleMessage(event: MessageEvent<WorkerRequest & { _id?: number 
                 ensureInitialized();
                 const info = parseFontInfo(request.data) as { typeface: string; bold: boolean; italic: boolean };
                 respond({ type: "parseFontInfo", success: true, info });
+                break;
+            }
+
+            case "getFontUsage": {
+                ensureInitialized();
+                const entries = wasm!.get_font_usage(request.documentId) as unknown[];
+                respond({ type: "getFontUsage", success: true, entries });
                 break;
             }
 

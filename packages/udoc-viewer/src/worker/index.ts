@@ -20,5 +20,8 @@ export type {
     RenderType,
     RenderRequest,
     RenderResult,
+    FontSource,
+    ResolvedFontInfo,
+    FontUsageEntry,
 } from "./WorkerClient.js";
 export type { WorkerRequest, WorkerResponse } from "./worker.js";

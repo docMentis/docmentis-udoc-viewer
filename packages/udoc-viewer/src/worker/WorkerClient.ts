@@ -27,6 +27,9 @@ import type {
     InOutDirection,
     TransitionEffect,
     PageTransition,
+    FontSource,
+    ResolvedFontInfo,
+    FontUsageEntry,
 } from "../wasm/udoc.js";
 
 import { WORKER_INLINE } from "./worker-inline.js";
@@ -53,6 +56,9 @@ export type {
     TransitionEffect,
     PageTransition,
 };
+
+// Re-export font usage types from WASM
+export type { FontSource, ResolvedFontInfo, FontUsageEntry };
 
 /**
  * Font information extracted from raw font binary data.
@@ -119,11 +125,23 @@ interface QueuedTextItem {
     reject: (error: Error) => void;
 }
 
-type QueuedWorkItem = QueuedRequest | QueuedAnnotationItem | QueuedTextItem;
+interface QueuedFontUsageCheck {
+    kind: "fontUsageCheck";
+    docId: string;
+    page: number; // unused, but needed for sortQueue compatibility
+    priority: number;
+    resolve: (result: unknown) => void;
+    reject: (error: Error) => void;
+}
+
+type QueuedWorkItem = QueuedRequest | QueuedAnnotationItem | QueuedTextItem | QueuedFontUsageCheck;
 
 function makeWorkKey(item: QueuedWorkItem): string {
     if (item.kind === "render") {
         return `render:${makeRenderKey(item.docId, item.page, item.type, item.scale)}`;
+    }
+    if (item.kind === "fontUsageCheck") {
+        return `fontUsageCheck:${item.docId}`;
     }
     return `${item.kind}:${item.docId}:${item.page}`;
 }
@@ -169,6 +187,10 @@ export class WorkerClient {
 
     // Callbacks notified when render cache is invalidated
     private renderInvalidatedCallbacks = new Set<() => void>();
+
+    // Font usage change detection
+    private fontUsageChangedCallbacks = new Set<(docId: string) => void>();
+    private lastFontUsageLength = new Map<string, number>();
 
     // Performance counter per document (for tracking operations)
     private performanceCounters = new Map<string, IPerformanceCounter>();
@@ -476,6 +498,14 @@ export class WorkerClient {
             if (eventId) counter?.markEnd(eventId, false, (error as Error).message);
             throw error;
         }
+    }
+
+    /**
+     * Get font usage information for a document.
+     */
+    async getFontUsage(documentId: string): Promise<unknown[]> {
+        const response = (await this.send({ type: "getFontUsage", documentId })) as { entries: unknown[] };
+        return response.entries;
     }
 
     /**
@@ -995,6 +1025,58 @@ export class WorkerClient {
     }
 
     /**
+     * Subscribe to font usage change events.
+     * Called when font usage changes after a page render.
+     * Returns an unsubscribe function.
+     */
+    onFontUsageChanged(callback: (docId: string) => void): () => void {
+        this.fontUsageChangedCallbacks.add(callback);
+        return () => this.fontUsageChangedCallbacks.delete(callback);
+    }
+
+    /**
+     * Enqueue a font usage check at the end of the work queue.
+     * Deduplicates: only one check per docId is queued at a time.
+     */
+    private scheduleFontUsageCheck(docId: string): void {
+        if (this.fontUsageChangedCallbacks.size === 0) return;
+
+        // Already queued for this doc — skip
+        const key = `fontUsageCheck:${docId}`;
+        if (this.workQueue.some((item) => makeWorkKey(item) === key)) return;
+
+        this.workQueue.push({
+            kind: "fontUsageCheck",
+            docId,
+            page: 0,
+            priority: Infinity,
+            resolve: () => {},
+            reject: () => {},
+        });
+        // Don't re-sort or kick processWorkQueue here —
+        // it will be picked up naturally after the current work finishes.
+    }
+
+    private async doFontUsageCheck(item: QueuedFontUsageCheck): Promise<void> {
+        try {
+            const entries = await this.getFontUsage(item.docId);
+            const length = Array.isArray(entries) ? entries.length : 0;
+            const previous = this.lastFontUsageLength.get(item.docId);
+
+            if (previous !== length) {
+                this.lastFontUsageLength.set(item.docId, length);
+                for (const cb of this.fontUsageChangedCallbacks) {
+                    cb(item.docId);
+                }
+            }
+            item.resolve(undefined);
+        } catch {
+            // Font usage query failed (e.g. document unloaded) — ignore
+            item.resolve(undefined);
+        }
+    }
+
+    /**
      * Sort page render requests in the queue by distance to the focused page.
      * Updates the page focus and re-sorts the queue.
      */
@@ -1136,11 +1218,17 @@ export class WorkerClient {
             if (item.kind === "render" && item.type === "preview") return 0;
             if (item.kind === "render" && item.type === "page") return 1;
             if (item.kind === "annotation") return 2;
-            // text
-            return 3;
+            if (item.kind === "text") return 3;
+            // fontUsageCheck — always last
+            return 4;
         };
 
         pageItems.sort((a, b) => {
+            // fontUsageCheck always sorts last among page items
+            const aIsCheck = a.kind === "fontUsageCheck" ? 1 : 0;
+            const bIsCheck = b.kind === "fontUsageCheck" ? 1 : 0;
+            if (aIsCheck !== bIsCheck) return aIsCheck - bIsCheck;
+
             const ad = pageFocus && a.docId === pageFocus.docId ? Math.abs(a.page - pageFocus.page) : Infinity;
             const bd = pageFocus && b.docId === pageFocus.docId ? Math.abs(b.page - pageFocus.page) : Infinity;
 
@@ -1223,8 +1311,10 @@ export class WorkerClient {
             promise = this.doRender(item, renderKey);
         } else if (item.kind === "annotation") {
             promise = this.doAnnotation(item);
-        } else {
+        } else if (item.kind === "text") {
             promise = this.doText(item);
+        } else {
+            promise = this.doFontUsageCheck(item);
         }
 
         this.currentWork = { key, promise };
@@ -1273,6 +1363,12 @@ export class WorkerClient {
 
             if (eventId) counter?.markEnd(eventId);
             req.resolve(result);
+
+            // Check for font usage changes after successful page render (debounced)
+            if (req.type === "page") {
+                this.scheduleFontUsageCheck(req.docId);
+            }
+
             return result;
         } catch (error) {
             if (eventId) counter?.markEnd(eventId, false, (error as Error).message);
