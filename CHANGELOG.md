@@ -6,6 +6,53 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+### Features
+
+- Add fonts panel to left sidebar showing font usage in a tree view with primary/fallback indicators and source badges
+- Expose `getFontUsage()` API and `font:usageChange` event for programmatic font usage inspection
+- Export `FontUsageEntry`, `ResolvedFontInfo`, and `FontSource` types
+- Add `disableFonts` viewer option to hide the fonts panel
+- Enable XLSX spreadsheet support
+- Add `disableTelemetry` client option
+- Implement 3D box-rotation blinds transition matching PowerPoint
+- Rewrite checker transition as 3D tile flip with sub-pixel seam fix
+- Add feathered edges to strip, split, wedge, wheel, and wipe transitions
+- Expose font usage information from engine (engine)
+- Deferred EMF rasterization with text rendering via FontSystem (engine)
+- Support VML objects and pictures in DOCX (engine)
+- Support anchor drawings in headers/footers with dynamic header height (engine)
+- Split DOCX tables across pages at row boundaries (engine)
+- Add `disable_telemetry()` option gated by license feature flag (engine)
+
+### Bug Fixes
+
+- Align blind/checker transition strips to device-pixel grid
+- Preserve current page when toggling side panels in single spread mode
+- Fix wipe up/down direction and stop reversing push/wipe on backward nav
+- Push transition slides incoming with outgoing, pull only moves outgoing
+- Rewrite newsflash transition as scale+rotate expand from center
+- Add feathered edge to plus and diamond transitions
+- Fix circle transition using invalid radial-gradient syntax
+- Use static shadow element for consistent page shadow during transitions
+- Move image effect application from OOXML loader into core rendering pipeline (engine)
+- Don't clip table cell text in AtLeast-height rows (engine)
+- Use frame dimensions for EMF device-to-pixel mapping (engine)
+- Render anchor drawings in DOCX table cells (engine)
+- Auto-contrast text color in table cells with dark backgrounds (engine)
+- Apply table indent to column positions (engine)
+- Apply full logical-to-pixel scale chain to EMF pen width (engine)
+- Exclude bullet spacer from justify spacing expansion (engine)
+- Emit Tab suffix for numbered paragraphs instead of thin spacer (engine)
+- Use lvlText character for DOCX bullet format instead of hardcoded default (engine)
+- Fix justify spacing for Space runs and center bullet alignment (engine)
+- Apply default paragraph style when no explicit style_id is set (engine)
+- Add Roboto to general text fallback fonts (engine)
+- Add direct PolyBezier16 stroke and EMR_ARCTO support in EMF (engine)
+
+### Refactors
+
+- Simplify transition snapshot to a positioned div with canvas
+
 ## [0.6.15] - 2026-03-26
 
 ### Bug Fixes
