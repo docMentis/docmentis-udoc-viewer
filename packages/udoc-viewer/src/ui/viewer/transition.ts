@@ -249,7 +249,7 @@ function resolveEffect(effect: TransitionEffect, forward: boolean): FrameFn | nu
 
         case "zoom":
         case "box":
-            return effect.inOut === "in" ? shrinkToCenter : shrinkOutgoing;
+            return effect.inOut === "in" ? shrinkToCenter : expandFromCenter;
 
         case "fly": {
             const dir = forward ? effect.direction : oppositeSide(effect.direction);
@@ -317,7 +317,7 @@ function resolveEffect(effect: TransitionEffect, forward: boolean): FrameFn | nu
 
         // PPTX 2010+ effects (p14)
         case "vortex":
-            return shrinkOutgoing;
+            return expandFromCenter;
 
         case "switch":
         case "flip":
@@ -350,13 +350,13 @@ function resolveEffect(effect: TransitionEffect, forward: boolean): FrameFn | nu
 
         case "warp":
         case "flythrough":
-            return effect.inOut === "in" ? shrinkToCenter : shrinkOutgoing;
+            return effect.inOut === "in" ? shrinkToCenter : expandFromCenter;
 
         case "flash":
             return fadeThroughBlack;
 
         case "shred":
-            return effect.inOut === "in" ? shrinkToCenter : shrinkOutgoing;
+            return effect.inOut === "in" ? shrinkToCenter : expandFromCenter;
 
         case "reveal":
             return effect.throughBlack ? fadeThroughBlack : wipeEffect(effect.direction);
@@ -574,12 +574,22 @@ function shrinkToCenter(t: number, outgoing: HTMLElement, _incoming: HTMLElement
 }
 
 /**
- * Zoom/box out: snapshot shrinks away on top, incoming visible underneath.
+ * Zoom/box out: incoming slide expands from center via feathered SVG mask clip.
  */
-function shrinkOutgoing(t: number, outgoing: HTMLElement, _incoming: HTMLElement): void {
-    outgoing.style.zIndex = "1";
-    outgoing.style.transform = `scale(${1 - t})`;
-    outgoing.style.opacity = `${1 - t}`;
+function expandFromCenter(t: number, _outgoing: HTMLElement, incoming: HTMLElement): void {
+    if (t >= 1) {
+        clearMask(incoming);
+        return;
+    }
+    const p = (1 - t) * 50;
+    const blur = Math.max(0.5, p * 0.08);
+    applyMask(
+        incoming,
+        svgMask(
+            `<rect x="${p}" y="${p}" width="${100 - 2 * p}" height="${100 - 2 * p}" fill="white" filter="url(#b)"/>`,
+            blur,
+        ),
+    );
 }
 
 /**
