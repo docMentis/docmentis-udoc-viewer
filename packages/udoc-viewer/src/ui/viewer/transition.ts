@@ -193,24 +193,6 @@ function oppositeEightDir(dir: EightDirection): EightDirection {
     return map[dir];
 }
 
-/**
- * Build a clip-path: inset() that reveals the incoming element
- * progressively from the given direction.
- */
-function revealInset(dir: SideDirection, t: number): string {
-    const p = (1 - t) * 100;
-    switch (dir) {
-        case "right":
-            return `inset(0 0 0 ${p}%)`;
-        case "left":
-            return `inset(0 ${p}% 0 0)`;
-        case "down":
-            return `inset(0 0 ${p}% 0)`;
-        case "up":
-            return `inset(${p}% 0 0 0)`;
-    }
-}
-
 function eightDirToRevealInset(dir: EightDirection, t: number): string {
     const p = (1 - t) * 100;
     let top = 0,
@@ -465,7 +447,28 @@ function pushEffect(dir: SideDirection): FrameFn {
  */
 function wipeEffect(dir: SideDirection): FrameFn {
     return (t, _outgoing, incoming) => {
-        incoming.style.clipPath = revealInset(dir, t);
+        if (t >= 1) {
+            clearMask(incoming);
+            return;
+        }
+        const p = (1 - t) * 100;
+        const blur = Math.max(0.5, t * 50 * 0.08);
+        let rect: string;
+        switch (dir) {
+            case "right":
+                rect = `<rect x="${p}" y="0" width="${100 - p}" height="100" fill="white" filter="url(#b)"/>`;
+                break;
+            case "left":
+                rect = `<rect x="0" y="0" width="${100 - p}" height="100" fill="white" filter="url(#b)"/>`;
+                break;
+            case "down":
+                rect = `<rect x="0" y="0" width="100" height="${100 - p}" fill="white" filter="url(#b)"/>`;
+                break;
+            case "up":
+                rect = `<rect x="0" y="${p}" width="100" height="${100 - p}" fill="white" filter="url(#b)"/>`;
+                break;
+        }
+        applyMask(incoming, svgMask(rect, blur));
     };
 }
 
@@ -503,18 +506,35 @@ function pullEffect(dir: EightDirection): FrameFn {
  * Split "in": incoming revealed from edges inward — clip-path on snapshot (outgoing).
  */
 function splitEffect(orientation: "horizontal" | "vertical", inOut: "in" | "out"): FrameFn {
+    const isH = orientation === "horizontal";
     if (inOut === "out") {
         // Center outward: incoming starts fully clipped, opens from center
         return (t, _outgoing, incoming) => {
+            if (t >= 1) {
+                clearMask(incoming);
+                return;
+            }
             const p = (1 - t) * 50;
-            incoming.style.clipPath = orientation === "horizontal" ? `inset(${p}% 0)` : `inset(0 ${p}%)`;
+            const blur = Math.max(0.5, t * 50 * 0.08);
+            const rect = isH
+                ? `<rect x="0" y="${p}" width="100" height="${100 - 2 * p}" fill="white" filter="url(#b)"/>`
+                : `<rect x="${p}" y="0" width="${100 - 2 * p}" height="100" fill="white" filter="url(#b)"/>`;
+            applyMask(incoming, svgMask(rect, blur));
         };
     } else {
         // Edges inward: snapshot collapses toward center, revealing incoming at edges
         return (t, outgoing, _incoming) => {
+            if (t >= 1) {
+                clearMask(outgoing);
+                return;
+            }
             outgoing.style.zIndex = "1";
             const p = t * 50;
-            outgoing.style.clipPath = orientation === "horizontal" ? `inset(${p}% 0)` : `inset(0 ${p}%)`;
+            const blur = Math.max(0.5, p * 0.08);
+            const rect = isH
+                ? `<rect x="0" y="${p}" width="100" height="${100 - 2 * p}" fill="white" filter="url(#b)"/>`
+                : `<rect x="${p}" y="0" width="${100 - 2 * p}" height="100" fill="white" filter="url(#b)"/>`;
+            applyMask(outgoing, svgMask(rect, blur));
         };
     }
 }
@@ -578,55 +598,53 @@ function circleEffect(t: number, _outgoing: HTMLElement, incoming: HTMLElement):
 /** Diamond reveal from center with feathered edge via SVG mask + blur. */
 function diamondEffect(t: number, _outgoing: HTMLElement, incoming: HTMLElement): void {
     if (t >= 1) {
-        incoming.style.maskImage = "";
-        incoming.style.setProperty("-webkit-mask-image", "");
-        return;
-    }
-    if (t <= 0) {
-        const mask = diamondMaskSvg(0, 0);
-        incoming.style.maskImage = mask;
-        incoming.style.setProperty("-webkit-mask-image", mask);
+        clearMask(incoming);
         return;
     }
     const p = t * 100;
     const blur = Math.max(0.5, p * 0.08);
-    const mask = diamondMaskSvg(p, blur);
-    incoming.style.maskImage = mask;
-    incoming.style.maskSize = "100% 100%";
-    incoming.style.setProperty("-webkit-mask-image", mask);
-    incoming.style.setProperty("-webkit-mask-size", "100% 100%");
+    applyMask(incoming, diamondMaskSvg(p, blur));
 }
 
-function diamondMaskSvg(p: number, blur: number): string {
+/** Shared helper: wrap SVG shape content into a blurred mask data-URI. */
+function svgMask(shapeContent: string, blur: number): string {
     const svg =
         `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none">` +
         `<defs><filter id="b" x="-50%" y="-50%" width="200%" height="200%">` +
         `<feGaussianBlur stdDeviation="${blur}"/></filter></defs>` +
-        `<polygon points="50,${50 - p} ${50 + p},50 50,${50 + p} ${50 - p},50" ` +
-        `fill="white" filter="url(#b)"/></svg>`;
+        shapeContent +
+        `</svg>`;
     return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
+}
+
+function applyMask(el: HTMLElement, mask: string): void {
+    el.style.maskImage = mask;
+    el.style.maskSize = "100% 100%";
+    el.style.setProperty("-webkit-mask-image", mask);
+    el.style.setProperty("-webkit-mask-size", "100% 100%");
+}
+
+function clearMask(el: HTMLElement): void {
+    el.style.maskImage = "";
+    el.style.setProperty("-webkit-mask-image", "");
+}
+
+function diamondMaskSvg(p: number, blur: number): string {
+    return svgMask(
+        `<polygon points="50,${50 - p} ${50 + p},50 50,${50 + p} ${50 - p},50" fill="white" filter="url(#b)"/>`,
+        blur,
+    );
 }
 
 /** Plus/cross reveal from center with feathered edge via SVG mask + blur. */
 function plusEffect(t: number, _outgoing: HTMLElement, incoming: HTMLElement): void {
     if (t >= 1) {
-        incoming.style.maskImage = "";
-        incoming.style.setProperty("-webkit-mask-image", "");
-        return;
-    }
-    if (t <= 0) {
-        const mask = plusMaskSvg(0, 0);
-        incoming.style.maskImage = mask;
-        incoming.style.setProperty("-webkit-mask-image", mask);
+        clearMask(incoming);
         return;
     }
     const p = t * 50;
     const blur = Math.max(0.5, p * 0.08);
-    const mask = plusMaskSvg(p, blur);
-    incoming.style.maskImage = mask;
-    incoming.style.maskSize = "100% 100%";
-    incoming.style.setProperty("-webkit-mask-image", mask);
-    incoming.style.setProperty("-webkit-mask-size", "100% 100%");
+    applyMask(incoming, plusMaskSvg(p, blur));
 }
 
 function plusMaskSvg(p: number, blur: number): string {
@@ -664,52 +682,50 @@ function newsflashEffect(t: number, _outgoing: HTMLElement, incoming: HTMLElemen
 function stripsEffect(dir: CornerDirection): FrameFn {
     return (t, _outgoing, incoming) => {
         if (t >= 1) {
-            incoming.style.clipPath = "none";
+            clearMask(incoming);
             return;
         }
         if (t <= 0) {
-            incoming.style.clipPath = "polygon(0% 0%, 0% 0%, 0% 0%)";
+            applyMask(incoming, svgMask(`<polygon points="0,0 0,0 0,0" fill="white" filter="url(#b)"/>`, 0));
             return;
         }
-        // d goes from 0 to 200 — the diagonal sweep distance across the rectangle
         const d = t * 200;
+        const blur = Math.max(0.5, t * 50 * 0.08);
         let points: string;
 
         if (d <= 100) {
-            // Triangle phase: expanding triangle from the corner
             switch (dir) {
                 case "rightDown":
-                    points = `0% 0%, ${d}% 0%, 0% ${d}%`;
+                    points = `0,0 ${d},0 0,${d}`;
                     break;
                 case "leftDown":
-                    points = `100% 0%, ${100 - d}% 0%, 100% ${d}%`;
+                    points = `100,0 ${100 - d},0 100,${d}`;
                     break;
                 case "rightUp":
-                    points = `0% 100%, ${d}% 100%, 0% ${100 - d}%`;
+                    points = `0,100 ${d},100 0,${100 - d}`;
                     break;
                 case "leftUp":
-                    points = `100% 100%, ${100 - d}% 100%, 100% ${100 - d}%`;
+                    points = `100,100 ${100 - d},100 100,${100 - d}`;
                     break;
             }
         } else {
-            // Quadrilateral phase: the diagonal has passed the opposite edges
             const e = d - 100;
             switch (dir) {
                 case "rightDown":
-                    points = `0% 0%, 100% 0%, 100% ${e}%, ${e}% 100%, 0% 100%`;
+                    points = `0,0 100,0 100,${e} ${e},100 0,100`;
                     break;
                 case "leftDown":
-                    points = `100% 0%, 0% 0%, 0% ${e}%, ${100 - e}% 100%, 100% 100%`;
+                    points = `100,0 0,0 0,${e} ${100 - e},100 100,100`;
                     break;
                 case "rightUp":
-                    points = `0% 100%, 100% 100%, 100% ${100 - e}%, ${e}% 0%, 0% 0%`;
+                    points = `0,100 100,100 100,${100 - e} ${e},0 0,0`;
                     break;
                 case "leftUp":
-                    points = `100% 100%, 0% 100%, 0% ${100 - e}%, ${100 - e}% 0%, 100% 0%`;
+                    points = `100,100 0,100 0,${100 - e} ${100 - e},0 100,0`;
                     break;
             }
         }
-        incoming.style.clipPath = `polygon(${points})`;
+        applyMask(incoming, svgMask(`<polygon points="${points}" fill="white" filter="url(#b)"/>`, blur));
     };
 }
 
@@ -993,27 +1009,28 @@ function wheelSweepEffect(spokes: number, clockwise: boolean): FrameFn {
     const dir = clockwise ? 1 : -1;
     return (t, _outgoing, incoming) => {
         if (t >= 1) {
-            incoming.style.clipPath = "none";
+            clearMask(incoming);
             return;
         }
         if (t <= 0) {
-            incoming.style.clipPath = "polygon(50% 50%, 50% 50%, 50% 50%)";
+            applyMask(incoming, svgMask(`<polygon points="50,50 50,50 50,50" fill="white" filter="url(#b)"/>`, 0));
             return;
         }
+        const blur = Math.max(0.3, t * 50 * 0.06);
         const sectorAngle = 360 / n;
         const sweep = t * sectorAngle;
-        const points: string[] = [];
+        let path = "";
         for (let s = 0; s < n; s++) {
             const startDeg = -90 + s * sectorAngle;
-            points.push("50% 50%");
+            path += "M50,50 ";
             for (let j = 0; j <= ARC_STEPS; j++) {
                 const deg = startDeg + dir * (j / ARC_STEPS) * sweep;
                 const rad = (deg * Math.PI) / 180;
-                points.push(`${50 + SWEEP_RADIUS * Math.cos(rad)}% ${50 + SWEEP_RADIUS * Math.sin(rad)}%`);
+                path += `L${50 + SWEEP_RADIUS * Math.cos(rad)},${50 + SWEEP_RADIUS * Math.sin(rad)} `;
             }
-            points.push("50% 50%");
+            path += "Z ";
         }
-        incoming.style.clipPath = `polygon(${points.join(", ")})`;
+        applyMask(incoming, svgMask(`<path d="${path}" fill="white" filter="url(#b)"/>`, blur));
     };
 }
 
@@ -1022,28 +1039,30 @@ function wheelSweepEffect(spokes: number, clockwise: boolean): FrameFn {
  */
 function wedgeEffect(t: number, _outgoing: HTMLElement, incoming: HTMLElement): void {
     if (t >= 1) {
-        incoming.style.clipPath = "none";
+        clearMask(incoming);
         return;
     }
     if (t <= 0) {
-        incoming.style.clipPath = "polygon(50% 50%, 50% 50%, 50% 50%)";
+        applyMask(incoming, svgMask(`<polygon points="50,50 50,50 50,50" fill="white" filter="url(#b)"/>`, 0));
         return;
     }
+    const blur = Math.max(0.3, t * 50 * 0.06);
     const sweep = t * 180;
-    const points: string[] = ["50% 50%"];
+    let path = "M50,50 ";
     // Counter-clockwise half
     for (let j = ARC_STEPS; j >= 0; j--) {
         const deg = -90 - (j / ARC_STEPS) * sweep;
         const rad = (deg * Math.PI) / 180;
-        points.push(`${50 + SWEEP_RADIUS * Math.cos(rad)}% ${50 + SWEEP_RADIUS * Math.sin(rad)}%`);
+        path += `L${50 + SWEEP_RADIUS * Math.cos(rad)},${50 + SWEEP_RADIUS * Math.sin(rad)} `;
     }
     // Clockwise half
     for (let j = 0; j <= ARC_STEPS; j++) {
         const deg = -90 + (j / ARC_STEPS) * sweep;
         const rad = (deg * Math.PI) / 180;
-        points.push(`${50 + SWEEP_RADIUS * Math.cos(rad)}% ${50 + SWEEP_RADIUS * Math.sin(rad)}%`);
+        path += `L${50 + SWEEP_RADIUS * Math.cos(rad)},${50 + SWEEP_RADIUS * Math.sin(rad)} `;
     }
-    incoming.style.clipPath = `polygon(${points.join(", ")})`;
+    path += "Z";
+    applyMask(incoming, svgMask(`<path d="${path}" fill="white" filter="url(#b)"/>`, blur));
 }
 
 // ---------------------------------------------------------------------------
