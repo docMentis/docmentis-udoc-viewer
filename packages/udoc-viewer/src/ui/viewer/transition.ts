@@ -455,10 +455,15 @@ function cutThroughBlack(t: number, outgoing: HTMLElement, _incoming: HTMLElemen
  * Push: snapshot slides away on top, incoming revealed via clip-path underneath.
  */
 function pushEffect(dir: SideDirection): FrameFn {
+    const opp = oppositeSide(dir);
     return (t, outgoing, incoming) => {
+        if (t >= 1) {
+            incoming.style.transform = "";
+            return;
+        }
         outgoing.style.zIndex = "1";
         outgoing.style.transform = sideToTranslate(dir, t);
-        incoming.style.clipPath = revealInset(oppositeSide(dir), t);
+        incoming.style.transform = sideToTranslate(opp, 1 - t);
     };
 }
 
@@ -494,10 +499,9 @@ function uncoverEffect(dir: EightDirection): FrameFn {
  * Pull: snapshot slides away on top while incoming is revealed via clip-path.
  */
 function pullEffect(dir: EightDirection): FrameFn {
-    return (t, outgoing, incoming) => {
+    return (t, outgoing, _incoming) => {
         outgoing.style.zIndex = "1";
         outgoing.style.transform = eightDirToTranslate(dir, t);
-        incoming.style.clipPath = eightDirToRevealInset(oppositeEightDir(dir), t);
     };
 }
 
