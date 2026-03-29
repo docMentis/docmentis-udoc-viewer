@@ -5,6 +5,9 @@ import { UDocClient, type PerformanceLogEntry } from "@docmentis/udoc-viewer";
 interface SampleDocument {
     name: string;
     path: string;
+    viewerOptions?: {
+        enableTransitions?: boolean;
+    };
 }
 
 interface SampleCategory {
@@ -32,7 +35,14 @@ const sampleCategories: SampleCategory[] = [
     },
     {
         name: "PPTX",
-        documents: [{ name: "James Webb Space Telescope", path: "./james-webb-space-telescope.pptx" }],
+        documents: [
+            { name: "James Webb Space Telescope", path: "./james-webb-space-telescope.pptx" },
+            {
+                name: "Slide Transition Demo (Beta)",
+                path: "./transition-demo.pptx",
+                viewerOptions: { enableTransitions: true },
+            },
+        ],
     },
     {
         name: "XLSX",
@@ -163,21 +173,35 @@ function updateActiveStates(desktopBtn: HTMLButtonElement | null, mobileBtn: HTM
 }
 
 async function loadDocument(
-    path: string,
-    name: string,
+    doc: SampleDocument,
     desktopBtn: HTMLButtonElement | null,
     mobileBtn: HTMLButtonElement | null,
 ) {
-    currentDocSource = path;
-    currentDocName = name;
+    currentDocSource = doc.path;
+    currentDocName = doc.name;
 
     updateActiveStates(desktopBtn, mobileBtn);
 
     // Update mobile document name display
-    docNameEl.textContent = name;
+    docNameEl.textContent = doc.name;
+
+    // Apply per-document viewer options if they differ from current state
+    let needsRecreate = false;
+    if (
+        doc.viewerOptions?.enableTransitions !== undefined &&
+        doc.viewerOptions.enableTransitions !== enableTransitions
+    ) {
+        enableTransitions = doc.viewerOptions.enableTransitions;
+        const cb = document.querySelector<HTMLInputElement>('[data-option-id="transitions"]');
+        if (cb) cb.checked = enableTransitions;
+        needsRecreate = true;
+    }
+    if (needsRecreate) {
+        await createViewer();
+    }
 
     // Load document
-    await viewer?.load(path);
+    await viewer?.load(doc.path);
 
     // Close mobile dropdown
     closeDocDropdown();
@@ -264,10 +288,10 @@ function populateDocumentLists() {
 
             // Wire up click handlers
             desktopBtn.addEventListener("click", () => {
-                void loadDocument(doc.path, doc.name, desktopBtn, mobileBtn);
+                void loadDocument(doc, desktopBtn, mobileBtn);
             });
             mobileBtn.addEventListener("click", () => {
-                void loadDocument(doc.path, doc.name, desktopBtn, mobileBtn);
+                void loadDocument(doc, desktopBtn, mobileBtn);
             });
 
             documentList.appendChild(desktopBtn);
@@ -332,6 +356,7 @@ function setupEventListeners() {
 }
 
 interface ToggleOption {
+    id?: string;
     label: string;
     hint?: string;
     onChange: (checked: boolean, v: UDocViewer) => void | Promise<void>;
@@ -417,6 +442,7 @@ const OPTION_GROUPS: ToggleGroup[] = [
                 },
             },
             {
+                id: "transitions",
                 label: "Slide Transitions (Beta)",
                 hint: "PPTX only",
                 onChange: async (checked) => {
@@ -494,6 +520,7 @@ function setupOptionsPanel() {
 
             const input = document.createElement("input");
             input.type = "checkbox";
+            if (opt.id) input.dataset.optionId = opt.id;
             input.addEventListener("change", () => {
                 if (viewer) {
                     opt.onChange(input.checked, viewer);
@@ -546,7 +573,7 @@ async function main() {
     const firstDoc = sampleCategories[0].documents[0];
     const pair = documentButtonPairs.get(firstDoc.path);
     if (pair) {
-        await loadDocument(firstDoc.path, firstDoc.name, pair.desktop, pair.mobile);
+        await loadDocument(firstDoc, pair.desktop, pair.mobile);
     }
 }
 
