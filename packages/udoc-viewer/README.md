@@ -396,21 +396,64 @@ viewer.closePanel();
 
 ### Programmatic Search
 
-Search document text programmatically — useful for custom search UIs:
+Search document text programmatically. Works with or without the built-in search panel — ideal for building custom search UIs. Highlight overlays are rendered automatically on matching pages.
 
 ```typescript
-// Open search panel and search for text
-viewer.search("hello world");
+// Search and await results (returns Promise<SearchMatch[]>)
+const matches = await viewer.search("hello world");
+console.log(`Found ${matches.length} matches`);
 
 // Search with options
-viewer.search("hello", { caseSensitive: true });
+const matches = await viewer.search("hello", { caseSensitive: true });
 
-// Navigate between matches
+// Each match contains location, highlight rects, and context snippet
+for (const match of matches) {
+    console.log(`Page ${match.pageIndex + 1}: "${match.context[1]}"`);
+    console.log(`  Before: "${match.context[0]}", After: "${match.context[2]}"`);
+    console.log(`  Rects:`, match.rects); // bounding boxes in PDF points
+}
+
+// Navigate between matches (scrolls viewport to match)
 viewer.searchNext();
 viewer.searchPrev();
 
+// Jump to a specific match by index
+viewer.setSearchActiveIndex(5);
+
+// Read current state
+console.log(viewer.searchMatches); // SearchMatch[]
+console.log(viewer.searchActiveIndex); // number (-1 if none)
+
+// Listen for incremental updates (fires as pages load and on navigation)
+viewer.on("search:change", ({ matches, activeIndex }) => {
+    updateMySearchUI(matches, activeIndex);
+});
+
 // Clear search
 viewer.clearSearch();
+```
+
+#### Custom Search UI Example
+
+Disable the built-in search panel and build your own:
+
+```typescript
+const viewer = await client.createViewer({
+    container: "#viewer",
+    disableSearch: true, // hide built-in search panel
+});
+
+await viewer.load("document.pdf");
+
+// Wire up your own search input
+searchInput.addEventListener("input", async () => {
+    const matches = await viewer.search(searchInput.value);
+    renderResultsList(matches); // your custom UI
+});
+
+// Wire up next/prev buttons
+nextBtn.addEventListener("click", () => viewer.searchNext());
+prevBtn.addEventListener("click", () => viewer.searchPrev());
 ```
 
 ### CSS Customization
@@ -510,6 +553,11 @@ viewer.on("ui:visibilityChange", ({ component, visible }) => {
 // Download progress
 viewer.on("download:progress", ({ loaded, total, percent }) => {
     console.log(`Downloaded ${loaded}/${total} bytes (${percent}%)`);
+});
+
+// Search results changed (matches found or active match navigated)
+viewer.on("search:change", ({ matches, activeIndex }) => {
+    console.log(`${matches.length} matches, active: ${activeIndex}`);
 });
 
 // Error occurred
