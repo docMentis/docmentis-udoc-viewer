@@ -509,8 +509,16 @@ export class WorkerClient {
      * Get font usage information for a document.
      */
     async getFontUsage(documentId: string): Promise<unknown[]> {
-        const response = (await this.send({ type: "getFontUsage", documentId })) as { entries: unknown[] };
-        return response.entries;
+        const counter = this.getCounter(documentId);
+        const eventId = counter?.markStart("getFontUsage");
+        try {
+            const response = (await this.send({ type: "getFontUsage", documentId })) as { entries: unknown[] };
+            if (eventId) counter?.markEnd(eventId);
+            return response.entries;
+        } catch (error) {
+            if (eventId) counter?.markEnd(eventId, false, (error as Error).message);
+            throw error;
+        }
     }
 
     /**
@@ -1330,8 +1338,13 @@ export class WorkerClient {
     }
 
     private async doRender(req: QueuedRequest, key: string): Promise<RenderResult> {
-        const counter = req.type !== "preview" ? this.getCounter(req.docId) : null;
-        const eventType = req.type === "thumbnail" ? ("renderThumbnail" as const) : ("renderPage" as const);
+        const counter = this.getCounter(req.docId);
+        const eventType =
+            req.type === "thumbnail"
+                ? ("renderThumbnail" as const)
+                : req.type === "preview"
+                  ? ("renderPreview" as const)
+                  : ("renderPage" as const);
         const pageIndex = req.page - 1;
         const eventId = counter?.markStart(eventType, { pageIndex, scale: req.scale });
 

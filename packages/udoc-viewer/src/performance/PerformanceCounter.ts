@@ -22,7 +22,9 @@ export type PerformanceEventType =
     | "getPageAnnotations" // Get single page annotations
     | "getPageText" // Get single page text (for text selection)
     | "renderPage" // Render a page
+    | "renderPreview" // Render a preview page
     | "renderThumbnail" // Render a thumbnail
+    | "getFontUsage" // Get font usage information
     | "initUiShell"; // UI shell initialization
 
 /**
