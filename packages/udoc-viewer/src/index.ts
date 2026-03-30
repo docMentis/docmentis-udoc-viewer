@@ -45,6 +45,7 @@ export type {
     LeftPanelTab,
     RightPanelTab,
     ThemeMode,
+    SearchMatch,
 } from "./ui/viewer/state.js";
 
 // Worker internals (types only, for advanced usage)

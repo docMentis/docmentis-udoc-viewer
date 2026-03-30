@@ -12,6 +12,7 @@ import type { PrintDialogResult, PrintPageRange, PrintQuality } from "./ui/viewe
 import type { Destination, OutlineItem } from "./ui/viewer/navigation.js";
 import type { Annotation } from "./ui/viewer/annotation/index.js";
 export type { Annotation } from "./ui/viewer/annotation/index.js";
+export type { SearchMatch } from "./ui/viewer/state.js";
 import type { TextRun } from "./ui/viewer/text/index.js";
 import {
     getFormatDefaults,
@@ -25,6 +26,7 @@ import {
     type SpacingMode,
     type ThemeMode,
     type VisibilityGroup,
+    type SearchMatch,
 } from "./ui/viewer/state.js";
 import { PerformanceCounter, NoOpPerformanceCounter, type IPerformanceCounter } from "./performance/index.js";
 
@@ -140,6 +142,7 @@ export interface ViewerEventMap {
     "ui:visibilityChange": { component: UIComponent; visible: boolean };
     "panel:change": { panel: PanelTab | null; previousPanel: PanelTab | null };
     "font:usageChange": { entries: FontUsageEntry[] };
+    "search:change": { matches: SearchMatch[]; activeIndex: number };
 }
 
 type EventHandler<K extends keyof ViewerEventMap> = (payload: ViewerEventMap[K]) => void;
@@ -265,6 +268,12 @@ export class UDocViewer {
                     this.emit("ui:visibilityChange", {
                         component: "print",
                         visible: next.printButtonVisible,
+                    });
+                }
+                if (prev.searchMatches !== next.searchMatches || prev.searchActiveIndex !== next.searchActiveIndex) {
+                    this.emit("search:change", {
+                        matches: next.searchMatches,
+                        activeIndex: next.searchActiveIndex,
                     });
                 }
                 if (prev.disabledPanels !== next.disabledPanels) {
@@ -1016,22 +1025,58 @@ export class UDocViewer {
 
     /**
      * Search for text in the document.
-     * Opens the search panel and sets the search query.
+     * Returns a promise that resolves with the final search matches once all page text
+     * has been loaded and the search completes. Highlight overlays are rendered automatically.
+     *
+     * Results are also available via the `search:change` event (fires for intermediate
+     * results as pages load) and the `searchMatches` getter.
      *
      * @param query - The text to search for
      * @param options - Search options
+     * @returns Promise resolving with the search matches
      */
-    search(query: string, options?: { caseSensitive?: boolean }): void {
+    search(query: string, options?: { caseSensitive?: boolean }): Promise<SearchMatch[]> {
         this.ensureNotDestroyed();
         this.ensureUiMode();
+
+        const stateBefore = this.uiShell!.getState();
         if (options?.caseSensitive !== undefined) {
             this.uiShell!.dispatch({ type: "SET_SEARCH_CASE_SENSITIVE", caseSensitive: options.caseSensitive });
         }
         this.uiShell!.dispatch({ type: "SET_SEARCH_QUERY", query });
-        const state = this.uiShell!.getState();
-        if (state.activePanel !== "search") {
-            this.uiShell!.dispatch({ type: "TOGGLE_PANEL", panel: "search" });
+
+        // Empty/whitespace query — resolve immediately
+        if (!query.trim()) {
+            return Promise.resolve([]);
         }
+
+        // Nothing changed (same query and options) — return current results
+        const stateAfter = this.uiShell!.getState();
+        if (stateBefore === stateAfter) {
+            return Promise.resolve(stateAfter.searchMatches);
+        }
+
+        return new Promise<SearchMatch[]>((resolve) => {
+            const unsub = this.uiShell!.store.subscribeEffect((prev, next) => {
+                // Query was superseded by another search() call — resolve empty
+                if (next.searchQuery !== query) {
+                    unsub();
+                    resolve([]);
+                    return;
+                }
+
+                // Resolve when text is fully loaded and search results have been computed
+                // (skip the initial matches clear from SET_SEARCH_QUERY by checking query is stable)
+                if (
+                    next.searchTextLoaded &&
+                    prev.searchQuery === next.searchQuery &&
+                    prev.searchMatches !== next.searchMatches
+                ) {
+                    unsub();
+                    resolve(next.searchMatches);
+                }
+            });
+        });
     }
 
     /**
@@ -1059,6 +1104,35 @@ export class UDocViewer {
         this.ensureNotDestroyed();
         this.ensureUiMode();
         this.uiShell!.dispatch({ type: "CLEAR_SEARCH" });
+    }
+
+    /**
+     * Get the current search matches.
+     */
+    get searchMatches(): SearchMatch[] {
+        this.ensureNotDestroyed();
+        this.ensureUiMode();
+        return this.uiShell!.getState().searchMatches;
+    }
+
+    /**
+     * Get the index of the currently active search match (-1 if none).
+     */
+    get searchActiveIndex(): number {
+        this.ensureNotDestroyed();
+        this.ensureUiMode();
+        return this.uiShell!.getState().searchActiveIndex;
+    }
+
+    /**
+     * Set the active search match by index. Navigates the viewport to the match.
+     *
+     * @param index - 0-based index into `searchMatches`
+     */
+    setSearchActiveIndex(index: number): void {
+        this.ensureNotDestroyed();
+        this.ensureUiMode();
+        this.uiShell!.dispatch({ type: "SET_SEARCH_ACTIVE_INDEX", index });
     }
 
     // ===========================================================================

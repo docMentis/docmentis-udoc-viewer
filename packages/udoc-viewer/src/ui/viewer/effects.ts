@@ -246,16 +246,18 @@ export function createEffects(store: Store<ViewerState, Action>, engine: EngineA
     };
     unsubscribers.push(cleanupHighlightTimer);
 
-    // Search text loading effect: load ALL page text when search panel is opened
-    // Follows the same pattern as the comments panel annotation loading effect.
+    // Search text loading effect: load ALL page text when a search query is set
+    // or the search panel is opened. Supports both built-in panel and external API usage.
     unsubscribers.push(
         store.subscribeEffect(async (prev, next) => {
             if (!next.doc) return;
 
             const searchJustOpened = next.activePanel === "search" && prev.activePanel !== "search";
             const docLoadedWithSearchOpen = next.activePanel === "search" && prev.doc !== next.doc;
+            const queryJustSet = next.searchQuery !== "" && prev.searchQuery === "";
+            const docLoadedWithQuery = next.searchQuery !== "" && prev.doc !== next.doc;
 
-            if (!searchJustOpened && !docLoadedWithSearchOpen) return;
+            if (!searchJustOpened && !docLoadedWithSearchOpen && !queryJustSet && !docLoadedWithQuery) return;
             if (next.searchTextLoaded || next.searchTextLoading) return;
 
             const gen = docGeneration;
@@ -285,18 +287,16 @@ export function createEffects(store: Store<ViewerState, Action>, engine: EngineA
         }),
     );
 
-    // Search execution effect: run search when query, case sensitivity, or text data changes
+    // Search execution effect: run search when query, case sensitivity, or text data changes.
+    // Works regardless of whether the search panel is open (supports external API usage).
     let searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
     unsubscribers.push(
         store.subscribeEffect((prev, next) => {
-            if (next.activePanel !== "search") return;
-
             // Only re-run search when search-relevant state actually changes
             const searchInputChanged =
                 prev.searchQuery !== next.searchQuery ||
                 prev.searchCaseSensitive !== next.searchCaseSensitive ||
-                prev.pageText !== next.pageText ||
-                (prev.activePanel !== "search" && next.activePanel === "search");
+                prev.pageText !== next.pageText;
 
             if (!searchInputChanged) return;
 
@@ -314,7 +314,6 @@ export function createEffects(store: Store<ViewerState, Action>, engine: EngineA
             searchDebounceTimer = setTimeout(() => {
                 searchDebounceTimer = null;
                 const state = store.getState();
-                if (state.activePanel !== "search") return;
                 if (!state.searchQuery.trim()) return;
 
                 const matches = executeSearch(
