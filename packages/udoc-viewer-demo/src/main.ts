@@ -146,6 +146,10 @@ async function createViewer() {
         },
     });
 
+    // Expose viewer for devtools debugging
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (window as any).__viewer = viewer;
+
     // Reload current document if any
     if (currentDocSource) {
         await viewer.load(currentDocSource);
