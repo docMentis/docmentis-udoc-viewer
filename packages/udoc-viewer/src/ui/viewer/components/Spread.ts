@@ -487,6 +487,8 @@ export function createSpread(data: SpreadData, showAttribution = true, i18n?: I1
 
     /** Scale factor for low-res preview renders (relative to full-res) */
     const PREVIEW_SCALE = 0.15;
+    /** Set to true to enable low-res preview rendering while full-res loads */
+    const PREVIEW_ENABLED = false;
 
     async function render(workerClient: WorkerClient, options: SpreadRenderOptions): Promise<void> {
         const dpr = getDevicePixelRatio();
@@ -507,7 +509,7 @@ export function createSpread(data: SpreadData, showAttribution = true, i18n?: I1
             slotEl.pendingKey = key;
 
             // Request low-res preview if no content is shown yet
-            if (slotEl.previewCanvas && slotEl.renderKey === "") {
+            if (PREVIEW_ENABLED && slotEl.previewCanvas && slotEl.renderKey === "") {
                 const previewRenderScale = renderScale * PREVIEW_SCALE;
                 const previewKey = makeRenderKey(options.docId, slotEl.pageNumber, "preview", previewRenderScale);
                 if (slotEl.previewRenderKey !== previewKey) {
