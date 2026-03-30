@@ -317,7 +317,7 @@ function resolveEffect(effect: TransitionEffect, forward: boolean): FrameFn | nu
 
         // PPTX 2010+ effects (p14)
         case "vortex":
-            return expandFromCenter;
+            return vortexEffect(effect.direction);
 
         case "switch":
         case "flip":
@@ -1303,6 +1303,235 @@ function createCheckerFace(
     if (ctx) ctx.drawImage(source, sx, sy, sw, sh, 0, 0, sw, sh);
 
     return canvas;
+}
+
+// ---------------------------------------------------------------------------
+// Vortex
+// ---------------------------------------------------------------------------
+
+const VORTEX_COLS = 40;
+const VORTEX_ROWS = 22;
+
+/**
+ * Vortex: 3D tile-orbit effect around the slide center.
+ *
+ * The slide is divided into a fine grid of tiles. Two independent sets are
+ * created (outgoing and incoming). Each tile orbits around the screen
+ * center's Y axis (horizontal direction) or X axis (vertical direction)
+ * using CSS 3D transforms with perspective and preserve-3d.
+ *
+ * Outgoing tiles rotate from 0° to 180° (going behind the screen);
+ * incoming tiles rotate from -180° to 0° (emerging from behind).
+ * backface-visibility:hidden provides natural tile visibility.
+ * Stagger by direction creates a wave-like vortex sweep.
+ *
+ * The orbit is achieved via the translate-rotate-translate trick:
+ *   translateX(dx) rotateY(θ) translateX(-dx)
+ * where dx = distance from tile center to slide center. This orbits
+ * each tile around the slide center at its own radius.
+ */
+function vortexEffect(dir: SideDirection): FrameFn {
+    let setup: VortexSetup | null = null;
+    const isH = dir === "left" || dir === "right";
+    // Rotation sign determines which side goes behind the screen first.
+    const rotSign = dir === "right" || dir === "up" ? 1 : -1;
+
+    return (t, outgoing, incoming) => {
+        if (t >= 1) {
+            incoming.style.opacity = "";
+            incoming.style.clipPath = "none";
+            return;
+        }
+
+        if (!setup) {
+            setup = setupVortex(outgoing, incoming, VORTEX_COLS, VORTEX_ROWS, dir);
+        }
+
+        if (!setup) {
+            outgoing.style.zIndex = "1";
+            outgoing.style.opacity = `${1 - t}`;
+            return;
+        }
+
+        const { outTiles, inTiles, tileData } = setup;
+
+        for (let i = 0; i < tileData.length; i++) {
+            const { dx, dy, outStagger, inStagger, zSign, zRand, driftRand } = tileData[i];
+
+            // Outgoing: orbit 0° → 180° (backface hides past 90°)
+            const outLocalT = vortexClamp01((t - outStagger * 0.4) / 0.55);
+            const outDeg = rotSign * outLocalT * 180;
+            const outZ = zSign * Math.sin(outLocalT * Math.PI) * 200 * zRand;
+            const outDrift = Math.sin(outLocalT * Math.PI) * (isH ? dy * 0.5 : dx * 0.5) * driftRand;
+            outTiles[i].style.transform = isH
+                ? `translate3d(${dx}px,${outDrift}px,${outZ}px) rotateY(${outDeg}deg) translateX(${-dx}px)`
+                : `translate3d(${outDrift}px,${dy}px,${outZ}px) rotateX(${outDeg}deg) translateY(${-dy}px)`;
+
+            // Incoming: orbit -180° → 0° (assembles from opposite side)
+            const inLocalT = vortexClamp01((t - 0.1 - inStagger * 0.4) / 0.55);
+            if (inLocalT >= 1) {
+                inTiles[i].style.transform = "none";
+            } else {
+                const inDeg = rotSign * (-180 + inLocalT * 180);
+                const inZ = zSign * Math.sin(inLocalT * Math.PI) * 200 * zRand;
+                const inDrift = Math.sin(inLocalT * Math.PI) * (isH ? dy * 0.5 : dx * 0.5) * driftRand;
+                inTiles[i].style.transform = isH
+                    ? `translate3d(${dx}px,${inDrift}px,${inZ}px) rotateY(${inDeg}deg) translateX(${-dx}px)`
+                    : `translate3d(${inDrift}px,${dy}px,${inZ}px) rotateX(${inDeg}deg) translateY(${-dy}px)`;
+            }
+        }
+    };
+}
+
+function vortexClamp01(v: number): number {
+    return v < 0 ? 0 : v > 1 ? 1 : v;
+}
+
+interface VortexTileData {
+    dx: number;
+    dy: number;
+    outStagger: number;
+    inStagger: number;
+    zSign: number;
+    zRand: number;
+    driftRand: number;
+}
+
+interface VortexSetup {
+    outTiles: HTMLElement[];
+    inTiles: HTMLElement[];
+    tileData: VortexTileData[];
+}
+
+function setupVortex(
+    outgoing: HTMLElement,
+    incoming: HTMLElement,
+    cols: number,
+    rows: number,
+    dir: SideDirection,
+): VortexSetup | null {
+    const outCanvas = outgoing.querySelector<HTMLCanvasElement>("canvas");
+    const inCanvas =
+        incoming.querySelector<HTMLCanvasElement>(".udoc-spread__canvas") ??
+        incoming.querySelector<HTMLCanvasElement>("canvas");
+
+    if (!outCanvas || !inCanvas || outCanvas.width === 0 || inCanvas.width === 0) {
+        return null;
+    }
+
+    const dpr = window.devicePixelRatio || 1;
+    const slideW = outCanvas.width / dpr;
+    const slideH = outCanvas.height / dpr;
+    const tileW = slideW / cols;
+    const tileH = slideH / rows;
+    const cx = slideW / 2;
+    const cy = slideH / 2;
+    const isH = dir === "left" || dir === "right";
+    const rotSign = dir === "right" || dir === "up" ? 1 : -1;
+
+    outgoing.innerHTML = "";
+    outgoing.style.overflow = "visible";
+    outgoing.style.zIndex = "1";
+    incoming.style.opacity = "0";
+
+    // Black backdrop (flat, outside the 3D context)
+    const backdrop = document.createElement("div");
+    backdrop.style.position = "absolute";
+    backdrop.style.left = "0";
+    backdrop.style.top = "0";
+    backdrop.style.width = `${slideW}px`;
+    backdrop.style.height = `${slideH}px`;
+    backdrop.style.background = "#000";
+    outgoing.appendChild(backdrop);
+
+    // 3D scene container
+    const scene = document.createElement("div");
+    scene.style.position = "absolute";
+    scene.style.left = "0";
+    scene.style.top = "0";
+    scene.style.width = `${slideW}px`;
+    scene.style.height = `${slideH}px`;
+    scene.style.perspective = `${Math.max(slideW, slideH) * 2}px`;
+    scene.style.transformStyle = "preserve-3d";
+    outgoing.appendChild(scene);
+
+    const outTiles: HTMLElement[] = [];
+    const inTiles: HTMLElement[] = [];
+    const tileData: VortexTileData[] = [];
+
+    for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+            const tileX = (c + 0.5) * tileW;
+            const tileY = (r + 0.5) * tileH;
+            const dx = cx - tileX;
+            const dy = cy - tileY;
+
+            // Outgoing stagger: break direction (right = left side first).
+            // Incoming stagger: reversed (right = right side assembles last).
+            const colN = c / Math.max(1, cols - 1);
+            const rowN = r / Math.max(1, rows - 1);
+            let outSt: number;
+            let inSt: number;
+            switch (dir) {
+                case "right":
+                    outSt = colN * 0.7 + rowN * 0.3;
+                    inSt = (1 - colN) * 0.7 + (1 - rowN) * 0.3;
+                    break;
+                case "left":
+                    outSt = (1 - colN) * 0.7 + rowN * 0.3;
+                    inSt = colN * 0.7 + (1 - rowN) * 0.3;
+                    break;
+                case "down":
+                    outSt = rowN * 0.7 + colN * 0.3;
+                    inSt = (1 - rowN) * 0.7 + (1 - colN) * 0.3;
+                    break;
+                case "up":
+                    outSt = (1 - rowN) * 0.7 + colN * 0.3;
+                    inSt = rowN * 0.7 + (1 - colN) * 0.3;
+                    break;
+            }
+
+            // Per-tile randomness so the vortex looks organic
+            const jitter = (Math.random() - 0.5) * 0.15;
+            tileData.push({
+                dx,
+                dy,
+                outStagger: Math.max(0, Math.min(1, outSt + jitter)),
+                inStagger: Math.max(0, Math.min(1, inSt + jitter)),
+                zSign: Math.random() < 0.5 ? -1 : 1, // half toward camera, half away
+                zRand: 0.5 + Math.random(),
+                driftRand: 0.3 + Math.random() * 1.4,
+            });
+
+            // Outgoing tile (starts at grid position, no initial rotation)
+            const outTile = createCheckerFace(outCanvas, c, r, cols, rows, 0);
+            outTile.style.left = `${c * tileW}px`;
+            outTile.style.top = `${r * tileH}px`;
+            outTile.style.width = `${tileW}px`;
+            outTile.style.height = `${tileH}px`;
+            outTile.style.backfaceVisibility = "hidden";
+            outTile.style.setProperty("-webkit-backface-visibility", "hidden");
+            scene.appendChild(outTile);
+            outTiles.push(outTile);
+
+            // Incoming tile (starts rotated 180°, hidden by backface-visibility)
+            const inTile = createCheckerFace(inCanvas, c, r, cols, rows, 0);
+            inTile.style.left = `${c * tileW}px`;
+            inTile.style.top = `${r * tileH}px`;
+            inTile.style.width = `${tileW}px`;
+            inTile.style.height = `${tileH}px`;
+            inTile.style.backfaceVisibility = "hidden";
+            inTile.style.setProperty("-webkit-backface-visibility", "hidden");
+            const initDeg = rotSign * -180;
+            inTile.style.transform = isH
+                ? `translate3d(${dx}px,0px,0px) rotateY(${initDeg}deg) translateX(${-dx}px)`
+                : `translate3d(0px,${dy}px,0px) rotateX(${initDeg}deg) translateY(${-dy}px)`;
+            scene.appendChild(inTile);
+            inTiles.push(inTile);
+        }
+    }
+
+    return { outTiles, inTiles, tileData };
 }
 
 // ---------------------------------------------------------------------------
