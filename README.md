@@ -192,7 +192,7 @@ const client = await UDocClient.create({
 });
 ```
 
-Without a qualifying license the flag is silently ignored and a warning is logged to the console.
+Without a qualifying license the flag is silently ignored and a warning is logged to the console. To obtain a license, contact [licensing@docmentis.com](mailto:licensing@docmentis.com).
 
 ## Branding & Attribution
 

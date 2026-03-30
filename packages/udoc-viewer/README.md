@@ -145,6 +145,10 @@ const client = await UDocClient.create({
     // Expected files: {baseUrl}/worker.js and {baseUrl}/udoc_bg.wasm
     baseUrl: "https://cdn.example.com/udoc/",
 
+    // Disable anonymous telemetry reporting (default: false)
+    // Requires a valid license with the "no_telemetry" feature
+    disableTelemetry: false,
+
     // Enable Google Fonts for automatic font fetching (default: true)
     // When enabled, missing fonts are fetched from Google Fonts on-demand during rendering
     googleFonts: true,
@@ -741,6 +745,19 @@ udoc-viewer collects anonymous, non-personally-identifiable usage data to help u
 | `viewer_version` | SDK version string                                     | `0.5.19`       |
 | `license_hash`   | SHA-256 hash of the license key (empty if none)        | `a1b2c3...`    |
 | `distinct_id`    | Anonymous random UUID stored in localStorage           | `f47ac10b-...` |
+
+### Opting out
+
+Telemetry can be disabled with a license that includes the `no_telemetry` feature:
+
+```typescript
+const client = await UDocClient.create({
+    license: "eyJ2Ijox...",
+    disableTelemetry: true,
+});
+```
+
+Without a qualifying license the flag is silently ignored and a warning is logged to the console. To obtain a license, contact [licensing@docmentis.com](mailto:licensing@docmentis.com).
 
 **What we do NOT collect:**
 
