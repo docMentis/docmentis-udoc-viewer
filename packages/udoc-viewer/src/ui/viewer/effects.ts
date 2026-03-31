@@ -289,7 +289,6 @@ export function createEffects(store: Store<ViewerState, Action>, engine: EngineA
 
     // Search execution effect: run search when query, case sensitivity, or text data changes.
     // Works regardless of whether the search panel is open (supports external API usage).
-    let searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
     unsubscribers.push(
         store.subscribeEffect((prev, next) => {
             // Only re-run search when search-relevant state actually changes
@@ -300,38 +299,17 @@ export function createEffects(store: Store<ViewerState, Action>, engine: EngineA
 
             if (!searchInputChanged) return;
 
-            // Debounce search execution
-            if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
-
             if (!next.searchQuery.trim()) {
-                // Clear immediately when query is empty
                 if (next.searchMatches.length > 0) {
                     store.dispatch({ type: "SET_SEARCH_MATCHES", matches: [] });
                 }
                 return;
             }
 
-            searchDebounceTimer = setTimeout(() => {
-                searchDebounceTimer = null;
-                const state = store.getState();
-                if (!state.searchQuery.trim()) return;
-
-                const matches = executeSearch(
-                    state.searchQuery,
-                    state.searchCaseSensitive,
-                    state.pageText,
-                    state.pageCount,
-                );
-                store.dispatch({ type: "SET_SEARCH_MATCHES", matches });
-            }, 300);
+            const matches = executeSearch(next.searchQuery, next.searchCaseSensitive, next.pageText, next.pageCount);
+            store.dispatch({ type: "SET_SEARCH_MATCHES", matches });
         }),
     );
-    unsubscribers.push(() => {
-        if (searchDebounceTimer) {
-            clearTimeout(searchDebounceTimer);
-            searchDebounceTimer = null;
-        }
-    });
 
     // Search navigation effect: navigate to the page and position of the active match
     unsubscribers.push(

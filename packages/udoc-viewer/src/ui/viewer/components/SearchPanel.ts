@@ -252,21 +252,15 @@ export function createSearchPanel() {
         nextBtn.setAttribute("aria-label", i18n.t("search.nextMatch"));
         results.setAttribute("aria-label", i18n.t("search.resultsLabel"));
 
-        // Input handler
-        unsubEvents.push(
-            on(input, "input", () => {
-                if (storeRef) {
-                    storeRef.dispatch({ type: "SET_SEARCH_QUERY", query: input.value });
-                }
-            }),
-        );
-
         // Keyboard shortcuts on input
         unsubEvents.push(
             on(input, "keydown", (e: KeyboardEvent) => {
                 if (e.key === "Enter" && storeRef) {
                     e.preventDefault();
-                    if (e.shiftKey) {
+                    const queryChanged = storeRef.getState().searchQuery !== input.value;
+                    if (queryChanged) {
+                        storeRef.dispatch({ type: "SET_SEARCH_QUERY", query: input.value });
+                    } else if (e.shiftKey) {
                         storeRef.dispatch({ type: "SEARCH_PREV" });
                     } else {
                         storeRef.dispatch({ type: "SEARCH_NEXT" });

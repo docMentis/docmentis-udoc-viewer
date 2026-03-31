@@ -389,7 +389,7 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
         // Search
         case "SET_SEARCH_QUERY": {
             if (state.searchQuery === action.query) return state;
-            return { ...state, searchQuery: action.query, searchMatches: [], searchActiveIndex: -1 };
+            return { ...state, searchQuery: action.query };
         }
         case "SET_SEARCH_CASE_SENSITIVE": {
             if (state.searchCaseSensitive === action.caseSensitive) return state;
