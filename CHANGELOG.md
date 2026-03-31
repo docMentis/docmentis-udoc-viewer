@@ -6,6 +6,31 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+### Features
+
+- Decouple search API from right panel to support custom search UI
+- Disable low-res preview rendering with PREVIEW_ENABLED flag
+- Add performance counters for preview renders and font usage queries
+- Implement 3D vortex slide transition with tile-based animation
+
+### Bug Fixes
+
+- Correct zoom/box-out transition to expand incoming slide from center
+- Correct zoom/box-in transition to shrink outgoing slide to center
+- Reduce wheel transition feather significantly
+- Restrict transition feather to moving edges only
+- Fix ImageMask stencil painting with current nonstroking color (engine)
+- Correct soft mask handling per PDF spec 8.4 and 8.9.5.4 (engine)
+- Align soft mask coordinate space with masked content's GroupPlacement (engine)
+- Resolve pixmap/mask size mismatch in soft mask rendering (engine)
+- Render tensor-product mesh shadings with sub-pixel patches (engine)
+
+### Performance
+
+- Optimize shading rasterization and adopt page-level BBox clipping (engine)
+- Optimize patch mesh shading color conversion (engine)
+- Scope soft mask pixmaps to effective bounds intersection (engine)
+
 ## [0.6.17] - 2026-03-29
 
 ### Bug Fixes
