@@ -6,6 +6,8 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+## [0.6.18] - 2026-03-30
+
 ### Features
 
 - Decouple search API from right panel to support custom search UI
