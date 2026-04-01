@@ -659,6 +659,21 @@ export class UDocViewer {
         return raw as Annotation[];
     }
 
+    /**
+     * Get the layout structure for a specific page.
+     * Returns frames, parcels, lines, runs, glyphs, tables, and grids
+     * without building the full display list.
+     * All coordinates are in points (1/72 inch).
+     * @param page - Page index (0-based)
+     */
+    async getLayoutPage(page: number): Promise<JsLayoutPage> {
+        this.ensureLoaded();
+        if (page < 0 || page >= this._pageCount) {
+            throw new Error(`Page index ${page} out of bounds (0-${this._pageCount - 1})`);
+        }
+        return (await this.workerClient.getLayoutPage(this.documentId!, page)) as JsLayoutPage;
+    }
+
     // ===========================================================================
     // Navigation
     // ===========================================================================
