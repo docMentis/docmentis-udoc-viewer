@@ -342,11 +342,15 @@ export function executeSearch(
             const rects = computeMatchRects(charMap, idx, searchQuery.length);
             const rawBefore = fullText.substring(Math.max(0, idx - 30), idx);
             const rawAfter = fullText.substring(idx + searchQuery.length, idx + searchQuery.length + 30);
-            const before = trimToLastNWords(rawBefore, 3);
+            const beforeUpToNl = rawBefore.includes("\n")
+                ? rawBefore.substring(rawBefore.lastIndexOf("\n") + 1)
+                : rawBefore;
+            const afterUpToNl = rawAfter.includes("\n") ? rawAfter.substring(0, rawAfter.indexOf("\n")) : rawAfter;
+            const before = trimToLastNWords(beforeUpToNl, 3);
             const matched = fullText.substring(idx, idx + searchQuery.length);
-            const after = trimToFirstNWords(rawAfter, 3);
-            const beforePrefix = idx > before.length ? "\u2026" : "";
-            const afterSuffix = idx + searchQuery.length + after.length < fullText.length ? "\u2026" : "";
+            const after = trimToFirstNWords(afterUpToNl, 3);
+            const beforePrefix = before.length < beforeUpToNl.length ? "\u2026" : "";
+            const afterSuffix = after.length < afterUpToNl.length ? "\u2026" : "";
             const context: [string, string, string] = [beforePrefix + before, matched, after + afterSuffix];
             matches.push({ pageIndex, charOffset: idx, length: searchQuery.length, rects, context });
             searchStart = idx + 1;
