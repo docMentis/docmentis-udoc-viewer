@@ -251,6 +251,22 @@ function flattenRun(
         return span;
     }
 
+    if (c.type === "paragraphEnd") {
+        const x = combined.translateX * scale;
+        const y = combined.translateY * scale;
+        const width = c.advance * effectiveScaleX * scale;
+
+        const span = document.createElement("span");
+        span.className = "udoc-text-run";
+        span.textContent = "\n";
+        span.style.left = px(x);
+        span.style.top = px(y);
+        span.style.width = px(width);
+        span.style.fontSize = "1px";
+        span.style.lineHeight = "1px";
+        return span;
+    }
+
     if (c.type === "inlineDrawing") {
         const x = combined.translateX * scale;
         const y = combined.translateY * scale;
@@ -445,6 +461,18 @@ function buildRunHierarchical(
         span.style.width = "0";
         span.style.height = "0";
         span.style.overflow = "hidden";
+
+        return span;
+    }
+
+    if (c.type === "paragraphEnd") {
+        const span = document.createElement("span");
+        span.className = "udoc-text-run";
+        span.textContent = "\n";
+        span.style.left = px(run.x * scale);
+        span.style.width = px(effectiveWidth * scale);
+        span.style.fontSize = "1px";
+        span.style.lineHeight = px(lineHeight * scale);
 
         return span;
     }
