@@ -239,6 +239,8 @@ export interface ViewerState {
     searchMatches: SearchMatch[];
     /** Index of the currently active/focused match (-1 = none) */
     searchActiveIndex: number;
+    /** Incremented each time the user explicitly navigates to a match. */
+    searchNavGen: number;
     /** Whether all page text has been loaded for search */
     searchTextLoaded: boolean;
     /** Whether search text is currently being loaded */
@@ -333,6 +335,7 @@ export const initialState: ViewerState = {
     searchCaseSensitive: false,
     searchMatches: [],
     searchActiveIndex: -1,
+    searchNavGen: 0,
     searchTextLoaded: false,
     searchTextLoading: false,
 

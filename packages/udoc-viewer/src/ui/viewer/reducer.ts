@@ -402,27 +402,28 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
             return { ...state, searchCaseSensitive: action.caseSensitive, searchMatches: [], searchActiveIndex: -1 };
         }
         case "SET_SEARCH_MATCHES": {
+            const hasMatches = action.matches.length > 0;
             return {
                 ...state,
                 searchMatches: action.matches,
-                searchActiveIndex: action.matches.length > 0 ? 0 : -1,
+                searchActiveIndex: hasMatches ? 0 : -1,
+                searchNavGen: hasMatches ? state.searchNavGen + 1 : state.searchNavGen,
             };
         }
         case "SET_SEARCH_ACTIVE_INDEX": {
             const index = action.index;
             if (index < 0 || index >= state.searchMatches.length) return state;
-            if (state.searchActiveIndex === index) return state;
-            return { ...state, searchActiveIndex: index };
+            return { ...state, searchActiveIndex: index, searchNavGen: state.searchNavGen + 1 };
         }
         case "SEARCH_NEXT": {
             if (state.searchMatches.length === 0) return state;
             const next = (state.searchActiveIndex + 1) % state.searchMatches.length;
-            return { ...state, searchActiveIndex: next };
+            return { ...state, searchActiveIndex: next, searchNavGen: state.searchNavGen + 1 };
         }
         case "SEARCH_PREV": {
             if (state.searchMatches.length === 0) return state;
             const prev = (state.searchActiveIndex - 1 + state.searchMatches.length) % state.searchMatches.length;
-            return { ...state, searchActiveIndex: prev };
+            return { ...state, searchActiveIndex: prev, searchNavGen: state.searchNavGen + 1 };
         }
         case "CLEAR_SEARCH": {
             if (state.searchQuery === "" && state.searchMatches.length === 0 && state.searchActiveIndex === -1)

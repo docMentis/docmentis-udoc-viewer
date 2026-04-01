@@ -315,7 +315,7 @@ export function createEffects(store: Store<ViewerState, Action>, engine: EngineA
     unsubscribers.push(
         store.subscribeEffect((prev, next) => {
             if (next.searchActiveIndex === -1) return;
-            if (prev.searchActiveIndex === next.searchActiveIndex) return;
+            if (prev.searchNavGen === next.searchNavGen) return;
             if (next.searchMatches.length === 0) return;
 
             const match = next.searchMatches[next.searchActiveIndex];
