@@ -28,6 +28,7 @@ import type {
 interface PendingSpan {
     span: HTMLSpanElement;
     targetWidth: number;
+    angle: number;
 }
 
 function px(v: number): string {
@@ -136,13 +137,18 @@ function renderFlat(layer: HTMLDivElement, layout: JsLayoutPage, scale: number):
             measurements[i] = pendingSpans[i].span.offsetWidth;
         }
         for (let i = 0; i < pendingSpans.length; i++) {
-            const { span, targetWidth } = pendingSpans[i];
+            const { span, targetWidth, angle } = pendingSpans[i];
             const naturalWidth = measurements[i];
+            const hasRotation = Math.abs(angle) > 0.1;
             if (naturalWidth > 0 && targetWidth > 0) {
                 const sx = targetWidth / naturalWidth;
                 if (Math.abs(sx - 1) > 0.001) {
-                    span.style.transform = `scaleX(${sx})`;
+                    span.style.transform = hasRotation ? `rotate(${angle}deg) scaleX(${sx})` : `scaleX(${sx})`;
+                } else if (hasRotation) {
+                    span.style.transform = `rotate(${angle}deg)`;
                 }
+            } else if (hasRotation) {
+                span.style.transform = `rotate(${angle}deg)`;
             }
             span.style.width = px(naturalWidth);
         }
@@ -193,14 +199,19 @@ function flattenRun(
         if (!c.text || c.glyphs.length === 0) return null;
 
         const fontSize = c.fontSize * effectiveScaleY;
-        const x = combined.translateX * scale;
-        const y = (combined.translateY - c.ascent * effectiveScaleY) * scale;
+        const ascent = c.ascent * effectiveScaleY;
         const height = (c.ascent + c.descent) * effectiveScaleY * scale;
 
         const lastGlyph = c.glyphs[c.glyphs.length - 1];
         const targetWidth = (lastGlyph.x + lastGlyph.advance) * effectiveScaleX * scale;
 
-        const angle = Math.atan2(combined.skewY, combined.scaleX) * (180 / Math.PI);
+        const angleRad = Math.atan2(combined.skewY, combined.scaleX);
+        const angle = angleRad * (180 / Math.PI);
+
+        // Position the span's top-left so that after CSS rotate(angle) around (0,0),
+        // the baseline origin (local 0, ascent) lands at the transform's translate.
+        const x = (combined.translateX + Math.sin(angleRad) * ascent) * scale;
+        const y = (combined.translateY - Math.cos(angleRad) * ascent) * scale;
 
         const span = document.createElement("span");
         span.className = "udoc-text-run";
@@ -212,20 +223,21 @@ function flattenRun(
         span.style.height = px(height);
         span.style.transformOrigin = "0 0";
 
-        if (Math.abs(angle) > 0.1) {
-            span.style.transform = `rotate(${angle}deg)`;
-        }
-
-        pending.push({ span, targetWidth });
+        pending.push({ span, targetWidth, angle });
         return span;
     }
 
     if (c.type === "space" || c.type === "tab") {
         const fontSize = c.fontSize * effectiveScaleY;
-        const x = combined.translateX * scale;
-        const y = (combined.translateY - c.ascent * effectiveScaleY) * scale;
+        const ascent = c.ascent * effectiveScaleY;
         const width = c.advance * effectiveScaleX * scale;
         const height = (c.ascent + c.descent) * effectiveScaleY * scale;
+
+        const angleRad = Math.atan2(combined.skewY, combined.scaleX);
+        const angle = angleRad * (180 / Math.PI);
+
+        const x = (combined.translateX + Math.sin(angleRad) * ascent) * scale;
+        const y = (combined.translateY - Math.cos(angleRad) * ascent) * scale;
 
         const span = document.createElement("span");
         span.className = "udoc-text-run";
@@ -236,6 +248,10 @@ function flattenRun(
         span.style.lineHeight = px(height);
         span.style.width = px(width);
         span.style.height = px(height);
+        if (Math.abs(angle) > 0.1) {
+            span.style.transformOrigin = "0 0";
+            span.style.transform = `rotate(${angle}deg)`;
+        }
 
         return span;
     }
@@ -434,7 +450,7 @@ function buildRunHierarchical(
         span.style.transformOrigin = "0 0";
 
         const targetWidth = effectiveWidth * scale;
-        pending.push({ span, targetWidth });
+        pending.push({ span, targetWidth, angle: 0 });
 
         return span;
     }

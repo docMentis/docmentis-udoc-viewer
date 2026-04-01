@@ -708,6 +708,10 @@ export function createSpread(data: SpreadData, showAttribution = true, i18n?: I1
                     highlightEl.style.top = `${rect.y * scale}px`;
                     highlightEl.style.width = `${rect.width * scale}px`;
                     highlightEl.style.height = `${rect.height * scale}px`;
+                    if (Math.abs(rect.angle) > 0.1) {
+                        highlightEl.style.transformOrigin = "0 0";
+                        highlightEl.style.transform = `rotate(${rect.angle}deg)`;
+                    }
                     slotEl.searchHighlightLayer.appendChild(highlightEl);
                 }
             }

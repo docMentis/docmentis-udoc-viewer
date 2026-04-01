@@ -16,7 +16,7 @@ export interface SearchMatch {
     /** Length of the matched text. */
     length: number;
     /** Bounding rectangles for this match (in PDF points, for highlight rendering). */
-    rects: Array<{ x: number; y: number; width: number; height: number }>;
+    rects: Array<{ x: number; y: number; width: number; height: number; angle: number }>;
     /** Context snippet: [before, match, after] text for display in result list. */
     context: [string, string, string];
 }

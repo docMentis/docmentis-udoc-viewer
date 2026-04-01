@@ -203,54 +203,98 @@ function buildPageTextMap(runs: ResolvedRun[]): { fullText: string; charMap: Cha
 /**
  * Convert character offset + length to bounding rectangles in PDF points.
  * Groups adjacent glyphs on the same line into merged rects.
+ * Handles rotated text by producing rotated rects with an angle.
  */
 function computeMatchRects(
     charMap: CharMapping[],
     offset: number,
     length: number,
-): Array<{ x: number; y: number; width: number; height: number }> {
-    const rects: Array<{ x: number; y: number; width: number; height: number }> = [];
+): Array<{ x: number; y: number; width: number; height: number; angle: number }> {
+    const rects: Array<{ x: number; y: number; width: number; height: number; angle: number }> = [];
 
+    // Current rect accumulator
     let hasRect = false;
-    let rectStartX = 0;
-    let rectEndX = 0;
-    let rectY = 0;
-    let rectHeight = 0;
+    let rectAngle = 0;
+    let rectAngleRad = 0;
+    let rectFontSize = 0;
+    // Page-space baseline position of the first glyph in the current rect
+    let rectBaseX = 0;
+    let rectBaseY = 0;
+    // Distance along text direction from rectBase to the end of the current rect
+    let rectAlongEnd = 0;
 
     for (let i = offset; i < offset + length && i < charMap.length; i++) {
         const { run, glyphIndex } = charMap[i];
         const glyph = run.glyphs[glyphIndex];
         const transform = run.transform;
+
+        const angleRad = Math.atan2(transform.skewY, transform.scaleX);
+        const angle = angleRad * (180 / Math.PI);
         const effectiveScaleX = Math.sqrt(transform.scaleX ** 2 + transform.skewY ** 2);
         const effectiveScaleY = Math.sqrt(transform.scaleY ** 2 + transform.skewX ** 2);
         const fontSize = run.fontSize * effectiveScaleY;
 
-        const glyphX = transform.translateX + glyph.x * effectiveScaleX;
-        const glyphWidth = glyph.advance * effectiveScaleX;
-        const glyphY = transform.translateY - fontSize * 0.8;
-        const glyphHeight = fontSize;
+        // Glyph baseline position in page space (glyph.y is 0 for horizontal text)
+        const glyphBaseX = transform.scaleX * glyph.x + transform.translateX;
+        const glyphBaseY = transform.skewY * glyph.x + transform.translateY;
+        const glyphAdvance = glyph.advance * effectiveScaleX;
 
-        // Merge glyphs on the same line (regardless of run boundaries)
-        if (hasRect && Math.abs(glyphY - rectY) < Math.max(rectHeight, glyphHeight) * 0.5) {
-            rectEndX = Math.max(rectEndX, glyphX + glyphWidth);
-            rectHeight = Math.max(rectHeight, glyphHeight);
+        // Check if we can merge with the current rect
+        let canMerge = false;
+        if (hasRect && Math.abs(angle - rectAngle) < 0.5) {
+            // Check perpendicular distance between baselines (should be ~0 for same line)
+            const dx = glyphBaseX - rectBaseX;
+            const dy = glyphBaseY - rectBaseY;
+            const perpDist = Math.abs(-Math.sin(rectAngleRad) * dx + Math.cos(rectAngleRad) * dy);
+            canMerge = perpDist < Math.max(rectFontSize, fontSize) * 0.5;
+        }
+
+        if (canMerge) {
+            // Extend rect along text direction
+            const dx = glyphBaseX - rectBaseX;
+            const dy = glyphBaseY - rectBaseY;
+            const along = Math.cos(rectAngleRad) * dx + Math.sin(rectAngleRad) * dy;
+            rectAlongEnd = Math.max(rectAlongEnd, along + glyphAdvance);
+            rectFontSize = Math.max(rectFontSize, fontSize);
         } else {
+            // Flush previous rect
             if (hasRect) {
-                rects.push({ x: rectStartX, y: rectY, width: rectEndX - rectStartX, height: rectHeight });
+                pushRect(rects, rectBaseX, rectBaseY, rectAlongEnd, rectFontSize, rectAngle, rectAngleRad);
             }
+            // Start new rect
             hasRect = true;
-            rectStartX = glyphX;
-            rectEndX = glyphX + glyphWidth;
-            rectY = glyphY;
-            rectHeight = glyphHeight;
+            rectAngle = angle;
+            rectAngleRad = angleRad;
+            rectFontSize = fontSize;
+            rectBaseX = glyphBaseX;
+            rectBaseY = glyphBaseY;
+            rectAlongEnd = glyphAdvance;
         }
     }
 
     if (hasRect) {
-        rects.push({ x: rectStartX, y: rectY, width: rectEndX - rectStartX, height: rectHeight });
+        pushRect(rects, rectBaseX, rectBaseY, rectAlongEnd, rectFontSize, rectAngle, rectAngleRad);
     }
 
     return rects;
+}
+
+/** Push a rotated rect, offsetting from baseline to the top-left corner of the rect. */
+function pushRect(
+    rects: Array<{ x: number; y: number; width: number; height: number; angle: number }>,
+    baseX: number,
+    baseY: number,
+    width: number,
+    fontSize: number,
+    angle: number,
+    angleRad: number,
+): void {
+    // Offset from baseline "up" by 80% of fontSize in the perpendicular direction.
+    // Perpendicular "up" in page space for angle θ is (sin θ, -cos θ).
+    const ascent = fontSize * 0.8;
+    const x = baseX + Math.sin(angleRad) * ascent;
+    const y = baseY - Math.cos(angleRad) * ascent;
+    rects.push({ x, y, width, height: fontSize, angle });
 }
 
 /**
