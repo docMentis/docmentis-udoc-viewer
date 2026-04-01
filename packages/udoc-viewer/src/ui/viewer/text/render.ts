@@ -492,16 +492,17 @@ function buildTableRow(
     el.style.height = px(row.height * scale);
 
     for (const cell of row.cells) {
-        el.appendChild(buildTableCell(cell, scale, pending));
+        el.appendChild(buildTableCell(cell, row.y, scale, pending));
     }
     return el;
 }
 
-function buildTableCell(cell: JsLayoutTableCell, scale: number, pending: PendingSpan[]): HTMLDivElement {
+function buildTableCell(cell: JsLayoutTableCell, rowY: number, scale: number, pending: PendingSpan[]): HTMLDivElement {
     const el = document.createElement("div");
     el.className = "udoc-text-cell";
     el.style.left = px(cell.x * scale);
-    el.style.top = px(cell.y * scale);
+    // cell.y is absolute within the table; make it relative to the row
+    el.style.top = px((cell.y - rowY) * scale);
     el.style.width = px(cell.width * scale);
     el.style.height = px(cell.height * scale);
 
@@ -541,16 +542,17 @@ function buildGridRow(row: JsLayoutGridRow, gridWidth: number, scale: number, pe
     el.style.height = px(row.height * scale);
 
     for (const cell of row.cells) {
-        el.appendChild(buildGridCell(cell, scale, pending));
+        el.appendChild(buildGridCell(cell, row.y, scale, pending));
     }
     return el;
 }
 
-function buildGridCell(cell: JsLayoutGridCell, scale: number, pending: PendingSpan[]): HTMLDivElement {
+function buildGridCell(cell: JsLayoutGridCell, rowY: number, scale: number, pending: PendingSpan[]): HTMLDivElement {
     const el = document.createElement("div");
     el.className = "udoc-text-cell";
     el.style.left = px(cell.x * scale);
-    el.style.top = px(cell.y * scale);
+    // cell.y is absolute within the grid; make it relative to the row
+    el.style.top = px((cell.y - rowY) * scale);
     el.style.width = px(cell.width * scale);
     el.style.height = px(cell.height * scale);
 
