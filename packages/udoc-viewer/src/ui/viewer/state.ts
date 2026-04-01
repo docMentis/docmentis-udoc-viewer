@@ -1,6 +1,6 @@
 import type { OutlineItem, NavigationTarget } from "./navigation";
 import type { Annotation } from "./annotation";
-import type { TextRun } from "./text";
+import type { JsLayoutPage } from "../../wasm/udoc.js";
 import type { PageInfo } from "../../worker/index.js";
 
 // -----------------------------------------------------------------------------
@@ -151,8 +151,8 @@ export interface ViewerState {
     annotationsLoading: Set<number>;
 
     // Text content (loaded on-demand per page, for text selection)
-    /** Text runs by page index (0-based). Undefined = not loaded, [] = loaded but empty */
-    pageText: Map<number, TextRun[]>;
+    /** Page layouts by page index (0-based). Undefined = not loaded yet */
+    pageText: Map<number, JsLayoutPage>;
     /** Set of page indices currently being loaded */
     textLoading: Set<number>;
 

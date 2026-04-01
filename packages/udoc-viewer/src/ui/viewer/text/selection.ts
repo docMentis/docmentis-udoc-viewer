@@ -30,7 +30,7 @@ export function attachSelectionController(layer: HTMLDivElement): () => void {
 
         // Check if we're over a text span
         const target = document.elementFromPoint(e.clientX, e.clientY);
-        const isOverSpan = target?.classList.contains("udoc-text-span");
+        const isOverSpan = target?.classList.contains("udoc-text-run");
 
         if (isOverSpan) {
             // Save the current valid selection

@@ -4,7 +4,7 @@ import type { ViewerState, PageInfo, ThemeMode, VisibilityGroup } from "./state"
 import type { Action } from "./actions";
 import type { OutlineItem } from "./navigation";
 import type { Annotation } from "./annotation";
-import type { TextRun } from "./text";
+import type { JsLayoutPage } from "../../wasm/udoc.js";
 import { initialState } from "./state";
 import { reducer } from "./reducer";
 import { createEffects } from "./effects";
@@ -25,7 +25,7 @@ export interface EngineAdapter {
     getPageInfo(doc: { id: string }, page: number): Promise<PageInfo>;
     getOutline(doc: { id: string }): Promise<OutlineItem[]>;
     getPageAnnotations(doc: { id: string }, pageIndex: number): Promise<Annotation[]>;
-    getPageText(doc: { id: string }, pageIndex: number): Promise<TextRun[]>;
+    getLayoutPage(doc: { id: string }, pageIndex: number): Promise<JsLayoutPage>;
     getVisibilityGroups(doc: { id: string }): Promise<VisibilityGroup[]>;
     setVisibilityGroupVisible(doc: { id: string }, groupId: string, visible: boolean): Promise<boolean>;
 }
@@ -250,6 +250,23 @@ export function mountViewerShell(
             } else if (state.activePanel !== null) {
                 e.preventDefault();
                 store.dispatch({ type: "CLOSE_PANEL" });
+            }
+        }
+
+        // Ctrl+A / Cmd+A: select all text in visible pages only
+        if ((e.ctrlKey || e.metaKey) && e.key === "a" && !e.shiftKey) {
+            const tag = (document.activeElement as HTMLElement)?.tagName;
+            if (tag !== "INPUT" && tag !== "TEXTAREA" && tag !== "SELECT") {
+                e.preventDefault();
+                const textLayers = viewportSlot.querySelectorAll<HTMLElement>(".udoc-spread__text-layer");
+                const selection = document.getSelection();
+                if (selection && textLayers.length > 0) {
+                    selection.removeAllRanges();
+                    const range = document.createRange();
+                    range.setStartBefore(textLayers[0]);
+                    range.setEndAfter(textLayers[textLayers.length - 1]);
+                    selection.addRange(range);
+                }
             }
         }
 

@@ -20,7 +20,7 @@ export type PerformanceEventType =
     | "getOutline" // Get document outline
     | "getAllAnnotations" // Get all annotations
     | "getPageAnnotations" // Get single page annotations
-    | "getPageText" // Get single page text (for text selection)
+    | "getLayoutPage" // Get page layout model (for text selection)
     | "renderPage" // Render a page
     | "renderPreview" // Render a preview page
     | "renderThumbnail" // Render a thumbnail

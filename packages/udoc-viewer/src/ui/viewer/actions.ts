@@ -13,7 +13,7 @@ import type {
 } from "./state";
 import type { Destination, OutlineItem } from "./navigation";
 import type { Annotation } from "./annotation";
-import type { TextRun } from "./text";
+import type { JsLayoutPage } from "../../wasm/udoc.js";
 
 export type Action =
     // Lifecycle
@@ -48,7 +48,8 @@ export type Action =
     | { type: "CLEAR_ANNOTATIONS" }
     // Text content (on-demand loading per page, for text selection)
     | { type: "LOAD_PAGE_TEXT"; pageIndex: number }
-    | { type: "SET_PAGE_TEXT"; pageIndex: number; text: TextRun[] }
+    | { type: "SET_PAGE_TEXT"; pageIndex: number; text: JsLayoutPage }
+    | { type: "CLEAR_PAGE_TEXT_LOADING"; pageIndex: number }
     | { type: "CLEAR_TEXT" }
     // Navigation
     | { type: "NAVIGATE_TO_PAGE"; page: number }

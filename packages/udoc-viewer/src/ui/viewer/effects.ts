@@ -165,13 +165,13 @@ export function createEffects(store: Store<ViewerState, Action>, engine: EngineA
 
                 store.dispatch({ type: "LOAD_PAGE_TEXT", pageIndex });
                 try {
-                    const text = await engine.getPageText(doc, pageIndex);
+                    const text = await engine.getLayoutPage(doc, pageIndex);
                     if (gen !== docGeneration) return; // stale
                     store.dispatch({ type: "SET_PAGE_TEXT", pageIndex, text });
                 } catch (error) {
                     if (gen !== docGeneration) return; // stale
                     console.error(`Failed to load text for page ${pageIndex}`, error);
-                    store.dispatch({ type: "SET_PAGE_TEXT", pageIndex, text: [] });
+                    store.dispatch({ type: "CLEAR_PAGE_TEXT_LOADING", pageIndex });
                 }
             }
         }),
@@ -271,13 +271,13 @@ export function createEffects(store: Store<ViewerState, Action>, engine: EngineA
 
                 store.dispatch({ type: "LOAD_PAGE_TEXT", pageIndex });
                 try {
-                    const text = await engine.getPageText(next.doc!, pageIndex);
+                    const text = await engine.getLayoutPage(next.doc!, pageIndex);
                     if (gen !== docGeneration) return;
                     store.dispatch({ type: "SET_PAGE_TEXT", pageIndex, text });
                 } catch (error) {
                     if (gen !== docGeneration) return;
                     console.error(`Failed to load text for page ${pageIndex}`, error);
-                    store.dispatch({ type: "SET_PAGE_TEXT", pageIndex, text: [] });
+                    store.dispatch({ type: "CLEAR_PAGE_TEXT_LOADING", pageIndex });
                 }
             }
 

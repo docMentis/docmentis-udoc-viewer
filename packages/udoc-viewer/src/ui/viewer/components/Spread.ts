@@ -3,7 +3,8 @@ import { makeRenderKey, type WorkerClient } from "../../../worker/index.js";
 import { getPointsToPixels, type PageRotation, type PageInfo } from "../state";
 import { getDevicePixelRatio, toCssPixels, toDevicePixels, snapToDevice } from "../layout";
 import { renderAnnotationsToLayer, type Annotation } from "../annotation";
-import { renderTextToLayer, attachSelectionController, type TextRun } from "../text";
+import { renderTextToLayer, attachSelectionController } from "../text";
+import type { JsLayoutPage } from "../../../wasm/udoc.js";
 import type { SearchMatch } from "../state";
 import type { I18n } from "../i18n/index.js";
 
@@ -48,7 +49,7 @@ interface PageSlotElement {
     /** Last highlighted annotation bounds (for change detection) */
     lastHighlightedBounds: HighlightedAnnotation["bounds"] | null;
     /** Last rendered text runs (for change detection) */
-    lastTextRuns: TextRun[] | null;
+    lastTextLayout: JsLayoutPage | null;
     /** Last scale used for text rendering */
     lastTextScale: number;
     /** Cleanup function for text selection controller */
@@ -309,7 +310,7 @@ export function createSpread(data: SpreadData, showAttribution = true, i18n?: I1
                 lastAnnotations: null,
                 lastAnnotationScale: 0,
                 lastHighlightedBounds: null,
-                lastTextRuns: null,
+                lastTextLayout: null,
                 lastTextScale: 0,
                 cleanupSelectionController,
                 cleanupAttrObserver,
@@ -338,7 +339,7 @@ export function createSpread(data: SpreadData, showAttribution = true, i18n?: I1
             lastAnnotations: null,
             lastAnnotationScale: 0,
             lastHighlightedBounds: null,
-            lastTextRuns: null,
+            lastTextLayout: null,
             lastTextScale: 0,
             cleanupSelectionController: null,
             cleanupAttrObserver: null,
@@ -646,29 +647,25 @@ export function createSpread(data: SpreadData, showAttribution = true, i18n?: I1
         }
     }
 
-    function updateTextLayer(textContent: Map<number, TextRun[]>, options: SpreadLayoutOptions): void {
+    function updateTextLayer(textContent: Map<number, JsLayoutPage>, options: SpreadLayoutOptions): void {
         const pointsToPixels = getPointsToPixels(options.dpi);
         const scale = pointsToPixels * options.scale;
 
         for (const slotEl of slotElements) {
             if (!slotEl.textLayer || slotEl.pageNumber === null) continue;
 
-            // pageNumber is 1-based, text map is 0-based
             const pageIndex = slotEl.pageNumber - 1;
-            const pageText = textContent.get(pageIndex);
+            const layout = textContent.get(pageIndex) ?? null;
             const pageInfo = options.pageInfos[pageIndex];
 
-            // Skip if text and scale haven't changed
             const scaleUnchanged = Math.abs(scale - slotEl.lastTextScale) < 0.0001;
-            if (pageText === slotEl.lastTextRuns && scaleUnchanged) {
+            if (layout === slotEl.lastTextLayout && scaleUnchanged) {
                 continue;
             }
 
-            // Render and cache
-            // Pass page height for Y-coordinate flipping (PDF Y=0 is at bottom)
             const pageHeight = pageInfo?.height ?? 0;
-            renderTextToLayer(slotEl.textLayer, pageText || [], scale, pageHeight);
-            slotEl.lastTextRuns = pageText ?? null;
+            renderTextToLayer(slotEl.textLayer, layout, scale, pageHeight);
+            slotEl.lastTextLayout = layout;
             slotEl.lastTextScale = scale;
         }
     }

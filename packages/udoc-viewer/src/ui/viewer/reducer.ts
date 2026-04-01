@@ -161,6 +161,12 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
                 textLoading: newLoading,
             };
         }
+        case "CLEAR_PAGE_TEXT_LOADING": {
+            if (!state.textLoading.has(action.pageIndex)) return state;
+            const newLoading = new Set(state.textLoading);
+            newLoading.delete(action.pageIndex);
+            return { ...state, textLoading: newLoading };
+        }
         case "CLEAR_TEXT": {
             if (state.pageText.size === 0 && state.textLoading.size === 0) return state;
             return {

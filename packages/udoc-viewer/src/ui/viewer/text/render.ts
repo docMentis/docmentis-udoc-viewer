@@ -1,220 +1,561 @@
 /**
  * Text layer rendering for text selection.
  *
- * Creates invisible text spans positioned over the rendered page,
- * allowing native browser text selection.
+ * Two rendering modes:
+ *
+ * 1. **Hierarchical** (DOCX/PPTX/XLSX) — builds DOM mirroring the layout:
+ *    frame → parcel → line → run, table → row → cell, grid → row → cell
+ *
+ * 2. **Flat** (PDF) — no layout structure, runs use transforms for positioning.
+ *    Decomposes transforms into final pixel coordinates, no CSS transforms.
+ *    Same approach as the search highlight code.
  */
-import type { TextRun } from "./types";
-
-interface ProcessedRun {
-    run: TextRun;
-    y: number;
-    x: number;
-    scaledFontSize: number;
-    effectiveScaleX: number;
-    effectiveScaleY: number;
-    isEndOfLine: boolean;
-    spanHeight: number; // Height to cover gap to next line
-}
+import type {
+    JsLayoutPage,
+    JsLayoutFrame,
+    JsLayoutParcel,
+    JsLayoutLine,
+    JsLayoutRun,
+    JsLayoutTable,
+    JsLayoutTableRow,
+    JsLayoutTableCell,
+    JsLayoutGrid,
+    JsLayoutGridRow,
+    JsLayoutGridCell,
+    JsTransform,
+} from "../../../wasm/udoc.js";
 
 interface PendingSpan {
     span: HTMLSpanElement;
     targetWidth: number;
-    angle: number;
+}
+
+function px(v: number): string {
+    return `${v}px`;
+}
+
+/** Format a JsTransform as a CSS matrix() with translation scaled to pixels. */
+function cssMatrix(t: JsTransform, scale: number): string {
+    return `matrix(${t.scaleX},${t.skewY},${t.skewX},${t.scaleY},${t.translateX * scale},${t.translateY * scale})`;
+}
+
+/** Compose two affine transforms: result = A * B */
+function compose(a: JsTransform, b: JsTransform): JsTransform {
+    return {
+        scaleX: a.scaleX * b.scaleX + a.skewX * b.skewY,
+        skewY: a.skewY * b.scaleX + a.scaleY * b.skewY,
+        skewX: a.scaleX * b.skewX + a.skewX * b.scaleY,
+        scaleY: a.skewY * b.skewX + a.scaleY * b.scaleY,
+        translateX: a.scaleX * b.translateX + a.skewX * b.translateY + a.translateX,
+        translateY: a.skewY * b.translateX + a.scaleY * b.translateY + a.translateY,
+    };
+}
+
+/** Prepend a translation to an existing transform. */
+function translate(t: JsTransform, dx: number, dy: number): JsTransform {
+    return {
+        scaleX: t.scaleX,
+        skewY: t.skewY,
+        skewX: t.skewX,
+        scaleY: t.scaleY,
+        translateX: t.scaleX * dx + t.skewX * dy + t.translateX,
+        translateY: t.skewY * dx + t.scaleY * dy + t.translateY,
+    };
 }
 
 /**
- * Render text runs to a text layer element.
- *
- * Creates positioned, invisible text spans that enable native browser selection.
- * Text runs are rendered in the order provided (content stream order from the
- * document), which preserves the correct reading order for multi-column layouts.
- *
- * @param layer - The text layer element to render into
- * @param textRuns - Text runs with position and font information
- * @param scale - Scale factor (pointsToPixels * zoom)
- * @param pageHeight - Page height in points (unused, kept for API compatibility)
+ * Detect if layout has real structure (DOCX/PPTX) or is flat (PDF).
+ * PDF layouts have runs with non-identity transforms.
+ */
+function isFlat(layout: JsLayoutPage): boolean {
+    for (const frame of layout.frames) {
+        if (!frame.parcel) continue;
+        for (const line of frame.parcel.lines) {
+            if (line.content.type !== "runList") continue;
+            for (const run of line.content.runs) {
+                const t = run.transform;
+                if (
+                    Math.abs(t.scaleX - 1) > 0.001 ||
+                    Math.abs(t.scaleY - 1) > 0.001 ||
+                    Math.abs(t.skewX) > 0.001 ||
+                    Math.abs(t.skewY) > 0.001 ||
+                    Math.abs(t.translateX) > 0.001 ||
+                    Math.abs(t.translateY) > 0.001
+                ) {
+                    return true;
+                }
+                // Only need to check first glyph run
+                if (run.content.type === "glyphs") return false;
+            }
+        }
+    }
+    return false;
+}
+
+/**
+ * Render a JsLayoutPage to a text layer element.
  */
 export function renderTextToLayer(
     layer: HTMLDivElement,
-    textRuns: TextRun[],
+    layout: JsLayoutPage | null | undefined,
     scale: number,
     _pageHeight: number,
 ): void {
-    // Early exit: clear layer and return if no text
-    if (textRuns.length === 0) {
+    if (!layout) {
         layer.replaceChildren();
         return;
     }
 
-    // First pass: calculate positions and detect line boundaries
-    const processedRuns: ProcessedRun[] = [];
-
-    for (const run of textRuns) {
-        if (!run.text || run.glyphs.length === 0) continue;
-
-        const { transform, fontSize } = run;
-
-        const effectiveScaleX = Math.sqrt(transform.scaleX * transform.scaleX + transform.skewY * transform.skewY);
-        const effectiveScaleY = Math.sqrt(transform.scaleY * transform.scaleY + transform.skewX * transform.skewX);
-
-        const scaledFontSize = fontSize * effectiveScaleY * scale;
-        const x = transform.translateX * scale;
-        const y = transform.translateY * scale;
-
-        processedRuns.push({
-            run,
-            y,
-            x,
-            scaledFontSize,
-            effectiveScaleX,
-            effectiveScaleY,
-            isEndOfLine: false, // Will be set in the next pass
-            spanHeight: scaledFontSize, // Will be adjusted in the next pass
-        });
+    if (isFlat(layout)) {
+        renderFlat(layer, layout, scale);
+    } else {
+        renderHierarchical(layer, layout, scale);
     }
+}
 
-    if (processedRuns.length === 0) {
-        layer.replaceChildren();
-        return;
-    }
+// =============================================================================
+// Flat rendering (PDF)
+// =============================================================================
 
-    // Calculate span heights spatially.
-    // Group runs into lines by Y proximity, sort lines by Y, then set each
-    // line's height to cover the gap to the next line below.  This is done
-    // spatially so it works regardless of content stream order.
-
-    // 1. Group runs into lines (runs whose Y values are within 0.5× font-size)
-    interface Line {
-        y: number; // representative Y (baseline) of the line
-        top: number; // y - ascent
-        fontSize: number; // max font size on the line
-        runs: ProcessedRun[];
-    }
-    const lines: Line[] = [];
-    // Sort a shallow copy by Y for grouping; original processedRuns order is preserved.
-    const byY = processedRuns.slice().sort((a, b) => a.y - b.y);
-    for (const run of byY) {
-        const threshold = run.scaledFontSize * 0.5;
-        const last = lines[lines.length - 1];
-        if (last && Math.abs(run.y - last.y) < threshold) {
-            last.runs.push(run);
-            last.fontSize = Math.max(last.fontSize, run.scaledFontSize);
-        } else {
-            lines.push({
-                y: run.y,
-                top: run.y - run.scaledFontSize * 0.8,
-                fontSize: run.scaledFontSize,
-                runs: [run],
-            });
-        }
-    }
-
-    // 2. For each line, compute height from its top to the next line's top.
-    for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-        let spanHeight: number;
-        if (i + 1 < lines.length) {
-            const nextTop = lines[i + 1].top;
-            const gap = nextTop - line.top;
-            // Clamp: at least 1.2× font size, at most 3× font size
-            // (prevents huge spans when lines are far apart, e.g. across columns)
-            spanHeight = Math.max(line.fontSize * 1.2, Math.min(gap, line.fontSize * 3));
-        } else {
-            spanHeight = line.fontSize * 1.5;
-        }
-        for (const run of line.runs) {
-            run.spanHeight = spanHeight;
-        }
-    }
-
-    // 3. Mark end-of-line in content stream order (for \n insertion when copying)
-    for (let i = 0; i < processedRuns.length - 1; i++) {
-        const current = processedRuns[i];
-        const next = processedRuns[i + 1];
-        if (Math.abs(next.y - current.y) >= current.scaledFontSize * 0.5) {
-            current.isEndOfLine = true;
-        }
-    }
-    processedRuns[processedRuns.length - 1].isEndOfLine = true;
-
-    // Collect spans that need width scaling
+function renderFlat(layer: HTMLDivElement, layout: JsLayoutPage, scale: number): void {
     const pendingSpans: PendingSpan[] = [];
-
-    // Use DocumentFragment for batched DOM insertion (avoids multiple reflows)
     const fragment = document.createDocumentFragment();
 
-    for (const processed of processedRuns) {
-        const { run, scaledFontSize, effectiveScaleX, isEndOfLine, spanHeight } = processed;
-        const { transform, glyphs } = run;
-
-        // Create span for this text run
-        const span = document.createElement("span");
-        span.className = "udoc-text-span";
-        // Add newline only at end of lines for proper line breaks when copying
-        const text = run.text ?? "";
-        span.textContent = isEndOfLine ? text + "\n" : text;
-
-        // Calculate the actual text width from glyph advances
-        const lastGlyph = glyphs[glyphs.length - 1];
-        const textWidthInTextSpace = lastGlyph.x + lastGlyph.advance;
-        const targetWidth = textWidthInTextSpace * effectiveScaleX * scale;
-
-        // Position
-        const x = transform.translateX * scale;
-        const ascent = scaledFontSize * 0.8;
-        const y = transform.translateY * scale - ascent;
-
-        // Calculate rotation angle from transform
-        const angle = Math.atan2(transform.skewY, transform.scaleX) * (180 / Math.PI);
-
-        // Position the span
-        span.style.left = `${x}px`;
-        span.style.top = `${y}px`;
-        span.style.fontSize = `${scaledFontSize}px`;
-        span.style.lineHeight = "1";
-        span.style.whiteSpace = "pre"; // Preserve spaces
-        span.style.height = `${spanHeight}px`; // Fill gap to next line
-
-        fragment.appendChild(span);
-        pendingSpans.push({ span, targetWidth, angle });
+    for (const frame of layout.frames) {
+        if (frame.parcel) {
+            flattenParcel(fragment, frame.transform, frame.parcel, scale, pendingSpans);
+        }
     }
 
-    // Single DOM operation: clear old content and insert all new spans
     layer.replaceChildren(fragment);
 
-    // PERFORMANCE: Batch all reads before writes to avoid layout thrashing.
-    // Reading offsetWidth forces synchronous layout. If we interleave reads and writes,
-    // each read triggers a new layout calculation. By reading all widths first,
-    // we only trigger one layout instead of N layouts.
+    // Batch reads then writes
     if (pendingSpans.length > 0) {
-        // Phase 1: Read all natural widths (single layout calculation)
         const measurements: number[] = new Array(pendingSpans.length);
         for (let i = 0; i < pendingSpans.length; i++) {
             measurements[i] = pendingSpans[i].span.offsetWidth;
         }
-
-        // Phase 2: Write all transforms (no layout forced, only style changes batched)
         for (let i = 0; i < pendingSpans.length; i++) {
-            const { span, targetWidth, angle } = pendingSpans[i];
+            const { span, targetWidth } = pendingSpans[i];
             const naturalWidth = measurements[i];
-
             if (naturalWidth > 0 && targetWidth > 0) {
-                const scaleX = targetWidth / naturalWidth;
+                const sx = targetWidth / naturalWidth;
+                if (Math.abs(sx - 1) > 0.001) {
+                    span.style.transform = `scaleX(${sx})`;
+                }
+            }
+            span.style.width = px(naturalWidth);
+        }
+    }
+}
 
-                const transforms: string[] = [];
-                if (Math.abs(scaleX - 1) > 0.001) {
-                    transforms.push(`scaleX(${scaleX})`);
-                }
-                if (Math.abs(angle) > 0.1) {
-                    transforms.push(`rotate(${angle}deg)`);
-                }
+function flattenParcel(
+    parent: Node,
+    base: JsTransform,
+    parcel: JsLayoutParcel,
+    scale: number,
+    pending: PendingSpan[],
+): void {
+    const t = translate(base, parcel.x, parcel.y);
+    for (const line of parcel.lines) {
+        flattenLine(parent, t, line, scale, pending);
+    }
+}
 
-                if (transforms.length > 0) {
-                    span.style.transform = transforms.join(" ");
-                    span.style.transformOrigin = "left top";
-                }
+function flattenLine(parent: Node, base: JsTransform, line: JsLayoutLine, scale: number, pending: PendingSpan[]): void {
+    const content = line.content;
+    if (content.type === "runList") {
+        const t = translate(base, 0, line.y + content.baseline);
+        for (const run of content.runs) {
+            const span = flattenRun(t, run, scale, pending);
+            if (span) parent.appendChild(span);
+        }
+    } else {
+        const t = translate(base, 0, line.y);
+        flattenTable(parent, t, content, scale, pending);
+    }
+}
+
+function flattenRun(
+    base: JsTransform,
+    run: JsLayoutRun,
+    scale: number,
+    pending: PendingSpan[],
+): HTMLSpanElement | null {
+    const c = run.content;
+    const t = translate(base, run.x, 0);
+    const combined = compose(t, run.transform);
+
+    const effectiveScaleX = Math.sqrt(combined.scaleX ** 2 + combined.skewY ** 2);
+    const effectiveScaleY = Math.sqrt(combined.scaleY ** 2 + combined.skewX ** 2);
+
+    if (c.type === "glyphs") {
+        if (!c.text || c.glyphs.length === 0) return null;
+
+        const fontSize = c.fontSize * effectiveScaleY;
+        const x = combined.translateX * scale;
+        const y = (combined.translateY - c.ascent * effectiveScaleY) * scale;
+        const height = (c.ascent + c.descent) * effectiveScaleY * scale;
+
+        const lastGlyph = c.glyphs[c.glyphs.length - 1];
+        const targetWidth = (lastGlyph.x + lastGlyph.advance) * effectiveScaleX * scale;
+
+        const angle = Math.atan2(combined.skewY, combined.scaleX) * (180 / Math.PI);
+
+        const span = document.createElement("span");
+        span.className = "udoc-text-run";
+        span.textContent = c.text;
+        span.style.left = px(x);
+        span.style.top = px(y);
+        span.style.fontSize = px(fontSize * scale);
+        span.style.lineHeight = px(height);
+        span.style.height = px(height);
+        span.style.transformOrigin = "0 0";
+
+        if (Math.abs(angle) > 0.1) {
+            span.style.transform = `rotate(${angle}deg)`;
+        }
+
+        pending.push({ span, targetWidth });
+        return span;
+    }
+
+    if (c.type === "space" || c.type === "tab") {
+        const fontSize = c.fontSize * effectiveScaleY;
+        const x = combined.translateX * scale;
+        const y = (combined.translateY - c.ascent * effectiveScaleY) * scale;
+        const width = c.advance * effectiveScaleX * scale;
+        const height = (c.ascent + c.descent) * effectiveScaleY * scale;
+
+        const span = document.createElement("span");
+        span.className = "udoc-text-run";
+        span.textContent = c.type === "tab" ? "\t" : " ";
+        span.style.left = px(x);
+        span.style.top = px(y);
+        span.style.fontSize = px(fontSize * scale);
+        span.style.lineHeight = px(height);
+        span.style.width = px(width);
+        span.style.height = px(height);
+
+        return span;
+    }
+
+    if (c.type === "break") {
+        const span = document.createElement("span");
+        span.className = "udoc-text-run";
+        span.textContent = "\n";
+        span.style.position = "absolute";
+        span.style.width = "0";
+        span.style.height = "0";
+        span.style.overflow = "hidden";
+        return span;
+    }
+
+    if (c.type === "inlineDrawing") {
+        const x = combined.translateX * scale;
+        const y = combined.translateY * scale;
+        const span = document.createElement("span");
+        span.className = "udoc-text-run";
+        span.textContent = "\uFFFC";
+        span.style.left = px(x);
+        span.style.top = px(y);
+        span.style.width = px(c.width * effectiveScaleX * scale);
+        span.style.height = px(c.height * effectiveScaleY * scale);
+        span.style.fontSize = "0";
+        return span;
+    }
+
+    return null;
+}
+
+function flattenTable(
+    parent: Node,
+    base: JsTransform,
+    table: JsLayoutTable,
+    scale: number,
+    pending: PendingSpan[],
+): void {
+    for (const row of table.rows) {
+        for (const cell of row.cells) {
+            if (cell.parcel) {
+                const t = translate(base, cell.x, cell.y);
+                flattenParcel(parent, t, cell.parcel, scale, pending);
             }
         }
     }
+}
+
+// =============================================================================
+// Hierarchical rendering (DOCX/PPTX/XLSX)
+// =============================================================================
+
+function renderHierarchical(layer: HTMLDivElement, layout: JsLayoutPage, scale: number): void {
+    const pendingSpans: PendingSpan[] = [];
+    const fragment = document.createDocumentFragment();
+
+    for (const frame of layout.frames) {
+        if (frame.parcel) {
+            fragment.appendChild(buildFrame(frame, scale, pendingSpans));
+        }
+    }
+
+    if (layout.grid) {
+        fragment.appendChild(buildGrid(layout.grid, scale, pendingSpans));
+    }
+
+    layer.replaceChildren(fragment);
+
+    // Batch reads then writes to avoid layout thrashing.
+    if (pendingSpans.length > 0) {
+        const measurements: number[] = new Array(pendingSpans.length);
+        for (let i = 0; i < pendingSpans.length; i++) {
+            measurements[i] = pendingSpans[i].span.offsetWidth;
+        }
+        for (let i = 0; i < pendingSpans.length; i++) {
+            const { span, targetWidth } = pendingSpans[i];
+            const naturalWidth = measurements[i];
+            if (naturalWidth > 0 && targetWidth > 0) {
+                const sx = targetWidth / naturalWidth;
+                if (Math.abs(sx - 1) > 0.001) {
+                    span.style.transform = `scaleX(${sx})`;
+                }
+            }
+            span.style.width = px(naturalWidth);
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Frame
+// ---------------------------------------------------------------------------
+
+function buildFrame(frame: JsLayoutFrame, scale: number, pending: PendingSpan[]): HTMLDivElement {
+    const el = document.createElement("div");
+    el.className = "udoc-text-frame";
+    el.style.transform = cssMatrix(frame.transform, scale);
+    el.style.transformOrigin = "0 0";
+    const p = frame.parcel!;
+    el.style.width = px((p.x + p.width) * scale);
+    el.style.height = px((p.y + p.height) * scale);
+    buildParcel(el, p, scale, pending);
+    return el;
+}
+
+// ---------------------------------------------------------------------------
+// Parcel
+// ---------------------------------------------------------------------------
+
+function buildParcel(parent: HTMLElement, parcel: JsLayoutParcel, scale: number, pending: PendingSpan[]): void {
+    const el = document.createElement("div");
+    el.className = "udoc-text-parcel";
+    el.style.left = px(parcel.x * scale);
+    el.style.top = px(parcel.y * scale);
+    el.style.width = px(parcel.width * scale);
+    el.style.height = px(parcel.height * scale);
+
+    for (const line of parcel.lines) {
+        el.appendChild(buildLine(line, parcel.width, scale, pending));
+    }
+
+    parent.appendChild(el);
+}
+
+// ---------------------------------------------------------------------------
+// Line
+// ---------------------------------------------------------------------------
+
+function buildLine(line: JsLayoutLine, _parcelWidth: number, scale: number, pending: PendingSpan[]): HTMLDivElement {
+    const el = document.createElement("div");
+    el.className = "udoc-text-line";
+    el.style.top = px(line.y * scale);
+    el.style.width = px(line.width * scale);
+    el.style.height = px(line.height * scale);
+
+    const content = line.content;
+    if (content.type === "runList") {
+        const runs = content.runs;
+        const baseline = line.spaceBefore + content.baseline;
+        for (let i = 0; i < runs.length; i++) {
+            const run = runs[i];
+            const nextX = i + 1 < runs.length ? runs[i + 1].x : run.x + run.width;
+            const effectiveWidth = nextX - run.x;
+            const runEl = buildRunHierarchical(run, baseline, effectiveWidth, line.height, scale, pending);
+            if (runEl) el.appendChild(runEl);
+        }
+    } else {
+        el.appendChild(buildTable(content, scale, pending));
+    }
+
+    return el;
+}
+
+// ---------------------------------------------------------------------------
+// Run (hierarchical)
+// ---------------------------------------------------------------------------
+
+function buildRunHierarchical(
+    run: JsLayoutRun,
+    baseline: number,
+    effectiveWidth: number,
+    lineHeight: number,
+    scale: number,
+    pending: PendingSpan[],
+): HTMLSpanElement | null {
+    const c = run.content;
+
+    if (c.type === "glyphs") {
+        if (!c.text || c.glyphs.length === 0) return null;
+
+        const span = document.createElement("span");
+        span.className = "udoc-text-run";
+        span.textContent = c.text;
+
+        span.style.left = px(run.x * scale);
+        span.style.top = px((baseline - c.ascent) * scale);
+        span.style.fontSize = px(c.fontSize * scale);
+        span.style.lineHeight = px(lineHeight * scale);
+        span.style.transformOrigin = "0 0";
+
+        const targetWidth = effectiveWidth * scale;
+        pending.push({ span, targetWidth });
+
+        return span;
+    }
+
+    if (c.type === "space" || c.type === "tab") {
+        const span = document.createElement("span");
+        span.className = "udoc-text-run";
+        span.textContent = c.type === "tab" ? "\t" : " ";
+
+        span.style.left = px(run.x * scale);
+        span.style.top = px((baseline - c.ascent) * scale);
+        span.style.fontSize = px(c.fontSize * scale);
+        span.style.lineHeight = px(lineHeight * scale);
+        span.style.width = px(effectiveWidth * scale);
+
+        return span;
+    }
+
+    if (c.type === "break") {
+        const span = document.createElement("span");
+        span.className = "udoc-text-run";
+        span.textContent = "\n";
+        span.style.left = px(run.x * scale);
+        span.style.width = "0";
+        span.style.height = "0";
+        span.style.overflow = "hidden";
+
+        return span;
+    }
+
+    if (c.type === "inlineDrawing") {
+        const span = document.createElement("span");
+        span.className = "udoc-text-run";
+        span.textContent = "\uFFFC";
+        span.style.left = px(run.x * scale);
+        span.style.top = px(baseline * scale);
+        span.style.width = px(c.width * scale);
+        span.style.height = px(c.height * scale);
+        span.style.fontSize = "0";
+        return span;
+    }
+
+    return null;
+}
+
+// ---------------------------------------------------------------------------
+// Table → Row → Cell
+// ---------------------------------------------------------------------------
+
+function buildTable(table: JsLayoutTable, scale: number, pending: PendingSpan[]): HTMLDivElement {
+    const el = document.createElement("div");
+    el.className = "udoc-text-table";
+    el.style.width = px(table.width * scale);
+    el.style.height = px(table.height * scale);
+
+    for (const row of table.rows) {
+        el.appendChild(buildTableRow(row, table.width, scale, pending));
+    }
+    return el;
+}
+
+function buildTableRow(
+    row: JsLayoutTableRow,
+    tableWidth: number,
+    scale: number,
+    pending: PendingSpan[],
+): HTMLDivElement {
+    const el = document.createElement("div");
+    el.className = "udoc-text-row";
+    el.style.top = px(row.y * scale);
+    el.style.width = px(tableWidth * scale);
+    el.style.height = px(row.height * scale);
+
+    for (const cell of row.cells) {
+        el.appendChild(buildTableCell(cell, scale, pending));
+    }
+    return el;
+}
+
+function buildTableCell(cell: JsLayoutTableCell, scale: number, pending: PendingSpan[]): HTMLDivElement {
+    const el = document.createElement("div");
+    el.className = "udoc-text-cell";
+    el.style.left = px(cell.x * scale);
+    el.style.top = px(cell.y * scale);
+    el.style.width = px(cell.width * scale);
+    el.style.height = px(cell.height * scale);
+
+    if (cell.parcel) {
+        buildParcel(el, cell.parcel, scale, pending);
+    }
+    return el;
+}
+
+// ---------------------------------------------------------------------------
+// Grid → Row → Cell
+// ---------------------------------------------------------------------------
+
+function buildGrid(grid: JsLayoutGrid, scale: number, pending: PendingSpan[]): HTMLDivElement {
+    const el = document.createElement("div");
+    el.className = "udoc-text-grid";
+    el.style.left = px(grid.x * scale);
+    el.style.top = px(grid.y * scale);
+    el.style.width = px(grid.width * scale);
+    el.style.height = px(grid.height * scale);
+    if (Math.abs(grid.scale - 1) > 0.001) {
+        el.style.transform = `scale(${grid.scale})`;
+        el.style.transformOrigin = "0 0";
+    }
+
+    for (const row of grid.rows) {
+        el.appendChild(buildGridRow(row, grid.width, scale, pending));
+    }
+    return el;
+}
+
+function buildGridRow(row: JsLayoutGridRow, gridWidth: number, scale: number, pending: PendingSpan[]): HTMLDivElement {
+    const el = document.createElement("div");
+    el.className = "udoc-text-row";
+    el.style.top = px(row.y * scale);
+    el.style.width = px(gridWidth * scale);
+    el.style.height = px(row.height * scale);
+
+    for (const cell of row.cells) {
+        el.appendChild(buildGridCell(cell, scale, pending));
+    }
+    return el;
+}
+
+function buildGridCell(cell: JsLayoutGridCell, scale: number, pending: PendingSpan[]): HTMLDivElement {
+    const el = document.createElement("div");
+    el.className = "udoc-text-cell";
+    el.style.left = px(cell.x * scale);
+    el.style.top = px(cell.y * scale);
+    el.style.width = px(cell.width * scale);
+    el.style.height = px(cell.height * scale);
+
+    if (cell.parcel) {
+        buildParcel(el, cell.parcel, scale, pending);
+    }
+    return el;
 }

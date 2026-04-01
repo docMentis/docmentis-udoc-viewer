@@ -57,7 +57,7 @@
     --udoc-search-match-text: #000;
     --udoc-search-result-active-bg: rgba(0, 102, 204, 0.08);
 
-    --udoc-text-selection: rgba(0, 120, 215, 0.3);
+    --udoc-text-selection: rgba(0, 120, 215, 0.5);
 
     --udoc-annotation-bg: #ffffc0;
     --udoc-annotation-header-bg: #f0f0c0;
@@ -150,7 +150,7 @@
     --udoc-search-match-text: #fff;
     --udoc-search-result-active-bg: rgba(77, 166, 255, 0.12);
 
-    --udoc-text-selection: rgba(77, 166, 255, 0.35);
+    --udoc-text-selection: rgba(77, 166, 255, 0.5);
 
     --udoc-annotation-bg: #4a4a20;
     --udoc-annotation-header-bg: #3a3a18;
@@ -1222,24 +1222,36 @@
     user-select: none;
     pointer-events: auto;
     z-index: 1;
-    /* Isolate compositing so overlapping span ::selection backgrounds
+    /* Isolate compositing so overlapping run ::selection backgrounds
        don't double-darken.  Selection is painted opaque inside the group,
-       then the whole layer is rendered at 30% opacity onto the page. */
+       then the whole layer is rendered at reduced opacity onto the page. */
     isolation: isolate;
-    opacity: 0.3;
+    opacity: 0.6;
 }
 
-.udoc-viewer-root .udoc-text-span {
+/* Layout structure containers — each positioned relative to its parent */
+.udoc-viewer-root .udoc-text-frame,
+.udoc-viewer-root .udoc-text-parcel,
+.udoc-viewer-root .udoc-text-line,
+.udoc-viewer-root .udoc-text-table,
+.udoc-viewer-root .udoc-text-row,
+.udoc-viewer-root .udoc-text-cell,
+.udoc-viewer-root .udoc-text-grid {
+    position: absolute;
+}
+
+.udoc-viewer-root .udoc-text-run {
     position: absolute;
     color: transparent;
     white-space: pre;
     line-height: 1;
     font-family: sans-serif;
-    /* Allow selection on actual text spans */
+    overflow: hidden;
+    /* Allow selection on actual text runs */
     user-select: text;
 }
 
-.udoc-viewer-root .udoc-text-span::selection {
+.udoc-viewer-root .udoc-text-run::selection {
     background: var(--udoc-text-selection);
 }
 
@@ -1248,7 +1260,7 @@
     pointer-events: none;
 }
 
-.udoc-viewer--no-text-select .udoc-text-span {
+.udoc-viewer--no-text-select .udoc-text-run {
     user-select: none;
 }
 

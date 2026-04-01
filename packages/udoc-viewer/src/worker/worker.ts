@@ -113,12 +113,11 @@ export type WorkerRequest =
     | { type: "getPageCount"; documentId: string }
     | { type: "getPageInfo"; documentId: string; pageIndex: number }
     | { type: "getAllPageInfo"; documentId: string }
-    | { type: "getPageLayout"; documentId: string }
     | { type: "renderPage"; documentId: string; pageIndex: number; width: number; height: number }
     | { type: "getOutline"; documentId: string }
     | { type: "getPageAnnotations"; documentId: string; pageIndex: number }
     | { type: "getAllAnnotations"; documentId: string }
-    | { type: "getPageText"; documentId: string; pageIndex: number }
+    | { type: "getLayoutPage"; documentId: string; pageIndex: number }
     | { type: "pdfCompose"; compositions: Composition[]; docIds: string[] }
     | { type: "getBytes"; documentId: string }
     | { type: "pdfSplitByOutline"; documentId: string; maxLevel: number; splitMidPage: boolean }
@@ -177,8 +176,6 @@ export type WorkerResponse =
           pages: Array<{ width: number; height: number; rotation: number; transition?: unknown }>;
       }
     | { type: "getAllPageInfo"; success: false; error: string }
-    | { type: "getPageLayout"; success: true; layout: string }
-    | { type: "getPageLayout"; success: false; error: string }
     | { type: "renderPage"; success: true; rgba: Uint8Array; width: number; height: number }
     | { type: "renderPage"; success: false; error: string }
     | { type: "getOutline"; success: true; outline: unknown[] }
@@ -187,8 +184,8 @@ export type WorkerResponse =
     | { type: "getPageAnnotations"; success: false; error: string }
     | { type: "getAllAnnotations"; success: true; annotations: Record<string, unknown[]> }
     | { type: "getAllAnnotations"; success: false; error: string }
-    | { type: "getPageText"; success: true; text: unknown[] }
-    | { type: "getPageText"; success: false; error: string }
+    | { type: "getLayoutPage"; success: true; layout: unknown }
+    | { type: "getLayoutPage"; success: false; error: string }
     | { type: "pdfCompose"; success: true; documentIds: string[] }
     | { type: "pdfCompose"; success: false; error: string }
     | { type: "getBytes"; success: true; bytes: Uint8Array }
@@ -393,13 +390,6 @@ async function handleMessage(event: MessageEvent<WorkerRequest & { _id?: number 
                 break;
             }
 
-            case "getPageLayout": {
-                ensureInitialized();
-                const layout = wasm!.page_layout(request.documentId);
-                respond({ type: "getPageLayout", success: true, layout });
-                break;
-            }
-
             case "renderPage": {
                 ensureInitialized();
                 // Skip renders for documents that were unloaded while queued
@@ -445,10 +435,10 @@ async function handleMessage(event: MessageEvent<WorkerRequest & { _id?: number 
                 break;
             }
 
-            case "getPageText": {
+            case "getLayoutPage": {
                 ensureInitialized();
-                const text = wasm!.get_page_text(request.documentId, request.pageIndex) as unknown[];
-                respond({ type: "getPageText", success: true, text });
+                const layout = wasm!.get_layout_page(request.documentId, request.pageIndex);
+                respond({ type: "getLayoutPage", success: true, layout });
                 break;
             }
 

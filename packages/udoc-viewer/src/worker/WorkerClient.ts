@@ -482,14 +482,6 @@ export class WorkerClient {
     }
 
     /**
-     * Get the page layout preference.
-     */
-    async getPageLayout(documentId: string): Promise<string> {
-        const response = (await this.send({ type: "getPageLayout", documentId })) as { layout: string };
-        return response.layout;
-    }
-
-    /**
      * Get the document outline.
      */
     async getOutline(documentId: string): Promise<unknown[]> {
@@ -530,10 +522,10 @@ export class WorkerClient {
     }
 
     /**
-     * Get text content for a specific page (for text selection).
+     * Get the layout model for a specific page (for text selection/search).
      * Routed through the unified work queue so renders take priority.
      */
-    async getPageText(documentId: string, pageIndex: number): Promise<unknown[]> {
+    async getLayoutPage(documentId: string, pageIndex: number): Promise<unknown> {
         return this.requestText(documentId, pageIndex);
     }
 
@@ -1418,16 +1410,16 @@ export class WorkerClient {
     private async doText(item: QueuedTextItem): Promise<unknown[]> {
         const pageIndex = item.page - 1;
         const counter = this.getCounter(item.docId);
-        const eventId = counter?.markStart("getPageText", { pageIndex });
+        const eventId = counter?.markStart("getLayoutPage", { pageIndex });
         try {
             const response = (await this.send({
-                type: "getPageText",
+                type: "getLayoutPage",
                 documentId: item.docId,
                 pageIndex,
-            })) as { text: unknown[] };
+            })) as { layout: unknown };
             if (eventId) counter?.markEnd(eventId);
-            item.resolve(response.text);
-            return response.text;
+            item.resolve(response.layout as unknown[]);
+            return response.layout as unknown[];
         } catch (error) {
             if (eventId) counter?.markEnd(eventId, false, (error as Error).message);
             item.reject(error instanceof Error ? error : new Error(String(error)));

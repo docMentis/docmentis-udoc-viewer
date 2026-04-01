@@ -13,7 +13,7 @@ import type { Destination, OutlineItem } from "./ui/viewer/navigation.js";
 import type { Annotation } from "./ui/viewer/annotation/index.js";
 export type { Annotation } from "./ui/viewer/annotation/index.js";
 export type { SearchMatch } from "./ui/viewer/state.js";
-import type { TextRun } from "./ui/viewer/text/index.js";
+import type { JsLayoutPage } from "./wasm/udoc.js";
 import {
     getFormatDefaults,
     type DocumentFormat,
@@ -1746,9 +1746,8 @@ img { display: block; }
                 const raw = await this.workerClient.getPageAnnotations(doc.id, pageIndex);
                 return raw as Annotation[];
             },
-            getPageText: async (doc: { id: string }, pageIndex: number): Promise<TextRun[]> => {
-                const raw = await this.workerClient.getPageText(doc.id, pageIndex);
-                return raw as TextRun[];
+            getLayoutPage: async (doc: { id: string }, pageIndex: number): Promise<JsLayoutPage> => {
+                return (await this.workerClient.getLayoutPage(doc.id, pageIndex)) as JsLayoutPage;
             },
             getVisibilityGroups: async (doc: { id: string }): Promise<VisibilityGroup[]> => {
                 const raw = await this.workerClient.getVisibilityGroups(doc.id);
