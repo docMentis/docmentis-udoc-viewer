@@ -229,10 +229,7 @@ The WASM binary is pre-built from the private `docmentis-udoc` repository and ch
 
 ```bash
 # In the docmentis-udoc repo
-just build-wasm
-
-# In this repo
-npm run copy-wasm
+just push-wasm
 ```
 
 ## Contributing
