@@ -6,6 +6,32 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+### Features
+
+- Replace flat TextRun model with hierarchical JsLayoutPage for text overlay and search
+- Text overlay DOM now mirrors layout structure (frame, parcel, line, run, table, grid) for structured formats
+- Flat decomposed-transform rendering path for PDF text selection
+- Handle all run content types in text overlay: glyphs, space, tab, break, inline drawing (U+FFFC)
+- Ctrl+A / Cmd+A selects only page text, not UI components
+- Improved text selection visibility (increased opacity and selection color)
+- Replace get_page_text with get_layout_page exposing full layout model (engine)
+- Enrich layout model with dimensions on all elements: line, run list, run, table (engine)
+- Expose spaceBefore/spaceAfter on layout lines for paragraph spacing (engine)
+- Add break, inline drawing, and paragraph end run content variants (engine)
+- Include space characters in layout output for text selection (engine)
+
+### Bug Fixes
+
+- Only trigger search on Enter key instead of every keystroke
+- Correct table/grid cell vertical positioning (cell y relative to row)
+- Exclude paragraph spacing from text selection highlight height
+- Correct EMF header field offsets and heuristic device-to-pixel mapping (engine)
+
+### Performance
+
+- Optimize layout composition pipeline: shaping cache, merge macro, text region, shrink-to-fit (engine)
+- Use BTreeMap index for O(log n) LRU eviction in SizedLruCache (engine)
+
 ## [0.6.18] - 2026-03-30
 
 ### Features
