@@ -259,12 +259,12 @@ if (!('encodeInto' in cachedTextEncoder)) {
 
 let WASM_VECTOR_LEN = 0;
 
-function __wasm_bindgen_func_elem_2634(arg0, arg1, arg2) {
-    wasm.__wasm_bindgen_func_elem_2634(arg0, arg1, addHeapObject(arg2));
+function __wasm_bindgen_func_elem_2698(arg0, arg1, arg2) {
+    wasm.__wasm_bindgen_func_elem_2698(arg0, arg1, addHeapObject(arg2));
 }
 
-function __wasm_bindgen_func_elem_16698(arg0, arg1, arg2, arg3) {
-    wasm.__wasm_bindgen_func_elem_16698(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
+function __wasm_bindgen_func_elem_16896(arg0, arg1, arg2, arg3) {
+    wasm.__wasm_bindgen_func_elem_16896(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
 }
 
 const __wbindgen_enum_GpuBufferBindingType = ["uniform", "storage", "read-only-storage"];
@@ -408,42 +408,6 @@ export class Wasm {
         const len0 = WASM_VECTOR_LEN;
         const ret = wasm.wasm_has_feature(this.__wbg_ptr, ptr0, len0);
         return ret !== 0;
-    }
-    /**
-     * Get the preferred page layout for two-page viewing modes.
-     *
-     * Returns one of:
-     * - `"default"` - Viewer decides based on document type
-     * - `"odd-pages-right"` - Odd pages on right (page 1 alone, then 2|3, 4|5...)
-     * - `"odd-pages-left"` - Odd pages on left (1|2, 3|4, 5|6...)
-     * @param {string} id
-     * @returns {string}
-     */
-    page_layout(id) {
-        let deferred3_0;
-        let deferred3_1;
-        try {
-            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-            const ptr0 = passStringToWasm0(id, wasm.__wbindgen_export, wasm.__wbindgen_export2);
-            const len0 = WASM_VECTOR_LEN;
-            wasm.wasm_page_layout(retptr, this.__wbg_ptr, ptr0, len0);
-            var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
-            var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
-            var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
-            var r3 = getDataViewMemory0().getInt32(retptr + 4 * 3, true);
-            var ptr2 = r0;
-            var len2 = r1;
-            if (r3) {
-                ptr2 = 0; len2 = 0;
-                throw takeObject(r2);
-            }
-            deferred3_0 = ptr2;
-            deferred3_1 = len2;
-            return getStringFromWasm0(ptr2, len2);
-        } finally {
-            wasm.__wbindgen_add_to_stack_pointer(16);
-            wasm.__wbindgen_export4(deferred3_0, deferred3_1, 1);
-        }
     }
     /**
      * Compose new PDF documents by cherry-picking pages from source documents.
@@ -628,35 +592,6 @@ export class Wasm {
             const ptr0 = passStringToWasm0(id, wasm.__wbindgen_export, wasm.__wbindgen_export2);
             const len0 = WASM_VECTOR_LEN;
             wasm.wasm_all_page_info(retptr, this.__wbg_ptr, ptr0, len0);
-            var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
-            var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
-            var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
-            if (r2) {
-                throw takeObject(r1);
-            }
-            return takeObject(r0);
-        } finally {
-            wasm.__wbindgen_add_to_stack_pointer(16);
-        }
-    }
-    /**
-     * Get text content for a specific page (for text selection).
-     *
-     * Returns an array of text runs, each containing:
-     * - `text`: Unicode text string
-     * - `glyphs`: Positioned glyphs with character mappings
-     * - `fontSize`: Font size in points
-     * - `transform`: Combined transform matrix
-     * @param {string} id
-     * @param {number} page_index
-     * @returns {any}
-     */
-    get_page_text(id, page_index) {
-        try {
-            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-            const ptr0 = passStringToWasm0(id, wasm.__wbindgen_export, wasm.__wbindgen_export2);
-            const len0 = WASM_VECTOR_LEN;
-            wasm.wasm_get_page_text(retptr, this.__wbg_ptr, ptr0, len0, page_index);
             var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
             var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
             var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
@@ -864,6 +799,37 @@ export class Wasm {
         }
     }
     /**
+     * Get the layout model for a specific page.
+     *
+     * Returns the hierarchical layout structure (frames, parcels, lines, runs,
+     * glyphs, tables, grids) without building the full display list. This is
+     * more efficient than `get_page_text` for text selection/search and
+     * preserves semantic structure (paragraphs, tables, etc.).
+     *
+     * All coordinates are in points (1/72 inch). The viewer should scale by
+     * `canvasWidth / layoutPage.width` to convert to pixels.
+     * @param {string} id
+     * @param {number} page_index
+     * @returns {JsLayoutPage}
+     */
+    get_layout_page(id, page_index) {
+        try {
+            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+            const ptr0 = passStringToWasm0(id, wasm.__wbindgen_export, wasm.__wbindgen_export2);
+            const len0 = WASM_VECTOR_LEN;
+            wasm.wasm_get_layout_page(retptr, this.__wbg_ptr, ptr0, len0, page_index);
+            var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
+            var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
+            var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
+            if (r2) {
+                throw takeObject(r1);
+            }
+            return takeObject(r0);
+        } finally {
+            wasm.__wbindgen_add_to_stack_pointer(16);
+        }
+    }
+    /**
      * Remove a document by ID.
      *
      * Returns true if the document was removed, false if it didn't exist.
@@ -1026,6 +992,32 @@ export class Wasm {
             var v2 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_export4(r0, r1 * 1, 1);
             return v2;
+        } finally {
+            wasm.__wbindgen_add_to_stack_pointer(16);
+        }
+    }
+    /**
+     * Get viewer preferences embedded in the document.
+     *
+     * Returns a `JsViewerPreferences` with optional fields:
+     * - `layoutMode`: `"single-page"` | `"double-page-odd-right"` | `"double-page-odd-left"`
+     * - `scrollMode`: `"spread"` | `"continuous"`
+     * @param {string} id
+     * @returns {JsViewerPreferences}
+     */
+    viewer_preferences(id) {
+        try {
+            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+            const ptr0 = passStringToWasm0(id, wasm.__wbindgen_export, wasm.__wbindgen_export2);
+            const len0 = WASM_VECTOR_LEN;
+            wasm.wasm_viewer_preferences(retptr, this.__wbg_ptr, ptr0, len0);
+            var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
+            var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
+            var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
+            if (r2) {
+                throw takeObject(r1);
+            }
+            return takeObject(r0);
         } finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
@@ -1998,7 +1990,7 @@ function __wbg_get_imports() {
                 const a = state0.a;
                 state0.a = 0;
                 try {
-                    return __wasm_bindgen_func_elem_16698(a, state0.b, arg0, arg1);
+                    return __wasm_bindgen_func_elem_16896(a, state0.b, arg0, arg1);
                 } finally {
                     state0.a = a;
                 }
@@ -2478,14 +2470,14 @@ function __wbg_get_imports() {
         const ret = arg0;
         return addHeapObject(ret);
     };
-    imports.wbg.__wbindgen_cast_9d97beea3493d3db = function(arg0, arg1) {
-        // Cast intrinsic for `Closure(Closure { dtor_idx: 212, function: Function { arguments: [Externref], shim_idx: 213, ret: Unit, inner_ret: Some(Unit) }, mutable: true }) -> Externref`.
-        const ret = makeMutClosure(arg0, arg1, wasm.__wasm_bindgen_func_elem_2618, __wasm_bindgen_func_elem_2634);
-        return addHeapObject(ret);
-    };
     imports.wbg.__wbindgen_cast_cb9088102bce6b30 = function(arg0, arg1) {
         // Cast intrinsic for `Ref(Slice(U8)) -> NamedExternref("Uint8Array")`.
         const ret = getArrayU8FromWasm0(arg0, arg1);
+        return addHeapObject(ret);
+    };
+    imports.wbg.__wbindgen_cast_d5be308fce034eae = function(arg0, arg1) {
+        // Cast intrinsic for `Closure(Closure { dtor_idx: 210, function: Function { arguments: [Externref], shim_idx: 211, ret: Unit, inner_ret: Some(Unit) }, mutable: true }) -> Externref`.
+        const ret = makeMutClosure(arg0, arg1, wasm.__wasm_bindgen_func_elem_2682, __wasm_bindgen_func_elem_2698);
         return addHeapObject(ret);
     };
     imports.wbg.__wbindgen_cast_d6cd19b81560fd6e = function(arg0) {

@@ -1,5 +1,14 @@
 /* tslint:disable */
 /* eslint-disable */
+export type JsViewerLayoutMode = "single-page" | "double-page-odd-right" | "double-page-odd-left";
+
+export type JsViewerScrollMode = "spread" | "continuous";
+
+export interface JsViewerPreferences {
+    layoutMode?: JsViewerLayoutMode;
+    scrollMode?: JsViewerScrollMode;
+}
+
 
 export type Orientation = "horizontal" | "vertical";
 export type SideDirection = "left" | "right" | "up" | "down";
@@ -96,6 +105,133 @@ export interface FontUsageEntry {
 }
 
 
+export interface JsLayoutTable {
+    width: number;
+    height: number;
+    columns: JsLayoutTableColumn[];
+    rows: JsLayoutTableRow[];
+}
+
+export interface JsLayoutTableColumn {
+    x: number;
+    width: number;
+}
+
+export interface JsLayoutTableRow {
+    y: number;
+    height: number;
+    cells: JsLayoutTableCell[];
+}
+
+export interface JsLayoutLine {
+    y: number;
+    width: number;
+    height: number;
+    spaceBefore: number;
+    spaceAfter: number;
+    isFirstLineOfPara: boolean;
+    isLastLineOfPara: boolean;
+    content: JsLayoutLineContent;
+}
+
+export type JsLayoutLineContent = ({ type: "runList" } & JsLayoutRunList) | ({ type: "table" } & JsLayoutTable);
+
+export interface JsLayoutRunList {
+    baseline: number;
+    width: number;
+    height: number;
+    runs: JsLayoutRun[];
+}
+
+export interface JsLayoutGrid {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    scale: number;
+    columns: JsLayoutGridColumn[];
+    rows: JsLayoutGridRow[];
+}
+
+export interface JsLayoutParcel {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    lines: JsLayoutLine[];
+}
+
+export type JsLayoutRunContent = { type: "glyphs"; text: string; fontSize: number; ascent: number; descent: number; glyphs: JsLayoutGlyph[] } | { type: "space"; advance: number; fontSize: number; ascent: number; descent: number } | { type: "tab"; advance: number; fontSize: number; ascent: number; descent: number } | { type: "paragraphEnd"; advance: number } | { type: "break" } | { type: "inlineDrawing"; width: number; height: number };
+
+export interface JsLayoutPage {
+    width: number;
+    height: number;
+    frames: JsLayoutFrame[];
+    grid?: JsLayoutGrid;
+}
+
+export interface JsLayoutGridColumn {
+    x: number;
+    width: number;
+}
+
+export interface JsLayoutGlyph {
+    x: number;
+    y: number;
+    advance: number;
+    /**
+     * Byte offset of this glyph\'s source character relative to the parent run\'s text.
+     */
+    offset: number;
+}
+
+export interface JsTransform {
+    scaleX: number;
+    skewY: number;
+    skewX: number;
+    scaleY: number;
+    translateX: number;
+    translateY: number;
+}
+
+export interface JsLayoutRun {
+    x: number;
+    width: number;
+    transform: JsTransform;
+    content: JsLayoutRunContent;
+}
+
+export interface JsLayoutGridCell {
+    colIndex: number;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    parcel?: JsLayoutParcel;
+}
+
+export interface JsLayoutFrame {
+    transform: JsTransform;
+    parcel?: JsLayoutParcel;
+}
+
+export interface JsLayoutTableCell {
+    colIndex: number;
+    colSpan: number;
+    rowSpan: number;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    parcel?: JsLayoutParcel;
+}
+
+export interface JsLayoutGridRow {
+    y: number;
+    height: number;
+    cells: JsLayoutGridCell[];
+}
+
 
 export class Wasm {
   free(): void;
@@ -132,15 +268,6 @@ export class Wasm {
    * Check if a feature is enabled by the current license.
    */
   has_feature(feature: string): boolean;
-  /**
-   * Get the preferred page layout for two-page viewing modes.
-   *
-   * Returns one of:
-   * - `"default"` - Viewer decides based on document type
-   * - `"odd-pages-right"` - Odd pages on right (page 1 alone, then 2|3, 4|5...)
-   * - `"odd-pages-left"` - Odd pages on left (1|2, 3|4, 5|6...)
-   */
-  page_layout(id: string): string;
   /**
    * Compose new PDF documents by cherry-picking pages from source documents.
    *
@@ -221,16 +348,6 @@ export class Wasm {
    */
   all_page_info(id: string): PageInfo[];
   /**
-   * Get text content for a specific page (for text selection).
-   *
-   * Returns an array of text runs, each containing:
-   * - `text`: Unicode text string
-   * - `glyphs`: Positioned glyphs with character mappings
-   * - `fontSize`: Font size in points
-   * - `transform`: Combined transform matrix
-   */
-  get_page_text(id: string, page_index: number): any;
-  /**
    * Get font usage information for a document.
    *
    * Returns an array of `FontUsageEntry` objects describing how each font
@@ -305,6 +422,18 @@ export class Wasm {
    * Returns one of: "pdf", "docx", "pptx", "xlsx", "image".
    */
   document_format(id: string): string;
+  /**
+   * Get the layout model for a specific page.
+   *
+   * Returns the hierarchical layout structure (frames, parcels, lines, runs,
+   * glyphs, tables, grids) without building the full display list. This is
+   * more efficient than `get_page_text` for text selection/search and
+   * preserves semantic structure (paragraphs, tables, etc.).
+   *
+   * All coordinates are in points (1/72 inch). The viewer should scale by
+   * `canvasWidth / layoutPage.width` to convert to pixels.
+   */
+  get_layout_page(id: string, page_index: number): JsLayoutPage;
   /**
    * Remove a document by ID.
    *
@@ -385,6 +514,14 @@ export class Wasm {
    * PNG-encoded image data as a byte array.
    */
   render_page_to_png(id: string, page_index: number, width: number, height: number): Uint8Array;
+  /**
+   * Get viewer preferences embedded in the document.
+   *
+   * Returns a `JsViewerPreferences` with optional fields:
+   * - `layoutMode`: `"single-page"` | `"double-page-odd-right"` | `"double-page-odd-left"`
+   * - `scrollMode`: `"spread"` | `"continuous"`
+   */
+  viewer_preferences(id: string): JsViewerPreferences;
   /**
    * Enable Google Fonts.
    *
@@ -611,10 +748,10 @@ export interface InitOutput {
   readonly wasm_get_all_annotations: (a: number, b: number, c: number, d: number) => void;
   readonly wasm_get_bytes: (a: number, b: number, c: number, d: number) => void;
   readonly wasm_get_font_usage: (a: number, b: number, c: number, d: number) => void;
+  readonly wasm_get_layout_page: (a: number, b: number, c: number, d: number, e: number) => void;
   readonly wasm_get_limit: (a: number, b: number, c: number, d: bigint) => bigint;
   readonly wasm_get_outline: (a: number, b: number, c: number, d: number) => void;
   readonly wasm_get_page_annotations: (a: number, b: number, c: number, d: number, e: number) => void;
-  readonly wasm_get_page_text: (a: number, b: number, c: number, d: number, e: number) => void;
   readonly wasm_get_visibility_groups: (a: number, b: number, c: number, d: number) => void;
   readonly wasm_has_document: (a: number, b: number, c: number) => number;
   readonly wasm_has_feature: (a: number, b: number, c: number) => number;
@@ -631,7 +768,6 @@ export interface InitOutput {
   readonly wasm_new: (a: number, b: number, c: number, d: number) => number;
   readonly wasm_page_count: (a: number, b: number, c: number, d: number) => void;
   readonly wasm_page_info: (a: number, b: number, c: number, d: number, e: number) => void;
-  readonly wasm_page_layout: (a: number, b: number, c: number, d: number) => void;
   readonly wasm_pdf_compose: (a: number, b: number, c: number, d: number) => void;
   readonly wasm_pdf_compress: (a: number, b: number, c: number, d: number) => void;
   readonly wasm_pdf_decompress: (a: number, b: number, c: number, d: number) => void;
@@ -646,9 +782,10 @@ export interface InitOutput {
   readonly wasm_set_license: (a: number, b: number, c: number, d: number) => void;
   readonly wasm_set_visibility_group_visible: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
   readonly wasm_setup_telemetry: (a: number, b: number, c: number) => void;
-  readonly __wasm_bindgen_func_elem_2634: (a: number, b: number, c: number) => void;
-  readonly __wasm_bindgen_func_elem_2618: (a: number, b: number) => void;
-  readonly __wasm_bindgen_func_elem_16698: (a: number, b: number, c: number, d: number) => void;
+  readonly wasm_viewer_preferences: (a: number, b: number, c: number, d: number) => void;
+  readonly __wasm_bindgen_func_elem_2698: (a: number, b: number, c: number) => void;
+  readonly __wasm_bindgen_func_elem_2682: (a: number, b: number) => void;
+  readonly __wasm_bindgen_func_elem_16896: (a: number, b: number, c: number, d: number) => void;
   readonly __wbindgen_export: (a: number, b: number) => number;
   readonly __wbindgen_export2: (a: number, b: number, c: number, d: number) => number;
   readonly __wbindgen_export3: (a: number) => void;
