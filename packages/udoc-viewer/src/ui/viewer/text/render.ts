@@ -379,7 +379,8 @@ function buildLine(line: JsLayoutLine, _parcelWidth: number, scale: number, pend
             const run = runs[i];
             const nextX = i + 1 < runs.length ? runs[i + 1].x : run.x + run.width;
             const effectiveWidth = nextX - run.x;
-            const runEl = buildRunHierarchical(run, baseline, effectiveWidth, line.height, scale, pending);
+            const contentHeight = line.height - line.spaceBefore - line.spaceAfter;
+            const runEl = buildRunHierarchical(run, baseline, effectiveWidth, contentHeight, scale, pending);
             if (runEl) el.appendChild(runEl);
         }
     } else {
