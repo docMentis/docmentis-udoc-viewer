@@ -96,7 +96,7 @@ function collectParcel(out: ResolvedRun[], base: JsTransform, parcel: JsLayoutPa
 function collectLine(out: ResolvedRun[], base: JsTransform, line: JsLayoutLine): void {
     const content = line.content;
     if (content.type === "runList") {
-        const t = translate(base, 0, line.y + content.baseline);
+        const t = translate(base, 0, line.y + line.spaceBefore + content.baseline);
         for (const run of content.runs) {
             collectRun(out, t, run);
         }
