@@ -139,6 +139,13 @@ function collectRun(out: ResolvedRun[], base: JsTransform, run: JsLayoutRun): vo
             fontSize: 0,
             transform: combined,
         });
+    } else if (c.type === "paragraphEnd") {
+        out.push({
+            text: "\n",
+            glyphs: [{ x: 0, y: 0, advance: 0 }],
+            fontSize: 0,
+            transform: combined,
+        });
     } else if (c.type === "inlineDrawing") {
         out.push({
             text: "\uFFFC",
