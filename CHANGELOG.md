@@ -6,6 +6,33 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+### Features
+
+- Add getLayoutPage API to retrieve page layout structure
+- Add paragraph end run to text selection layer
+- Support wildcard domain matching at any position in license verification (engine)
+- Catch panics in WASM entry points to prevent module poisoning (engine)
+- Add widow control to prevent single lines at top of next page (engine)
+- Support srcRect image cropping in DOCX and move crop logic to shared draw module (engine)
+
+### Bug Fixes
+
+- Prevent infinite retry loop when getLayoutPage fails
+- Truncate search context at paragraph boundaries
+- Emit newline for paragraph end in search text extraction
+- Navigate to search match even when active index is unchanged
+- Account for spaceBefore in search highlight baseline position
+- Handle rotated text in text overlay and search highlights
+- Flatten group text frames into WASM layout output (engine)
+- Prevent unlinked variant placeholders from inheriting wrong layout lstStyle (engine)
+- Handle negative table indent to prevent WASM overflow panic (engine)
+- Give forced line breaks proper line height so break-only lines produce vertical space (engine)
+- Add Arial to font fallback chain for box-drawing characters (engine)
+
+### Performance
+
+- Cache glyph fallback resolution to avoid repeated chain traversal (engine)
+
 ## [0.6.19] - 2026-04-01
 
 ### Features
