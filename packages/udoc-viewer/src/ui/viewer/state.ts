@@ -1,4 +1,4 @@
-import type { OutlineItem, NavigationTarget } from "./navigation";
+import type { OutlineItem, NavigationTarget, ScrollAlignment } from "./navigation";
 import type { Annotation } from "./annotation";
 import type { JsLayoutPage } from "../../wasm/udoc.js";
 import type { PageInfo } from "../../worker/index.js";
@@ -161,6 +161,10 @@ export interface ViewerState {
     // Navigation
     /** Target for navigation (null = no pending navigation) */
     navigationTarget: NavigationTarget | null;
+    /** Default scroll alignment for navigation (outline, links, goToDestination) */
+    navigationScrollAlignment: ScrollAlignment;
+    /** Default scroll alignment for search result navigation */
+    searchScrollAlignment: ScrollAlignment;
 
     // View modes
     scrollMode: ScrollMode;
@@ -243,6 +247,8 @@ export interface ViewerState {
     searchActiveIndex: number;
     /** Incremented each time the user explicitly navigates to a match. */
     searchNavGen: number;
+    /** Per-call scroll alignment override for the current search navigation (cleared after use). */
+    searchNavScrollAlignment: ScrollAlignment | null;
     /** Whether all page text has been loaded for search */
     searchTextLoaded: boolean;
     /** Whether search text is currently being loaded */
@@ -295,6 +301,8 @@ export const initialState: ViewerState = {
     textFailed: new Set(),
 
     navigationTarget: null,
+    navigationScrollAlignment: "top",
+    searchScrollAlignment: "nearest",
 
     scrollMode: "continuous",
     layoutMode: "single-page",
@@ -339,6 +347,7 @@ export const initialState: ViewerState = {
     searchMatches: [],
     searchActiveIndex: -1,
     searchNavGen: 0,
+    searchNavScrollAlignment: null,
     searchTextLoaded: false,
     searchTextLoading: false,
 

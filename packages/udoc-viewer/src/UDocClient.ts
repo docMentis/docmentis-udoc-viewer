@@ -25,6 +25,7 @@ import type {
     SpacingMode,
     PageRotation,
 } from "./ui/viewer/state.js";
+import type { ScrollAlignment } from "./ui/viewer/navigation.js";
 import type { PerformanceLogCallback } from "./performance/index.js";
 
 /**
@@ -186,6 +187,18 @@ export interface ViewerOptions {
      * @default 20
      */
     spreadSpacing?: number;
+
+    /**
+     * Default scroll alignment when navigating to a destination (outline, links, goToDestination).
+     * @default "top"
+     */
+    navigationScrollAlignment?: ScrollAlignment;
+
+    /**
+     * Default scroll alignment when navigating to search results.
+     * @default "nearest"
+     */
+    searchScrollAlignment?: ScrollAlignment;
 
     /**
      * Width of thumbnail images in the thumbnail panel, in CSS pixels.

@@ -326,7 +326,8 @@ export function createEffects(store: Store<ViewerState, Action>, engine: EngineA
             if (!match) return;
 
             // Navigate to the match position using a destination with XYZ display
-            // so the viewport scrolls to show the match, not just the page top
+            // so the viewport scrolls to show the match, not just the page top.
+            // Use "nearest" alignment so search results scroll minimally into view.
             const rect = match.rects[0];
             store.dispatch({
                 type: "NAVIGATE_TO_DESTINATION",
@@ -338,6 +339,8 @@ export function createEffects(store: Store<ViewerState, Action>, engine: EngineA
                         top: rect ? rect.y : undefined,
                     },
                 },
+                scrollAlignment: next.searchNavScrollAlignment ?? next.searchScrollAlignment,
+                scrollToHeight: rect ? rect.height : undefined,
             });
         }),
     );

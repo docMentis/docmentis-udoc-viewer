@@ -9,7 +9,7 @@ import type { WorkerClient, PageInfo, RenderType, FontUsageEntry } from "./worke
 import type { ViewerOptions } from "./UDocClient.js";
 import { mountViewerShell, type ViewerShell, type InitialStateOverrides } from "./ui/viewer/shell.js";
 import type { PrintDialogResult, PrintPageRange, PrintQuality } from "./ui/viewer/components/PrintDialog.js";
-import type { Destination, OutlineItem } from "./ui/viewer/navigation.js";
+import type { Destination, OutlineItem, ScrollAlignment } from "./ui/viewer/navigation.js";
 import type { Annotation } from "./ui/viewer/annotation/index.js";
 export type { Annotation } from "./ui/viewer/annotation/index.js";
 export type { SearchMatch } from "./ui/viewer/state.js";
@@ -103,7 +103,7 @@ export interface DocumentMetadata {
 /**
  * Re-export navigation types for public API.
  */
-export type { Destination, DestinationDisplay, OutlineItem } from "./ui/viewer/navigation.js";
+export type { Destination, DestinationDisplay, OutlineItem, ScrollAlignment } from "./ui/viewer/navigation.js";
 
 /**
  * Download progress information.
@@ -320,6 +320,10 @@ export class UDocViewer {
         if (options.pageSpacing !== undefined) overrides.pageSpacing = options.pageSpacing;
         if (options.spreadSpacing !== undefined) overrides.spreadSpacing = options.spreadSpacing;
         if (options.thumbnailWidth !== undefined) overrides.thumbnailWidth = options.thumbnailWidth;
+        if (options.navigationScrollAlignment !== undefined)
+            overrides.navigationScrollAlignment = options.navigationScrollAlignment;
+        if (options.searchScrollAlignment !== undefined)
+            overrides.searchScrollAlignment = options.searchScrollAlignment;
         if (options.activePanel !== undefined) overrides.activePanel = options.activePanel;
         if (options.hideToolbar) overrides.toolbarVisible = false;
         if (options.hideFloatingToolbar) overrides.floatingToolbarVisible = false;
@@ -703,13 +707,20 @@ export class UDocViewer {
     /**
      * Navigate to a destination (page + position + zoom).
      * @param destination - Full destination object with page index and display mode
+     * @param options - Optional navigation options
+     * @param options.scrollAlignment - How to align the target in the viewport:
+     *   "top" (default), "center", "bottom", or "nearest" (minimal scroll to fit in view)
      */
-    goToDestination(destination: Destination): void {
+    goToDestination(destination: Destination, options?: { scrollAlignment?: ScrollAlignment }): void {
         this.ensureNotDestroyed();
         if (!this.uiShell) {
             throw new Error("Navigation requires UI mode (container must be provided)");
         }
-        this.uiShell.dispatch({ type: "NAVIGATE_TO_DESTINATION", destination });
+        this.uiShell.dispatch({
+            type: "NAVIGATE_TO_DESTINATION",
+            destination,
+            scrollAlignment: options?.scrollAlignment,
+        });
     }
 
     /**
@@ -833,6 +844,34 @@ export class UDocViewer {
         this.ensureNotDestroyed();
         this.ensureUiMode();
         this.uiShell!.dispatch({ type: "SET_SCROLL_MODE", mode });
+    }
+
+    /** Default scroll alignment for navigation (outline, links, goToDestination). */
+    get navigationScrollAlignment(): ScrollAlignment {
+        return this.uiShell?.getState().navigationScrollAlignment ?? "top";
+    }
+
+    /** Default scroll alignment for search result navigation. */
+    get searchScrollAlignment(): ScrollAlignment {
+        return this.uiShell?.getState().searchScrollAlignment ?? "nearest";
+    }
+
+    /**
+     * Set the default scroll alignment for navigation (outline, links, goToDestination).
+     */
+    setNavigationScrollAlignment(alignment: ScrollAlignment): void {
+        this.ensureNotDestroyed();
+        this.ensureUiMode();
+        this.uiShell!.dispatch({ type: "SET_NAVIGATION_SCROLL_ALIGNMENT", alignment });
+    }
+
+    /**
+     * Set the default scroll alignment for search result navigation.
+     */
+    setSearchScrollAlignment(alignment: ScrollAlignment): void {
+        this.ensureNotDestroyed();
+        this.ensureUiMode();
+        this.uiShell!.dispatch({ type: "SET_SEARCH_SCROLL_ALIGNMENT", alignment });
     }
 
     /**
@@ -1096,20 +1135,24 @@ export class UDocViewer {
 
     /**
      * Navigate to the next search match.
+     * @param options - Optional overrides for this navigation
+     * @param options.scrollAlignment - Override scroll alignment for this call only
      */
-    searchNext(): void {
+    searchNext(options?: { scrollAlignment?: ScrollAlignment }): void {
         this.ensureNotDestroyed();
         this.ensureUiMode();
-        this.uiShell!.dispatch({ type: "SEARCH_NEXT" });
+        this.uiShell!.dispatch({ type: "SEARCH_NEXT", scrollAlignment: options?.scrollAlignment });
     }
 
     /**
      * Navigate to the previous search match.
+     * @param options - Optional overrides for this navigation
+     * @param options.scrollAlignment - Override scroll alignment for this call only
      */
-    searchPrev(): void {
+    searchPrev(options?: { scrollAlignment?: ScrollAlignment }): void {
         this.ensureNotDestroyed();
         this.ensureUiMode();
-        this.uiShell!.dispatch({ type: "SEARCH_PREV" });
+        this.uiShell!.dispatch({ type: "SEARCH_PREV", scrollAlignment: options?.scrollAlignment });
     }
 
     /**
@@ -1143,11 +1186,13 @@ export class UDocViewer {
      * Set the active search match by index. Navigates the viewport to the match.
      *
      * @param index - 0-based index into `searchMatches`
+     * @param options - Optional overrides for this navigation
+     * @param options.scrollAlignment - Override scroll alignment for this call only
      */
-    setSearchActiveIndex(index: number): void {
+    setSearchActiveIndex(index: number, options?: { scrollAlignment?: ScrollAlignment }): void {
         this.ensureNotDestroyed();
         this.ensureUiMode();
-        this.uiShell!.dispatch({ type: "SET_SEARCH_ACTIVE_INDEX", index });
+        this.uiShell!.dispatch({ type: "SET_SEARCH_ACTIVE_INDEX", index, scrollAlignment: options?.scrollAlignment });
     }
 
     // ===========================================================================

@@ -20,6 +20,7 @@ export type {
     OutlineItem,
     Destination,
     DestinationDisplay,
+    ScrollAlignment,
     Annotation,
     ViewerEventMap,
     DownloadProgress,

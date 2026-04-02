@@ -1572,6 +1572,7 @@ export function createViewport(showAttribution = true) {
 
         let targetScrollTop: number;
         let targetScrollLeft = 0;
+        const alignment = target.scrollAlignment ?? "top";
 
         // Apply scroll offset if specified (convert from PDF points to scaled pixels)
         if (target.scrollTo && target.scrollTo.y !== undefined) {
@@ -1580,8 +1581,37 @@ export function createViewport(showAttribution = true) {
             const dpiScale = getPointsToPixels(slice.dpi);
             const pointsToPixels = dpiScale * layoutState.scale;
             const yInPixels = target.scrollTo.y * pointsToPixels;
-            // Position target at top of viewport
-            targetScrollTop = layout.top + yInPixels;
+            const targetTop = layout.top + yInPixels;
+            const targetHeight = (target.scrollTo.height ?? 0) * pointsToPixels;
+
+            switch (alignment) {
+                case "center":
+                    targetScrollTop = targetTop - (viewport.innerHeight - targetHeight) / 2;
+                    break;
+                case "bottom":
+                    targetScrollTop = targetTop - viewport.innerHeight + targetHeight;
+                    break;
+                case "nearest": {
+                    const currentTop = scrollArea.scrollTop;
+                    const currentBottom = currentTop + viewport.innerHeight;
+                    const targetBottom = targetTop + targetHeight;
+                    if (targetTop >= currentTop && targetBottom <= currentBottom) {
+                        // Already fully visible - don't scroll
+                        targetScrollTop = currentTop;
+                    } else if (targetTop < currentTop) {
+                        // Target is above viewport - align to top
+                        targetScrollTop = targetTop;
+                    } else {
+                        // Target is below viewport - align to bottom
+                        targetScrollTop = targetBottom - viewport.innerHeight;
+                    }
+                    break;
+                }
+                case "top":
+                default:
+                    targetScrollTop = targetTop;
+                    break;
+            }
 
             if (target.scrollTo.x !== undefined) {
                 const xInPixels = target.scrollTo.x * pointsToPixels;

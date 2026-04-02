@@ -200,11 +200,23 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
         }
         case "NAVIGATE_TO_DESTINATION": {
             const target = destinationToNavigationTarget(action.destination, state.pageCount);
+            target.scrollAlignment = action.scrollAlignment ?? state.navigationScrollAlignment;
+            if (action.scrollToHeight !== undefined && target.scrollTo) {
+                target.scrollTo.height = action.scrollToHeight;
+            }
             return { ...state, navigationTarget: target };
         }
         case "CLEAR_NAVIGATION_TARGET": {
             if (state.navigationTarget === null) return state;
             return { ...state, navigationTarget: null };
+        }
+        case "SET_NAVIGATION_SCROLL_ALIGNMENT": {
+            if (state.navigationScrollAlignment === action.alignment) return state;
+            return { ...state, navigationScrollAlignment: action.alignment };
+        }
+        case "SET_SEARCH_SCROLL_ALIGNMENT": {
+            if (state.searchScrollAlignment === action.alignment) return state;
+            return { ...state, searchScrollAlignment: action.alignment };
         }
 
         // View modes
@@ -422,17 +434,32 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
         case "SET_SEARCH_ACTIVE_INDEX": {
             const index = action.index;
             if (index < 0 || index >= state.searchMatches.length) return state;
-            return { ...state, searchActiveIndex: index, searchNavGen: state.searchNavGen + 1 };
+            return {
+                ...state,
+                searchActiveIndex: index,
+                searchNavGen: state.searchNavGen + 1,
+                searchNavScrollAlignment: action.scrollAlignment ?? null,
+            };
         }
         case "SEARCH_NEXT": {
             if (state.searchMatches.length === 0) return state;
             const next = (state.searchActiveIndex + 1) % state.searchMatches.length;
-            return { ...state, searchActiveIndex: next, searchNavGen: state.searchNavGen + 1 };
+            return {
+                ...state,
+                searchActiveIndex: next,
+                searchNavGen: state.searchNavGen + 1,
+                searchNavScrollAlignment: action.scrollAlignment ?? null,
+            };
         }
         case "SEARCH_PREV": {
             if (state.searchMatches.length === 0) return state;
             const prev = (state.searchActiveIndex - 1 + state.searchMatches.length) % state.searchMatches.length;
-            return { ...state, searchActiveIndex: prev, searchNavGen: state.searchNavGen + 1 };
+            return {
+                ...state,
+                searchActiveIndex: prev,
+                searchNavGen: state.searchNavGen + 1,
+                searchNavScrollAlignment: action.scrollAlignment ?? null,
+            };
         }
         case "CLEAR_SEARCH": {
             if (state.searchQuery === "" && state.searchMatches.length === 0 && state.searchActiveIndex === -1)

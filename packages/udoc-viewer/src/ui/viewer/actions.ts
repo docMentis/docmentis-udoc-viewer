@@ -11,7 +11,7 @@ import type {
     ThemeMode,
     VisibilityGroup,
 } from "./state";
-import type { Destination, OutlineItem } from "./navigation";
+import type { Destination, OutlineItem, ScrollAlignment } from "./navigation";
 import type { Annotation } from "./annotation";
 import type { JsLayoutPage } from "../../wasm/udoc.js";
 
@@ -54,8 +54,16 @@ export type Action =
     | { type: "CLEAR_TEXT" }
     // Navigation
     | { type: "NAVIGATE_TO_PAGE"; page: number }
-    | { type: "NAVIGATE_TO_DESTINATION"; destination: Destination }
+    | {
+          type: "NAVIGATE_TO_DESTINATION";
+          destination: Destination;
+          scrollAlignment?: ScrollAlignment;
+          /** Height of the target area in PDF points (used with "nearest" alignment) */
+          scrollToHeight?: number;
+      }
     | { type: "CLEAR_NAVIGATION_TARGET" }
+    | { type: "SET_NAVIGATION_SCROLL_ALIGNMENT"; alignment: ScrollAlignment }
+    | { type: "SET_SEARCH_SCROLL_ALIGNMENT"; alignment: ScrollAlignment }
     // View modes
     | { type: "SET_SCROLL_MODE"; mode: ScrollMode }
     | { type: "SET_LAYOUT_MODE"; mode: LayoutMode }
@@ -102,9 +110,9 @@ export type Action =
     | { type: "SET_SEARCH_QUERY"; query: string }
     | { type: "SET_SEARCH_CASE_SENSITIVE"; caseSensitive: boolean }
     | { type: "SET_SEARCH_MATCHES"; matches: SearchMatch[] }
-    | { type: "SET_SEARCH_ACTIVE_INDEX"; index: number }
-    | { type: "SEARCH_NEXT" }
-    | { type: "SEARCH_PREV" }
+    | { type: "SET_SEARCH_ACTIVE_INDEX"; index: number; scrollAlignment?: ScrollAlignment }
+    | { type: "SEARCH_NEXT"; scrollAlignment?: ScrollAlignment }
+    | { type: "SEARCH_PREV"; scrollAlignment?: ScrollAlignment }
     | { type: "CLEAR_SEARCH" }
     | { type: "SET_SEARCH_TEXT_LOADING"; loading: boolean }
     | { type: "SET_SEARCH_TEXT_LOADED"; loaded: boolean }

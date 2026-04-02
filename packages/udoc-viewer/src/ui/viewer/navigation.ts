@@ -47,6 +47,19 @@ export interface OutlineItem {
 }
 
 // -----------------------------------------------------------------------------
+// Scroll alignment
+// -----------------------------------------------------------------------------
+
+/**
+ * How the target should be aligned within the viewport when navigating.
+ * - "top": align target to viewport top edge (default)
+ * - "center": align target to viewport center
+ * - "bottom": align target to viewport bottom edge
+ * - "nearest": scroll minimally to fit target into viewport (no scroll if already visible)
+ */
+export type ScrollAlignment = "top" | "center" | "bottom" | "nearest";
+
+// -----------------------------------------------------------------------------
 // Navigation target (internal UI state)
 // -----------------------------------------------------------------------------
 
@@ -58,9 +71,11 @@ export interface NavigationTarget {
     /** Target page (1-based for UI consistency) */
     page: number;
     /** Optional scroll position within page (in PDF points, relative to page top-left) */
-    scrollTo?: { x?: number; y?: number };
+    scrollTo?: { x?: number; y?: number; height?: number };
     /** Optional zoom level (undefined = keep current) */
     zoom?: number;
+    /** How to align the target in the viewport (default: "top") */
+    scrollAlignment?: ScrollAlignment;
 }
 
 // -----------------------------------------------------------------------------
