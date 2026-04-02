@@ -1,13 +1,13 @@
 /* tslint:disable */
 /* eslint-disable */
-export type JsViewerLayoutMode = "single-page" | "double-page-odd-right" | "double-page-odd-left";
-
 export type JsViewerScrollMode = "spread" | "continuous";
 
 export interface JsViewerPreferences {
     layoutMode?: JsViewerLayoutMode;
     scrollMode?: JsViewerScrollMode;
 }
+
+export type JsViewerLayoutMode = "single-page" | "double-page-odd-right" | "double-page-odd-left";
 
 
 export type Orientation = "horizontal" | "vertical";
@@ -105,22 +105,15 @@ export interface FontUsageEntry {
 }
 
 
-export interface JsLayoutTable {
-    width: number;
-    height: number;
-    columns: JsLayoutTableColumn[];
-    rows: JsLayoutTableRow[];
-}
-
-export interface JsLayoutTableColumn {
+export interface JsLayoutTableCell {
+    colIndex: number;
+    colSpan: number;
+    rowSpan: number;
     x: number;
-    width: number;
-}
-
-export interface JsLayoutTableRow {
     y: number;
+    width: number;
     height: number;
-    cells: JsLayoutTableCell[];
+    parcel?: JsLayoutParcel;
 }
 
 export interface JsLayoutLine {
@@ -134,13 +127,54 @@ export interface JsLayoutLine {
     content: JsLayoutLineContent;
 }
 
-export type JsLayoutLineContent = ({ type: "runList" } & JsLayoutRunList) | ({ type: "table" } & JsLayoutTable);
+export interface JsLayoutRun {
+    x: number;
+    width: number;
+    transform: JsTransform;
+    content: JsLayoutRunContent;
+}
+
+export interface JsLayoutParcel {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    lines: JsLayoutLine[];
+}
+
+export interface JsLayoutGridRow {
+    y: number;
+    height: number;
+    cells: JsLayoutGridCell[];
+}
+
+export interface JsLayoutPage {
+    width: number;
+    height: number;
+    frames: JsLayoutFrame[];
+    grid?: JsLayoutGrid;
+}
 
 export interface JsLayoutRunList {
     baseline: number;
     width: number;
     height: number;
     runs: JsLayoutRun[];
+}
+
+export interface JsLayoutTable {
+    width: number;
+    height: number;
+    columns: JsLayoutTableColumn[];
+    rows: JsLayoutTableRow[];
+}
+
+export type JsLayoutRunContent = { type: "glyphs"; text: string; fontSize: number; ascent: number; descent: number; glyphs: JsLayoutGlyph[] } | { type: "space"; advance: number; fontSize: number; ascent: number; descent: number } | { type: "tab"; advance: number; fontSize: number; ascent: number; descent: number } | { type: "paragraphEnd"; advance: number } | { type: "break" } | { type: "inlineDrawing"; width: number; height: number };
+
+export interface JsLayoutTableRow {
+    y: number;
+    height: number;
+    cells: JsLayoutTableCell[];
 }
 
 export interface JsLayoutGrid {
@@ -153,21 +187,13 @@ export interface JsLayoutGrid {
     rows: JsLayoutGridRow[];
 }
 
-export interface JsLayoutParcel {
+export interface JsLayoutGridCell {
+    colIndex: number;
     x: number;
     y: number;
     width: number;
     height: number;
-    lines: JsLayoutLine[];
-}
-
-export type JsLayoutRunContent = { type: "glyphs"; text: string; fontSize: number; ascent: number; descent: number; glyphs: JsLayoutGlyph[] } | { type: "space"; advance: number; fontSize: number; ascent: number; descent: number } | { type: "tab"; advance: number; fontSize: number; ascent: number; descent: number } | { type: "paragraphEnd"; advance: number } | { type: "break" } | { type: "inlineDrawing"; width: number; height: number };
-
-export interface JsLayoutPage {
-    width: number;
-    height: number;
-    frames: JsLayoutFrame[];
-    grid?: JsLayoutGrid;
+    parcel?: JsLayoutParcel;
 }
 
 export interface JsLayoutGridColumn {
@@ -185,6 +211,16 @@ export interface JsLayoutGlyph {
     offset: number;
 }
 
+export interface JsLayoutFrame {
+    transform: JsTransform;
+    parcel?: JsLayoutParcel;
+}
+
+export interface JsLayoutTableColumn {
+    x: number;
+    width: number;
+}
+
 export interface JsTransform {
     scaleX: number;
     skewY: number;
@@ -194,43 +230,7 @@ export interface JsTransform {
     translateY: number;
 }
 
-export interface JsLayoutRun {
-    x: number;
-    width: number;
-    transform: JsTransform;
-    content: JsLayoutRunContent;
-}
-
-export interface JsLayoutGridCell {
-    colIndex: number;
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-    parcel?: JsLayoutParcel;
-}
-
-export interface JsLayoutFrame {
-    transform: JsTransform;
-    parcel?: JsLayoutParcel;
-}
-
-export interface JsLayoutTableCell {
-    colIndex: number;
-    colSpan: number;
-    rowSpan: number;
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-    parcel?: JsLayoutParcel;
-}
-
-export interface JsLayoutGridRow {
-    y: number;
-    height: number;
-    cells: JsLayoutGridCell[];
-}
+export type JsLayoutLineContent = ({ type: "runList" } & JsLayoutRunList) | ({ type: "table" } & JsLayoutTable);
 
 
 export class Wasm {
@@ -783,9 +783,9 @@ export interface InitOutput {
   readonly wasm_set_visibility_group_visible: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
   readonly wasm_setup_telemetry: (a: number, b: number, c: number) => void;
   readonly wasm_viewer_preferences: (a: number, b: number, c: number, d: number) => void;
-  readonly __wasm_bindgen_func_elem_2703: (a: number, b: number, c: number) => void;
-  readonly __wasm_bindgen_func_elem_2687: (a: number, b: number) => void;
-  readonly __wasm_bindgen_func_elem_16901: (a: number, b: number, c: number, d: number) => void;
+  readonly __wasm_bindgen_func_elem_2709: (a: number, b: number, c: number) => void;
+  readonly __wasm_bindgen_func_elem_2693: (a: number, b: number) => void;
+  readonly __wasm_bindgen_func_elem_16873: (a: number, b: number, c: number, d: number) => void;
   readonly __wbindgen_export: (a: number, b: number) => number;
   readonly __wbindgen_export2: (a: number, b: number, c: number, d: number) => number;
   readonly __wbindgen_export3: (a: number) => void;
