@@ -204,6 +204,16 @@ const viewer = await client.createViewer({
     minZoom: 0.1,
     maxZoom: 5,
 
+    // --- Scroll alignment ---
+
+    // Default scroll alignment for navigation (outline, links, goToDestination)
+    // 'top' | 'center' | 'bottom' | 'nearest' (default: 'top')
+    navigationScrollAlignment: "top",
+
+    // Default scroll alignment for search result navigation
+    // 'top' | 'center' | 'bottom' | 'nearest' (default: 'nearest')
+    searchScrollAlignment: "nearest",
+
     // --- Spacing & layout ---
 
     // Spacing between pages in pixels (default: 10)
@@ -308,6 +318,13 @@ viewer.previousPage();
 
 // Navigate to a destination (from outline)
 viewer.goToDestination(destination);
+
+// Navigate with scroll alignment override
+viewer.goToDestination(destination, { scrollAlignment: "center" });
+
+// Change default scroll alignment at runtime
+viewer.setNavigationScrollAlignment("center"); // 'top' | 'center' | 'bottom' | 'nearest'
+viewer.setSearchScrollAlignment("top");
 ```
 
 ### Document Information
@@ -417,8 +434,13 @@ for (const match of matches) {
 viewer.searchNext();
 viewer.searchPrev();
 
+// Navigate with a per-call scroll alignment override
+viewer.searchNext({ scrollAlignment: "center" });
+viewer.searchPrev({ scrollAlignment: "top" });
+
 // Jump to a specific match by index
 viewer.setSearchActiveIndex(5);
+viewer.setSearchActiveIndex(5, { scrollAlignment: "center" });
 
 // Read current state
 console.log(viewer.searchMatches); // SearchMatch[]

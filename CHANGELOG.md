@@ -6,6 +6,10 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+### Features
+
+- Add configurable scroll alignment for navigation and search (`navigationScrollAlignment`, `searchScrollAlignment`). Supports `top`, `center`, `bottom`, and `nearest` (minimal scroll). Configurable via `ViewerOptions`, runtime setters, and per-call overrides on `goToDestination`, `searchNext`, `searchPrev`, and `setSearchActiveIndex`.
+
 ## [0.6.20] - 2026-04-01
 
 ### Features
