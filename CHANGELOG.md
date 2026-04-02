@@ -6,6 +6,8 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+## [0.6.20] - 2026-04-01
+
 ### Features
 
 - Add getLayoutPage API to retrieve page layout structure
