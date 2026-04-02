@@ -50,6 +50,7 @@ export type Action =
     | { type: "LOAD_PAGE_TEXT"; pageIndex: number }
     | { type: "SET_PAGE_TEXT"; pageIndex: number; text: JsLayoutPage }
     | { type: "CLEAR_PAGE_TEXT_LOADING"; pageIndex: number }
+    | { type: "SET_PAGE_TEXT_FAILED"; pageIndex: number }
     | { type: "CLEAR_TEXT" }
     // Navigation
     | { type: "NAVIGATE_TO_PAGE"; page: number }

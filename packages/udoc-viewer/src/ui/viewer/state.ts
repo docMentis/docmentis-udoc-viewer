@@ -155,6 +155,8 @@ export interface ViewerState {
     pageText: Map<number, JsLayoutPage>;
     /** Set of page indices currently being loaded */
     textLoading: Set<number>;
+    /** Set of page indices that failed to load (prevents retry loops) */
+    textFailed: Set<number>;
 
     // Navigation
     /** Target for navigation (null = no pending navigation) */
@@ -290,6 +292,7 @@ export const initialState: ViewerState = {
 
     pageText: new Map(),
     textLoading: new Set(),
+    textFailed: new Set(),
 
     navigationTarget: null,
 

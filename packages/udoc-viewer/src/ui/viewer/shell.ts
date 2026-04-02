@@ -144,6 +144,7 @@ export function mountViewerShell(
         annotationsLoading: new Set(),
         pageText: new Map(),
         textLoading: new Set(),
+        textFailed: new Set(),
         disabledPanels: new Set(),
         ...overrides,
     };

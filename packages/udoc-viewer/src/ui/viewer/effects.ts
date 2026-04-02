@@ -145,7 +145,10 @@ export function createEffects(store: Store<ViewerState, Action>, engine: EngineA
 
             // Filter to pages that need loading
             const pagesToActuallyLoad = pagesToLoad.filter(
-                (pageIndex) => !next.pageText.has(pageIndex) && !next.textLoading.has(pageIndex),
+                (pageIndex) =>
+                    !next.pageText.has(pageIndex) &&
+                    !next.textLoading.has(pageIndex) &&
+                    !next.textFailed.has(pageIndex),
             );
 
             if (pagesToActuallyLoad.length === 0) return;
@@ -171,7 +174,7 @@ export function createEffects(store: Store<ViewerState, Action>, engine: EngineA
                 } catch (error) {
                     if (gen !== docGeneration) return; // stale
                     console.error(`Failed to load text for page ${pageIndex}`, error);
-                    store.dispatch({ type: "CLEAR_PAGE_TEXT_LOADING", pageIndex });
+                    store.dispatch({ type: "SET_PAGE_TEXT_FAILED", pageIndex });
                 }
             }
         }),
@@ -268,6 +271,7 @@ export function createEffects(store: Store<ViewerState, Action>, engine: EngineA
                 const currentState = store.getState();
                 if (currentState.pageText.has(pageIndex)) continue;
                 if (currentState.textLoading.has(pageIndex)) continue;
+                if (currentState.textFailed.has(pageIndex)) continue;
 
                 store.dispatch({ type: "LOAD_PAGE_TEXT", pageIndex });
                 try {
@@ -277,7 +281,7 @@ export function createEffects(store: Store<ViewerState, Action>, engine: EngineA
                 } catch (error) {
                     if (gen !== docGeneration) return;
                     console.error(`Failed to load text for page ${pageIndex}`, error);
-                    store.dispatch({ type: "CLEAR_PAGE_TEXT_LOADING", pageIndex });
+                    store.dispatch({ type: "SET_PAGE_TEXT_FAILED", pageIndex });
                 }
             }
 

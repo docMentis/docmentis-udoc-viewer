@@ -52,6 +52,7 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
                 annotationsLoading: new Set(),
                 pageText: new Map(),
                 textLoading: new Set(),
+                textFailed: new Set(),
                 searchQuery: "",
                 searchCaseSensitive: false,
                 searchMatches: [],
@@ -167,12 +168,20 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
             newLoading.delete(action.pageIndex);
             return { ...state, textLoading: newLoading };
         }
+        case "SET_PAGE_TEXT_FAILED": {
+            const newLoading = new Set(state.textLoading);
+            newLoading.delete(action.pageIndex);
+            const newFailed = new Set(state.textFailed);
+            newFailed.add(action.pageIndex);
+            return { ...state, textLoading: newLoading, textFailed: newFailed };
+        }
         case "CLEAR_TEXT": {
-            if (state.pageText.size === 0 && state.textLoading.size === 0) return state;
+            if (state.pageText.size === 0 && state.textLoading.size === 0 && state.textFailed.size === 0) return state;
             return {
                 ...state,
                 pageText: new Map(),
                 textLoading: new Set(),
+                textFailed: new Set(),
             };
         }
 
