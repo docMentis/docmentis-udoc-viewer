@@ -9,6 +9,15 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 ### Features
 
 - Add configurable scroll alignment for navigation and search (`navigationScrollAlignment`, `searchScrollAlignment`). Supports `top`, `center`, `bottom`, and `nearest` (minimal scroll). Configurable via `ViewerOptions`, runtime setters, and per-call overrides on `goToDestination`, `searchNext`, `searchPrev`, and `setSearchActiveIndex`.
+- Add WMF and EMF vector image format support
+- Support opening standalone EMF and WMF files (engine)
+- Support SVG text rendering with document fonts and bundled Noto Sans fallback (engine)
+
+### Bug Fixes
+
+- Preserve spaces around match text in search preview context
+- Route all SVG rasterization through ImageRasterizer for proper font access (engine)
+- Register Noto Sans as serif/sans-serif fallback in SVG loading (engine)
 
 ## [0.6.20] - 2026-04-01
 
