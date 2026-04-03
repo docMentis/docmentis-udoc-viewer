@@ -20,14 +20,18 @@ import type { SearchMatch } from "../state";
 function trimToLastNWords(text: string, n: number): string {
     const words = text.split(/\s+/).filter((w) => w.length > 0);
     if (words.length <= n) return text;
-    return words.slice(-n).join(" ");
+    const trimmed = words.slice(-n).join(" ");
+    // Preserve trailing whitespace so the match text doesn't abut the context
+    return /\s$/.test(text) ? trimmed + text[text.length - 1] : trimmed;
 }
 
 /** Trim text to at most the first n whitespace-separated words. */
 function trimToFirstNWords(text: string, n: number): string {
     const words = text.split(/\s+/).filter((w) => w.length > 0);
     if (words.length <= n) return text;
-    return words.slice(0, n).join(" ");
+    const trimmed = words.slice(0, n).join(" ");
+    // Preserve leading whitespace so the match text doesn't abut the context
+    return /^\s/.test(text) ? text[0] + trimmed : trimmed;
 }
 
 /** A positioned glyph run with its resolved transform in page space. */
