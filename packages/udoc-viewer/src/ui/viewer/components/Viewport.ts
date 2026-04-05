@@ -613,8 +613,14 @@ export function createViewport(showAttribution = true) {
                 const cx = rect.left + rect.width / 2;
                 const cy = rect.top + rect.height / 2;
                 const topEl = document.elementFromPoint(cx, cy);
-                if (topEl && topEl !== attribution && !attribution.contains(topEl)) {
-                    // Something is covering the attribution — elevate z-index
+                const viewerRoot = el.closest(".udoc-viewer-root");
+                if (
+                    topEl &&
+                    topEl !== attribution &&
+                    !attribution.contains(topEl) &&
+                    !(viewerRoot && viewerRoot.contains(topEl))
+                ) {
+                    // Something outside our viewer is covering the attribution — elevate z-index
                     attribution.style.zIndex = `${2147483647}`;
                 }
             }
