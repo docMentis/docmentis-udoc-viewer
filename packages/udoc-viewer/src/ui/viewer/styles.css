@@ -290,99 +290,11 @@
     align-items: center;
     gap: 4px;
     height: 40px;
-    padding: 0 10px;
+    padding: 0 6px;
     background: var(--udoc-bg-surface);
     border-radius: 8px;
     box-shadow: var(--udoc-shadow-toolbar);
     z-index: 30;
-}
-
-.udoc-viewer-root .udoc-floating-toolbar__section {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.udoc-viewer-root .udoc-floating-toolbar__divider {
-    width: 1px;
-    height: 20px;
-    background: var(--udoc-pressed-overlay);
-    margin: 0 4px;
-}
-
-.udoc-viewer-root .udoc-floating-toolbar__btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    padding: 0;
-    border: none;
-    border-radius: 4px;
-    background: transparent;
-    color: var(--udoc-text-secondary);
-    cursor: pointer;
-}
-
-.udoc-viewer-root .udoc-floating-toolbar__btn:hover {
-    background: var(--udoc-hover-overlay);
-}
-
-.udoc-viewer-root .udoc-floating-toolbar__btn:active {
-    background: var(--udoc-pressed-overlay);
-}
-
-.udoc-viewer-root .udoc-floating-toolbar__btn:disabled {
-    color: var(--udoc-text-disabled);
-    cursor: default;
-}
-
-.udoc-viewer-root .udoc-floating-toolbar__btn:disabled:hover {
-    background: transparent;
-}
-
-.udoc-viewer-root .udoc-floating-toolbar__btn svg {
-    width: 18px;
-    height: 18px;
-}
-
-.udoc-viewer-root .udoc-floating-toolbar__page-info {
-    display: flex;
-    align-items: center;
-    color: var(--udoc-text-primary);
-    font-size: 13px;
-}
-
-.udoc-viewer-root .udoc-floating-toolbar__page-input {
-    width: 36px;
-    padding: 2px 4px;
-    border: 1px solid var(--udoc-pressed-overlay);
-    border-radius: 4px;
-    background: transparent;
-    color: var(--udoc-text-primary);
-    font-size: 13px;
-    text-align: center;
-}
-
-.udoc-viewer-root .udoc-floating-toolbar__page-input:focus {
-    outline: none;
-    border-color: var(--udoc-scrollbar-thumb);
-    background: var(--udoc-bg-input);
-}
-
-.udoc-viewer-root .udoc-floating-toolbar__page-total {
-    white-space: nowrap;
-}
-
-.udoc-viewer-root .udoc-floating-toolbar__zoom-level {
-    min-width: 44px;
-    color: var(--udoc-text-primary);
-    font-size: 13px;
-    text-align: center;
-}
-
-.udoc-viewer-root .udoc-floating-toolbar__btn--active {
-    background: var(--udoc-active-overlay);
 }
 
 /* Zoom Dropdown */
@@ -510,7 +422,7 @@
 /* View Mode Menu */
 .udoc-viewer-root .udoc-view-mode-menu {
     position: relative;
-    height: 28px;
+    height: 32px;
     display: flex;
     align-items: center;
 }
@@ -998,8 +910,9 @@
 .udoc-viewer-root .udoc-toolbar {
     display: flex;
     align-items: center;
+    gap: 4px;
     height: 40px;
-    padding: 0 8px;
+    padding: 0 4px;
     background: var(--udoc-bg-panel);
     border-bottom: 1px solid var(--udoc-border);
 }
@@ -1110,19 +1023,19 @@
 .udoc-viewer-root .udoc-toolbar__group {
     display: flex;
     align-items: center;
-    gap: 2px;
+    gap: 0;
 }
 
 .udoc-viewer-root .udoc-toolbar__divider {
     width: 1px;
     height: 20px;
     background: var(--udoc-border);
-    margin: 0 4px;
+    margin: 0 2px;
 }
 
 .udoc-viewer-root .udoc-toolbar__btn--nav {
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
 }
 
 .udoc-viewer-root .udoc-toolbar__btn--nav svg {
@@ -1805,8 +1718,8 @@
         background: var(--udoc-bg-panel);
         border-top: 1px solid var(--udoc-border);
         height: 40px;
-        padding: 0 12px;
-        gap: 8px;
+        padding: 0 4px;
+        gap: 4px;
         max-width: none;
         justify-content: center;
     }
@@ -1830,26 +1743,25 @@
         display: block;
     }
 
-    /* Larger panel tab buttons for touch */
+    /* Panel tab buttons for touch */
     .udoc-viewer-root .udoc-left-panel__tabs {
-        width: 44px;
+        width: 32px;
         padding: 8px 0;
     }
 
     .udoc-viewer-root .udoc-left-panel__tab {
-        width: 44px;
-        height: 44px;
+        width: 32px;
+        height: 32px;
     }
 
     .udoc-viewer-root .udoc-left-panel__tab svg {
-        width: 22px;
-        height: 22px;
+        width: 18px;
+        height: 18px;
     }
 
     /* Toolbar adjustments */
     .udoc-viewer-root .udoc-toolbar {
         padding: 0 4px;
-        gap: 4px;
     }
 
     .udoc-viewer-root .udoc-toolbar__btn {
@@ -1970,8 +1882,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 44px;
-    height: 44px;
+    width: 32px;
+    height: 32px;
     border: none;
     background: transparent;
     color: var(--udoc-text-subtle);
@@ -2379,8 +2291,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
     border: 1px solid var(--udoc-border-input);
     border-radius: 4px;
     background: var(--udoc-bg-input);
@@ -2623,7 +2535,6 @@
     }
 
     .udoc-viewer-root .udoc-toolbar__btn,
-    .udoc-viewer-root .udoc-floating-toolbar__btn,
     .udoc-viewer-root .udoc-left-panel__tab {
         border: 1px solid ButtonText;
     }
@@ -2649,16 +2560,16 @@
 /* Touch target sizes for coarse pointers (panels and side UI only — toolbars handle their own sizing) */
 @media (pointer: coarse) {
     .udoc-viewer-root .udoc-left-panel__tab {
-        width: 44px;
-        height: 44px;
+        width: 32px;
+        height: 32px;
     }
 
     .udoc-viewer-root .udoc-left-panel__tabs {
-        width: 44px;
+        width: 32px;
     }
 
     .udoc-viewer-root .udoc-outline-item__toggle {
-        min-width: 44px;
-        min-height: 44px;
+        min-width: 32px;
+        min-height: 32px;
     }
 }

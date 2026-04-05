@@ -76,7 +76,7 @@ export function createViewModeMenu() {
 
     // Toggle button
     const toggleBtn = document.createElement("button");
-    toggleBtn.className = "udoc-floating-toolbar__btn";
+    toggleBtn.className = "udoc-toolbar__btn";
     toggleBtn.innerHTML = ICON_VIEW_MODE;
     toggleBtn.title = "View settings";
     toggleBtn.setAttribute("aria-label", "View settings");
@@ -206,7 +206,7 @@ export function createViewModeMenu() {
     function toggleDropdown(): void {
         isOpen = !isOpen;
         dropdown.style.display = isOpen ? "block" : "none";
-        toggleBtn.classList.toggle("udoc-floating-toolbar__btn--active", isOpen);
+        toggleBtn.classList.toggle("udoc-toolbar__btn--active", isOpen);
         toggleBtn.setAttribute("aria-expanded", String(isOpen));
     }
 
@@ -214,7 +214,7 @@ export function createViewModeMenu() {
         if (isOpen) {
             isOpen = false;
             dropdown.style.display = "none";
-            toggleBtn.classList.remove("udoc-floating-toolbar__btn--active");
+            toggleBtn.classList.remove("udoc-toolbar__btn--active");
             toggleBtn.setAttribute("aria-expanded", "false");
         }
     }

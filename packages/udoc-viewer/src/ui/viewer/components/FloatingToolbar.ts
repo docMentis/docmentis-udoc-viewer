@@ -49,31 +49,31 @@ export function createFloatingToolbar() {
 
     // Navigation section
     const navSection = document.createElement("div");
-    navSection.className = "udoc-floating-toolbar__section";
+    navSection.className = "udoc-toolbar__group";
 
     const prevBtn = document.createElement("button");
-    prevBtn.className = "udoc-floating-toolbar__btn";
+    prevBtn.className = "udoc-toolbar__btn udoc-toolbar__btn--nav";
     prevBtn.innerHTML = ICON_CHEVRON_LEFT;
     prevBtn.title = "Previous page";
     prevBtn.setAttribute("aria-label", "Previous page");
 
     const pageInfo = document.createElement("div");
-    pageInfo.className = "udoc-floating-toolbar__page-info";
+    pageInfo.className = "udoc-toolbar__page-info";
 
     const pageInput = document.createElement("input");
-    pageInput.className = "udoc-floating-toolbar__page-input";
+    pageInput.className = "udoc-toolbar__page-input";
     pageInput.type = "text";
     pageInput.inputMode = "numeric";
     pageInput.setAttribute("aria-label", "Page number");
 
     const pageTotal = document.createElement("span");
-    pageTotal.className = "udoc-floating-toolbar__page-total";
+    pageTotal.className = "udoc-toolbar__page-total";
 
     pageInfo.appendChild(pageInput);
     pageInfo.appendChild(pageTotal);
 
     const nextBtn = document.createElement("button");
-    nextBtn.className = "udoc-floating-toolbar__btn";
+    nextBtn.className = "udoc-toolbar__btn udoc-toolbar__btn--nav";
     nextBtn.innerHTML = ICON_CHEVRON_RIGHT;
     nextBtn.title = "Next page";
     nextBtn.setAttribute("aria-label", "Next page");
@@ -84,14 +84,14 @@ export function createFloatingToolbar() {
 
     // Divider
     const divider = document.createElement("div");
-    divider.className = "udoc-floating-toolbar__divider";
+    divider.className = "udoc-toolbar__divider";
 
     // Zoom section
     const zoomSection = document.createElement("div");
-    zoomSection.className = "udoc-floating-toolbar__section";
+    zoomSection.className = "udoc-toolbar__group";
 
     const zoomOutBtn = document.createElement("button");
-    zoomOutBtn.className = "udoc-floating-toolbar__btn";
+    zoomOutBtn.className = "udoc-toolbar__btn udoc-toolbar__btn--nav";
     zoomOutBtn.innerHTML = ICON_ZOOM_OUT;
     zoomOutBtn.title = "Zoom out";
     zoomOutBtn.setAttribute("aria-label", "Zoom out");
@@ -131,7 +131,7 @@ export function createFloatingToolbar() {
     zoomDropdownContainer.appendChild(zoomDropdown);
 
     const zoomInBtn = document.createElement("button");
-    zoomInBtn.className = "udoc-floating-toolbar__btn";
+    zoomInBtn.className = "udoc-toolbar__btn udoc-toolbar__btn--nav";
     zoomInBtn.innerHTML = ICON_ZOOM_IN;
     zoomInBtn.title = "Zoom in";
     zoomInBtn.setAttribute("aria-label", "Zoom in");
@@ -142,7 +142,7 @@ export function createFloatingToolbar() {
 
     // Second divider
     const divider2 = document.createElement("div");
-    divider2.className = "udoc-floating-toolbar__divider";
+    divider2.className = "udoc-toolbar__divider";
 
     // View mode menu
     const viewModeMenu = createViewModeMenu();
@@ -177,7 +177,7 @@ export function createFloatingToolbar() {
         zoomInBtn.setAttribute("aria-label", i18n.t("toolbar.zoomIn"));
 
         // Roving tabindex: single Tab stop, arrow keys between buttons
-        rovingTabindex = setupRovingTabindex(el, ".udoc-floating-toolbar__btn, input");
+        rovingTabindex = setupRovingTabindex(el, ".udoc-toolbar__btn, input");
 
         // Mount view mode menu
         viewModeMenu.mount(store, i18n);
