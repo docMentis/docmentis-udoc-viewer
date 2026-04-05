@@ -90,6 +90,7 @@
     height: 100%;
     container-type: inline-size;
     container-name: udoc-viewer;
+    isolation: isolate;
 }
 
 .udoc-viewer-root.udoc-viewer-dark {
