@@ -294,7 +294,7 @@
     background: var(--udoc-bg-surface);
     border-radius: 8px;
     box-shadow: var(--udoc-shadow-toolbar);
-    z-index: 100;
+    z-index: 30;
 }
 
 .udoc-viewer-root .udoc-floating-toolbar__section {
@@ -1072,7 +1072,7 @@
     border-radius: 8px;
     box-shadow: var(--udoc-shadow-dialog);
     padding: 4px 0;
-    z-index: 200;
+    z-index: 80;
 }
 
 .udoc-viewer-root .udoc-overflow-menu__item {
@@ -1335,7 +1335,7 @@
 /* Annotation popup */
 .udoc-viewer-root .udoc-annotation-popup {
     position: absolute;
-    z-index: 100;
+    z-index: 30;
     min-width: 200px;
     max-width: 300px;
     background: var(--udoc-annotation-bg);
@@ -1700,7 +1700,7 @@
     outline: 2px solid var(--udoc-primary);
     outline-offset: 2px;
     border-radius: 2px;
-    z-index: 10;
+    z-index: 20;
 }
 
 /* Highlight indicator for full-layer markup annotations */
@@ -1712,7 +1712,7 @@
     outline: 2px solid var(--udoc-primary);
     outline-offset: 2px;
     border-radius: 2px;
-    z-index: 10;
+    z-index: 20;
 }
 
 /* Mobile Panel Overlay */
@@ -1724,7 +1724,7 @@
     right: 0;
     bottom: 0;
     background: var(--udoc-bg-overlay);
-    z-index: 140;
+    z-index: 40;
 }
 
 /* ===== Responsive: Small Mobile (≤480px) ===== */
@@ -1741,7 +1741,7 @@
         left: 0;
         bottom: 0;
         width: 280px !important;
-        z-index: 150;
+        z-index: 50;
         transform: translateX(-100%);
         transition: transform 0.2s ease;
     }
@@ -1762,7 +1762,7 @@
         right: 0;
         bottom: 0;
         width: 280px !important;
-        z-index: 150;
+        z-index: 50;
         transform: translateX(100%);
         transition: transform 0.2s ease;
     }
@@ -1813,7 +1813,7 @@
 
     /* Raise toolbar above slide-out panels so overflow dropdown is not hidden */
     .udoc-viewer-root .udoc-toolbar-slot {
-        z-index: 160;
+        z-index: 60;
     }
 
     /* Hide individual right-section buttons on mobile; show overflow menu */
@@ -1884,7 +1884,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 200;
+    z-index: 80;
 }
 
 .udoc-viewer-root .udoc-password-dialog {
@@ -2039,7 +2039,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 210;
+    z-index: 90;
 }
 
 .udoc-viewer-root .udoc-print-dialog {
@@ -2203,7 +2203,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 180;
+    z-index: 70;
     backdrop-filter: blur(2px);
 }
 
@@ -2558,7 +2558,7 @@
     position: absolute;
     top: -100px;
     left: 0;
-    z-index: 10000;
+    z-index: 100;
     padding: 8px 16px;
     background: var(--udoc-bg-surface);
     color: var(--udoc-text-heading);
