@@ -1095,9 +1095,12 @@
     border-radius: 4px;
 }
 
-.udoc-viewer-root .udoc-toolbar__split-btn--active .udoc-toolbar__split-btn-main {
-    background: var(--udoc-primary-bg);
-    color: var(--udoc-primary);
+.udoc-viewer-root .udoc-toolbar__split-btn--active {
+    background: var(--udoc-primary-active-bg);
+}
+
+.udoc-viewer-root .udoc-toolbar__split-btn--active:hover {
+    background: var(--udoc-primary-active-bg-hover);
 }
 
 .udoc-viewer-root .udoc-toolbar__split-btn-main {
@@ -1151,7 +1154,11 @@
 }
 
 .udoc-viewer-root .udoc-toolbar__split-dropdown-item--active {
-    color: var(--udoc-primary);
+    background: var(--udoc-primary-active-bg);
+}
+
+.udoc-viewer-root .udoc-toolbar__split-dropdown-item--active:hover {
+    background: var(--udoc-primary-active-bg-hover);
 }
 
 .udoc-viewer-root .udoc-toolbar__split-dropdown-icon {
@@ -1170,12 +1177,11 @@
 
 /* Tool set buttons active state */
 .udoc-viewer-root .udoc-toolbar__btn--tool-active {
-    background: var(--udoc-primary-bg);
-    color: var(--udoc-primary);
+    background: var(--udoc-primary-active-bg);
 }
 
 .udoc-viewer-root .udoc-toolbar__btn--tool-active:hover {
-    background: var(--udoc-primary-bg);
+    background: var(--udoc-primary-active-bg-hover);
 }
 
 /* ===== Sub-toolbar (tool options bar) ===== */
@@ -1236,12 +1242,11 @@
 }
 
 .udoc-viewer-root .udoc-subtoolbar__btn--active {
-    background: var(--udoc-primary-bg);
-    color: var(--udoc-primary);
+    background: var(--udoc-primary-active-bg);
 }
 
 .udoc-viewer-root .udoc-subtoolbar__btn--active:hover {
-    background: var(--udoc-primary-bg);
+    background: var(--udoc-primary-active-bg-hover);
 }
 
 .udoc-viewer-root .udoc-subtoolbar__btn svg {
@@ -1305,7 +1310,11 @@
 }
 
 .udoc-viewer-root .udoc-subtoolbar__width-btn--active {
-    background: var(--udoc-primary-bg);
+    background: var(--udoc-primary-active-bg);
+}
+
+.udoc-viewer-root .udoc-subtoolbar__width-btn--active:hover {
+    background: var(--udoc-primary-active-bg-hover);
 }
 
 .udoc-viewer-root .udoc-subtoolbar__width-line {
