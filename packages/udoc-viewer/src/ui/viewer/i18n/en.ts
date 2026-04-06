@@ -172,4 +172,30 @@ export const en: TranslationKeys = {
     "rightPanel.searchPanel": "Search panel",
     "rightPanel.commentsPanel": "Comments panel",
     "rightPanel.resizeHandle": "Resize panel",
+
+    // Tools
+    "tools.pointer": "Pointer",
+    "tools.hand": "Hand",
+    "tools.zoom": "Zoom",
+    "tools.annotate": "Annotate",
+    "tools.markup": "Markup",
+    "tools.subtoolbar": "Tool options",
+    // Annotate sub-tools
+    "tools.freehand": "Freehand",
+    "tools.line": "Line",
+    "tools.arrow": "Arrow",
+    "tools.rectangle": "Rectangle",
+    "tools.ellipse": "Ellipse",
+    "tools.polygon": "Polygon",
+    "tools.textbox": "Text box",
+    // Markup sub-tools
+    "tools.highlight": "Highlight",
+    "tools.underline": "Underline",
+    "tools.strikethrough": "Strikethrough",
+    "tools.squiggly": "Squiggly",
+    // Tool options
+    "tools.strokeColor": "Stroke color",
+    "tools.fillColor": "Fill color",
+    "tools.strokeWidth": "Stroke width",
+    "tools.opacity": "Opacity",
 };

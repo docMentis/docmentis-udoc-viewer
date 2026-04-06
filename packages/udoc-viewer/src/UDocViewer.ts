@@ -27,6 +27,7 @@ import {
     type ThemeMode,
     type VisibilityGroup,
     type SearchMatch,
+    type ActiveTool,
 } from "./ui/viewer/state.js";
 import { PerformanceCounter, NoOpPerformanceCounter, type IPerformanceCounter } from "./performance/index.js";
 
@@ -354,6 +355,20 @@ export class UDocViewer {
         if (disabled.length > 0) {
             overrides.disabledPanels = new Set(disabled);
         }
+
+        // Collect disabled tools into the internal Set
+        // Default: all disabled. Only remove from the set when explicitly not disabled (false).
+        const disabledTools: ActiveTool[] = [];
+        if (options.disableViewTools !== false) {
+            disabledTools.push("pointer", "hand", "zoom");
+        }
+        if (options.disableAnnotateTools !== false) {
+            disabledTools.push("annotate");
+        }
+        if (options.disableMarkupTools !== false) {
+            disabledTools.push("markup");
+        }
+        overrides.disabledTools = new Set(disabledTools);
 
         return overrides;
     }

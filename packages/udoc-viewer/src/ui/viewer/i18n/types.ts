@@ -170,4 +170,30 @@ export interface TranslationKeys {
     "rightPanel.searchPanel": string;
     "rightPanel.commentsPanel": string;
     "rightPanel.resizeHandle": string;
+
+    // Tools
+    "tools.pointer": string;
+    "tools.hand": string;
+    "tools.zoom": string;
+    "tools.annotate": string;
+    "tools.markup": string;
+    "tools.subtoolbar": string;
+    // Annotate sub-tools
+    "tools.freehand": string;
+    "tools.line": string;
+    "tools.arrow": string;
+    "tools.rectangle": string;
+    "tools.ellipse": string;
+    "tools.polygon": string;
+    "tools.textbox": string;
+    // Markup sub-tools
+    "tools.highlight": string;
+    "tools.underline": string;
+    "tools.strikethrough": string;
+    "tools.squiggly": string;
+    // Tool options
+    "tools.strokeColor": string;
+    "tools.fillColor": string;
+    "tools.strokeWidth": string;
+    "tools.opacity": string;
 }

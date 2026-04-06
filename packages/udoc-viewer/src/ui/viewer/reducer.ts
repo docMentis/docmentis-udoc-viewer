@@ -1,5 +1,5 @@
-import type { ViewerState } from "./state";
-import { initialState, isLeftPanelTab } from "./state";
+import type { ViewerState, ToolSet } from "./state";
+import { initialState, isLeftPanelTab, isToolSet, DEFAULT_TOOL_OPTIONS } from "./state";
 import type { Action } from "./actions";
 import { destinationToNavigationTarget } from "./navigation";
 
@@ -532,6 +532,46 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
         case "ENABLE_PANEL_TRANSITIONS": {
             if (!state.panelTransitionsDisabled) return state;
             return { ...state, panelTransitionsDisabled: false };
+        }
+
+        // Tools
+        case "SET_ACTIVE_TOOL": {
+            const tool = action.tool;
+            if (state.activeTool === tool) {
+                // Clicking the same tool set again → back to pointer
+                if (isToolSet(tool)) {
+                    return { ...state, activeTool: "pointer", activeSubTool: null };
+                }
+                return state;
+            }
+            if (isToolSet(tool)) {
+                // Activate tool set with last-used sub-tool
+                const subTool = state.lastSubToolPerSet[tool];
+                return { ...state, activeTool: tool, activeSubTool: subTool };
+            }
+            // Simple tool
+            return { ...state, activeTool: tool, activeSubTool: null };
+        }
+        case "SET_SUB_TOOL": {
+            const activeTool = state.activeTool;
+            if (!isToolSet(activeTool)) return state;
+            if (state.activeSubTool === action.subTool) return state;
+            return {
+                ...state,
+                activeSubTool: action.subTool,
+                lastSubToolPerSet: {
+                    ...state.lastSubToolPerSet,
+                    [activeTool as ToolSet]: action.subTool,
+                },
+            };
+        }
+        case "SET_TOOL_OPTION": {
+            const current = state.toolOptions[action.subTool] ?? { ...DEFAULT_TOOL_OPTIONS };
+            const updated = { ...current, [action.key]: action.value };
+            return {
+                ...state,
+                toolOptions: { ...state.toolOptions, [action.subTool]: updated },
+            };
         }
 
         default:

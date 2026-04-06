@@ -1085,6 +1085,244 @@
     top: calc(100% + 8px);
 }
 
+/* ===== Tool buttons (pointer split button & tool set buttons) ===== */
+
+/* Split button container */
+.udoc-viewer-root .udoc-toolbar__split-btn {
+    position: relative;
+    display: flex;
+    align-items: center;
+    border-radius: 4px;
+}
+
+.udoc-viewer-root .udoc-toolbar__split-btn--active .udoc-toolbar__split-btn-main {
+    background: var(--udoc-primary-bg);
+    color: var(--udoc-primary);
+}
+
+.udoc-viewer-root .udoc-toolbar__split-btn-main {
+    width: 26px;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.udoc-viewer-root .udoc-toolbar__split-btn-drop {
+    width: 16px;
+    padding: 0;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+.udoc-viewer-root .udoc-toolbar__split-btn-drop svg {
+    width: 12px;
+    height: 12px;
+}
+
+/* Split button dropdown */
+.udoc-viewer-root .udoc-toolbar__split-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    min-width: 140px;
+    background: var(--udoc-bg-surface);
+    border: 1px solid var(--udoc-border);
+    border-radius: 8px;
+    box-shadow: var(--udoc-shadow-dialog);
+    padding: 4px 0;
+    z-index: 80;
+}
+
+.udoc-viewer-root .udoc-toolbar__split-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 6px 12px;
+    border: none;
+    background: transparent;
+    color: var(--udoc-text-body);
+    font-size: 13px;
+    cursor: pointer;
+    text-align: left;
+}
+
+.udoc-viewer-root .udoc-toolbar__split-dropdown-item:hover {
+    background: var(--udoc-hover-overlay);
+}
+
+.udoc-viewer-root .udoc-toolbar__split-dropdown-item--active {
+    color: var(--udoc-primary);
+}
+
+.udoc-viewer-root .udoc-toolbar__split-dropdown-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+.udoc-viewer-root .udoc-toolbar__split-dropdown-icon svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* Tool set buttons active state */
+.udoc-viewer-root .udoc-toolbar__btn--tool-active {
+    background: var(--udoc-primary-bg);
+    color: var(--udoc-primary);
+}
+
+.udoc-viewer-root .udoc-toolbar__btn--tool-active:hover {
+    background: var(--udoc-primary-bg);
+}
+
+/* ===== Sub-toolbar (tool options bar) ===== */
+
+.udoc-viewer-root .udoc-subtoolbar-slot {
+    flex: 0 0 auto;
+    position: relative;
+    z-index: 10;
+}
+
+.udoc-viewer-root .udoc-subtoolbar {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    height: 40px;
+    padding: 0 8px;
+    background: var(--udoc-bg-panel);
+    border-bottom: 1px solid var(--udoc-border);
+}
+
+.udoc-viewer-root .udoc-subtoolbar__tools {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.udoc-viewer-root .udoc-subtoolbar__divider {
+    width: 1px;
+    height: 20px;
+    background: var(--udoc-border);
+    margin: 0 4px;
+}
+
+.udoc-viewer-root .udoc-subtoolbar__options {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    overflow-x: auto;
+}
+
+.udoc-viewer-root .udoc-subtoolbar__btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--udoc-text-body);
+    cursor: pointer;
+}
+
+.udoc-viewer-root .udoc-subtoolbar__btn:hover {
+    background: var(--udoc-hover-overlay);
+}
+
+.udoc-viewer-root .udoc-subtoolbar__btn--active {
+    background: var(--udoc-primary-bg);
+    color: var(--udoc-primary);
+}
+
+.udoc-viewer-root .udoc-subtoolbar__btn--active:hover {
+    background: var(--udoc-primary-bg);
+}
+
+.udoc-viewer-root .udoc-subtoolbar__btn svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* Tool option groups */
+.udoc-viewer-root .udoc-subtoolbar__option-group {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.udoc-viewer-root .udoc-subtoolbar__option-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--udoc-text-muted);
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+    margin-right: 2px;
+}
+
+/* Color swatches */
+.udoc-viewer-root .udoc-subtoolbar__color-swatch {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    background: var(--swatch-color);
+    cursor: pointer;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.udoc-viewer-root .udoc-subtoolbar__color-swatch:hover {
+    border-color: var(--udoc-text-muted);
+}
+
+.udoc-viewer-root .udoc-subtoolbar__color-swatch--active {
+    border-color: var(--udoc-primary);
+}
+
+/* Stroke width buttons */
+.udoc-viewer-root .udoc-subtoolbar__width-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    cursor: pointer;
+}
+
+.udoc-viewer-root .udoc-subtoolbar__width-btn:hover {
+    background: var(--udoc-hover-overlay);
+}
+
+.udoc-viewer-root .udoc-subtoolbar__width-btn--active {
+    background: var(--udoc-primary-bg);
+}
+
+.udoc-viewer-root .udoc-subtoolbar__width-line {
+    display: block;
+    width: 16px;
+    border-radius: 1px;
+    background: var(--udoc-text-body);
+}
+
+/* Opacity slider */
+.udoc-viewer-root .udoc-subtoolbar__opacity-slider {
+    width: 80px;
+    height: 4px;
+    cursor: pointer;
+    accent-color: var(--udoc-primary);
+}
+
 /* Right Panel */
 .udoc-viewer-root .udoc-right-panel {
     position: relative;

@@ -10,6 +10,8 @@ import type {
     SearchMatch,
     ThemeMode,
     VisibilityGroup,
+    ActiveTool,
+    SubTool,
 } from "./state";
 import type { Destination, OutlineItem, ScrollAlignment } from "./navigation";
 import type { Annotation } from "./annotation";
@@ -128,4 +130,8 @@ export type Action =
     | { type: "SHOW_PRINT_DIALOG" }
     | { type: "HIDE_PRINT_DIALOG" }
     // Panel transitions
-    | { type: "ENABLE_PANEL_TRANSITIONS" };
+    | { type: "ENABLE_PANEL_TRANSITIONS" }
+    // Tools
+    | { type: "SET_ACTIVE_TOOL"; tool: ActiveTool }
+    | { type: "SET_SUB_TOOL"; subTool: SubTool }
+    | { type: "SET_TOOL_OPTION"; subTool: string; key: string; value: string | number | null };

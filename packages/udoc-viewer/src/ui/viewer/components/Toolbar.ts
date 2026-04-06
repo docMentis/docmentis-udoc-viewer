@@ -2,8 +2,8 @@ import type { Store } from "../../framework/store";
 import { subscribeSelector } from "../../framework/selectors";
 import { on } from "../../framework/events";
 import type { I18n } from "../i18n/index.js";
-import type { ViewerState, ZoomMode, PanelTab, LeftPanelTab, ThemeMode } from "../state";
-import { isLeftPanelTab } from "../state";
+import type { ViewerState, ZoomMode, PanelTab, LeftPanelTab, ThemeMode, ActiveTool, SimpleTool } from "../state";
+import { isLeftPanelTab, isToolSet } from "../state";
 import type { Action } from "../actions";
 import { setupRovingTabindex } from "../a11y";
 import {
@@ -23,6 +23,11 @@ import {
     ICON_THEME_SYSTEM,
     ICON_DOWNLOAD,
     ICON_PRINT,
+    ICON_TOOL_POINTER,
+    ICON_TOOL_HAND,
+    ICON_TOOL_ZOOM,
+    ICON_TOOL_ANNOTATE,
+    ICON_TOOL_MARKUP,
 } from "../icons";
 import { createViewModeMenu } from "./ViewModeMenu";
 
@@ -65,6 +70,9 @@ interface ToolbarSlice {
     zoomMode: ZoomMode;
     effectiveZoom: number | null;
     zoomSteps: readonly number[];
+    // Tools
+    disabledTools: ReadonlySet<ActiveTool>;
+    activeTool: ActiveTool;
 }
 
 function sliceEqual(a: ToolbarSlice, b: ToolbarSlice): boolean {
@@ -85,7 +93,9 @@ function sliceEqual(a: ToolbarSlice, b: ToolbarSlice): boolean {
         a.zoom === b.zoom &&
         a.zoomMode === b.zoomMode &&
         a.effectiveZoom === b.effectiveZoom &&
-        a.zoomSteps === b.zoomSteps
+        a.zoomSteps === b.zoomSteps &&
+        a.disabledTools === b.disabledTools &&
+        a.activeTool === b.activeTool
     );
 }
 
@@ -108,6 +118,8 @@ function selectSlice(state: ViewerState): ToolbarSlice {
         zoomMode: state.zoomMode,
         effectiveZoom: state.effectiveZoom,
         zoomSteps: state.zoomSteps,
+        disabledTools: state.disabledTools,
+        activeTool: state.activeTool,
     };
 }
 
@@ -121,7 +133,36 @@ export function createToolbar() {
     const leftSection = document.createElement("div");
     leftSection.className = "udoc-toolbar__left";
     const menuBtn = createButton("udoc-toolbar__btn--menu", "Menu", ICON_MENU);
-    leftSection.appendChild(menuBtn);
+
+    // Pointer split button
+    const pointerSplitBtn = document.createElement("div");
+    pointerSplitBtn.className = "udoc-toolbar__split-btn";
+
+    const pointerMainBtn = document.createElement("button");
+    pointerMainBtn.className = "udoc-toolbar__btn udoc-toolbar__split-btn-main";
+    pointerMainBtn.innerHTML = ICON_TOOL_POINTER;
+
+    const pointerDropBtn = document.createElement("button");
+    pointerDropBtn.className = "udoc-toolbar__btn udoc-toolbar__split-btn-drop";
+    pointerDropBtn.innerHTML = ICON_CHEVRON_DOWN;
+    pointerDropBtn.setAttribute("aria-haspopup", "true");
+    pointerDropBtn.setAttribute("aria-expanded", "false");
+
+    const pointerDropdown = document.createElement("div");
+    pointerDropdown.className = "udoc-toolbar__split-dropdown";
+    pointerDropdown.style.display = "none";
+
+    pointerSplitBtn.append(pointerMainBtn, pointerDropBtn, pointerDropdown);
+
+    // Tool set buttons
+    const annotateBtn = createButton(
+        "udoc-toolbar__btn--tool udoc-toolbar__btn--annotate",
+        "Annotate",
+        ICON_TOOL_ANNOTATE,
+    );
+    const markupBtn = createButton("udoc-toolbar__btn--tool udoc-toolbar__btn--markup", "Markup", ICON_TOOL_MARKUP);
+
+    leftSection.append(menuBtn, pointerSplitBtn, annotateBtn, markupBtn);
 
     // Center section (inline controls — visible when floating toolbar is hidden)
     const centerSection = document.createElement("div");
@@ -408,6 +449,106 @@ export function createToolbar() {
 
         // Roving tabindex: single Tab stop, arrow keys between buttons
         rovingTabindex = setupRovingTabindex(el, ".udoc-toolbar__btn, .udoc-toolbar__btn--nav, input");
+
+        // --- Tool buttons ---
+        const SIMPLE_TOOLS: Array<{ tool: SimpleTool; icon: string; labelKey: string }> = [
+            { tool: "pointer", icon: ICON_TOOL_POINTER, labelKey: "tools.pointer" },
+            { tool: "hand", icon: ICON_TOOL_HAND, labelKey: "tools.hand" },
+            { tool: "zoom", icon: ICON_TOOL_ZOOM, labelKey: "tools.zoom" },
+        ];
+
+        // Track last-used simple tool for the split button icon
+        let lastSimpleTool: SimpleTool = "pointer";
+        let isPointerDropdownOpen = false;
+
+        const openPointerDropdown = () => {
+            if (!isPointerDropdownOpen) {
+                isPointerDropdownOpen = true;
+                pointerDropdown.style.display = "block";
+                pointerDropBtn.setAttribute("aria-expanded", "true");
+            }
+        };
+
+        const closePointerDropdown = () => {
+            if (isPointerDropdownOpen) {
+                isPointerDropdownOpen = false;
+                pointerDropdown.style.display = "none";
+                pointerDropBtn.setAttribute("aria-expanded", "false");
+            }
+        };
+
+        // Build pointer dropdown items
+        function buildPointerDropdown(): void {
+            pointerDropdown.innerHTML = "";
+            for (const st of SIMPLE_TOOLS) {
+                const item = document.createElement("button");
+                item.className = "udoc-toolbar__split-dropdown-item";
+                const state = store.getState();
+                const isActive = state.activeTool === st.tool;
+                if (isActive) item.classList.add("udoc-toolbar__split-dropdown-item--active");
+                item.innerHTML = `<span class="udoc-toolbar__split-dropdown-icon">${st.icon}</span><span>${i18n.t(st.labelKey as keyof typeof i18n.t)}</span>`;
+                item.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    lastSimpleTool = st.tool;
+                    store.dispatch({ type: "SET_ACTIVE_TOOL", tool: st.tool });
+                    closePointerDropdown();
+                });
+                pointerDropdown.appendChild(item);
+            }
+        }
+
+        // Apply i18n to tool buttons
+        pointerMainBtn.title = i18n.t("tools.pointer");
+        pointerMainBtn.setAttribute("aria-label", i18n.t("tools.pointer"));
+        pointerDropBtn.title = i18n.t("tools.pointer");
+        pointerDropBtn.setAttribute("aria-label", i18n.t("tools.pointer"));
+        annotateBtn.title = i18n.t("tools.annotate");
+        annotateBtn.setAttribute("aria-label", i18n.t("tools.annotate"));
+        markupBtn.title = i18n.t("tools.markup");
+        markupBtn.setAttribute("aria-label", i18n.t("tools.markup"));
+
+        // Pointer main button: activate last-used simple tool
+        const onPointerMainClick = () => {
+            store.dispatch({ type: "SET_ACTIVE_TOOL", tool: lastSimpleTool });
+        };
+        pointerMainBtn.addEventListener("click", onPointerMainClick);
+        unsubEvents.push(() => pointerMainBtn.removeEventListener("click", onPointerMainClick));
+
+        // Pointer dropdown toggle
+        const onPointerDropClick = (e: MouseEvent) => {
+            e.stopPropagation();
+            if (isPointerDropdownOpen) {
+                closePointerDropdown();
+            } else {
+                buildPointerDropdown();
+                openPointerDropdown();
+            }
+        };
+        pointerDropBtn.addEventListener("click", onPointerDropClick);
+        unsubEvents.push(() => pointerDropBtn.removeEventListener("click", onPointerDropClick));
+
+        // Close pointer dropdown on outside click
+        const handlePointerOutsideClick = (e: MouseEvent) => {
+            if (!pointerSplitBtn.contains(e.target as Node)) {
+                closePointerDropdown();
+            }
+        };
+        document.addEventListener("click", handlePointerOutsideClick);
+        unsubEvents.push(() => document.removeEventListener("click", handlePointerOutsideClick));
+
+        // Annotate button
+        const onAnnotateClick = () => {
+            store.dispatch({ type: "SET_ACTIVE_TOOL", tool: "annotate" });
+        };
+        annotateBtn.addEventListener("click", onAnnotateClick);
+        unsubEvents.push(() => annotateBtn.removeEventListener("click", onAnnotateClick));
+
+        // Markup button
+        const onMarkupClick = () => {
+            store.dispatch({ type: "SET_ACTIVE_TOOL", tool: "markup" });
+        };
+        markupBtn.addEventListener("click", onMarkupClick);
+        unsubEvents.push(() => markupBtn.removeEventListener("click", onMarkupClick));
 
         // Wire menu button to toggle the first available left panel tab
         const onMenuClick = () => {
@@ -705,6 +846,38 @@ export function createToolbar() {
                     });
                     overflowDropdown.appendChild(menuItem);
                 }
+            }
+
+            // Tool buttons visibility (per-tool disabled check)
+            const anySimpleEnabled =
+                !slice.disabledTools.has("pointer") ||
+                !slice.disabledTools.has("hand") ||
+                !slice.disabledTools.has("zoom");
+            pointerSplitBtn.style.display = anySimpleEnabled ? "flex" : "none";
+            annotateBtn.style.display = slice.disabledTools.has("annotate") ? "none" : "";
+            markupBtn.style.display = slice.disabledTools.has("markup") ? "none" : "";
+
+            // Tool button active states
+            {
+                const tool = slice.activeTool;
+                // Pointer split button: active when any simple tool is active
+                const simpleActive = !isToolSet(tool);
+                pointerSplitBtn.classList.toggle("udoc-toolbar__split-btn--active", simpleActive);
+
+                // Update pointer main button icon to reflect the active simple tool
+                if (simpleActive) {
+                    lastSimpleTool = tool as SimpleTool;
+                    const toolDef = SIMPLE_TOOLS.find((t) => t.tool === tool);
+                    if (toolDef) {
+                        pointerMainBtn.innerHTML = toolDef.icon;
+                        pointerMainBtn.title = i18n.t(toolDef.labelKey as keyof typeof i18n.t);
+                        pointerMainBtn.setAttribute("aria-label", i18n.t(toolDef.labelKey as keyof typeof i18n.t));
+                    }
+                }
+
+                // Annotate / Markup toggle
+                annotateBtn.classList.toggle("udoc-toolbar__btn--tool-active", tool === "annotate");
+                markupBtn.classList.toggle("udoc-toolbar__btn--tool-active", tool === "markup");
             }
 
             // Center section visibility (show when floating toolbar is hidden)

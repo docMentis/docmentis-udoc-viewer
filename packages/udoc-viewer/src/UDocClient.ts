@@ -384,6 +384,24 @@ export interface ViewerOptions {
     maxZoom?: number;
 
     /**
+     * Disable the view tools (pointer, hand, zoom) in the toolbar.
+     * @default true
+     */
+    disableViewTools?: boolean;
+
+    /**
+     * Disable the annotation tool set (freehand, line, arrow, shapes, text box).
+     * @default true
+     */
+    disableAnnotateTools?: boolean;
+
+    /**
+     * Disable the markup tool set (highlight, underline, strikethrough, squiggly).
+     * @default true
+     */
+    disableMarkupTools?: boolean;
+
+    /**
      * Enable slide transition animations for PPTX documents.
      * When true, transitions defined in the presentation will play
      * when navigating between slides in spread (single-page) mode.

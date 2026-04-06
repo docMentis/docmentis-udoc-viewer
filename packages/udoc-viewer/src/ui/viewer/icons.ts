@@ -89,6 +89,42 @@ export const ICON_DOWNLOAD = `<svg viewBox="0 0 24 24" fill="currentColor"><path
 // Print icon
 export const ICON_PRINT = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/></svg>`;
 
+// Tool icons — simple tools
+export const ICON_TOOL_POINTER = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 2l12 11.2-5.8.5 3.3 7.3-2.2 1-3.2-7.4L7 18.5V2z"/></svg>`;
+
+export const ICON_TOOL_HAND = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 13c0 3.31-2.69 6-6 6s-6-2.69-6-6V6c0-.55.45-1 1-1s1 .45 1 1v5h1V3c0-.55.45-1 1-1s1 .45 1 1v8h1V3c0-.55.45-1 1-1s1 .45 1 1v8h1V5c0-.55.45-1 1-1s1 .45 1 1v8h1V9c0-.55.45-1 1-1s1 .45 1 1v4z"/></svg>`;
+
+export const ICON_TOOL_ZOOM = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14zM12 10h-2v2H9v-2H7V9h2V7h1v2h2v1z"/></svg>`;
+
+// Tool icons — tool set buttons
+export const ICON_TOOL_ANNOTATE = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1.003 1.003 0 0 0 0-1.42l-2.34-2.34a1.003 1.003 0 0 0-1.42 0l-1.83 1.83 3.75 3.75 1.84-1.82z"/></svg>`;
+
+export const ICON_TOOL_MARKUP = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.5 1.15C17.97 1.15 17.47 1.36 17.09 1.74L11 7.83V15H18.17L24.26 8.91C25.04 8.13 25.04 6.87 24.26 6.09L19.91 1.74C19.53 1.36 19.03 1.15 18.5 1.15M18.5 3.16L20.84 5.5L18.17 8.17L15.83 5.83L18.5 3.16M10 1H4C2.89 1 2 1.89 2 3V21C2 22.11 2.89 23 4 23H20C21.11 23 22 22.11 22 21V13H20V21H4V3H10V1z"/></svg>`;
+
+// Annotate sub-tool icons
+export const ICON_SUBTOOL_FREEHAND = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17c1-2 3-6 5-6s2 4 4 4 3-5 5-5 2 3 4 3"/></svg>`;
+
+export const ICON_SUBTOOL_LINE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="5" y1="19" x2="19" y2="5"/></svg>`;
+
+export const ICON_SUBTOOL_ARROW = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="19" x2="19" y2="5"/><polyline points="12 5 19 5 19 12"/></svg>`;
+
+export const ICON_SUBTOOL_RECTANGLE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="5" width="16" height="14" rx="1"/></svg>`;
+
+export const ICON_SUBTOOL_ELLIPSE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="12" rx="9" ry="7"/></svg>`;
+
+export const ICON_SUBTOOL_POLYGON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><polygon points="12 3 21 10 18 20 6 20 3 10"/></svg>`;
+
+export const ICON_SUBTOOL_TEXTBOX = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 4v3h5.5v12h3V7H19V4z"/></svg>`;
+
+// Markup sub-tool icons
+export const ICON_SUBTOOL_HIGHLIGHT = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 14l3 3v5h6v-5l3-3V9H6v5zm2-3h8v3.17l-3 3V19h-4v-1.83l-3-3V11zm5-10h-2v3h2V1zM3.5 5.88l1.41-1.41 2.12 2.12-1.41 1.41L3.5 5.88zm13.46.71l2.12-2.12 1.41 1.41-2.12 2.12-1.41-1.41z"/></svg>`;
+
+export const ICON_SUBTOOL_UNDERLINE = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 17c3.31 0 6-2.69 6-6V3h-2.5v8c0 1.93-1.57 3.5-3.5 3.5S8.5 12.93 8.5 11V3H6v8c0 3.31 2.69 6 6 6zm-7 2v2h14v-2H5z"/></svg>`;
+
+export const ICON_SUBTOOL_STRIKETHROUGH = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 19h4v-3h-4v3zM5 4v3h5v3h4V7h5V4H5zM3 14h18v-2H3v2z"/></svg>`;
+
+export const ICON_SUBTOOL_SQUIGGLY = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 18c1.5-1.5 2.5-1.5 4 0s2.5 1.5 4 0 2.5-1.5 4 0 2.5 1.5 4 0"/><path d="M6 4v8M10 4v8M14 4v8M18 4v8" stroke-width="1.5"/></svg>`;
+
 // Checkmark icon for selected items
 export const ICON_CHECK = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>`;
 

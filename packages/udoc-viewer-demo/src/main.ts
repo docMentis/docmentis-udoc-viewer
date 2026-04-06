@@ -80,6 +80,9 @@ let client: UDocClient | null = null;
 let gpuEnabled = false;
 let hideAttribution = false;
 let enableTransitions = false;
+let enableViewTools = false;
+let enableAnnotateTools = false;
+let enableMarkupTools = false;
 let currentLocale = "en";
 let currentDocSource: string | File | null = null;
 let currentDocName: string | null = null;
@@ -139,6 +142,9 @@ async function createViewer() {
         container: viewerContainer,
         hideAttribution,
         enableTransitions,
+        disableViewTools: !enableViewTools,
+        disableAnnotateTools: !enableAnnotateTools,
+        disableMarkupTools: !enableMarkupTools,
         locale: currentLocale,
         enablePerformanceCounter: true,
         onPerformanceLog: (entry) => {
@@ -408,6 +414,33 @@ const OPTION_GROUPS: ToggleGroup[] = [
             { label: "Disable Fullscreen", onChange: (c, v) => v.setFullscreenEnabled(!c) },
             { label: "Disable Download", onChange: (c, v) => v.setDownloadEnabled(!c) },
             { label: "Disable Print", onChange: (c, v) => v.setPrintEnabled(!c) },
+        ],
+    },
+    {
+        title: "Tools",
+        options: [
+            {
+                label: "View Tools (Beta)",
+                hint: "Pointer, hand, zoom",
+                onChange: async (checked) => {
+                    enableViewTools = checked;
+                    await createViewer();
+                },
+            },
+            {
+                label: "Annotation Tools (Beta)",
+                onChange: async (checked) => {
+                    enableAnnotateTools = checked;
+                    await createViewer();
+                },
+            },
+            {
+                label: "Markup Tools (Beta)",
+                onChange: async (checked) => {
+                    enableMarkupTools = checked;
+                    await createViewer();
+                },
+            },
         ],
     },
     {

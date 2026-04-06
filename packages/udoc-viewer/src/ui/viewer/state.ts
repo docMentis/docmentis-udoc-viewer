@@ -56,6 +56,56 @@ export type PageRotation = 0 | 90 | 180 | 270;
 export type SpacingMode = "all" | "none" | "spread-only" | "page-only";
 export type ThemeMode = "light" | "dark" | "system";
 
+// -----------------------------------------------------------------------------
+// Tool types
+// -----------------------------------------------------------------------------
+
+/** Simple tools that live directly on the toolbar (no sub-toolbar needed) */
+export type SimpleTool = "pointer" | "hand" | "zoom";
+
+/** Tool sets that expand into a sub-toolbar with sub-tools and options */
+export type ToolSet = "annotate" | "markup";
+
+/** The active tool is either a simple tool or a tool set */
+export type ActiveTool = SimpleTool | ToolSet;
+
+/** Individual annotation sub-tools */
+export type AnnotateSubTool = "freehand" | "line" | "arrow" | "rectangle" | "ellipse" | "polygon" | "textbox";
+
+/** Individual markup sub-tools */
+export type MarkupSubTool = "highlight" | "underline" | "strikethrough" | "squiggly";
+
+/** Any sub-tool */
+export type SubTool = AnnotateSubTool | MarkupSubTool;
+
+/** Per-tool drawing options */
+export interface ToolOptions {
+    strokeColor: string;
+    fillColor: string | null;
+    strokeWidth: number;
+    opacity: number;
+    fontSize?: number;
+}
+
+/** Default sub-tool for each tool set */
+export const DEFAULT_SUB_TOOL: Record<ToolSet, SubTool> = {
+    annotate: "freehand",
+    markup: "highlight",
+};
+
+/** Default tool options */
+export const DEFAULT_TOOL_OPTIONS: ToolOptions = {
+    strokeColor: "#ff0000",
+    fillColor: null,
+    strokeWidth: 2,
+    opacity: 1,
+};
+
+/** Check if an active tool is a tool set (has sub-toolbar) */
+export function isToolSet(tool: ActiveTool): tool is ToolSet {
+    return tool === "annotate" || tool === "markup";
+}
+
 /** Document format as detected during loading */
 export type DocumentFormat = "pdf" | "pptx" | "docx" | "xlsx" | "image";
 
@@ -275,6 +325,18 @@ export interface ViewerState {
 
     /** When true, panel open/close should skip CSS transitions (reset automatically after one frame) */
     panelTransitionsDisabled: boolean;
+
+    // Tools
+    /** Set of tools/tool sets that are disabled (hidden from the UI). All disabled by default until backends are implemented. */
+    disabledTools: ReadonlySet<ActiveTool>;
+    /** Currently active tool (simple tool or tool set) */
+    activeTool: ActiveTool;
+    /** Currently active sub-tool within a tool set (null for simple tools) */
+    activeSubTool: SubTool | null;
+    /** Remembers the last-used sub-tool per tool set */
+    lastSubToolPerSet: Record<ToolSet, SubTool>;
+    /** Per-sub-tool persistent options */
+    toolOptions: Record<string, ToolOptions>;
 }
 
 export const initialState: ViewerState = {
@@ -363,4 +425,10 @@ export const initialState: ViewerState = {
     showPrintDialog: false,
 
     panelTransitionsDisabled: false,
+
+    disabledTools: new Set(["pointer", "hand", "zoom", "annotate", "markup"]),
+    activeTool: "pointer",
+    activeSubTool: null,
+    lastSubToolPerSet: { annotate: "freehand", markup: "highlight" },
+    toolOptions: {},
 };

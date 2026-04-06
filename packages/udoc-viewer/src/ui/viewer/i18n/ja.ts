@@ -171,4 +171,29 @@ export const ja: TranslationKeys = {
     "rightPanel.searchPanel": "検索パネル",
     "rightPanel.commentsPanel": "コメントパネル",
     "rightPanel.resizeHandle": "パネルのサイズ変更",
+    // Tools
+    "tools.pointer": "Pointer",
+    "tools.hand": "Hand",
+    "tools.zoom": "Zoom",
+    "tools.annotate": "Annotate",
+    "tools.markup": "Markup",
+    "tools.subtoolbar": "Tool options",
+    // Annotate sub-tools
+    "tools.freehand": "Freehand",
+    "tools.line": "Line",
+    "tools.arrow": "Arrow",
+    "tools.rectangle": "Rectangle",
+    "tools.ellipse": "Ellipse",
+    "tools.polygon": "Polygon",
+    "tools.textbox": "Text box",
+    // Markup sub-tools
+    "tools.highlight": "Highlight",
+    "tools.underline": "Underline",
+    "tools.strikethrough": "Strikethrough",
+    "tools.squiggly": "Squiggly",
+    // Tool options
+    "tools.strokeColor": "Stroke color",
+    "tools.fillColor": "Fill color",
+    "tools.strokeWidth": "Stroke width",
+    "tools.opacity": "Opacity",
 };

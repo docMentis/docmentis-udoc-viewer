@@ -10,6 +10,7 @@ import { reducer } from "./reducer";
 import { createEffects } from "./effects";
 import type { WorkerClient } from "../../worker/index.js";
 import { createToolbar } from "./components/Toolbar";
+import { createSubToolbar } from "./components/SubToolbar";
 import { createLeftPanel } from "./components/LeftPanel";
 import { createViewport } from "./components/Viewport";
 import { createRightPanel } from "./components/RightPanel";
@@ -67,6 +68,9 @@ export function mountViewerShell(
     const toolbarSlot = document.createElement("div");
     toolbarSlot.className = "udoc-slot udoc-toolbar-slot";
 
+    const subToolbarSlot = document.createElement("div");
+    subToolbarSlot.className = "udoc-slot udoc-subtoolbar-slot";
+
     const bodySlot = document.createElement("div");
     bodySlot.className = "udoc-slot udoc-body-slot";
 
@@ -112,7 +116,7 @@ export function mountViewerShell(
     panelOverlay.className = "udoc-panel-overlay";
 
     bodySlot.append(leftPanelSlot, viewportSlot, rightPanelSlot, panelOverlay);
-    layout.append(skipLink, toolbarSlot, bodySlot);
+    layout.append(skipLink, toolbarSlot, subToolbarSlot, bodySlot);
     root.appendChild(layout);
 
     // Live region for screen reader announcements
@@ -146,6 +150,7 @@ export function mountViewerShell(
         textLoading: new Set(),
         textFailed: new Set(),
         disabledPanels: new Set(),
+        disabledTools: new Set(["pointer", "hand", "zoom", "annotate", "markup"]),
         ...overrides,
     };
 
@@ -153,6 +158,9 @@ export function mountViewerShell(
 
     const toolbar = createToolbar();
     toolbar.mount(toolbarSlot, store, i18n);
+
+    const subToolbar = createSubToolbar();
+    subToolbar.mount(subToolbarSlot, store, i18n);
 
     const leftPanel = createLeftPanel();
     leftPanel.mount(leftPanelSlot, store, workerClient, i18n);
@@ -242,12 +250,15 @@ export function mountViewerShell(
             (focusable ?? target).focus();
         }
 
-        // Close panel or print dialog: Escape
+        // Close panel, print dialog, or deactivate tool: Escape
         if (e.key === "Escape") {
             const state = store.getState();
             if (state.showPrintDialog) {
                 e.preventDefault();
                 store.dispatch({ type: "HIDE_PRINT_DIALOG" });
+            } else if (state.activeTool !== "pointer") {
+                e.preventDefault();
+                store.dispatch({ type: "SET_ACTIVE_TOOL", tool: "pointer" });
             } else if (state.activePanel !== null) {
                 e.preventDefault();
                 store.dispatch({ type: "CLOSE_PANEL" });
@@ -395,6 +406,7 @@ export function mountViewerShell(
         unsubPanelClass();
         effects.destroy();
         toolbar.destroy();
+        subToolbar.destroy();
         leftPanel.destroy();
         viewport.destroy();
         rightPanel.destroy();
