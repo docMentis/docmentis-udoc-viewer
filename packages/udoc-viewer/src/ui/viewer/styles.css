@@ -1416,6 +1416,41 @@
     user-select: none;
 }
 
+/* View tool cursors */
+.udoc-viewer--tool-hand .udoc-viewport__scroll {
+    cursor: grab;
+}
+
+.udoc-viewer--tool-hand-grabbing .udoc-viewport__scroll {
+    cursor: grabbing;
+}
+
+.udoc-viewer--tool-hand .udoc-spread__text-layer,
+.udoc-viewer--tool-hand-grabbing .udoc-spread__text-layer {
+    pointer-events: none;
+}
+
+.udoc-viewer--tool-hand .udoc-text-run,
+.udoc-viewer--tool-hand-grabbing .udoc-text-run {
+    user-select: none;
+}
+
+.udoc-viewer--tool-zoom .udoc-viewport__scroll {
+    cursor: zoom-in;
+}
+
+.udoc-viewer--tool-zoom-out .udoc-viewport__scroll {
+    cursor: zoom-out;
+}
+
+.udoc-viewer--tool-zoom .udoc-spread__text-layer {
+    pointer-events: none;
+}
+
+.udoc-viewer--tool-zoom .udoc-text-run {
+    user-select: none;
+}
+
 /* Annotation Layer */
 .udoc-viewer-root .udoc-spread__annotation-layer {
     position: absolute;
