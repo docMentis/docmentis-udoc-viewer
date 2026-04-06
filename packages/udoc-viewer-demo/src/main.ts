@@ -80,7 +80,7 @@ let client: UDocClient | null = null;
 let gpuEnabled = false;
 let hideAttribution = false;
 let enableTransitions = false;
-let enableViewTools = false;
+let disableViewTools = false;
 let enableAnnotateTools = false;
 let enableMarkupTools = false;
 let currentLocale = "en";
@@ -142,7 +142,7 @@ async function createViewer() {
         container: viewerContainer,
         hideAttribution,
         enableTransitions,
-        disableViewTools: !enableViewTools,
+        disableViewTools,
         disableAnnotateTools: !enableAnnotateTools,
         disableMarkupTools: !enableMarkupTools,
         locale: currentLocale,
@@ -420,10 +420,10 @@ const OPTION_GROUPS: ToggleGroup[] = [
         title: "Tools",
         options: [
             {
-                label: "View Tools (Beta)",
+                label: "Disable View Tools",
                 hint: "Pointer, hand, zoom",
                 onChange: async (checked) => {
-                    enableViewTools = checked;
+                    disableViewTools = checked;
                     await createViewer();
                 },
             },

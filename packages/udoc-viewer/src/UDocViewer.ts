@@ -359,7 +359,7 @@ export class UDocViewer {
         // Collect disabled tools into the internal Set
         // Default: all disabled. Only remove from the set when explicitly not disabled (false).
         const disabledTools: ActiveTool[] = [];
-        if (options.disableViewTools !== false) {
+        if (options.disableViewTools) {
             disabledTools.push("pointer", "hand", "zoom");
         }
         if (options.disableAnnotateTools !== false) {

@@ -426,7 +426,7 @@ export const initialState: ViewerState = {
 
     panelTransitionsDisabled: false,
 
-    disabledTools: new Set(["pointer", "hand", "zoom", "annotate", "markup"]),
+    disabledTools: new Set(["annotate", "markup"]),
     activeTool: "pointer",
     activeSubTool: null,
     lastSubToolPerSet: { annotate: "freehand", markup: "highlight" },

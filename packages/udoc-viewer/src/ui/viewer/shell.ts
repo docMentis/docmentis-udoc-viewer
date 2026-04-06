@@ -150,7 +150,7 @@ export function mountViewerShell(
         textLoading: new Set(),
         textFailed: new Set(),
         disabledPanels: new Set(),
-        disabledTools: new Set(["pointer", "hand", "zoom", "annotate", "markup"]),
+        disabledTools: new Set(["annotate", "markup"]),
         ...overrides,
     };
 

@@ -385,7 +385,7 @@ export interface ViewerOptions {
 
     /**
      * Disable the view tools (pointer, hand, zoom) in the toolbar.
-     * @default true
+     * @default false
      */
     disableViewTools?: boolean;
 
