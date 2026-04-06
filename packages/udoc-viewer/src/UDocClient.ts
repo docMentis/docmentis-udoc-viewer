@@ -134,6 +134,14 @@ export interface ClientOptions {
      * @default false
      */
     disableTelemetry?: boolean;
+
+    /**
+     * Disable checking npm registry for a newer version on startup.
+     * When enabled (default), a background check logs a console reminder
+     * if a newer version is available. Never blocks initialization.
+     * @default false
+     */
+    disableUpdateCheck?: boolean;
 }
 
 /**
@@ -572,6 +580,11 @@ export class UDocClient {
         if (!telemetryDisabled) {
             const distinctId = getOrCreateDistinctId();
             await workerClient.setupTelemetry(distinctId);
+        }
+
+        // Fire-and-forget version check (never blocks initialization)
+        if (!options.disableUpdateCheck) {
+            checkForUpdates(UDocClient.version);
         }
 
         return client;
@@ -1070,6 +1083,28 @@ function removeDistinctId(): void {
     } catch {
         // localStorage unavailable — nothing to remove
     }
+}
+
+/**
+ * Check npm registry for a newer version and log a console reminder.
+ * Silently swallows errors so it never disrupts the app.
+ */
+function checkForUpdates(currentVersion: string): void {
+    fetch("https://registry.npmjs.org/@docmentis/udoc-viewer/latest")
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+            if (!data?.version) return;
+            if (data.version !== currentVersion) {
+                console.warn(
+                    `[udoc-viewer] A newer version is available: ${data.version} (current: ${currentVersion}). ` +
+                        `Update with: npm install @docmentis/udoc-viewer@latest\n` +
+                        `To disable this check, set { disableUpdateCheck: true } in UDocClient.create() options.`,
+                );
+            }
+        })
+        .catch(() => {
+            // Network error — silently ignore
+        });
 }
 
 /**
