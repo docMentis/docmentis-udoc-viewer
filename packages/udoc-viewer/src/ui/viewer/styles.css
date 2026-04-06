@@ -23,13 +23,13 @@
     --udoc-text-placeholder: #999;
     --udoc-text-on-primary: #fff;
 
-    --udoc-primary: #0066cc;
-    --udoc-primary-hover: #0052a3;
-    --udoc-primary-active-bg: rgba(0, 102, 204, 0.15);
-    --udoc-primary-active-bg-hover: rgba(0, 102, 204, 0.2);
-    --udoc-primary-subtle-bg: rgba(0, 102, 204, 0.1);
-    --udoc-primary-focus-ring: rgba(0, 102, 204, 0.2);
-    --udoc-primary-muted: rgba(0, 102, 204, 0.3);
+    --udoc-primary: #333;
+    --udoc-primary-hover: #1a1a1a;
+    --udoc-primary-active-bg: rgba(0, 0, 0, 0.1);
+    --udoc-primary-active-bg-hover: rgba(0, 0, 0, 0.14);
+    --udoc-primary-subtle-bg: rgba(0, 0, 0, 0.06);
+    --udoc-primary-focus-ring: rgba(0, 0, 0, 0.15);
+    --udoc-primary-muted: rgba(0, 0, 0, 0.25);
     --udoc-primary-disabled: #94a3b8;
 
     --udoc-border: #ddd;
@@ -55,7 +55,7 @@
     --udoc-search-highlight-active-outline: rgba(255, 140, 0, 0.8);
     --udoc-search-match-bg: rgba(255, 200, 0, 0.4);
     --udoc-search-match-text: #000;
-    --udoc-search-result-active-bg: rgba(0, 102, 204, 0.08);
+    --udoc-search-result-active-bg: rgba(0, 0, 0, 0.06);
 
     --udoc-text-selection: rgba(0, 120, 215, 0.5);
 
@@ -79,7 +79,7 @@
     --udoc-error-text: #dc2626;
 
     --udoc-progress-track: #e5e7eb;
-    --udoc-progress-fill: #0066cc;
+    --udoc-progress-fill: #333;
 
     --udoc-scrollbar-thumb: rgba(0, 0, 0, 0.3);
     --udoc-scrollbar-thumb-hover: rgba(0, 0, 0, 0.5);
@@ -117,13 +117,13 @@
     --udoc-text-placeholder: #777;
     --udoc-text-on-primary: #fff;
 
-    --udoc-primary: #4da6ff;
-    --udoc-primary-hover: #80bfff;
-    --udoc-primary-active-bg: rgba(77, 166, 255, 0.2);
-    --udoc-primary-active-bg-hover: rgba(77, 166, 255, 0.25);
-    --udoc-primary-subtle-bg: rgba(77, 166, 255, 0.12);
-    --udoc-primary-focus-ring: rgba(77, 166, 255, 0.25);
-    --udoc-primary-muted: rgba(77, 166, 255, 0.35);
+    --udoc-primary: #e0e0e0;
+    --udoc-primary-hover: #f0f0f0;
+    --udoc-primary-active-bg: rgba(255, 255, 255, 0.12);
+    --udoc-primary-active-bg-hover: rgba(255, 255, 255, 0.16);
+    --udoc-primary-subtle-bg: rgba(255, 255, 255, 0.07);
+    --udoc-primary-focus-ring: rgba(255, 255, 255, 0.2);
+    --udoc-primary-muted: rgba(255, 255, 255, 0.3);
     --udoc-primary-disabled: #4a5568;
 
     --udoc-border: #444;
@@ -149,7 +149,7 @@
     --udoc-search-highlight-active-outline: rgba(255, 140, 0, 0.85);
     --udoc-search-match-bg: rgba(255, 200, 0, 0.3);
     --udoc-search-match-text: #fff;
-    --udoc-search-result-active-bg: rgba(77, 166, 255, 0.12);
+    --udoc-search-result-active-bg: rgba(255, 255, 255, 0.08);
 
     --udoc-text-selection: rgba(77, 166, 255, 0.5);
 
@@ -173,7 +173,7 @@
     --udoc-error-text: #f87171;
 
     --udoc-progress-track: #404040;
-    --udoc-progress-fill: #4da6ff;
+    --udoc-progress-fill: #e0e0e0;
 
     --udoc-scrollbar-thumb: rgba(255, 255, 255, 0.3);
     --udoc-scrollbar-thumb-hover: rgba(255, 255, 255, 0.5);
@@ -2795,7 +2795,7 @@
         --udoc-border-input: #000;
         --udoc-text-muted: rgba(0, 0, 0, 0.7);
         --udoc-text-faint: rgba(0, 0, 0, 0.6);
-        --udoc-primary-focus-ring: rgba(0, 102, 204, 0.5);
+        --udoc-primary-focus-ring: rgba(0, 0, 0, 0.4);
     }
 
     .udoc-viewer-root.udoc-viewer-dark {
@@ -2803,7 +2803,7 @@
         --udoc-border-input: #aaa;
         --udoc-text-muted: rgba(255, 255, 255, 0.7);
         --udoc-text-faint: rgba(255, 255, 255, 0.6);
-        --udoc-primary-focus-ring: rgba(77, 166, 255, 0.5);
+        --udoc-primary-focus-ring: rgba(255, 255, 255, 0.45);
     }
 
     .udoc-viewer-root :focus-visible {
