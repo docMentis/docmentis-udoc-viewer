@@ -6,6 +6,45 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+### Features
+
+- Add startup version check with opt-out via `disableUpdateCheck`
+- Enable view tools by default with pointer, hand pan, and zoom click modes
+- Implement view tools toolbar with pointer split button, annotation and markup tool sets
+- Bar and column chart rendering with stacked/percent-stacked layouts (engine)
+- Line and area chart rendering (engine)
+- Pie, doughnut, Pie of Pie, and Bar of Pie chart rendering (engine)
+- Scatter and bubble chart rendering (engine)
+- Chart title rendering with real glyph measurement (engine)
+- Data label rendering on bar charts with formatting (engine)
+- Per-data-point legend entries with grid layout and row wrapping (engine)
+- Chart style and color style (`cs:chartStyle`, `cs:colorStyle`) support (engine)
+- Background fill support for chart titles and axis labels (engine)
+- Multi-level category labels (`multiLvlStrRef`) and right-aligned bar chart labels (engine)
+
+### Bug Fixes
+
+- Raise toolbar slot z-index so view tools dropdown appears above subtoolbar
+- Standardize active tool styles to match existing design pattern
+- Allow viewer's own panels to cover attribution logo
+- Remove box-shadow from footer toolbar on mobile
+- Isolate viewer stacking context to prevent z-index leaking into host page
+- Reverse secondary chart order in OfPie to match PowerPoint (engine)
+- Connect OfPie lines to top/bottom of secondary chart (engine)
+- Tune chart layout margins, padding, and legend sizing for better fidelity (engine)
+- Align legend swatches to text baseline and use actual label height (engine)
+- Suppress axis line when spPr has noFill stroke (engine)
+- Use series name as auto-title for single-series charts and add pie plot padding (engine)
+- Apply defRPr styling to chart-generated text (engine)
+- Correct bottom axis space for horizontal bar charts (engine)
+- Reverse category axis direction for horizontal bar charts (engine)
+
+### Refactors
+
+- Replace blue primary color with monochrome neutrals
+- Unify toolbar styles and standardize button sizes to 32px
+- Normalize z-index scale to 10-step increments with gaps for future layers
+
 ## [0.6.21] - 2026-04-02
 
 ### Features
