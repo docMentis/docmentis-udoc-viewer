@@ -6,6 +6,8 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+## [0.6.22] - 2026-04-06
+
 ### Features
 
 - Add startup version check with opt-out via `disableUpdateCheck`
