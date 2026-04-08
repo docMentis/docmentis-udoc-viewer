@@ -14,7 +14,7 @@ import {
 import type { Action } from "../actions";
 import type { NavigationTarget, Destination } from "../navigation";
 import { showAnnotationPopup, closeAnnotationPopup, type Annotation } from "../annotation";
-import type { JsLayoutPage } from "../../../wasm/udoc.js";
+import type { LayoutPage } from "../../../worker/index.js";
 import type { WorkerClient } from "../../../worker/index.js";
 import type { I18n } from "../i18n/index.js";
 import {
@@ -55,7 +55,7 @@ interface ViewportSlice {
     spreadSpacing: number;
     pageAnnotations: Map<number, Annotation[]>;
     highlightedAnnotation: HighlightedAnnotation | null;
-    pageText: Map<number, JsLayoutPage>;
+    pageText: Map<number, LayoutPage>;
     searchMatches: SearchMatch[];
     searchActiveIndex: number;
 }

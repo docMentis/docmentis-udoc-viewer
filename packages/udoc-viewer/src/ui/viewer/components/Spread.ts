@@ -4,7 +4,7 @@ import { getPointsToPixels, type PageRotation, type PageInfo } from "../state";
 import { getDevicePixelRatio, toCssPixels, toDevicePixels, snapToDevice } from "../layout";
 import { renderAnnotationsToLayer, type Annotation } from "../annotation";
 import { renderTextToLayer, attachSelectionController } from "../text";
-import type { JsLayoutPage } from "../../../wasm/udoc.js";
+import type { LayoutPage } from "../../../worker/index.js";
 import type { SearchMatch } from "../state";
 import type { I18n } from "../i18n/index.js";
 
@@ -49,7 +49,7 @@ interface PageSlotElement {
     /** Last highlighted annotation bounds (for change detection) */
     lastHighlightedBounds: HighlightedAnnotation["bounds"] | null;
     /** Last rendered text runs (for change detection) */
-    lastTextLayout: JsLayoutPage | null;
+    lastTextLayout: LayoutPage | null;
     /** Last scale used for text rendering */
     lastTextScale: number;
     /** Cleanup function for text selection controller */
@@ -647,7 +647,7 @@ export function createSpread(data: SpreadData, showAttribution = true, i18n?: I1
         }
     }
 
-    function updateTextLayer(textContent: Map<number, JsLayoutPage>, options: SpreadLayoutOptions): void {
+    function updateTextLayer(textContent: Map<number, LayoutPage>, options: SpreadLayoutOptions): void {
         const pointsToPixels = getPointsToPixels(options.dpi);
         const scale = pointsToPixels * options.scale;
 

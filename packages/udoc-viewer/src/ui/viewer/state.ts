@@ -1,6 +1,6 @@
 import type { OutlineItem, NavigationTarget, ScrollAlignment } from "./navigation";
 import type { Annotation } from "./annotation";
-import type { JsLayoutPage } from "../../wasm/udoc.js";
+import type { LayoutPage } from "../../worker/index.js";
 import type { PageInfo } from "../../worker/index.js";
 
 // -----------------------------------------------------------------------------
@@ -215,7 +215,7 @@ export interface ViewerState {
 
     // Text content (loaded on-demand per page, for text selection)
     /** Page layouts by page index (0-based). Undefined = not loaded yet */
-    pageText: Map<number, JsLayoutPage>;
+    pageText: Map<number, LayoutPage>;
     /** Set of page indices currently being loaded */
     textLoading: Set<number>;
     /** Set of page indices that failed to load (prevents retry loops) */

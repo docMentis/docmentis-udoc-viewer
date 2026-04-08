@@ -5,25 +5,20 @@
  */
 
 import init, { Wasm, parseFontInfo } from "../wasm/udoc.js";
+import type {
+    LicenseResult,
+    JsOutlineSection as OutlineSection,
+    JsSplitByOutlineResult as SplitByOutlineResult,
+    JsFontRegistration as FontEntry,
+    JsExtractedImage,
+    JsExtractedFont,
+} from "../wasm/udoc.js";
+
+export type { LicenseResult, OutlineSection, SplitByOutlineResult, FontEntry };
 
 let wasm: Wasm | null = null;
 let gpuAvailable = false;
 
-/**
- * License validation result from WASM.
- */
-export interface LicenseResult {
-    valid: boolean;
-    error?: string;
-    features: string[];
-    limits: Record<string, number>;
-    organization?: string;
-    expiresAt?: number;
-}
-
-/**
- * Message types from main thread to worker.
- */
 /**
  * A pick specification for compose operations.
  */
@@ -42,56 +37,26 @@ export interface ComposePick {
 export type Composition = ComposePick[];
 
 /**
- * Outline section info from split_by_outline.
- */
-export interface OutlineSection {
-    title: string;
-    index: number;
-}
-
-/**
- * Result from split_by_outline operation.
- */
-export interface SplitByOutlineResult {
-    documentIds: string[];
-    sections: OutlineSection[];
-}
-
-/**
  * Extracted image info.
+ * Uses Uint8Array (copied from WASM memory) for safe transfer across worker boundary.
  */
 export interface ExtractedImage {
     name: string;
     format: string;
-    width: number | null;
-    height: number | null;
+    width: number | undefined;
+    height: number | undefined;
     data: Uint8Array;
 }
 
 /**
  * Extracted font info.
+ * Uses Uint8Array (copied from WASM memory) for safe transfer across worker boundary.
  */
 export interface ExtractedFont {
     name: string;
     fontType: string;
     extension: string;
     data: Uint8Array;
-}
-
-/**
- * Font entry for registering font URLs.
- *
- * Supported font formats: OTF, TTF, WOFF, and WOFF2.
- */
-export interface FontEntry {
-    /** Font family name (must match the name used in the document). */
-    typeface: string;
-    /** Whether this is a bold variant. */
-    bold: boolean;
-    /** Whether this is an italic variant. */
-    italic: boolean;
-    /** URL to fetch the font file from. Supports OTF, TTF, WOFF, and WOFF2 formats. */
-    url: string;
 }
 
 export type WorkerRequest =
@@ -280,14 +245,14 @@ async function handleMessage(event: MessageEvent<WorkerRequest & { _id?: number 
 
             case "setLicense": {
                 ensureInitialized();
-                const result = wasm!.set_license(request.license) as LicenseResult;
+                const result = wasm!.set_license(request.license);
                 respond({ type: "setLicense", success: true, result });
                 break;
             }
 
             case "getLicenseStatus": {
                 ensureInitialized();
-                const result = wasm!.license_status() as LicenseResult;
+                const result = wasm!.license_status();
                 respond({ type: "getLicenseStatus", success: true, result });
                 break;
             }
@@ -465,11 +430,7 @@ async function handleMessage(event: MessageEvent<WorkerRequest & { _id?: number 
 
             case "pdfSplitByOutline": {
                 ensureInitialized();
-                const result = wasm!.pdf_split_by_outline(
-                    request.documentId,
-                    request.maxLevel,
-                    request.splitMidPage,
-                ) as SplitByOutlineResult;
+                const result = wasm!.pdf_split_by_outline(request.documentId, request.maxLevel, request.splitMidPage);
                 respond({ type: "pdfSplitByOutline", success: true, result });
                 break;
             }
@@ -479,7 +440,7 @@ async function handleMessage(event: MessageEvent<WorkerRequest & { _id?: number 
                 const rawImages = wasm!.pdf_extract_images(
                     request.documentId,
                     request.convertRawToPng,
-                ) as ExtractedImage[];
+                ) as JsExtractedImage[];
                 // Copy Uint8Array data to ensure proper transfer across worker boundary
                 // (WASM memory views don't survive structured clone when nested in objects)
                 const images = rawImages.map((img) => ({
@@ -493,7 +454,7 @@ async function handleMessage(event: MessageEvent<WorkerRequest & { _id?: number 
 
             case "pdfExtractFonts": {
                 ensureInitialized();
-                const rawFonts = wasm!.pdf_extract_fonts(request.documentId) as ExtractedFont[];
+                const rawFonts = wasm!.pdf_extract_fonts(request.documentId) as JsExtractedFont[];
                 // Copy Uint8Array data to ensure proper transfer across worker boundary
                 // (WASM memory views don't survive structured clone when nested in objects)
                 const fonts = rawFonts.map((font) => ({
@@ -553,7 +514,7 @@ async function handleMessage(event: MessageEvent<WorkerRequest & { _id?: number 
 
             case "parseFontInfo": {
                 ensureInitialized();
-                const info = parseFontInfo(request.data) as { typeface: string; bold: boolean; italic: boolean };
+                const info = parseFontInfo(request.data);
                 respond({ type: "parseFontInfo", success: true, info });
                 break;
             }

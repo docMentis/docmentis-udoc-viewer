@@ -4,7 +4,7 @@ import type { ViewerState, PageInfo, ThemeMode, VisibilityGroup } from "./state"
 import type { Action } from "./actions";
 import type { OutlineItem } from "./navigation";
 import type { Annotation } from "./annotation";
-import type { JsLayoutPage } from "../../wasm/udoc.js";
+import type { LayoutPage } from "../../worker/index.js";
 import { initialState } from "./state";
 import { reducer } from "./reducer";
 import { createEffects } from "./effects";
@@ -26,7 +26,7 @@ export interface EngineAdapter {
     getPageInfo(doc: { id: string }, page: number): Promise<PageInfo>;
     getOutline(doc: { id: string }): Promise<OutlineItem[]>;
     getPageAnnotations(doc: { id: string }, pageIndex: number): Promise<Annotation[]>;
-    getLayoutPage(doc: { id: string }, pageIndex: number): Promise<JsLayoutPage>;
+    getLayoutPage(doc: { id: string }, pageIndex: number): Promise<LayoutPage>;
     getVisibilityGroups(doc: { id: string }): Promise<VisibilityGroup[]>;
     setVisibilityGroupVisible(doc: { id: string }, groupId: string, visible: boolean): Promise<boolean>;
 }

@@ -20,16 +20,34 @@ import type {
 } from "./worker.js";
 
 import type {
-    Orientation,
-    SideDirection,
-    CornerDirection,
-    EightDirection,
-    InOutDirection,
-    TransitionEffect,
-    PageTransition,
-    FontSource,
-    ResolvedFontInfo,
-    FontUsageEntry,
+    JsOrientation as Orientation,
+    JsSideDirection as SideDirection,
+    JsCornerDirection as CornerDirection,
+    JsEightDirection as EightDirection,
+    JsInOutDirection as InOutDirection,
+    JsTransitionEffect as TransitionEffect,
+    JsPageTransition as PageTransition,
+    JsFontSource as FontSource,
+    JsResolvedFontInfo as ResolvedFontInfo,
+    JsFontUsageEntry as FontUsageEntry,
+    JsLayoutPage as LayoutPage,
+    JsLayoutFrame as LayoutFrame,
+    JsLayoutParcel as LayoutParcel,
+    JsLayoutLine as LayoutLine,
+    JsLayoutRun as LayoutRun,
+    JsLayoutRunList as LayoutRunList,
+    JsLayoutRunContent as LayoutRunContent,
+    JsLayoutLineContent as LayoutLineContent,
+    JsLayoutTable as LayoutTable,
+    JsLayoutTableRow as LayoutTableRow,
+    JsLayoutTableCell as LayoutTableCell,
+    JsLayoutTableColumn as LayoutTableColumn,
+    JsLayoutGrid as LayoutGrid,
+    JsLayoutGridRow as LayoutGridRow,
+    JsLayoutGridCell as LayoutGridCell,
+    JsLayoutGridColumn as LayoutGridColumn,
+    JsLayoutGlyph as LayoutGlyph,
+    JsTransform as Transform,
 } from "../wasm/udoc.js";
 
 import { WORKER_INLINE } from "./worker-inline.js";
@@ -59,6 +77,28 @@ export type {
 
 // Re-export font usage types from WASM
 export type { FontSource, ResolvedFontInfo, FontUsageEntry };
+
+// Re-export layout types from WASM
+export type {
+    LayoutPage,
+    LayoutFrame,
+    LayoutParcel,
+    LayoutLine,
+    LayoutRun,
+    LayoutRunList,
+    LayoutRunContent,
+    LayoutLineContent,
+    LayoutTable,
+    LayoutTableRow,
+    LayoutTableCell,
+    LayoutTableColumn,
+    LayoutGrid,
+    LayoutGridRow,
+    LayoutGridCell,
+    LayoutGridColumn,
+    LayoutGlyph,
+    Transform,
+};
 
 /**
  * Font information extracted from raw font binary data.

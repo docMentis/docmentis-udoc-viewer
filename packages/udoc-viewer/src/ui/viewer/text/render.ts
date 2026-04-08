@@ -11,19 +11,19 @@
  *    Same approach as the search highlight code.
  */
 import type {
-    JsLayoutPage,
-    JsLayoutFrame,
-    JsLayoutParcel,
-    JsLayoutLine,
-    JsLayoutRun,
-    JsLayoutTable,
-    JsLayoutTableRow,
-    JsLayoutTableCell,
-    JsLayoutGrid,
-    JsLayoutGridRow,
-    JsLayoutGridCell,
-    JsTransform,
-} from "../../../wasm/udoc.js";
+    LayoutPage,
+    LayoutFrame,
+    LayoutParcel,
+    LayoutLine,
+    LayoutRun,
+    LayoutTable,
+    LayoutTableRow,
+    LayoutTableCell,
+    LayoutGrid,
+    LayoutGridRow,
+    LayoutGridCell,
+    Transform,
+} from "../../../worker/index.js";
 
 interface PendingSpan {
     span: HTMLSpanElement;
@@ -35,13 +35,13 @@ function px(v: number): string {
     return `${v}px`;
 }
 
-/** Format a JsTransform as a CSS matrix() with translation scaled to pixels. */
-function cssMatrix(t: JsTransform, scale: number): string {
+/** Format a Transform as a CSS matrix() with translation scaled to pixels. */
+function cssMatrix(t: Transform, scale: number): string {
     return `matrix(${t.scaleX},${t.skewY},${t.skewX},${t.scaleY},${t.translateX * scale},${t.translateY * scale})`;
 }
 
 /** Compose two affine transforms: result = A * B */
-function compose(a: JsTransform, b: JsTransform): JsTransform {
+function compose(a: Transform, b: Transform): Transform {
     return {
         scaleX: a.scaleX * b.scaleX + a.skewX * b.skewY,
         skewY: a.skewY * b.scaleX + a.scaleY * b.skewY,
@@ -53,7 +53,7 @@ function compose(a: JsTransform, b: JsTransform): JsTransform {
 }
 
 /** Prepend a translation to an existing transform. */
-function translate(t: JsTransform, dx: number, dy: number): JsTransform {
+function translate(t: Transform, dx: number, dy: number): Transform {
     return {
         scaleX: t.scaleX,
         skewY: t.skewY,
@@ -68,7 +68,7 @@ function translate(t: JsTransform, dx: number, dy: number): JsTransform {
  * Detect if layout has real structure (DOCX/PPTX) or is flat (PDF).
  * PDF layouts have runs with non-identity transforms.
  */
-function isFlat(layout: JsLayoutPage): boolean {
+function isFlat(layout: LayoutPage): boolean {
     for (const frame of layout.frames) {
         if (!frame.parcel) continue;
         for (const line of frame.parcel.lines) {
@@ -94,11 +94,11 @@ function isFlat(layout: JsLayoutPage): boolean {
 }
 
 /**
- * Render a JsLayoutPage to a text layer element.
+ * Render a LayoutPage to a text layer element.
  */
 export function renderTextToLayer(
     layer: HTMLDivElement,
-    layout: JsLayoutPage | null | undefined,
+    layout: LayoutPage | null | undefined,
     scale: number,
     _pageHeight: number,
 ): void {
@@ -118,7 +118,7 @@ export function renderTextToLayer(
 // Flat rendering (PDF)
 // =============================================================================
 
-function renderFlat(layer: HTMLDivElement, layout: JsLayoutPage, scale: number): void {
+function renderFlat(layer: HTMLDivElement, layout: LayoutPage, scale: number): void {
     const pendingSpans: PendingSpan[] = [];
     const fragment = document.createDocumentFragment();
 
@@ -157,8 +157,8 @@ function renderFlat(layer: HTMLDivElement, layout: JsLayoutPage, scale: number):
 
 function flattenParcel(
     parent: Node,
-    base: JsTransform,
-    parcel: JsLayoutParcel,
+    base: Transform,
+    parcel: LayoutParcel,
     scale: number,
     pending: PendingSpan[],
 ): void {
@@ -168,7 +168,7 @@ function flattenParcel(
     }
 }
 
-function flattenLine(parent: Node, base: JsTransform, line: JsLayoutLine, scale: number, pending: PendingSpan[]): void {
+function flattenLine(parent: Node, base: Transform, line: LayoutLine, scale: number, pending: PendingSpan[]): void {
     const content = line.content;
     if (content.type === "runList") {
         const t = translate(base, 0, line.y + content.baseline);
@@ -182,12 +182,7 @@ function flattenLine(parent: Node, base: JsTransform, line: JsLayoutLine, scale:
     }
 }
 
-function flattenRun(
-    base: JsTransform,
-    run: JsLayoutRun,
-    scale: number,
-    pending: PendingSpan[],
-): HTMLSpanElement | null {
+function flattenRun(base: Transform, run: LayoutRun, scale: number, pending: PendingSpan[]): HTMLSpanElement | null {
     const c = run.content;
     const t = translate(base, run.x, 0);
     const combined = compose(t, run.transform);
@@ -300,13 +295,7 @@ function flattenRun(
     return null;
 }
 
-function flattenTable(
-    parent: Node,
-    base: JsTransform,
-    table: JsLayoutTable,
-    scale: number,
-    pending: PendingSpan[],
-): void {
+function flattenTable(parent: Node, base: Transform, table: LayoutTable, scale: number, pending: PendingSpan[]): void {
     for (const row of table.rows) {
         for (const cell of row.cells) {
             if (cell.parcel) {
@@ -321,7 +310,7 @@ function flattenTable(
 // Hierarchical rendering (DOCX/PPTX/XLSX)
 // =============================================================================
 
-function renderHierarchical(layer: HTMLDivElement, layout: JsLayoutPage, scale: number): void {
+function renderHierarchical(layer: HTMLDivElement, layout: LayoutPage, scale: number): void {
     const pendingSpans: PendingSpan[] = [];
     const fragment = document.createDocumentFragment();
 
@@ -361,7 +350,7 @@ function renderHierarchical(layer: HTMLDivElement, layout: JsLayoutPage, scale: 
 // Frame
 // ---------------------------------------------------------------------------
 
-function buildFrame(frame: JsLayoutFrame, scale: number, pending: PendingSpan[]): HTMLDivElement {
+function buildFrame(frame: LayoutFrame, scale: number, pending: PendingSpan[]): HTMLDivElement {
     const el = document.createElement("div");
     el.className = "udoc-text-frame";
     el.style.transform = cssMatrix(frame.transform, scale);
@@ -377,7 +366,7 @@ function buildFrame(frame: JsLayoutFrame, scale: number, pending: PendingSpan[])
 // Parcel
 // ---------------------------------------------------------------------------
 
-function buildParcel(parent: HTMLElement, parcel: JsLayoutParcel, scale: number, pending: PendingSpan[]): void {
+function buildParcel(parent: HTMLElement, parcel: LayoutParcel, scale: number, pending: PendingSpan[]): void {
     const el = document.createElement("div");
     el.className = "udoc-text-parcel";
     el.style.left = px(parcel.x * scale);
@@ -396,7 +385,7 @@ function buildParcel(parent: HTMLElement, parcel: JsLayoutParcel, scale: number,
 // Line
 // ---------------------------------------------------------------------------
 
-function buildLine(line: JsLayoutLine, _parcelWidth: number, scale: number, pending: PendingSpan[]): HTMLDivElement {
+function buildLine(line: LayoutLine, _parcelWidth: number, scale: number, pending: PendingSpan[]): HTMLDivElement {
     const el = document.createElement("div");
     el.className = "udoc-text-line";
     el.style.top = px(line.y * scale);
@@ -427,7 +416,7 @@ function buildLine(line: JsLayoutLine, _parcelWidth: number, scale: number, pend
 // ---------------------------------------------------------------------------
 
 function buildRunHierarchical(
-    run: JsLayoutRun,
+    run: LayoutRun,
     baseline: number,
     effectiveWidth: number,
     lineHeight: number,
@@ -512,7 +501,7 @@ function buildRunHierarchical(
 // Table → Row → Cell
 // ---------------------------------------------------------------------------
 
-function buildTable(table: JsLayoutTable, scale: number, pending: PendingSpan[]): HTMLDivElement {
+function buildTable(table: LayoutTable, scale: number, pending: PendingSpan[]): HTMLDivElement {
     const el = document.createElement("div");
     el.className = "udoc-text-table";
     el.style.width = px(table.width * scale);
@@ -524,12 +513,7 @@ function buildTable(table: JsLayoutTable, scale: number, pending: PendingSpan[])
     return el;
 }
 
-function buildTableRow(
-    row: JsLayoutTableRow,
-    tableWidth: number,
-    scale: number,
-    pending: PendingSpan[],
-): HTMLDivElement {
+function buildTableRow(row: LayoutTableRow, tableWidth: number, scale: number, pending: PendingSpan[]): HTMLDivElement {
     const el = document.createElement("div");
     el.className = "udoc-text-row";
     el.style.top = px(row.y * scale);
@@ -542,7 +526,7 @@ function buildTableRow(
     return el;
 }
 
-function buildTableCell(cell: JsLayoutTableCell, rowY: number, scale: number, pending: PendingSpan[]): HTMLDivElement {
+function buildTableCell(cell: LayoutTableCell, rowY: number, scale: number, pending: PendingSpan[]): HTMLDivElement {
     const el = document.createElement("div");
     el.className = "udoc-text-cell";
     el.style.left = px(cell.x * scale);
@@ -561,7 +545,7 @@ function buildTableCell(cell: JsLayoutTableCell, rowY: number, scale: number, pe
 // Grid → Row → Cell
 // ---------------------------------------------------------------------------
 
-function buildGrid(grid: JsLayoutGrid, scale: number, pending: PendingSpan[]): HTMLDivElement {
+function buildGrid(grid: LayoutGrid, scale: number, pending: PendingSpan[]): HTMLDivElement {
     const el = document.createElement("div");
     el.className = "udoc-text-grid";
     el.style.left = px(grid.x * scale);
@@ -579,7 +563,7 @@ function buildGrid(grid: JsLayoutGrid, scale: number, pending: PendingSpan[]): H
     return el;
 }
 
-function buildGridRow(row: JsLayoutGridRow, gridWidth: number, scale: number, pending: PendingSpan[]): HTMLDivElement {
+function buildGridRow(row: LayoutGridRow, gridWidth: number, scale: number, pending: PendingSpan[]): HTMLDivElement {
     const el = document.createElement("div");
     el.className = "udoc-text-row";
     el.style.top = px(row.y * scale);
@@ -592,7 +576,7 @@ function buildGridRow(row: JsLayoutGridRow, gridWidth: number, scale: number, pe
     return el;
 }
 
-function buildGridCell(cell: JsLayoutGridCell, rowY: number, scale: number, pending: PendingSpan[]): HTMLDivElement {
+function buildGridCell(cell: LayoutGridCell, rowY: number, scale: number, pending: PendingSpan[]): HTMLDivElement {
     const el = document.createElement("div");
     el.className = "udoc-text-cell";
     el.style.left = px(cell.x * scale);

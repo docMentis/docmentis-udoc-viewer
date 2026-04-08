@@ -1,19 +1,19 @@
 /**
  * Text search algorithm for document viewer.
  *
- * Walks the JsLayoutPage hierarchy to extract text and glyph positions,
+ * Walks the LayoutPage hierarchy to extract text and glyph positions,
  * then searches across all loaded pages and returns matches with
  * pre-computed bounding rectangles for highlight rendering.
  */
 import type {
-    JsLayoutPage,
-    JsLayoutParcel,
-    JsLayoutLine,
-    JsLayoutRun,
-    JsLayoutTable,
-    JsLayoutGrid,
-    JsTransform,
-} from "../../../wasm/udoc.js";
+    LayoutPage,
+    LayoutParcel,
+    LayoutLine,
+    LayoutRun,
+    LayoutTable,
+    LayoutGrid,
+    Transform,
+} from "../../../worker/index.js";
 import type { SearchMatch } from "../state";
 
 /** Trim text to at most the last n whitespace-separated words. */
@@ -39,7 +39,7 @@ interface ResolvedRun {
     text: string;
     glyphs: { x: number; y: number; advance: number }[];
     fontSize: number;
-    transform: JsTransform;
+    transform: Transform;
 }
 
 interface CharMapping {
@@ -48,7 +48,7 @@ interface CharMapping {
 }
 
 /** Compose two affine transforms: result = A * B */
-function compose(a: JsTransform, b: JsTransform): JsTransform {
+function compose(a: Transform, b: Transform): Transform {
     return {
         scaleX: a.scaleX * b.scaleX + a.skewX * b.skewY,
         skewY: a.skewY * b.scaleX + a.scaleY * b.skewY,
@@ -60,7 +60,7 @@ function compose(a: JsTransform, b: JsTransform): JsTransform {
 }
 
 /** Prepend a translation to an existing transform. */
-function translate(t: JsTransform, dx: number, dy: number): JsTransform {
+function translate(t: Transform, dx: number, dy: number): Transform {
     return {
         scaleX: t.scaleX,
         skewY: t.skewY,
@@ -74,7 +74,7 @@ function translate(t: JsTransform, dx: number, dy: number): JsTransform {
 /**
  * Extract all glyph runs from a layout page, resolving transforms to page space.
  */
-function extractRuns(layout: JsLayoutPage): ResolvedRun[] {
+function extractRuns(layout: LayoutPage): ResolvedRun[] {
     const out: ResolvedRun[] = [];
 
     for (const frame of layout.frames) {
@@ -90,14 +90,14 @@ function extractRuns(layout: JsLayoutPage): ResolvedRun[] {
     return out;
 }
 
-function collectParcel(out: ResolvedRun[], base: JsTransform, parcel: JsLayoutParcel): void {
+function collectParcel(out: ResolvedRun[], base: Transform, parcel: LayoutParcel): void {
     const t = translate(base, parcel.x, parcel.y);
     for (const line of parcel.lines) {
         collectLine(out, t, line);
     }
 }
 
-function collectLine(out: ResolvedRun[], base: JsTransform, line: JsLayoutLine): void {
+function collectLine(out: ResolvedRun[], base: Transform, line: LayoutLine): void {
     const content = line.content;
     if (content.type === "runList") {
         const t = translate(base, 0, line.y + line.spaceBefore + content.baseline);
@@ -110,7 +110,7 @@ function collectLine(out: ResolvedRun[], base: JsTransform, line: JsLayoutLine):
     }
 }
 
-function collectRun(out: ResolvedRun[], base: JsTransform, run: JsLayoutRun): void {
+function collectRun(out: ResolvedRun[], base: Transform, run: LayoutRun): void {
     const c = run.content;
     const t = translate(base, run.x, 0);
     const combined = compose(t, run.transform);
@@ -160,7 +160,7 @@ function collectRun(out: ResolvedRun[], base: JsTransform, run: JsLayoutRun): vo
     }
 }
 
-function collectTable(out: ResolvedRun[], base: JsTransform, table: JsLayoutTable): void {
+function collectTable(out: ResolvedRun[], base: Transform, table: LayoutTable): void {
     for (const row of table.rows) {
         for (const cell of row.cells) {
             if (cell.parcel) {
@@ -171,8 +171,8 @@ function collectTable(out: ResolvedRun[], base: JsTransform, table: JsLayoutTabl
     }
 }
 
-function collectGrid(out: ResolvedRun[], grid: JsLayoutGrid): void {
-    const base: JsTransform = {
+function collectGrid(out: ResolvedRun[], grid: LayoutGrid): void {
+    const base: Transform = {
         scaleX: grid.scale,
         skewY: 0,
         skewX: 0,
@@ -313,14 +313,14 @@ function pushRect(
  *
  * @param query - Search string
  * @param caseSensitive - Whether to match case
- * @param pageLayouts - Map of page index to JsLayoutPage
+ * @param pageLayouts - Map of page index to LayoutPage
  * @param pageCount - Total number of pages
  * @returns Array of search matches with pre-computed highlight rects
  */
 export function executeSearch(
     query: string,
     caseSensitive: boolean,
-    pageLayouts: Map<number, JsLayoutPage>,
+    pageLayouts: Map<number, LayoutPage>,
     pageCount: number,
 ): SearchMatch[] {
     if (!query.trim()) return [];

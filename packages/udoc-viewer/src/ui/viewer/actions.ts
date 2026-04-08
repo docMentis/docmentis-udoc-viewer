@@ -15,7 +15,7 @@ import type {
 } from "./state";
 import type { Destination, OutlineItem, ScrollAlignment } from "./navigation";
 import type { Annotation } from "./annotation";
-import type { JsLayoutPage } from "../../wasm/udoc.js";
+import type { LayoutPage } from "../../worker/index.js";
 
 export type Action =
     // Lifecycle
@@ -50,7 +50,7 @@ export type Action =
     | { type: "CLEAR_ANNOTATIONS" }
     // Text content (on-demand loading per page, for text selection)
     | { type: "LOAD_PAGE_TEXT"; pageIndex: number }
-    | { type: "SET_PAGE_TEXT"; pageIndex: number; text: JsLayoutPage }
+    | { type: "SET_PAGE_TEXT"; pageIndex: number; text: LayoutPage }
     | { type: "CLEAR_PAGE_TEXT_LOADING"; pageIndex: number }
     | { type: "SET_PAGE_TEXT_FAILED"; pageIndex: number }
     | { type: "CLEAR_TEXT" }

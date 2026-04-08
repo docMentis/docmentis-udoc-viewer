@@ -13,7 +13,7 @@ import type { Destination, OutlineItem, ScrollAlignment } from "./ui/viewer/navi
 import type { Annotation } from "./ui/viewer/annotation/index.js";
 export type { Annotation } from "./ui/viewer/annotation/index.js";
 export type { SearchMatch } from "./ui/viewer/state.js";
-import type { JsLayoutPage } from "./wasm/udoc.js";
+import type { LayoutPage } from "./worker/index.js";
 import {
     getFormatDefaults,
     type DocumentFormat,
@@ -685,12 +685,12 @@ export class UDocViewer {
      * All coordinates are in points (1/72 inch).
      * @param page - Page index (0-based)
      */
-    async getLayoutPage(page: number): Promise<JsLayoutPage> {
+    async getLayoutPage(page: number): Promise<LayoutPage> {
         this.ensureLoaded();
         if (page < 0 || page >= this._pageCount) {
             throw new Error(`Page index ${page} out of bounds (0-${this._pageCount - 1})`);
         }
-        return (await this.workerClient.getLayoutPage(this.documentId!, page)) as JsLayoutPage;
+        return (await this.workerClient.getLayoutPage(this.documentId!, page)) as LayoutPage;
     }
 
     // ===========================================================================
@@ -1821,8 +1821,8 @@ img { display: block; }
                 const raw = await this.workerClient.getPageAnnotations(doc.id, pageIndex);
                 return raw as Annotation[];
             },
-            getLayoutPage: async (doc: { id: string }, pageIndex: number): Promise<JsLayoutPage> => {
-                return (await this.workerClient.getLayoutPage(doc.id, pageIndex)) as JsLayoutPage;
+            getLayoutPage: async (doc: { id: string }, pageIndex: number): Promise<LayoutPage> => {
+                return (await this.workerClient.getLayoutPage(doc.id, pageIndex)) as LayoutPage;
             },
             getVisibilityGroups: async (doc: { id: string }): Promise<VisibilityGroup[]> => {
                 const raw = await this.workerClient.getVisibilityGroups(doc.id);

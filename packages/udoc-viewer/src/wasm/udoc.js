@@ -259,12 +259,12 @@ if (!('encodeInto' in cachedTextEncoder)) {
 
 let WASM_VECTOR_LEN = 0;
 
-function __wasm_bindgen_func_elem_2700(arg0, arg1, arg2) {
-    wasm.__wasm_bindgen_func_elem_2700(arg0, arg1, addHeapObject(arg2));
+function __wasm_bindgen_func_elem_3974(arg0, arg1, arg2) {
+    wasm.__wasm_bindgen_func_elem_3974(arg0, arg1, addHeapObject(arg2));
 }
 
-function __wasm_bindgen_func_elem_20725(arg0, arg1, arg2, arg3) {
-    wasm.__wasm_bindgen_func_elem_20725(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
+function __wasm_bindgen_func_elem_22063(arg0, arg1, arg2, arg3) {
+    wasm.__wasm_bindgen_func_elem_22063(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
 }
 
 const __wbindgen_enum_GpuBufferBindingType = ["uniform", "storage", "read-only-storage"];
@@ -462,24 +462,13 @@ export class Wasm {
      * # Returns
      * License validation result as JSON.
      * @param {string} license_key
-     * @returns {any}
+     * @returns {LicenseResult}
      */
     set_license(license_key) {
-        try {
-            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-            const ptr0 = passStringToWasm0(license_key, wasm.__wbindgen_export, wasm.__wbindgen_export2);
-            const len0 = WASM_VECTOR_LEN;
-            wasm.wasm_set_license(retptr, this.__wbg_ptr, ptr0, len0);
-            var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
-            var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
-            var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
-            if (r2) {
-                throw takeObject(r1);
-            }
-            return takeObject(r0);
-        } finally {
-            wasm.__wbindgen_add_to_stack_pointer(16);
-        }
+        const ptr0 = passStringToWasm0(license_key, wasm.__wbindgen_export, wasm.__wbindgen_export2);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.wasm_set_license(this.__wbg_ptr, ptr0, len0);
+        return takeObject(ret);
     }
     /**
      * Authenticate with a password to unlock an encrypted document.
@@ -584,7 +573,7 @@ export class Wasm {
      * Returns an array of `PageInfo` objects, one per page.
      * More efficient than calling `page_info` for each page.
      * @param {string} id
-     * @returns {PageInfo[]}
+     * @returns {any}
      */
     all_page_info(id) {
         try {
@@ -648,22 +637,11 @@ export class Wasm {
     }
     /**
      * Get current license status.
-     * @returns {any}
+     * @returns {LicenseResult}
      */
     license_status() {
-        try {
-            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-            wasm.wasm_license_status(retptr, this.__wbg_ptr);
-            var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
-            var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
-            var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
-            if (r2) {
-                throw takeObject(r1);
-            }
-            return takeObject(r0);
-        } finally {
-            wasm.__wbindgen_add_to_stack_pointer(16);
-        }
+        const ret = wasm.wasm_license_status(this.__wbg_ptr);
+        return takeObject(ret);
     }
     /**
      * Check if a document requires a password to open.
@@ -1132,6 +1110,52 @@ export class Wasm {
         }
     }
     /**
+     * Save annotations back to a PDF document.
+     *
+     * Takes the current document and a set of annotations (grouped by page),
+     * writes them into the PDF's annotation structures, and returns the
+     * modified PDF bytes.
+     *
+     * # Arguments
+     * * `doc_id` - Document ID
+     * * `annotations_by_page` - Object mapping page indices (as strings) to
+     *   arrays of annotation objects. Same schema as returned by
+     *   `get_all_annotations`.
+     *
+     * # Returns
+     * The modified PDF file bytes with annotations saved.
+     *
+     * # Example (JavaScript)
+     * ```js
+     * const annotations = udoc.get_all_annotations(docId);
+     * // ... viewer edits annotations ...
+     * const pdfBytes = udoc.pdf_save_annotations(docId, annotations);
+     * ```
+     * @param {string} doc_id
+     * @param {any} annotations_by_page
+     * @returns {Uint8Array}
+     */
+    pdf_save_annotations(doc_id, annotations_by_page) {
+        try {
+            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+            const ptr0 = passStringToWasm0(doc_id, wasm.__wbindgen_export, wasm.__wbindgen_export2);
+            const len0 = WASM_VECTOR_LEN;
+            wasm.wasm_pdf_save_annotations(retptr, this.__wbg_ptr, ptr0, len0, addHeapObject(annotations_by_page));
+            var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
+            var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
+            var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
+            var r3 = getDataViewMemory0().getInt32(retptr + 4 * 3, true);
+            if (r3) {
+                throw takeObject(r2);
+            }
+            var v2 = getArrayU8FromWasm0(r0, r1).slice();
+            wasm.__wbindgen_export4(r0, r1 * 1, 1);
+            return v2;
+        } finally {
+            wasm.__wbindgen_add_to_stack_pointer(16);
+        }
+    }
+    /**
      * Split a PDF document by its outline (bookmarks) structure.
      *
      * Creates multiple documents, one for each outline section at the specified level.
@@ -1148,7 +1172,7 @@ export class Wasm {
      * @param {string} doc_id
      * @param {number} max_level
      * @param {boolean} split_mid_page
-     * @returns {any}
+     * @returns {JsSplitByOutlineResult}
      */
     pdf_split_by_outline(doc_id, max_level, split_mid_page) {
         try {
@@ -1504,7 +1528,7 @@ export class Wasm {
      * Get info for a specific page.
      * @param {string} id
      * @param {number} page_index
-     * @returns {PageInfo}
+     * @returns {JsPageInfo}
      */
     page_info(id, page_index) {
         try {
@@ -1552,7 +1576,7 @@ if (Symbol.dispose) Wasm.prototype[Symbol.dispose] = Wasm.prototype.free;
  * ]);
  * ```
  * @param {Uint8Array} data
- * @returns {any}
+ * @returns {JsParsedFontInfo}
  */
 export function parseFontInfo(data) {
     try {
@@ -1799,6 +1823,10 @@ function __wbg_get_imports() {
     imports.wbg.__wbg_end_ece2bf3a25678f12 = function(arg0) {
         getObject(arg0).end();
     };
+    imports.wbg.__wbg_entries_83c79938054e065f = function(arg0) {
+        const ret = Object.entries(getObject(arg0));
+        return addHeapObject(ret);
+    };
     imports.wbg.__wbg_error_7534b8e9a36f1ab4 = function(arg0, arg1) {
         let deferred0_0;
         let deferred0_1;
@@ -1889,6 +1917,16 @@ function __wbg_get_imports() {
         let result;
         try {
             result = getObject(arg0) instanceof GPUAdapter;
+        } catch (_) {
+            result = false;
+        }
+        const ret = result;
+        return ret;
+    };
+    imports.wbg.__wbg_instanceof_Map_084be8da74364158 = function(arg0) {
+        let result;
+        try {
+            result = getObject(arg0) instanceof Map;
         } catch (_) {
             result = false;
         }
@@ -1990,7 +2028,7 @@ function __wbg_get_imports() {
                 const a = state0.a;
                 state0.a = 0;
                 try {
-                    return __wasm_bindgen_func_elem_20725(a, state0.b, arg0, arg1);
+                    return __wasm_bindgen_func_elem_22063(a, state0.b, arg0, arg1);
                 } finally {
                     state0.a = a;
                 }
@@ -2453,6 +2491,11 @@ function __wbg_get_imports() {
         const ret = getStringFromWasm0(arg0, arg1);
         return addHeapObject(ret);
     };
+    imports.wbg.__wbindgen_cast_363ab6ba52868a22 = function(arg0, arg1) {
+        // Cast intrinsic for `Closure(Closure { dtor_idx: 256, function: Function { arguments: [Externref], shim_idx: 257, ret: Unit, inner_ret: Some(Unit) }, mutable: true }) -> Externref`.
+        const ret = makeMutClosure(arg0, arg1, wasm.__wasm_bindgen_func_elem_3958, __wasm_bindgen_func_elem_3974);
+        return addHeapObject(ret);
+    };
     imports.wbg.__wbindgen_cast_4625c577ab2ec9ee = function(arg0) {
         // Cast intrinsic for `U64 -> Externref`.
         const ret = BigInt.asUintN(64, arg0);
@@ -2468,11 +2511,6 @@ function __wbg_get_imports() {
     imports.wbg.__wbindgen_cast_9ae0607507abb057 = function(arg0) {
         // Cast intrinsic for `I64 -> Externref`.
         const ret = arg0;
-        return addHeapObject(ret);
-    };
-    imports.wbg.__wbindgen_cast_9d97beea3493d3db = function(arg0, arg1) {
-        // Cast intrinsic for `Closure(Closure { dtor_idx: 212, function: Function { arguments: [Externref], shim_idx: 213, ret: Unit, inner_ret: Some(Unit) }, mutable: true }) -> Externref`.
-        const ret = makeMutClosure(arg0, arg1, wasm.__wasm_bindgen_func_elem_2684, __wasm_bindgen_func_elem_2700);
         return addHeapObject(ret);
     };
     imports.wbg.__wbindgen_cast_cb9088102bce6b30 = function(arg0, arg1) {

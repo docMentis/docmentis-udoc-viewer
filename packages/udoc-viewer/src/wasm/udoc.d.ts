@@ -1,5 +1,88 @@
 /* tslint:disable */
 /* eslint-disable */
+/**
+ * Annotation type for JavaScript serialization.
+ */
+export type JsAnnotationType = { type: "link"; action: JsLinkAction } | { type: "highlight"; quads: JsQuad[]; color?: JsColor; opacity?: number } | { type: "underline"; quads: JsQuad[]; color?: JsColor; opacity?: number } | { type: "strikeOut"; quads: JsQuad[]; color?: JsColor; opacity?: number } | { type: "squiggly"; quads: JsQuad[]; color?: JsColor; opacity?: number } | { type: "text"; icon: string; open: boolean; color?: JsColor } | { type: "freeText"; contents?: string; justification: string; defaultAppearance?: string; color?: JsColor; borderColor?: JsColor; calloutLine?: JsPoint[] } | { type: "stamp"; name?: string; hasCustomAppearance: boolean; color?: JsColor } | { type: "line"; start: JsPoint; end: JsPoint; startEnding: string; endEnding: string; color?: JsColor; interiorColor?: JsColor; borderWidth?: number; opacity?: number } | { type: "square"; color?: JsColor; interiorColor?: JsColor; borderWidth?: number; borderStyle: string; opacity?: number } | { type: "circle"; color?: JsColor; interiorColor?: JsColor; borderWidth?: number; borderStyle: string; opacity?: number } | { type: "polygon"; vertices: JsPoint[]; color?: JsColor; interiorColor?: JsColor; borderWidth?: number; opacity?: number } | { type: "polyLine"; vertices: JsPoint[]; color?: JsColor; interiorColor?: JsColor; borderWidth?: number; opacity?: number } | { type: "ink"; inkList: JsPoint[][]; color?: JsColor; borderWidth?: number; opacity?: number } | { type: "caret"; symbol: string; color?: JsColor; opacity?: number } | { type: "redact"; quads: JsQuad[]; interiorColor?: JsColor; overlayText?: string; justification: string; repeat: boolean; color?: JsColor; opacity?: number };
+
+/**
+ * Quadrilateral for JavaScript serialization (used in text markup annotations).
+ */
+export interface JsQuad {
+    /**
+     * Four corner points: [bottom-left, bottom-right, top-right, top-left]
+     */
+    points: [JsPoint, JsPoint, JsPoint, JsPoint];
+}
+
+/**
+ * Rectangle for JavaScript serialization.
+ */
+export interface JsRect {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+}
+
+/**
+ * Markup metadata for JavaScript serialization (author, subject, contents, state).
+ */
+export interface JsMarkupMetadata {
+    author?: string;
+    subject?: string;
+    contents?: string;
+    /**
+     * Annotation state (e.g., \"Accepted\", \"Rejected\", \"Completed\", \"Marked\").
+     */
+    state?: string;
+    /**
+     * State model (e.g., \"Review\" or \"Marked\").
+     */
+    stateModel?: string;
+}
+
+/**
+ * Annotation for JavaScript serialization.
+ */
+export interface JsAnnotation extends JsAnnotationType {
+    /**
+     * Bounding rectangle in page coordinates.
+     */
+    bounds: JsRect;
+    /**
+     * Reply annotations nested under this annotation.
+     * These are comments/replies displayed in comment threads.
+     */
+    replies?: JsAnnotation[];
+    /**
+     * Metadata for markup annotations (author, subject, contents, state).
+     */
+    metadata?: JsMarkupMetadata;
+}
+
+/**
+ * RGB color for JavaScript serialization (values 0.0-1.0).
+ */
+export interface JsColor {
+    r: number;
+    g: number;
+    b: number;
+}
+
+/**
+ * Link action for JavaScript serialization.
+ */
+export type JsLinkAction = { actionType: "goTo"; destination: JsDestination } | { actionType: "uri"; uri: string };
+
+/**
+ * Point for JavaScript serialization.
+ */
+export interface JsPoint {
+    x: number;
+    y: number;
+}
+
 export type JsViewerScrollMode = "spread" | "continuous";
 
 export interface JsViewerPreferences {
@@ -9,101 +92,183 @@ export interface JsViewerPreferences {
 
 export type JsViewerLayoutMode = "single-page" | "double-page-odd-right" | "double-page-odd-left";
 
+export type JsEightDirection = "left" | "right" | "up" | "down" | "leftUp" | "rightUp" | "leftDown" | "rightDown";
 
-export type Orientation = "horizontal" | "vertical";
-export type SideDirection = "left" | "right" | "up" | "down";
-export type CornerDirection = "leftUp" | "rightUp" | "leftDown" | "rightDown";
-export type EightDirection = SideDirection | CornerDirection;
-export type InOutDirection = "in" | "out";
-export type RippleDirection = "center" | CornerDirection;
-export type GlitterPattern = "diamond" | "hexagon";
-export type ShredPattern = "strip" | "rectangle";
-export type MorphOption = "byObject" | "byWord" | "byChar";
+export type JsInOutDirection = "in" | "out";
 
-export type TransitionEffect =
-  // ECMA-376 base effects
-  | { type: "blinds"; orientation: Orientation }
-  | { type: "checker"; orientation: Orientation }
-  | { type: "circle" }
-  | { type: "dissolve" }
-  | { type: "comb"; orientation: Orientation }
-  | { type: "cover"; direction: EightDirection }
-  | { type: "cut"; throughBlack: boolean }
-  | { type: "diamond" }
-  | { type: "fade"; throughBlack: boolean }
-  | { type: "newsflash" }
-  | { type: "plus" }
-  | { type: "pull"; direction: EightDirection }
-  | { type: "push"; direction: SideDirection }
-  | { type: "random" }
-  | { type: "randomBar"; orientation: Orientation }
-  | { type: "split"; orientation: Orientation; inOut: InOutDirection }
-  | { type: "strips"; direction: CornerDirection }
-  | { type: "wedge" }
-  | { type: "wheel"; spokes: number }
-  | { type: "wipe"; direction: SideDirection }
-  | { type: "zoom"; inOut: InOutDirection }
-  // PDF-only effects
-  | { type: "box"; inOut: InOutDirection }
-  | { type: "glitter"; direction: SideDirection; pattern: GlitterPattern }
-  | { type: "fly"; direction: SideDirection }
-  | { type: "uncover"; direction: EightDirection }
-  | { type: "replace" }
-  // PPTX 2010+ effects (p14)
-  | { type: "vortex"; direction: SideDirection }
-  | { type: "switch"; direction: SideDirection }
-  | { type: "flip"; direction: SideDirection }
-  | { type: "ripple"; direction: RippleDirection }
-  | { type: "honeycomb" }
-  | { type: "prism"; direction: SideDirection; isContent: boolean; isInverted: boolean }
-  | { type: "doors"; orientation: Orientation }
-  | { type: "window"; orientation: Orientation }
-  | { type: "ferris"; direction: SideDirection }
-  | { type: "gallery"; direction: SideDirection }
-  | { type: "conveyor"; direction: SideDirection }
-  | { type: "pan"; direction: SideDirection }
-  | { type: "warp"; inOut: InOutDirection }
-  | { type: "flythrough"; inOut: InOutDirection; hasBounce: boolean }
-  | { type: "flash" }
-  | { type: "shred"; pattern: ShredPattern; inOut: InOutDirection }
-  | { type: "reveal"; throughBlack: boolean; direction: SideDirection }
-  | { type: "wheelReverse"; spokes: number }
-  // PPTX 2015+ effects (p159)
-  | { type: "morph"; option: MorphOption };
+/**
+ * Font spec for JavaScript serialization.
+ */
+export type JsFontSpec = { typeface: string; bold: boolean; italic: boolean } | { fontId: string };
 
-export interface PageTransition {
-  effect: TransitionEffect;
-  durationMs?: number;
-  advanceOnClick?: boolean;
-  advanceAfterMs?: number;
+/**
+ * Resolved font info for JavaScript serialization.
+ */
+export interface JsResolvedFontInfo {
+    familyName: string;
+    postscriptName?: string;
+    source: JsFontSource;
+    bold: boolean;
+    italic: boolean;
 }
 
-export interface PageInfo {
-  width: number;
-  height: number;
-  rotation: number;
-  transition?: PageTransition;
+/**
+ * Result from pdf_split_by_outline.
+ */
+export interface JsSplitByOutlineResult {
+    documentIds: string[];
+    sections: JsOutlineSection[];
 }
 
-export type FontSource = "embedded" | "standard" | "googleFonts" | "url" | "local" | { custom: string };
+export type JsSideDirection = "left" | "right" | "up" | "down";
 
-export interface ResolvedFontInfo {
-  familyName: string;
-  postscriptName?: string;
-  source: FontSource;
-  bold: boolean;
-  italic: boolean;
+export type JsOrientation = "horizontal" | "vertical";
+
+export type JsGlitterPattern = "diamond" | "hexagon";
+
+/**
+ * Font registration entry from JavaScript.
+ */
+export interface JsFontRegistration {
+    typeface: string;
+    bold: boolean;
+    italic: boolean;
+    url: string;
 }
 
-export interface FontUsageEntry {
-  /** What the document requested (e.g. "Calibri", bold, italic) */
-  spec: { typeface: string; bold: boolean; italic: boolean } | { fontId: string };
-  /** Primary resolution result */
-  resolved: ResolvedFontInfo;
-  /** Additional fonts used via glyph fallback */
-  fallbacks: ResolvedFontInfo[];
+export type JsMorphOption = "byObject" | "byWord" | "byChar";
+
+/**
+ * A pick specification from JavaScript.
+ */
+export interface JsPick {
+    /**
+     * Document index (0-based, referring to documents in doc_ids array)
+     */
+    doc: number;
+    /**
+     * Page range string (0-based, e.g., \"0-2,4\")
+     */
+    pages: string;
+    /**
+     * Optional rotation in degrees (0, 90, 180, or 270)
+     */
+    rotation: number | undefined;
 }
 
+/**
+ * Extracted image info for JavaScript.
+ */
+export interface JsExtractedImage {
+    name: string;
+    format: string;
+    width: number | undefined;
+    height: number | undefined;
+    data: number[];
+}
+
+/**
+ * Font info returned by `parseFontInfo`.
+ */
+export interface JsParsedFontInfo {
+    typeface: string;
+    bold: boolean;
+    italic: boolean;
+}
+
+/**
+ * Font usage entry for JavaScript serialization.
+ */
+export interface JsFontUsageEntry {
+    spec: JsFontSpec;
+    resolved: JsResolvedFontInfo;
+    fallbacks: JsResolvedFontInfo[];
+}
+
+/**
+ * Outline section info for split_by_outline results.
+ */
+export interface JsOutlineSection {
+    title: string;
+    index: number;
+}
+
+/**
+ * Page transition info for serialization to JavaScript.
+ *
+ * The `effect` field is a discriminated union tagged by `type`, e.g.:
+ * `{ effect: { type: \"fade\", throughBlack: true }, durationMs: 500 }`
+ */
+export interface JsPageTransition {
+    /**
+     * The visual transition effect (discriminated union tagged by `type`).
+     */
+    effect: JsTransitionEffect;
+    /**
+     * Duration of the transition animation in milliseconds.
+     */
+    durationMs?: number;
+    /**
+     * Whether clicking advances to the next page.
+     */
+    advanceOnClick?: boolean;
+    /**
+     * Auto-advance after this many milliseconds.
+     */
+    advanceAfterMs?: number;
+}
+
+export type JsRippleDirection = "center" | "leftUp" | "rightUp" | "leftDown" | "rightDown";
+
+/**
+ * Extracted font info for JavaScript.
+ */
+export interface JsExtractedFont {
+    name: string;
+    fontType: string;
+    extension: string;
+    data: number[];
+}
+
+/**
+ * Transition effect as a discriminated union (tagged by `type`).
+ */
+export type JsTransitionEffect = { type: "blinds"; orientation: JsOrientation } | { type: "checker"; orientation: JsOrientation } | { type: "circle" } | { type: "dissolve" } | { type: "comb"; orientation: JsOrientation } | { type: "cover"; direction: JsEightDirection } | { type: "cut"; throughBlack: boolean } | { type: "diamond" } | { type: "fade"; throughBlack: boolean } | { type: "newsflash" } | { type: "plus" } | { type: "pull"; direction: JsEightDirection } | { type: "push"; direction: JsSideDirection } | { type: "random" } | { type: "randomBar"; orientation: JsOrientation } | { type: "split"; orientation: JsOrientation; inOut: JsInOutDirection } | { type: "strips"; direction: JsCornerDirection } | { type: "wedge" } | { type: "wheel"; spokes: number } | { type: "wipe"; direction: JsSideDirection } | { type: "zoom"; inOut: JsInOutDirection } | { type: "box"; inOut: JsInOutDirection } | { type: "glitter"; direction: JsSideDirection; pattern: JsGlitterPattern } | { type: "fly"; direction: JsSideDirection } | { type: "uncover"; direction: JsEightDirection } | { type: "replace" } | { type: "vortex"; direction: JsSideDirection } | { type: "switch"; direction: JsSideDirection } | { type: "flip"; direction: JsSideDirection } | { type: "ripple"; direction: JsRippleDirection } | { type: "honeycomb" } | { type: "prism"; direction: JsSideDirection; isContent: boolean; isInverted: boolean } | { type: "doors"; orientation: JsOrientation } | { type: "window"; orientation: JsOrientation } | { type: "ferris"; direction: JsSideDirection } | { type: "gallery"; direction: JsSideDirection } | { type: "conveyor"; direction: JsSideDirection } | { type: "pan"; direction: JsSideDirection } | { type: "warp"; inOut: JsInOutDirection } | { type: "flythrough"; inOut: JsInOutDirection; hasBounce: boolean } | { type: "flash" } | { type: "shred"; pattern: JsShredPattern; inOut: JsInOutDirection } | { type: "reveal"; throughBlack: boolean; direction: JsSideDirection } | { type: "wheelReverse"; spokes: number } | { type: "morph"; option: JsMorphOption };
+
+export type JsShredPattern = "strip" | "rectangle";
+
+/**
+ * Font source for JavaScript serialization.
+ */
+export type JsFontSource = "embedded" | "standard" | "googleFonts" | "url" | "local" | { custom: string };
+
+/**
+ * Visibility group info for serialization to JavaScript.
+ */
+export interface JsVisibilityGroup {
+    id: string;
+    name: string;
+    visible: boolean;
+    locked: boolean;
+}
+
+export type JsCornerDirection = "leftUp" | "rightUp" | "leftDown" | "rightDown";
+
+/**
+ * Page info for serialization to JavaScript.
+ */
+export interface JsPageInfo {
+    width: number;
+    height: number;
+    /**
+     * Rotation in degrees (0, 90, 180, or 270)
+     */
+    rotation: number;
+    /**
+     * Transition effect metadata (None when no transition is defined).
+     */
+    transition?: JsPageTransition;
+}
 
 export interface JsLayoutTableCell {
     colIndex: number;
@@ -232,6 +397,62 @@ export interface JsTransform {
 
 export type JsLayoutLineContent = ({ type: "runList" } & JsLayoutRunList) | ({ type: "table" } & JsLayoutTable);
 
+/**
+ * Result returned to JavaScript after license validation.
+ */
+export interface LicenseResult {
+    /**
+     * Whether the license is valid.
+     */
+    valid: boolean;
+    /**
+     * Error message if validation failed.
+     */
+    error?: string;
+    /**
+     * Enabled features.
+     */
+    features: string[];
+    /**
+     * Numeric limits.
+     */
+    limits: Record<string, number>;
+    /**
+     * Organization name.
+     */
+    organization?: string;
+    /**
+     * Expiry timestamp (Unix seconds), if set.
+     */
+    expiresAt?: number;
+}
+
+/**
+ * Destination display parameters for JavaScript serialization.
+ */
+export type JsDestinationDisplay = { type: "xyz"; left: number | undefined; top: number | undefined; zoom: number | undefined } | { type: "fit" } | { type: "fitH"; top: number | undefined } | { type: "fitV"; left: number | undefined } | { type: "fitR"; left: number; top: number; right: number; bottom: number } | { type: "fitB" } | { type: "fitBH"; top: number | undefined } | { type: "fitBV"; left: number | undefined };
+
+/**
+ * Destination for JavaScript serialization.
+ */
+export interface JsDestination {
+    pageIndex: number;
+    display: JsDestinationDisplay;
+}
+
+/**
+ * Outline item for JavaScript serialization.
+ */
+export interface JsOutlineItem {
+    title: string;
+    destination?: JsDestination;
+    children: JsOutlineItem[];
+    /**
+     * Whether this item should be initially collapsed in the viewer.
+     */
+    initiallyCollapsed: boolean;
+}
+
 
 export class Wasm {
   free(): void;
@@ -304,7 +525,7 @@ export class Wasm {
    * # Returns
    * License validation result as JSON.
    */
-  set_license(license_key: string): any;
+  set_license(license_key: string): LicenseResult;
   /**
    * Authenticate with a password to unlock an encrypted document.
    *
@@ -346,7 +567,7 @@ export class Wasm {
    * Returns an array of `PageInfo` objects, one per page.
    * More efficient than calling `page_info` for each page.
    */
-  all_page_info(id: string): PageInfo[];
+  all_page_info(id: string): any;
   /**
    * Get font usage information for a document.
    *
@@ -367,7 +588,7 @@ export class Wasm {
   /**
    * Get current license status.
    */
-  license_status(): any;
+  license_status(): LicenseResult;
   /**
    * Check if a document requires a password to open.
    *
@@ -569,6 +790,30 @@ export class Wasm {
    */
   get_page_annotations(id: string, page_index: number): any;
   /**
+   * Save annotations back to a PDF document.
+   *
+   * Takes the current document and a set of annotations (grouped by page),
+   * writes them into the PDF's annotation structures, and returns the
+   * modified PDF bytes.
+   *
+   * # Arguments
+   * * `doc_id` - Document ID
+   * * `annotations_by_page` - Object mapping page indices (as strings) to
+   *   arrays of annotation objects. Same schema as returned by
+   *   `get_all_annotations`.
+   *
+   * # Returns
+   * The modified PDF file bytes with annotations saved.
+   *
+   * # Example (JavaScript)
+   * ```js
+   * const annotations = udoc.get_all_annotations(docId);
+   * // ... viewer edits annotations ...
+   * const pdfBytes = udoc.pdf_save_annotations(docId, annotations);
+   * ```
+   */
+  pdf_save_annotations(doc_id: string, annotations_by_page: any): Uint8Array;
+  /**
    * Split a PDF document by its outline (bookmarks) structure.
    *
    * Creates multiple documents, one for each outline section at the specified level.
@@ -583,7 +828,7 @@ export class Wasm {
    * - `documentIds`: Array of IDs for the newly created documents
    * - `sections`: Array of section info objects with `title`, `startPage`, `level`
    */
-  pdf_split_by_outline(doc_id: string, max_level: number, split_mid_page: boolean): any;
+  pdf_split_by_outline(doc_id: string, max_level: number, split_mid_page: boolean): JsSplitByOutlineResult;
   /**
    * Get all visibility groups for a document.
    *
@@ -697,7 +942,7 @@ export class Wasm {
   /**
    * Get info for a specific page.
    */
-  page_info(id: string, page_index: number): PageInfo;
+  page_info(id: string, page_index: number): JsPageInfo;
   /**
    * Get the number of documents currently loaded.
    */
@@ -730,7 +975,7 @@ export class Wasm {
  * ]);
  * ```
  */
-export function parseFontInfo(data: Uint8Array): any;
+export function parseFontInfo(data: Uint8Array): JsParsedFontInfo;
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
@@ -757,7 +1002,7 @@ export interface InitOutput {
   readonly wasm_has_feature: (a: number, b: number, c: number) => number;
   readonly wasm_has_gpu: (a: number) => number;
   readonly wasm_init_gpu: (a: number) => number;
-  readonly wasm_license_status: (a: number, b: number) => void;
+  readonly wasm_license_status: (a: number) => number;
   readonly wasm_load: (a: number, b: number, c: number, d: number) => void;
   readonly wasm_load_docx: (a: number, b: number, c: number, d: number) => void;
   readonly wasm_load_image: (a: number, b: number, c: number, d: number) => void;
@@ -773,19 +1018,20 @@ export interface InitOutput {
   readonly wasm_pdf_decompress: (a: number, b: number, c: number, d: number) => void;
   readonly wasm_pdf_extract_fonts: (a: number, b: number, c: number, d: number) => void;
   readonly wasm_pdf_extract_images: (a: number, b: number, c: number, d: number, e: number) => void;
+  readonly wasm_pdf_save_annotations: (a: number, b: number, c: number, d: number, e: number) => void;
   readonly wasm_pdf_split_by_outline: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
   readonly wasm_registerFonts: (a: number, b: number, c: number) => void;
   readonly wasm_remove_document: (a: number, b: number, c: number) => number;
   readonly wasm_render_page_gpu: (a: number, b: number, c: number, d: number, e: number, f: number) => number;
   readonly wasm_render_page_to_png: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
   readonly wasm_render_page_to_rgba: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
-  readonly wasm_set_license: (a: number, b: number, c: number, d: number) => void;
+  readonly wasm_set_license: (a: number, b: number, c: number) => number;
   readonly wasm_set_visibility_group_visible: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
   readonly wasm_setup_telemetry: (a: number, b: number, c: number) => void;
   readonly wasm_viewer_preferences: (a: number, b: number, c: number, d: number) => void;
-  readonly __wasm_bindgen_func_elem_2700: (a: number, b: number, c: number) => void;
-  readonly __wasm_bindgen_func_elem_2684: (a: number, b: number) => void;
-  readonly __wasm_bindgen_func_elem_20725: (a: number, b: number, c: number, d: number) => void;
+  readonly __wasm_bindgen_func_elem_3974: (a: number, b: number, c: number) => void;
+  readonly __wasm_bindgen_func_elem_3958: (a: number, b: number) => void;
+  readonly __wasm_bindgen_func_elem_22063: (a: number, b: number, c: number, d: number) => void;
   readonly __wbindgen_export: (a: number, b: number) => number;
   readonly __wbindgen_export2: (a: number, b: number, c: number, d: number) => number;
   readonly __wbindgen_export3: (a: number) => void;
