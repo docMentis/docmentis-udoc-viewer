@@ -211,4 +211,6 @@ export const fr: TranslationKeys = {
     "tools.arrowHeadNone": "Aucune",
     "tools.arrowHeadOpen": "Ouverte",
     "tools.arrowHeadClosed": "Fermée",
+    "tools.undo": "Annuler",
+    "tools.redo": "Rétablir",
 };

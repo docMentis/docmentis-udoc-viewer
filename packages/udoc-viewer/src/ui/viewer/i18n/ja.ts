@@ -211,4 +211,6 @@ export const ja: TranslationKeys = {
     "tools.arrowHeadNone": "なし",
     "tools.arrowHeadOpen": "開いた",
     "tools.arrowHeadClosed": "閉じた",
+    "tools.undo": "元に戻す",
+    "tools.redo": "やり直し",
 };

@@ -210,4 +210,6 @@ export const es: TranslationKeys = {
     "tools.arrowHeadNone": "Ninguna",
     "tools.arrowHeadOpen": "Abierta",
     "tools.arrowHeadClosed": "Cerrada",
+    "tools.undo": "Deshacer",
+    "tools.redo": "Rehacer",
 };

@@ -213,4 +213,7 @@ export const en: TranslationKeys = {
     "tools.arrowHeadNone": "None",
     "tools.arrowHeadOpen": "Open",
     "tools.arrowHeadClosed": "Closed",
+    // Undo/Redo
+    "tools.undo": "Undo",
+    "tools.redo": "Redo",
 };

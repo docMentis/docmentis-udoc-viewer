@@ -35,7 +35,10 @@ import {
     ICON_OPACITY,
     ICON_FONT_SIZE,
     ICON_DELETE,
+    ICON_UNDO,
+    ICON_REDO,
 } from "../icons";
+import type { AnnotationUndoManager } from "../tools/AnnotationUndoManager";
 
 // ---- Static data ----
 
@@ -153,7 +156,16 @@ export function createSubToolbar() {
     dividerEl.className = "udoc-subtoolbar__divider";
     const optionsSection = document.createElement("div");
     optionsSection.className = "udoc-subtoolbar__options";
-    el.append(toolsSection, dividerEl, optionsSection);
+
+    // Undo/redo section (right end, after options)
+    const undoDivider = document.createElement("div");
+    undoDivider.className = "udoc-subtoolbar__divider";
+    undoDivider.style.display = "none";
+    const undoSection = document.createElement("div");
+    undoSection.className = "udoc-subtoolbar__undo";
+    undoSection.style.display = "none";
+
+    el.append(toolsSection, dividerEl, optionsSection, undoDivider, undoSection);
 
     // ---- Mutable state ----
     let containerRef: HTMLElement | null = null;
@@ -257,13 +269,46 @@ export function createSubToolbar() {
 
     // ---- Mount ----
 
-    function mount(container: HTMLElement, store: Store<ViewerState, Action>, i18n: I18n): void {
+    function mount(
+        container: HTMLElement,
+        store: Store<ViewerState, Action>,
+        i18n: I18n,
+        undoManager?: AnnotationUndoManager,
+    ): void {
         containerRef = container;
         container.appendChild(el);
         container.appendChild(lineStylePanel);
         container.appendChild(arrowHeadPanel);
         el.setAttribute("aria-label", i18n.t("tools.subtoolbar"));
         document.addEventListener("click", onDocumentClick);
+
+        // ---- Undo/redo buttons ----
+        if (undoManager) {
+            const undoBtn = document.createElement("button");
+            undoBtn.className = "udoc-subtoolbar__btn";
+            undoBtn.innerHTML = ICON_UNDO;
+            undoBtn.title = i18n.t("tools.undo");
+            undoBtn.setAttribute("aria-label", i18n.t("tools.undo"));
+            undoBtn.disabled = true;
+            undoBtn.addEventListener("click", () => undoManager.undo());
+
+            const redoBtn = document.createElement("button");
+            redoBtn.className = "udoc-subtoolbar__btn";
+            redoBtn.innerHTML = ICON_REDO;
+            redoBtn.title = i18n.t("tools.redo");
+            redoBtn.setAttribute("aria-label", i18n.t("tools.redo"));
+            redoBtn.disabled = true;
+            redoBtn.addEventListener("click", () => undoManager.redo());
+
+            undoSection.append(undoBtn, redoBtn);
+            undoSection.style.display = "";
+            undoDivider.style.display = "";
+
+            undoManager.subscribe(() => {
+                undoBtn.disabled = !undoManager.canUndo();
+                redoBtn.disabled = !undoManager.canRedo();
+            });
+        }
 
         const applyState = (slice: SubToolbarSlice) => {
             const visible = isToolSet(slice.activeTool);

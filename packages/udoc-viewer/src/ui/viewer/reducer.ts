@@ -626,6 +626,19 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
             return { ...state, pageAnnotations: newAnnotations, annotationsDirtyPages: newDirty };
         }
 
+        case "RESTORE_PAGE_ANNOTATIONS": {
+            const newAnnotations = new Map(state.pageAnnotations);
+            newAnnotations.set(action.pageIndex, action.annotations);
+            const newDirty = new Set(state.annotationsDirtyPages);
+            newDirty.add(action.pageIndex);
+            return {
+                ...state,
+                pageAnnotations: newAnnotations,
+                annotationsDirtyPages: newDirty,
+                selectedAnnotation: null,
+            };
+        }
+
         // Annotation selection
         case "SELECT_ANNOTATION": {
             const sel = state.selectedAnnotation;

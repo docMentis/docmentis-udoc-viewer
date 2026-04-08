@@ -211,4 +211,6 @@ export const ko: TranslationKeys = {
     "tools.arrowHeadNone": "없음",
     "tools.arrowHeadOpen": "열림",
     "tools.arrowHeadClosed": "닫힘",
+    "tools.undo": "실행 취소",
+    "tools.redo": "다시 실행",
 };

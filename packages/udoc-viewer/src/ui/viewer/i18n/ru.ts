@@ -211,4 +211,6 @@ export const ru: TranslationKeys = {
     "tools.arrowHeadNone": "Нет",
     "tools.arrowHeadOpen": "Открытая",
     "tools.arrowHeadClosed": "Закрытая",
+    "tools.undo": "Отменить",
+    "tools.redo": "Повторить",
 };

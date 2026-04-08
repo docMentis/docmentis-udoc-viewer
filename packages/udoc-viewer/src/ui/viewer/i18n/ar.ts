@@ -210,4 +210,6 @@ export const ar: TranslationKeys = {
     "tools.arrowHeadNone": "بدون",
     "tools.arrowHeadOpen": "مفتوح",
     "tools.arrowHeadClosed": "مغلق",
+    "tools.undo": "تراجع",
+    "tools.redo": "إعادة",
 };

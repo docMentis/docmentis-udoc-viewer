@@ -210,4 +210,6 @@ export const zhTW: TranslationKeys = {
     "tools.arrowHeadNone": "無",
     "tools.arrowHeadOpen": "開放",
     "tools.arrowHeadClosed": "封閉",
+    "tools.undo": "復原",
+    "tools.redo": "重做",
 };

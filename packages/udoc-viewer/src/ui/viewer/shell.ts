@@ -21,6 +21,7 @@ import { createLoadingOverlay } from "./components/LoadingOverlay";
 import { inlineStyles } from "./styles-inline.js";
 import { createLiveRegion } from "./a11y";
 import { createI18n } from "./i18n/index.js";
+import { createAnnotationUndoManager } from "./tools/AnnotationUndoManager";
 
 export interface EngineAdapter {
     getPageInfo(doc: { id: string }, page: number): Promise<PageInfo>;
@@ -156,11 +157,13 @@ export function mountViewerShell(
 
     const store = createStore<ViewerState, Action>(reducer, mergedInitialState, { batched: true });
 
+    const undoManager = createAnnotationUndoManager(store);
+
     const toolbar = createToolbar();
     toolbar.mount(toolbarSlot, store, i18n);
 
     const subToolbar = createSubToolbar();
-    subToolbar.mount(subToolbarSlot, store, i18n);
+    subToolbar.mount(subToolbarSlot, store, i18n, undoManager);
 
     const leftPanel = createLeftPanel();
     leftPanel.mount(leftPanelSlot, store, workerClient, i18n);
@@ -230,6 +233,22 @@ export function mountViewerShell(
             const state = store.getState();
             if (state.printButtonVisible && !state.showPrintDialog) {
                 store.dispatch({ type: "SHOW_PRINT_DIALOG" });
+            }
+        }
+
+        // Undo: Ctrl+Z / Cmd+Z
+        if ((e.ctrlKey || e.metaKey) && e.key === "z" && !e.shiftKey) {
+            if (undoManager.canUndo()) {
+                e.preventDefault();
+                undoManager.undo();
+            }
+        }
+
+        // Redo: Ctrl+Shift+Z / Cmd+Shift+Z  or  Ctrl+Y / Cmd+Y
+        if ((e.ctrlKey || e.metaKey) && ((e.key === "z" && e.shiftKey) || e.key === "y")) {
+            if (undoManager.canRedo()) {
+                e.preventDefault();
+                undoManager.redo();
             }
         }
 
@@ -404,6 +423,7 @@ export function mountViewerShell(
         layout.removeEventListener("keydown", handleKeyDown);
         panelOverlay.removeEventListener("click", handleOverlayClick);
         unsubPanelClass();
+        undoManager.destroy();
         effects.destroy();
         toolbar.destroy();
         subToolbar.destroy();

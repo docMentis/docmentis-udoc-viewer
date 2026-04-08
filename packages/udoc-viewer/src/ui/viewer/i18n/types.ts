@@ -211,4 +211,7 @@ export interface TranslationKeys {
     "tools.arrowHeadNone": string;
     "tools.arrowHeadOpen": string;
     "tools.arrowHeadClosed": string;
+    // Undo/Redo
+    "tools.undo": string;
+    "tools.redo": string;
 }

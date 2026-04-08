@@ -210,4 +210,6 @@ export const ptBR: TranslationKeys = {
     "tools.arrowHeadNone": "Nenhuma",
     "tools.arrowHeadOpen": "Aberta",
     "tools.arrowHeadClosed": "Fechada",
+    "tools.undo": "Desfazer",
+    "tools.redo": "Refazer",
 };

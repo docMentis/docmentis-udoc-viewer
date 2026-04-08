@@ -168,5 +168,10 @@ export const ICON_FONT_SIZE = `<svg viewBox="0 0 24 24" fill="currentColor"><pat
 // Select tool icon (cursor arrow with dashed selection rectangle)
 export const ICON_SUBTOOL_SELECT = `<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor"><path d="M5 2l8 7.5-3.9.3 2.2 4.9-1.5.7-2.2-5L5 12.4V2z" stroke="none"/><rect x="11" y="11" width="11" height="11" rx="1" fill="none" stroke-width="1.5" stroke-dasharray="2 2"/></svg>`;
 
+// Undo / Redo icons
+export const ICON_UNDO = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.5 8c-2.65 0-5.05 1.04-6.83 2.73L3 8v8h8l-2.68-2.68A7.46 7.46 0 0 1 12.5 11c3.12 0 5.78 1.91 6.9 4.62l2.1-.81A9.977 9.977 0 0 0 12.5 8z"/></svg>`;
+
+export const ICON_REDO = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.33 10.73A9.948 9.948 0 0 0 11.5 8c-3.71 0-6.96 2.03-8.7 5.04l2.1.81A7.488 7.488 0 0 1 11.5 11c1.73 0 3.32.59 4.59 1.58L13.5 15.17l-.01.01H21.5v-8l-3.17 3.56z"/></svg>`;
+
 // Delete icon (trash can)
 export const ICON_DELETE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12"/><path d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/></svg>`;

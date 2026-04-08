@@ -210,4 +210,6 @@ export const zhCN: TranslationKeys = {
     "tools.arrowHeadNone": "无",
     "tools.arrowHeadOpen": "开放",
     "tools.arrowHeadClosed": "封闭",
+    "tools.undo": "撤销",
+    "tools.redo": "重做",
 };

@@ -1210,6 +1210,12 @@
     gap: 2px;
 }
 
+.udoc-viewer-root .udoc-subtoolbar__undo {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
 .udoc-viewer-root .udoc-subtoolbar__divider {
     width: 1px;
     height: 20px;
@@ -1239,7 +1245,12 @@
     cursor: pointer;
 }
 
-.udoc-viewer-root .udoc-subtoolbar__btn:hover {
+.udoc-viewer-root .udoc-subtoolbar__btn:disabled {
+    opacity: 0.35;
+    cursor: default;
+}
+
+.udoc-viewer-root .udoc-subtoolbar__btn:hover:not(:disabled) {
     background: var(--udoc-hover-overlay);
 }
 
