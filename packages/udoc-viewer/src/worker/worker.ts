@@ -114,7 +114,8 @@ export type WorkerRequest =
     | { type: "getVisibilityGroups"; documentId: string }
     | { type: "setVisibilityGroupVisible"; documentId: string; groupId: string; visible: boolean }
     | { type: "parseFontInfo"; data: Uint8Array }
-    | { type: "getFontUsage"; documentId: string };
+    | { type: "getFontUsage"; documentId: string }
+    | { type: "pdfSaveAnnotations"; documentId: string; annotationsByPage: AnnotationsByPage };
 
 /**
  * Message types from worker to main thread.
@@ -198,7 +199,9 @@ export type WorkerResponse =
     | { type: "parseFontInfo"; success: true; info: { typeface: string; bold: boolean; italic: boolean } }
     | { type: "parseFontInfo"; success: false; error: string }
     | { type: "getFontUsage"; success: true; entries: FontUsageEntry[] }
-    | { type: "getFontUsage"; success: false; error: string };
+    | { type: "getFontUsage"; success: false; error: string }
+    | { type: "pdfSaveAnnotations"; success: true; bytes: Uint8Array }
+    | { type: "pdfSaveAnnotations"; success: false; error: string };
 
 /** Current request ID for response matching. */
 let currentRequestId: number | undefined;
@@ -547,6 +550,13 @@ async function handleMessage(event: MessageEvent<WorkerRequest & { _id?: number 
                 ensureInitialized();
                 const entries = wasm!.get_font_usage(request.documentId);
                 respond({ type: "getFontUsage", success: true, entries });
+                break;
+            }
+
+            case "pdfSaveAnnotations": {
+                ensureInitialized();
+                const bytes = wasm!.pdf_save_annotations(request.documentId, request.annotationsByPage) as Uint8Array;
+                respond({ type: "pdfSaveAnnotations", success: true, bytes }, [bytes.buffer]);
                 break;
             }
 

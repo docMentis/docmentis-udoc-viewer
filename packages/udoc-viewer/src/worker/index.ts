@@ -41,5 +41,6 @@ export type {
     LayoutGridColumn,
     LayoutGlyph,
     Transform,
+    AnnotationsByPage,
 } from "./WorkerClient.js";
 export type { WorkerRequest, WorkerResponse } from "./worker.js";

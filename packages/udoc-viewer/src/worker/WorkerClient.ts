@@ -688,6 +688,17 @@ export class WorkerClient {
     }
 
     /**
+     * Save annotations to a PDF document.
+     * Returns the modified PDF bytes with annotations applied.
+     */
+    async pdfSaveAnnotations(documentId: string, annotationsByPage: AnnotationsByPage): Promise<Uint8Array> {
+        const response = (await this.send({ type: "pdfSaveAnnotations", documentId, annotationsByPage })) as {
+            bytes: Uint8Array;
+        };
+        return response.bytes;
+    }
+
+    /**
      * Compose new PDF documents by cherry-picking pages from source documents.
      *
      * @param compositions - Array of compositions. Each composition is an array of picks

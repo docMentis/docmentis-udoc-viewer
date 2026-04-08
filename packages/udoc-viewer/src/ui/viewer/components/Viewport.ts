@@ -33,6 +33,7 @@ import { on } from "../../framework/events";
 import { getDevicePixelRatio, snapToDevice, toCssPixels, toDevicePixels } from "../layout";
 import { runTransition, type TransitionHandle } from "../transition";
 import { createViewToolController } from "../tools/ViewToolController";
+import { createAnnotationDrawController } from "../tools/AnnotationDrawController";
 
 interface HighlightedAnnotation {
     pageIndex: number;
@@ -631,6 +632,7 @@ export function createViewport(showAttribution = true) {
     const floatingToolbar = createFloatingToolbar();
 
     let viewToolController: ReturnType<typeof createViewToolController> | null = null;
+    let annotationDrawController: ReturnType<typeof createAnnotationDrawController> | null = null;
     let workerClient: WorkerClient | null = null;
     let storeRef: Store<ViewerState, Action> | null = null;
     let i18nRef: I18n | null = null;
@@ -861,6 +863,11 @@ export function createViewport(showAttribution = true) {
         const viewerRoot = el.closest(".udoc-viewer-root") as HTMLElement;
         if (viewerRoot) {
             viewToolController = createViewToolController({
+                scrollArea,
+                viewerRoot,
+                store,
+            });
+            annotationDrawController = createAnnotationDrawController({
                 scrollArea,
                 viewerRoot,
                 store,
@@ -1673,6 +1680,8 @@ export function createViewport(showAttribution = true) {
         if (attrIntegrityCheck) clearInterval(attrIntegrityCheck);
         if (viewToolController) viewToolController.destroy();
         viewToolController = null;
+        if (annotationDrawController) annotationDrawController.destroy();
+        annotationDrawController = null;
         floatingToolbar.destroy();
         clearSpreads();
         workerClient = null;

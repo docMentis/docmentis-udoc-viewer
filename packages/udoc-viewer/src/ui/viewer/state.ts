@@ -122,6 +122,9 @@ export function isToolSet(tool: ActiveTool): tool is ToolSet {
 /** Document format as detected during loading */
 export type DocumentFormat = "pdf" | "pptx" | "docx" | "xlsx" | "image";
 
+/** Formats that support annotation editing */
+export const ANNOTATION_FORMATS: ReadonlySet<DocumentFormat> = new Set(["pdf"]);
+
 /** Subset of view mode state that can be overridden per format */
 export interface ViewModeDefaults {
     scrollMode?: ScrollMode;
@@ -183,6 +186,7 @@ export function getPointsToPixels(dpi: number): number {
 export interface ViewerState {
     // Document
     doc: { id: string } | null;
+    documentFormat: DocumentFormat | null;
     page: number;
     pageCount: number;
     pageInfos: readonly PageInfo[];
@@ -339,8 +343,12 @@ export interface ViewerState {
     /** When true, panel open/close should skip CSS transitions (reset automatically after one frame) */
     panelTransitionsDisabled: boolean;
 
+    // Annotation editing
+    /** Set of page indices that have been modified by user annotation edits */
+    annotationsDirtyPages: ReadonlySet<number>;
+
     // Tools
-    /** Set of tools/tool sets that are disabled (hidden from the UI). All disabled by default until backends are implemented. */
+    /** Set of tools/tool sets that are disabled (hidden from the UI). */
     disabledTools: ReadonlySet<ActiveTool>;
     /** Currently active tool (simple tool or tool set) */
     activeTool: ActiveTool;
@@ -354,6 +362,7 @@ export interface ViewerState {
 
 export const initialState: ViewerState = {
     doc: null,
+    documentFormat: null,
     page: 1,
     pageCount: 0,
     pageInfos: [],
@@ -439,7 +448,9 @@ export const initialState: ViewerState = {
 
     panelTransitionsDisabled: false,
 
-    disabledTools: new Set(["annotate", "markup"]),
+    annotationsDirtyPages: new Set(),
+
+    disabledTools: new Set<ActiveTool>(["annotate", "markup"]),
     activeTool: "pointer",
     activeSubTool: null,
     lastSubToolPerSet: { annotate: "freehand", markup: "highlight" },

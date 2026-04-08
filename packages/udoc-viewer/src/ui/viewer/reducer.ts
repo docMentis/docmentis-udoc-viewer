@@ -1,5 +1,5 @@
 import type { ViewerState, ToolSet } from "./state";
-import { initialState, isLeftPanelTab, isToolSet, DEFAULT_TOOL_OPTIONS } from "./state";
+import { initialState, isLeftPanelTab, isToolSet, DEFAULT_TOOL_OPTIONS, ANNOTATION_FORMATS } from "./state";
 import type { Action } from "./actions";
 import { destinationToNavigationTarget } from "./navigation";
 
@@ -12,12 +12,18 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
         case "SET_DOC": {
             if (state.doc === action.doc) return state;
             const vd = action.viewDefaults;
+            const supportsAnnotations = ANNOTATION_FORMATS.has(action.documentFormat);
+            // Reset tool to pointer if switching to a format that doesn't support annotations
+            const toolNowUnavailable = !supportsAnnotations && isToolSet(state.activeTool);
             return {
                 ...state,
                 doc: action.doc,
+                documentFormat: action.documentFormat,
                 page: 1,
                 pageCount: action.pageCount,
                 pageInfos: action.pageInfos,
+                activeTool: toolNowUnavailable ? "pointer" : state.activeTool,
+                activeSubTool: toolNowUnavailable ? null : state.activeSubTool,
                 // Reset view mode to defaults (format-specific if provided)
                 scrollMode: vd?.scrollMode ?? initialState.scrollMode,
                 layoutMode: vd?.layoutMode ?? initialState.layoutMode,
@@ -38,6 +44,7 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
             return {
                 ...state,
                 doc: null,
+                documentFormat: null,
                 page: 1,
                 pageCount: 0,
                 pageInfos: [],
@@ -50,6 +57,7 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
                 visibilityGroupsLoading: false,
                 pageAnnotations: new Map(),
                 annotationsLoading: new Set(),
+                annotationsDirtyPages: new Set(),
                 pageText: new Map(),
                 textLoading: new Set(),
                 textFailed: new Set(),
@@ -572,6 +580,26 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
                 ...state,
                 toolOptions: { ...state.toolOptions, [action.subTool]: updated },
             };
+        }
+
+        // Annotation editing
+        case "ADD_ANNOTATION": {
+            const existing = state.pageAnnotations.get(action.pageIndex) ?? [];
+            const newAnnotations = new Map(state.pageAnnotations);
+            newAnnotations.set(action.pageIndex, [...existing, action.annotation]);
+            const newDirty = new Set(state.annotationsDirtyPages);
+            newDirty.add(action.pageIndex);
+            return { ...state, pageAnnotations: newAnnotations, annotationsDirtyPages: newDirty };
+        }
+        case "REMOVE_ANNOTATION": {
+            const existing = state.pageAnnotations.get(action.pageIndex);
+            if (!existing || action.annotationIndex >= existing.length) return state;
+            const newList = existing.filter((_, i) => i !== action.annotationIndex);
+            const newAnnotations = new Map(state.pageAnnotations);
+            newAnnotations.set(action.pageIndex, newList);
+            const newDirty = new Set(state.annotationsDirtyPages);
+            newDirty.add(action.pageIndex);
+            return { ...state, pageAnnotations: newAnnotations, annotationsDirtyPages: newDirty };
         }
 
         default:

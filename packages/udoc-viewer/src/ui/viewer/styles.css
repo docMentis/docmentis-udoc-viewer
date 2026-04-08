@@ -1761,6 +1761,19 @@
     user-select: none;
 }
 
+/* Annotation draw tool cursor */
+.udoc-viewer--tool-draw .udoc-viewport__scroll {
+    cursor: crosshair;
+}
+
+.udoc-viewer--tool-draw .udoc-spread__text-layer {
+    pointer-events: none;
+}
+
+.udoc-viewer--tool-draw .udoc-text-run {
+    user-select: none;
+}
+
 /* Annotation Layer */
 .udoc-viewer-root .udoc-spread__annotation-layer {
     position: absolute;

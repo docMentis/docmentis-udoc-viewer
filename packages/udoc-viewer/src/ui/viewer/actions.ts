@@ -12,6 +12,7 @@ import type {
     VisibilityGroup,
     ActiveTool,
     SubTool,
+    DocumentFormat,
 } from "./state";
 import type { Destination, OutlineItem, ScrollAlignment } from "./navigation";
 import type { Annotation } from "./annotation";
@@ -24,6 +25,7 @@ export type Action =
     | {
           type: "SET_DOC";
           doc: { id: string };
+          documentFormat: DocumentFormat;
           pageCount: number;
           pageInfos: readonly PageInfo[];
           viewDefaults?: ViewModeDefaults;
@@ -134,4 +136,7 @@ export type Action =
     // Tools
     | { type: "SET_ACTIVE_TOOL"; tool: ActiveTool }
     | { type: "SET_SUB_TOOL"; subTool: SubTool }
-    | { type: "SET_TOOL_OPTION"; subTool: string; key: string; value: string | number | null };
+    | { type: "SET_TOOL_OPTION"; subTool: string; key: string; value: string | number | null }
+    // Annotation editing
+    | { type: "ADD_ANNOTATION"; pageIndex: number; annotation: Annotation }
+    | { type: "REMOVE_ANNOTATION"; pageIndex: number; annotationIndex: number };

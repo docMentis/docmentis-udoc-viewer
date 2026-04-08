@@ -5,7 +5,7 @@
  * Created via `client.createViewer()`.
  */
 
-import type { WorkerClient, PageInfo, RenderType, FontUsageEntry } from "./worker/index.js";
+import type { WorkerClient, PageInfo, RenderType, FontUsageEntry, AnnotationsByPage } from "./worker/index.js";
 import type { ViewerOptions } from "./UDocClient.js";
 import { mountViewerShell, type ViewerShell, type InitialStateOverrides } from "./ui/viewer/shell.js";
 import type { PrintDialogResult, PrintPageRange, PrintQuality } from "./ui/viewer/components/PrintDialog.js";
@@ -362,7 +362,7 @@ export class UDocViewer {
         if (options.disableViewTools) {
             disabledTools.push("pointer", "hand", "zoom");
         }
-        if (options.disableAnnotateTools !== false) {
+        if (options.disableAnnotateTools) {
             disabledTools.push("annotate");
         }
         if (options.disableMarkupTools !== false) {
@@ -447,6 +447,7 @@ export class UDocViewer {
                     this.uiShell.dispatch({
                         type: "SET_DOC",
                         doc: { id: this.documentId },
+                        documentFormat: format,
                         pageCount: 0,
                         pageInfos: [],
                         viewDefaults: this.computeViewDefaults(format),
@@ -467,6 +468,7 @@ export class UDocViewer {
                 this.uiShell.dispatch({
                     type: "SET_DOC",
                     doc: { id: this.documentId },
+                    documentFormat: format,
                     pageCount: this._pageCount,
                     pageInfos: this._pageInfo,
                     viewDefaults: this.computeViewDefaults(format),
@@ -567,6 +569,7 @@ export class UDocViewer {
                     this.uiShell.dispatch({
                         type: "SET_DOC",
                         doc: { id: this.documentId! },
+                        documentFormat: this.currentFormat ?? "pdf",
                         pageCount: this._pageCount,
                         pageInfos: this._pageInfo,
                         viewDefaults: this.currentFormat ? this.computeViewDefaults(this.currentFormat) : undefined,
@@ -1326,9 +1329,21 @@ export class UDocViewer {
 
     /**
      * Export document as bytes.
+     * If annotations have been edited, saves them into the PDF before returning.
      */
     async toBytes(): Promise<Uint8Array> {
         this.ensureLoaded();
+
+        // If there are dirty annotation pages, save them into the PDF first
+        const state = this.uiShell?.store.getState();
+        if (state && state.annotationsDirtyPages.size > 0 && this.currentFormat === "pdf") {
+            const annotationsByPage: AnnotationsByPage = {};
+            for (const [pageIndex, annotations] of state.pageAnnotations) {
+                annotationsByPage[String(pageIndex)] = annotations as AnnotationsByPage[string];
+            }
+            return this.workerClient.pdfSaveAnnotations(this.documentId!, annotationsByPage);
+        }
+
         return this.workerClient.getBytes(this.documentId!);
     }
 
@@ -1674,11 +1689,14 @@ img { display: block; }
         // Load all page info upfront (fast operation)
         this._pageInfo = await this.workerClient.getAllPageInfo(docId);
         this._pageCount = this._pageInfo.length;
+        const format = (await this.workerClient.getDocumentFormat(docId)) as DocumentFormat;
+        this.currentFormat = format;
 
         if (this.uiShell) {
             this.uiShell.dispatch({
                 type: "SET_DOC",
                 doc: { id: docId },
+                documentFormat: format,
                 pageCount: this._pageCount,
                 pageInfos: this._pageInfo,
             });

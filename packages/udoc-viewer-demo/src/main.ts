@@ -81,7 +81,7 @@ let gpuEnabled = false;
 let hideAttribution = false;
 let enableTransitions = false;
 let disableViewTools = false;
-let enableAnnotateTools = false;
+let disableAnnotateTools = false;
 let enableMarkupTools = false;
 let currentLocale = "en";
 let currentDocSource: string | File | null = null;
@@ -143,7 +143,7 @@ async function createViewer() {
         hideAttribution,
         enableTransitions,
         disableViewTools,
-        disableAnnotateTools: !enableAnnotateTools,
+        disableAnnotateTools,
         disableMarkupTools: !enableMarkupTools,
         locale: currentLocale,
         enablePerformanceCounter: true,
@@ -428,9 +428,9 @@ const OPTION_GROUPS: ToggleGroup[] = [
                 },
             },
             {
-                label: "Annotation Tools (Beta)",
+                label: "Disable Annotation Tools",
                 onChange: async (checked) => {
-                    enableAnnotateTools = checked;
+                    disableAnnotateTools = checked;
                     await createViewer();
                 },
             },

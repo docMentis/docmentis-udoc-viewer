@@ -399,7 +399,7 @@ export interface ViewerOptions {
 
     /**
      * Disable the annotation tool set (freehand, line, arrow, shapes, text box).
-     * @default true
+     * @default false
      */
     disableAnnotateTools?: boolean;
 

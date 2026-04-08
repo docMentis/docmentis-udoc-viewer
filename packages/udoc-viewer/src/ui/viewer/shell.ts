@@ -1,6 +1,6 @@
 import { createStore } from "../framework/store";
 import type { Store } from "../framework/store";
-import type { ViewerState, PageInfo, ThemeMode, VisibilityGroup } from "./state";
+import type { ViewerState, PageInfo, ThemeMode, VisibilityGroup, ActiveTool } from "./state";
 import type { Action } from "./actions";
 import type { OutlineItem } from "./navigation";
 import type { Annotation } from "./annotation";
@@ -150,7 +150,7 @@ export function mountViewerShell(
         textLoading: new Set(),
         textFailed: new Set(),
         disabledPanels: new Set(),
-        disabledTools: new Set(["annotate", "markup"]),
+        disabledTools: new Set<ActiveTool>(["annotate", "markup"]),
         ...overrides,
     };
 

@@ -2,8 +2,17 @@ import type { Store } from "../../framework/store";
 import { subscribeSelector } from "../../framework/selectors";
 import { on } from "../../framework/events";
 import type { I18n } from "../i18n/index.js";
-import type { ViewerState, ZoomMode, PanelTab, LeftPanelTab, ThemeMode, ActiveTool, SimpleTool } from "../state";
-import { isLeftPanelTab, isToolSet } from "../state";
+import type {
+    ViewerState,
+    ZoomMode,
+    PanelTab,
+    LeftPanelTab,
+    ThemeMode,
+    ActiveTool,
+    SimpleTool,
+    DocumentFormat,
+} from "../state";
+import { isLeftPanelTab, isToolSet, ANNOTATION_FORMATS } from "../state";
 import type { Action } from "../actions";
 import { setupRovingTabindex } from "../a11y";
 import {
@@ -71,6 +80,7 @@ interface ToolbarSlice {
     effectiveZoom: number | null;
     zoomSteps: readonly number[];
     // Tools
+    documentFormat: DocumentFormat | null;
     disabledTools: ReadonlySet<ActiveTool>;
     activeTool: ActiveTool;
 }
@@ -94,6 +104,7 @@ function sliceEqual(a: ToolbarSlice, b: ToolbarSlice): boolean {
         a.zoomMode === b.zoomMode &&
         a.effectiveZoom === b.effectiveZoom &&
         a.zoomSteps === b.zoomSteps &&
+        a.documentFormat === b.documentFormat &&
         a.disabledTools === b.disabledTools &&
         a.activeTool === b.activeTool
     );
@@ -118,6 +129,7 @@ function selectSlice(state: ViewerState): ToolbarSlice {
         zoomMode: state.zoomMode,
         effectiveZoom: state.effectiveZoom,
         zoomSteps: state.zoomSteps,
+        documentFormat: state.documentFormat,
         disabledTools: state.disabledTools,
         activeTool: state.activeTool,
     };
@@ -854,8 +866,10 @@ export function createToolbar() {
                 !slice.disabledTools.has("hand") ||
                 !slice.disabledTools.has("zoom");
             pointerSplitBtn.style.display = anySimpleEnabled ? "flex" : "none";
-            annotateBtn.style.display = slice.disabledTools.has("annotate") ? "none" : "";
-            markupBtn.style.display = slice.disabledTools.has("markup") ? "none" : "";
+            const formatSupportsAnnotations =
+                slice.documentFormat !== null && ANNOTATION_FORMATS.has(slice.documentFormat);
+            annotateBtn.style.display = slice.disabledTools.has("annotate") || !formatSupportsAnnotations ? "none" : "";
+            markupBtn.style.display = slice.disabledTools.has("markup") || !formatSupportsAnnotations ? "none" : "";
 
             // Tool button active states
             {
