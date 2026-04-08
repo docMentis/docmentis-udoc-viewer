@@ -6,6 +6,8 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+## [0.6.23] - 2026-04-08
+
 ### Features
 
 - Annotation drawing support for PDF documents with polygon, polyline, and freeform tools

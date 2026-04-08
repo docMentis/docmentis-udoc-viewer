@@ -1,6 +1,6 @@
 {
     "name": "@docmentis/udoc-viewer",
-    "version": "0.6.22",
+    "version": "0.6.23",
     "type": "module",
     "license": "MIT",
     "description": "Universal document viewer for the web — open-source, framework-agnostic viewer powered by a built-from-scratch WebAssembly engine for high-fidelity rendering across PDF, DOCX, PPTX, SVG, and images.",
