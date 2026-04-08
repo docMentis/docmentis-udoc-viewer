@@ -1,9 +1,10 @@
 /**
- * AnnotationSelectController — handles annotation selection, move, and deletion.
+ * AnnotationSelectController — handles annotation selection, move, resize, and deletion.
  *
  * When the "select" sub-tool is active (in either annotate or markup tool sets):
- * - Clicking an annotation selects it, showing a dashed bounding box.
- * - Dragging a selected annotation moves it.
+ * - Clicking an annotation selects it, showing a bounding box with resize handles.
+ * - Dragging the bounding box moves the annotation.
+ * - Dragging a resize handle resizes the annotation.
  * - Pressing Delete/Backspace removes the selected annotation.
  * - Clicking empty space deselects.
  */
@@ -12,7 +13,8 @@ import type { Store } from "../../framework/store";
 import type { ViewerState } from "../state";
 import { getPointsToPixels, isToolSet, ANNOTATION_FORMATS } from "../state";
 import type { Action } from "../actions";
-import { offsetAnnotation } from "../annotation/utils";
+import { offsetAnnotation, resizeAnnotation } from "../annotation/utils";
+import type { Rect } from "../annotation/types";
 
 export interface AnnotationSelectControllerOptions {
     scrollArea: HTMLElement;
@@ -22,36 +24,57 @@ export interface AnnotationSelectControllerOptions {
 
 const SELECT_CURSOR_CLASS = "udoc-viewer--tool-select";
 const MOVING_CLASS = "udoc-viewer--annotation-moving";
+const RESIZING_CLASS = "udoc-viewer--annotation-resizing";
 const BBOX_CLASS = "udoc-annotation-select-bbox";
+
+/** Handle positions: 4 corners + 4 edge midpoints */
+type HandlePosition = "nw" | "n" | "ne" | "e" | "se" | "s" | "sw" | "w";
+
+const HANDLE_POSITIONS: HandlePosition[] = ["nw", "n", "ne", "e", "se", "s", "sw", "w"];
+
+const HANDLE_CURSORS: Record<HandlePosition, string> = {
+    nw: "nwse-resize",
+    n: "ns-resize",
+    ne: "nesw-resize",
+    e: "ew-resize",
+    se: "nwse-resize",
+    s: "ns-resize",
+    sw: "nesw-resize",
+    w: "ew-resize",
+};
 
 export function createAnnotationSelectController(options: AnnotationSelectControllerOptions) {
     const { scrollArea, viewerRoot, store } = options;
 
     let active = false;
     let bboxEl: HTMLDivElement | null = null;
+    let innerEl: HTMLDivElement | null = null;
 
-    // --- Drag/move state ---
+    // --- Drag state (shared by move & resize) ---
+    type DragMode = "move" | "resize";
     let isDragging = false;
-    /** Pixels-per-point scale at drag start */
+    let dragMode: DragMode = "move";
     let dragScale = 1;
-    /** Pointer position at drag start (client coords) */
     let dragStartX = 0;
     let dragStartY = 0;
-    /** Accumulated offset in page coordinates during drag */
     let dragDx = 0;
     let dragDy = 0;
-    /** The annotation being dragged (snapshot at drag start) */
     let dragAnnotationPageIndex = -1;
     let dragAnnotationIndex = -1;
+    /** Original bounds at drag start (for resize) */
+    let dragOriginalBounds: Rect = { x: 0, y: 0, width: 0, height: 0 };
+    /** Which handle is being dragged (for resize) */
+    let dragHandle: HandlePosition = "se";
 
     // =========================================================================
-    // Bounding box
+    // Bounding box with handles
     // =========================================================================
 
     function removeBbox(): void {
         if (bboxEl) {
             bboxEl.remove();
             bboxEl = null;
+            innerEl = null;
         }
     }
 
@@ -71,8 +94,6 @@ export function createAnnotationSelectController(options: AnnotationSelectContro
         const pageNum = sel.pageIndex + 1;
         const slot = scrollArea.querySelector<HTMLElement>(`[data-page="${pageNum}"]`);
         if (!slot) return;
-        // Use the annotation layer to copy its positioning (left/top/transform),
-        // but append the bbox to the slot container so it survives annotation re-renders.
         const annotationLayer = slot.querySelector<HTMLElement>(".udoc-spread__annotation-layer");
         if (!annotationLayer) return;
 
@@ -80,10 +101,10 @@ export function createAnnotationSelectController(options: AnnotationSelectContro
         const zoom = state.effectiveZoom ?? state.zoom;
         const scale = pointsToPixels * zoom;
 
+        // Outer wrapper — copies annotation layer positioning
         bboxEl = document.createElement("div");
         bboxEl.className = BBOX_CLASS;
         bboxEl.style.position = "absolute";
-        // Copy annotation layer's positioning so bbox coordinates align
         bboxEl.style.width = annotationLayer.style.width;
         bboxEl.style.height = annotationLayer.style.height;
         bboxEl.style.left = annotationLayer.style.left;
@@ -91,27 +112,107 @@ export function createAnnotationSelectController(options: AnnotationSelectContro
         bboxEl.style.transform = annotationLayer.style.transform;
         bboxEl.style.transformOrigin = "center";
 
-        // Inner element for the actual bbox rectangle
-        const inner = document.createElement("div");
-        inner.className = BBOX_CLASS + "__inner";
-        inner.style.position = "absolute";
-        inner.style.left = `${bounds.x * scale}px`;
-        inner.style.top = `${bounds.y * scale}px`;
-        inner.style.width = `${bounds.width * scale}px`;
-        inner.style.height = `${bounds.height * scale}px`;
-        bboxEl.appendChild(inner);
+        // Inner — the actual bounding rectangle
+        innerEl = document.createElement("div");
+        innerEl.className = BBOX_CLASS + "__inner";
+        innerEl.style.position = "absolute";
+        innerEl.style.left = `${bounds.x * scale}px`;
+        innerEl.style.top = `${bounds.y * scale}px`;
+        innerEl.style.width = `${bounds.width * scale}px`;
+        innerEl.style.height = `${bounds.height * scale}px`;
 
+        // Resize handles
+        for (const pos of HANDLE_POSITIONS) {
+            const handle = document.createElement("div");
+            handle.className = `${BBOX_CLASS}__handle ${BBOX_CLASS}__handle--${pos}`;
+            handle.style.cursor = HANDLE_CURSORS[pos];
+            handle.dataset.handle = pos;
+            innerEl.appendChild(handle);
+        }
+
+        bboxEl.appendChild(innerEl);
         slot.appendChild(bboxEl);
     }
 
+    /** Update inner element position/size during drag preview. */
+    function updateInnerPreview(bounds: Rect, newBounds: Rect): void {
+        if (!innerEl) return;
+        innerEl.style.left = `${newBounds.x * dragScale}px`;
+        innerEl.style.top = `${newBounds.y * dragScale}px`;
+        innerEl.style.width = `${newBounds.width * dragScale}px`;
+        innerEl.style.height = `${newBounds.height * dragScale}px`;
+    }
+
     // =========================================================================
-    // Click / select
+    // Resize bounds computation
+    // =========================================================================
+
+    /** Compute new bounds from dragging a resize handle. */
+    function computeResizedBounds(original: Rect, handle: HandlePosition, dx: number, dy: number): Rect {
+        let { x, y, width, height } = original;
+
+        // Adjust edges based on handle
+        if (handle.includes("w")) {
+            x += dx;
+            width -= dx;
+        }
+        if (handle.includes("e") || handle === "e") {
+            width += dx;
+        }
+        if (handle.includes("n") && handle !== "ne" && handle !== "nw") {
+            // "n" only
+            y += dy;
+            height -= dy;
+        }
+        if (handle === "nw" || handle === "n" || handle === "ne") {
+            y += dy;
+            height -= dy;
+        }
+        if (handle === "sw" || handle === "s" || handle === "se") {
+            height += dy;
+        }
+
+        // Enforce minimum size and flip if dragged past opposite edge
+        const MIN = 2;
+        if (width < MIN) {
+            x = x + width - MIN;
+            width = MIN;
+        }
+        if (height < MIN) {
+            y = y + height - MIN;
+            height = MIN;
+        }
+
+        return { x, y, width, height };
+    }
+
+    // =========================================================================
+    // Pointer events
     // =========================================================================
 
     function onPointerDown(e: PointerEvent): void {
         if (e.button !== 0) return;
 
         const target = e.target as Element;
+
+        // Check if clicking a resize handle
+        const handleEl = target.closest<HTMLElement>(`[data-handle]`);
+        if (handleEl && bboxEl?.contains(handleEl)) {
+            const sel = store.getState().selectedAnnotation;
+            if (sel) {
+                const slotEl = bboxEl.closest<HTMLElement>("[data-page]");
+                if (slotEl) {
+                    startDrag(
+                        e,
+                        sel.pageIndex,
+                        sel.annotationIndex,
+                        "resize",
+                        handleEl.dataset.handle as HandlePosition,
+                    );
+                    return;
+                }
+            }
+        }
 
         // Check if clicking on an annotation
         const annotationEl = target.closest("[data-annotation-index]");
@@ -125,32 +226,25 @@ export function createAnnotationSelectController(options: AnnotationSelectContro
             if (isNaN(annotationIndex)) return;
 
             const pageIndex = pageNum - 1;
-            const state = store.getState();
-            const sel = state.selectedAnnotation;
+            const sel = store.getState().selectedAnnotation;
 
-            // If clicking the already-selected annotation, start a drag
             if (sel && sel.pageIndex === pageIndex && sel.annotationIndex === annotationIndex) {
-                startDrag(e, slotEl, pageIndex, annotationIndex);
+                startDrag(e, pageIndex, annotationIndex, "move");
                 return;
             }
 
-            // Otherwise select it
             store.dispatch({ type: "SELECT_ANNOTATION", pageIndex, annotationIndex });
             e.preventDefault();
             e.stopPropagation();
             return;
         }
 
-        // Check if clicking on the bounding box inner element (for drag)
-        const bboxInner = bboxEl?.firstElementChild;
-        if (bboxInner && (target === bboxInner || bboxInner.contains(target as Node))) {
+        // Check if clicking on the bbox inner (for move)
+        if (innerEl && (target === innerEl || innerEl.contains(target as Node))) {
             const sel = store.getState().selectedAnnotation;
             if (sel) {
-                const slotEl = bboxEl!.closest<HTMLElement>("[data-page]");
-                if (slotEl) {
-                    startDrag(e, slotEl, sel.pageIndex, sel.annotationIndex);
-                    return;
-                }
+                startDrag(e, sel.pageIndex, sel.annotationIndex, "move");
+                return;
             }
         }
 
@@ -158,16 +252,22 @@ export function createAnnotationSelectController(options: AnnotationSelectContro
         store.dispatch({ type: "DESELECT_ANNOTATION" });
     }
 
-    // =========================================================================
-    // Drag / move
-    // =========================================================================
-
-    function startDrag(e: PointerEvent, _slotEl: HTMLElement, pageIndex: number, annotationIndex: number): void {
+    function startDrag(
+        e: PointerEvent,
+        pageIndex: number,
+        annotationIndex: number,
+        mode: DragMode,
+        handle?: HandlePosition,
+    ): void {
         const state = store.getState();
         const pointsToPixels = getPointsToPixels(state.dpi);
         const zoom = state.effectiveZoom ?? state.zoom;
 
+        const annotations = state.pageAnnotations.get(pageIndex);
+        if (!annotations || annotationIndex >= annotations.length) return;
+
         isDragging = true;
+        dragMode = mode;
         dragScale = pointsToPixels * zoom;
         dragStartX = e.clientX;
         dragStartY = e.clientY;
@@ -175,8 +275,13 @@ export function createAnnotationSelectController(options: AnnotationSelectContro
         dragDy = 0;
         dragAnnotationPageIndex = pageIndex;
         dragAnnotationIndex = annotationIndex;
+        dragOriginalBounds = { ...annotations[annotationIndex].bounds };
+        dragHandle = handle ?? "se";
 
-        viewerRoot.classList.add(MOVING_CLASS);
+        viewerRoot.classList.add(mode === "move" ? MOVING_CLASS : RESIZING_CLASS);
+        if (mode === "resize") {
+            viewerRoot.style.cursor = HANDLE_CURSORS[dragHandle];
+        }
         scrollArea.setPointerCapture(e.pointerId);
         e.preventDefault();
         e.stopPropagation();
@@ -185,22 +290,20 @@ export function createAnnotationSelectController(options: AnnotationSelectContro
     function onPointerMove(e: PointerEvent): void {
         if (!isDragging) return;
 
-        // Compute delta in page coordinates
         const pxDx = e.clientX - dragStartX;
         const pxDy = e.clientY - dragStartY;
         dragDx = pxDx / dragScale;
         dragDy = pxDy / dragScale;
 
-        // Move the bounding box visually (live preview)
-        const inner = bboxEl?.firstElementChild as HTMLElement | null;
-        if (inner) {
-            const state = store.getState();
-            const annotations = state.pageAnnotations.get(dragAnnotationPageIndex);
-            if (annotations && dragAnnotationIndex < annotations.length) {
-                const bounds = annotations[dragAnnotationIndex].bounds;
-                inner.style.left = `${(bounds.x + dragDx) * dragScale}px`;
-                inner.style.top = `${(bounds.y + dragDy) * dragScale}px`;
+        if (dragMode === "move") {
+            if (innerEl) {
+                const b = dragOriginalBounds;
+                updateInnerPreview(b, { x: b.x + dragDx, y: b.y + dragDy, width: b.width, height: b.height });
             }
+        } else {
+            // Resize preview
+            const newBounds = computeResizedBounds(dragOriginalBounds, dragHandle, dragDx, dragDy);
+            updateInnerPreview(dragOriginalBounds, newBounds);
         }
     }
 
@@ -209,11 +312,12 @@ export function createAnnotationSelectController(options: AnnotationSelectContro
 
         scrollArea.releasePointerCapture(e.pointerId);
         viewerRoot.classList.remove(MOVING_CLASS);
+        viewerRoot.classList.remove(RESIZING_CLASS);
+        viewerRoot.style.cursor = "";
         isDragging = false;
 
-        // Only dispatch if there was meaningful movement
+        // Check for meaningful movement
         if (Math.abs(dragDx) < 0.5 && Math.abs(dragDy) < 0.5) {
-            // Reset bbox position
             updateSelectionVisual();
             return;
         }
@@ -223,16 +327,21 @@ export function createAnnotationSelectController(options: AnnotationSelectContro
         if (!annotations || dragAnnotationIndex >= annotations.length) return;
 
         const original = annotations[dragAnnotationIndex];
-        const moved = offsetAnnotation(original, dragDx, dragDy);
+        let updated;
+
+        if (dragMode === "move") {
+            updated = offsetAnnotation(original, dragDx, dragDy);
+        } else {
+            const newBounds = computeResizedBounds(dragOriginalBounds, dragHandle, dragDx, dragDy);
+            updated = resizeAnnotation(original, newBounds);
+        }
 
         store.dispatch({
             type: "UPDATE_ANNOTATION",
             pageIndex: dragAnnotationPageIndex,
             annotationIndex: dragAnnotationIndex,
-            annotation: moved,
+            annotation: updated,
         });
-
-        // Bbox will be redrawn by the store subscription
     }
 
     function onPointerCancel(e: PointerEvent): void {
@@ -240,6 +349,8 @@ export function createAnnotationSelectController(options: AnnotationSelectContro
 
         scrollArea.releasePointerCapture(e.pointerId);
         viewerRoot.classList.remove(MOVING_CLASS);
+        viewerRoot.classList.remove(RESIZING_CLASS);
+        viewerRoot.style.cursor = "";
         isDragging = false;
         updateSelectionVisual();
     }
@@ -281,6 +392,8 @@ export function createAnnotationSelectController(options: AnnotationSelectContro
         active = false;
         viewerRoot.classList.remove(SELECT_CURSOR_CLASS);
         viewerRoot.classList.remove(MOVING_CLASS);
+        viewerRoot.classList.remove(RESIZING_CLASS);
+        viewerRoot.style.cursor = "";
         scrollArea.removeEventListener("pointerdown", onPointerDown);
         scrollArea.removeEventListener("pointermove", onPointerMove);
         scrollArea.removeEventListener("pointerup", onPointerUp);
@@ -302,7 +415,6 @@ export function createAnnotationSelectController(options: AnnotationSelectContro
     const unsub = store.subscribeRender((_prev, next) => {
         if (isSelectMode(next)) {
             activate();
-            // Don't redraw bbox while dragging (we move it manually)
             if (!isDragging) {
                 updateSelectionVisual();
             }

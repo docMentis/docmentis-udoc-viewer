@@ -58,6 +58,7 @@
     --udoc-search-result-active-bg: rgba(0, 0, 0, 0.06);
 
     --udoc-text-selection: rgba(0, 120, 215, 0.5);
+    --udoc-selection-color: rgb(0, 120, 215);
 
     --udoc-annotation-bg: #ffffc0;
     --udoc-annotation-header-bg: #f0f0c0;
@@ -152,6 +153,7 @@
     --udoc-search-result-active-bg: rgba(255, 255, 255, 0.08);
 
     --udoc-text-selection: rgba(77, 166, 255, 0.5);
+    --udoc-selection-color: rgb(77, 166, 255);
 
     --udoc-annotation-bg: #4a4a20;
     --udoc-annotation-header-bg: #3a3a18;
@@ -2254,10 +2256,61 @@
 
 .udoc-viewer-root .udoc-annotation-select-bbox__inner {
     box-sizing: border-box;
-    border: 1.5px dashed var(--udoc-primary);
-    border-radius: 2px;
+    border: 2px solid var(--udoc-selection-color);
     cursor: grab;
     pointer-events: auto;
+}
+
+/* Resize handles */
+.udoc-viewer-root .udoc-annotation-select-bbox__handle {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: #fff;
+    border: 2px solid var(--udoc-selection-color);
+    border-radius: 2px;
+    pointer-events: auto;
+    box-sizing: border-box;
+}
+
+/* Corner handles */
+.udoc-annotation-select-bbox__handle--nw {
+    top: -5px;
+    left: -5px;
+}
+.udoc-annotation-select-bbox__handle--ne {
+    top: -5px;
+    right: -5px;
+}
+.udoc-annotation-select-bbox__handle--se {
+    bottom: -5px;
+    right: -5px;
+}
+.udoc-annotation-select-bbox__handle--sw {
+    bottom: -5px;
+    left: -5px;
+}
+
+/* Edge midpoint handles */
+.udoc-annotation-select-bbox__handle--n {
+    top: -5px;
+    left: 50%;
+    margin-left: -5px;
+}
+.udoc-annotation-select-bbox__handle--e {
+    top: 50%;
+    right: -5px;
+    margin-top: -5px;
+}
+.udoc-annotation-select-bbox__handle--s {
+    bottom: -5px;
+    left: 50%;
+    margin-left: -5px;
+}
+.udoc-annotation-select-bbox__handle--w {
+    top: 50%;
+    left: -5px;
+    margin-top: -5px;
 }
 
 /* Moving annotation cursor */
@@ -2267,6 +2320,11 @@
 
 .udoc-viewer--annotation-moving .udoc-annotation-select-bbox__inner {
     cursor: grabbing;
+}
+
+/* Resizing annotation — lock cursor globally */
+.udoc-viewer--annotation-resizing .udoc-viewport__scroll {
+    cursor: inherit !important;
 }
 
 /* Delete button in sub-toolbar */

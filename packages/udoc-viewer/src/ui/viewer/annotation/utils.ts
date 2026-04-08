@@ -100,6 +100,70 @@ export function boundsMatch(a: Rect, b: Rect, epsilon = 0.1): boolean {
 // Annotation geometry helpers
 // =============================================================================
 
+/** Remap a point from oldBounds coordinate space to newBounds. */
+function remapPoint(p: Point, oldBounds: Rect, newBounds: Rect): Point {
+    const sx = oldBounds.width > 0 ? (p.x - oldBounds.x) / oldBounds.width : 0;
+    const sy = oldBounds.height > 0 ? (p.y - oldBounds.y) / oldBounds.height : 0;
+    return { x: newBounds.x + sx * newBounds.width, y: newBounds.y + sy * newBounds.height };
+}
+
+function remapQuads(quads: Quad[], oldBounds: Rect, newBounds: Rect): Quad[] {
+    return quads.map((q) => ({
+        points: q.points.map((p) => remapPoint(p, oldBounds, newBounds)) as Quad["points"],
+    }));
+}
+
+/**
+ * Return a new annotation with all geometry scaled to fit newBounds.
+ * Points are remapped proportionally from the old bounds to the new bounds.
+ */
+export function resizeAnnotation(annotation: Annotation, newBounds: Rect): Annotation {
+    const oldBounds = annotation.bounds;
+    const base = { bounds: newBounds };
+
+    switch (annotation.type) {
+        case "line":
+            return {
+                ...annotation,
+                ...base,
+                start: remapPoint(annotation.start, oldBounds, newBounds),
+                end: remapPoint(annotation.end, oldBounds, newBounds),
+            };
+        case "polygon":
+        case "polyLine":
+            return {
+                ...annotation,
+                ...base,
+                vertices: annotation.vertices.map((p) => remapPoint(p, oldBounds, newBounds)),
+            };
+        case "ink":
+            return {
+                ...annotation,
+                ...base,
+                inkList: annotation.inkList.map((stroke) => stroke.map((p) => remapPoint(p, oldBounds, newBounds))),
+            };
+        case "highlight":
+        case "underline":
+        case "strikeOut":
+        case "squiggly":
+            return { ...annotation, ...base, quads: remapQuads(annotation.quads, oldBounds, newBounds) };
+        case "redact":
+            return {
+                ...annotation,
+                ...base,
+                quads: annotation.quads ? remapQuads(annotation.quads, oldBounds, newBounds) : undefined,
+            };
+        case "freeText":
+            return {
+                ...annotation,
+                ...base,
+                calloutLine: annotation.calloutLine?.map((p) => remapPoint(p, oldBounds, newBounds)),
+            };
+        default:
+            return { ...annotation, ...base };
+    }
+}
+
 function offsetRect(r: Rect, dx: number, dy: number): Rect {
     return { x: r.x + dx, y: r.y + dy, width: r.width, height: r.height };
 }

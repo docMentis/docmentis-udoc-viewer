@@ -50,6 +50,7 @@ export {
     createSvgElement,
     boundsMatch,
     offsetAnnotation,
+    resizeAnnotation,
 } from "./utils";
 
 // Render functions
