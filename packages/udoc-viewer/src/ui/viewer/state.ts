@@ -70,7 +70,7 @@ export type ToolSet = "annotate" | "markup";
 export type ActiveTool = SimpleTool | ToolSet;
 
 /** Individual annotation sub-tools */
-export type AnnotateSubTool = "freehand" | "line" | "arrow" | "rectangle" | "ellipse" | "polygon" | "textbox";
+export type AnnotateSubTool = "freehand" | "line" | "arrow" | "rectangle" | "ellipse" | "polygon" | "polyline";
 
 /** Individual markup sub-tools */
 export type MarkupSubTool = "highlight" | "underline" | "strikethrough" | "squiggly";

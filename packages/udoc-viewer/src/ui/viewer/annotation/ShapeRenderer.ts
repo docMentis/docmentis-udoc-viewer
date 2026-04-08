@@ -283,7 +283,7 @@ export function renderCircle(layer: HTMLElement, annotation: CircleAnnotation, s
  * Render a polygon annotation (closed shape).
  */
 export function renderPolygon(layer: HTMLElement, annotation: PolygonAnnotation, scale: number): Element {
-    if (!annotation.vertices || annotation.vertices.length < 3) {
+    if (!annotation.vertices || annotation.vertices.length < 2) {
         return document.createElement("div");
     }
 
@@ -298,14 +298,15 @@ export function renderPolygon(layer: HTMLElement, annotation: PolygonAnnotation,
         y: p.y * scale,
     }));
 
-    const polygon = createSvgElement("polygon");
-    polygon.setAttribute("points", scaledPoints.map((p) => `${p.x},${p.y}`).join(" "));
-    polygon.setAttribute("fill", interiorColor);
-    polygon.setAttribute("stroke", color);
-    polygon.setAttribute("stroke-width", String(strokeWidth));
-    polygon.setAttribute("opacity", String(opacity));
+    // Use polyline for < 3 vertices (preview during drawing), polygon for >= 3
+    const el = scaledPoints.length < 3 ? createSvgElement("polyline") : createSvgElement("polygon");
+    el.setAttribute("points", scaledPoints.map((p) => `${p.x},${p.y}`).join(" "));
+    el.setAttribute("fill", scaledPoints.length < 3 ? "none" : interiorColor);
+    el.setAttribute("stroke", color);
+    el.setAttribute("stroke-width", String(strokeWidth));
+    el.setAttribute("opacity", String(opacity));
 
-    svg.appendChild(polygon);
+    svg.appendChild(el);
     layer.appendChild(svg);
     return svg;
 }

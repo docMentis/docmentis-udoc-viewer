@@ -13,7 +13,7 @@ import {
     ICON_SUBTOOL_RECTANGLE,
     ICON_SUBTOOL_ELLIPSE,
     ICON_SUBTOOL_POLYGON,
-    ICON_SUBTOOL_TEXTBOX,
+    ICON_SUBTOOL_POLYLINE,
     ICON_SUBTOOL_HIGHLIGHT,
     ICON_SUBTOOL_UNDERLINE,
     ICON_SUBTOOL_STRIKETHROUGH,
@@ -44,7 +44,7 @@ const ANNOTATE_SUB_TOOLS: SubToolDef[] = [
     { id: "rectangle", icon: ICON_SUBTOOL_RECTANGLE, labelKey: "tools.rectangle" },
     { id: "ellipse", icon: ICON_SUBTOOL_ELLIPSE, labelKey: "tools.ellipse" },
     { id: "polygon", icon: ICON_SUBTOOL_POLYGON, labelKey: "tools.polygon" },
-    { id: "textbox", icon: ICON_SUBTOOL_TEXTBOX, labelKey: "tools.textbox" },
+    { id: "polyline", icon: ICON_SUBTOOL_POLYLINE, labelKey: "tools.polyline" },
 ];
 
 const MARKUP_SUB_TOOLS: SubToolDef[] = [
@@ -65,7 +65,7 @@ const TOOL_OPTIONS_CONFIG: Record<string, ToolOptionKey[]> = {
     rectangle: ["strokeColor", "fillColor", "strokeWidth", "opacity", "lineStyle"],
     ellipse: ["strokeColor", "fillColor", "strokeWidth", "opacity", "lineStyle"],
     polygon: ["strokeColor", "fillColor", "strokeWidth", "opacity", "lineStyle"],
-    textbox: ["strokeColor", "fillColor", "opacity", "fontSize"],
+    polyline: ["strokeColor", "strokeWidth", "opacity", "lineStyle"],
     highlight: ["strokeColor", "opacity"],
     underline: ["strokeColor"],
     strikethrough: ["strokeColor"],

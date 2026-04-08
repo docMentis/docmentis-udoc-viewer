@@ -2,7 +2,7 @@
  * AnnotationDrawController — handles mouse/pointer drawing for annotation tools.
  *
  * Converts pointer events on page slots into annotation objects dispatched to the store.
- * Supports: freehand (ink), line, arrow, rectangle, ellipse.
+ * Supports: freehand (ink), line, arrow, rectangle, ellipse, polygon.
  * Uses the same renderAnnotation() for both live preview and final result.
  */
 
@@ -17,6 +17,8 @@ import type {
     LineAnnotation,
     SquareAnnotation,
     CircleAnnotation,
+    PolygonAnnotation,
+    PolyLineAnnotation,
     AnnotationColor,
     LineEnding,
     BorderStyle,
@@ -91,6 +93,8 @@ export function createAnnotationDrawController(options: AnnotationDrawController
     // Start/end for geometry tools (in PDF coords)
     let startPt: Point = { x: 0, y: 0 };
     let endPt: Point = { x: 0, y: 0 };
+    // Committed vertices for polygon (click-to-add mode)
+    let polygonVertices: Point[] = [];
 
     /** Convert a client-space pointer event to PDF page coordinates. */
     function clientToPageCoords(e: PointerEvent): Point | null {
@@ -169,6 +173,39 @@ export function createAnnotationDrawController(options: AnnotationDrawController
             } as CircleAnnotation;
         }
 
+        if (drawSubTool === "polygon" || drawSubTool === "polyline") {
+            // During drawing: committed vertices + current cursor position
+            const verts = isDrawing ? [...polygonVertices, endPt] : polygonVertices;
+            if (verts.length >= 2) {
+                if (drawSubTool === "polygon") {
+                    return {
+                        type: "polygon",
+                        bounds: boundingRect(verts),
+                        vertices: verts,
+                        color,
+                        interiorColor: drawOptions.fillColor ? parseHexColor(drawOptions.fillColor) : undefined,
+                        borderWidth,
+                        borderStyle,
+                        startEnding: "None",
+                        endEnding: "None",
+                        opacity,
+                    } as PolygonAnnotation;
+                } else {
+                    return {
+                        type: "polyLine",
+                        bounds: boundingRect(verts),
+                        vertices: verts,
+                        color,
+                        borderWidth,
+                        borderStyle,
+                        startEnding: "None",
+                        endEnding: "None",
+                        opacity,
+                    } as PolyLineAnnotation;
+                }
+            }
+        }
+
         return null;
     }
 
@@ -206,6 +243,16 @@ export function createAnnotationDrawController(options: AnnotationDrawController
     /** Finalize drawing and dispatch the annotation to the store. */
     function finishDrawing(): void {
         if (!isDrawing) return;
+
+        // Polygon needs >= 3 vertices, polyline needs >= 2
+        const minVerts = drawSubTool === "polygon" ? 3 : 2;
+        if ((drawSubTool === "polygon" || drawSubTool === "polyline") && polygonVertices.length < minVerts) {
+            isDrawing = false;
+            removePreview();
+            polygonVertices = [];
+            return;
+        }
+
         isDrawing = false;
 
         const annotation = buildCurrentAnnotation();
@@ -215,6 +262,35 @@ export function createAnnotationDrawController(options: AnnotationDrawController
 
         removePreview();
         inkPoints = [];
+        polygonVertices = [];
+    }
+
+    // --- Shared setup for starting a draw on a page slot ---
+
+    function beginDrawOnSlot(e: PointerEvent): Point | null {
+        const state = store.getState();
+        if (!isToolSet(state.activeTool)) return null;
+        if (!state.activeSubTool) return null;
+        if (state.activeTool === "markup") return null;
+
+        const tool = state.activeSubTool;
+        const target = e.target as HTMLElement;
+        const slotEl = target.closest<HTMLElement>("[data-page]");
+        if (!slotEl) return null;
+
+        const pageNum = parseInt(slotEl.dataset.page!, 10);
+        if (isNaN(pageNum)) return null;
+
+        drawPageIndex = pageNum - 1;
+        drawSlot = slotEl;
+        drawSubTool = tool;
+        drawOptions = state.toolOptions[tool] ?? { ...DEFAULT_TOOL_OPTIONS };
+
+        const pointsToPixels = getPointsToPixels(state.dpi);
+        const zoom = state.effectiveZoom ?? state.zoom;
+        drawScale = pointsToPixels * zoom;
+
+        return clientToPageCoords(e);
     }
 
     // --- Pointer event handlers ---
@@ -222,35 +298,13 @@ export function createAnnotationDrawController(options: AnnotationDrawController
     function onPointerDown(e: PointerEvent): void {
         if (e.button !== 0) return;
 
+        // Polygon/polyline use click-to-add mode, handled separately
+        if (isDrawing && (drawSubTool === "polygon" || drawSubTool === "polyline")) return;
+
         const state = store.getState();
-        if (!isToolSet(state.activeTool)) return;
-        if (!state.activeSubTool) return;
+        if (state.activeSubTool === "polygon" || state.activeSubTool === "polyline") return;
 
-        // Only handle drawing sub-tools (not textbox/polygon for now)
-        const tool = state.activeSubTool;
-        if (tool === "textbox" || tool === "polygon") return;
-        // Markup tools (highlight, underline, etc.) need text selection, not handled here
-        if (state.activeTool === "markup") return;
-
-        // Find the page slot under the pointer
-        const target = e.target as HTMLElement;
-        const slotEl = target.closest<HTMLElement>("[data-page]");
-        if (!slotEl) return;
-
-        const pageNum = parseInt(slotEl.dataset.page!, 10);
-        if (isNaN(pageNum)) return;
-
-        drawPageIndex = pageNum - 1; // convert to 0-based
-        drawSlot = slotEl;
-        drawSubTool = tool;
-        drawOptions = state.toolOptions[tool] ?? { ...DEFAULT_TOOL_OPTIONS };
-
-        // Compute the scale (pixels per PDF point) for this page
-        const pointsToPixels = getPointsToPixels(state.dpi);
-        const zoom = state.effectiveZoom ?? state.zoom;
-        drawScale = pointsToPixels * zoom;
-
-        const pt = clientToPageCoords(e);
+        const pt = beginDrawOnSlot(e);
         if (!pt) return;
 
         isDrawing = true;
@@ -280,6 +334,7 @@ export function createAnnotationDrawController(options: AnnotationDrawController
 
     function onPointerUp(e: PointerEvent): void {
         if (!isDrawing) return;
+        if (drawSubTool === "polygon" || drawSubTool === "polyline") return; // finishes on double-click
         scrollArea.releasePointerCapture(e.pointerId);
         finishDrawing();
     }
@@ -290,6 +345,43 @@ export function createAnnotationDrawController(options: AnnotationDrawController
         isDrawing = false;
         removePreview();
         inkPoints = [];
+        polygonVertices = [];
+    }
+
+    // --- Polygon click/double-click handlers ---
+
+    function onClick(e: MouseEvent): void {
+        if (e.button !== 0) return;
+
+        const state = store.getState();
+        if (state.activeSubTool !== "polygon" && state.activeSubTool !== "polyline") return;
+
+        if (!isDrawing) {
+            // First click — start polygon
+            const pt = beginDrawOnSlot(e as unknown as PointerEvent);
+            if (!pt) return;
+
+            isDrawing = true;
+            polygonVertices = [pt];
+            endPt = pt;
+            createPreviewLayer();
+            e.preventDefault();
+        } else {
+            // Subsequent click — add vertex
+            const pt = clientToPageCoords(e as unknown as PointerEvent);
+            if (!pt) return;
+
+            polygonVertices.push(pt);
+            endPt = pt;
+            updatePreview();
+            e.preventDefault();
+        }
+    }
+
+    function onDblClick(e: MouseEvent): void {
+        if (!isDrawing || (drawSubTool !== "polygon" && drawSubTool !== "polyline")) return;
+        e.preventDefault();
+        finishDrawing();
     }
 
     // --- Cursor management ---
@@ -304,6 +396,8 @@ export function createAnnotationDrawController(options: AnnotationDrawController
         scrollArea.addEventListener("pointermove", onPointerMove);
         scrollArea.addEventListener("pointerup", onPointerUp);
         scrollArea.addEventListener("pointercancel", onPointerCancel);
+        scrollArea.addEventListener("click", onClick);
+        scrollArea.addEventListener("dblclick", onDblClick);
     }
 
     function deactivate(): void {
@@ -314,10 +408,13 @@ export function createAnnotationDrawController(options: AnnotationDrawController
         scrollArea.removeEventListener("pointermove", onPointerMove);
         scrollArea.removeEventListener("pointerup", onPointerUp);
         scrollArea.removeEventListener("pointercancel", onPointerCancel);
+        scrollArea.removeEventListener("click", onClick);
+        scrollArea.removeEventListener("dblclick", onDblClick);
         if (isDrawing) {
             isDrawing = false;
             removePreview();
             inkPoints = [];
+            polygonVertices = [];
         }
     }
 
@@ -327,9 +424,7 @@ export function createAnnotationDrawController(options: AnnotationDrawController
             ANNOTATION_FORMATS.has(s.documentFormat) &&
             isToolSet(s.activeTool) &&
             s.activeTool === "annotate" &&
-            s.activeSubTool !== null &&
-            s.activeSubTool !== "textbox" &&
-            s.activeSubTool !== "polygon"
+            s.activeSubTool !== null
         );
     }
 

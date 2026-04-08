@@ -185,6 +185,7 @@ export interface TranslationKeys {
     "tools.rectangle": string;
     "tools.ellipse": string;
     "tools.polygon": string;
+    "tools.polyline": string;
     "tools.textbox": string;
     // Markup sub-tools
     "tools.highlight": string;

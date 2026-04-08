@@ -114,6 +114,8 @@ export const ICON_SUBTOOL_ELLIPSE = `<svg viewBox="0 0 24 24" fill="none" stroke
 
 export const ICON_SUBTOOL_POLYGON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><polygon points="12 3 21 10 18 20 6 20 3 10"/></svg>`;
 
+export const ICON_SUBTOOL_POLYLINE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><polyline points="3 17 9 8 15 14 21 5"/></svg>`;
+
 export const ICON_SUBTOOL_TEXTBOX = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 4v3h5.5v12h3V7H19V4z"/></svg>`;
 
 // Markup sub-tool icons

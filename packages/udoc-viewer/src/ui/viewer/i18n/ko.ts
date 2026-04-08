@@ -185,6 +185,7 @@ export const ko: TranslationKeys = {
     "tools.rectangle": "Rectangle",
     "tools.ellipse": "Ellipse",
     "tools.polygon": "Polygon",
+    "tools.polyline": "Polyline",
     "tools.textbox": "Text box",
     // Markup sub-tools
     "tools.highlight": "Highlight",

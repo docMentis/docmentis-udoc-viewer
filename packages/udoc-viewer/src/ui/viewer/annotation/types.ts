@@ -239,6 +239,8 @@ export interface PolygonAnnotation extends BaseAnnotation {
     interiorColor?: AnnotationColor;
     borderWidth?: number;
     borderStyle?: BorderStyle;
+    startEnding?: LineEnding;
+    endEnding?: LineEnding;
     opacity?: number;
 }
 
@@ -250,6 +252,8 @@ export interface PolyLineAnnotation extends BaseAnnotation {
     interiorColor?: AnnotationColor;
     borderWidth?: number;
     borderStyle?: BorderStyle;
+    startEnding?: LineEnding;
+    endEnding?: LineEnding;
     opacity?: number;
 }
 
