@@ -78,13 +78,22 @@ export type MarkupSubTool = "highlight" | "underline" | "strikethrough" | "squig
 /** Any sub-tool */
 export type SubTool = AnnotateSubTool | MarkupSubTool;
 
+/** Line dash style */
+export type LineStyle = "solid" | "dashed" | "dotted";
+
+/** Arrow head style */
+export type ArrowHeadStyle = "none" | "open" | "closed";
+
 /** Per-tool drawing options */
 export interface ToolOptions {
     strokeColor: string;
     fillColor: string | null;
     strokeWidth: number;
     opacity: number;
-    fontSize?: number;
+    fontSize: number;
+    lineStyle: LineStyle;
+    arrowHeadStart: ArrowHeadStyle;
+    arrowHeadEnd: ArrowHeadStyle;
 }
 
 /** Default sub-tool for each tool set */
@@ -99,6 +108,10 @@ export const DEFAULT_TOOL_OPTIONS: ToolOptions = {
     fillColor: null,
     strokeWidth: 2,
     opacity: 1,
+    fontSize: 16,
+    lineStyle: "solid",
+    arrowHeadStart: "none",
+    arrowHeadEnd: "open",
 };
 
 /** Check if an active tool is a tool set (has sub-toolbar) */

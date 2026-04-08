@@ -194,6 +194,17 @@ export interface TranslationKeys {
     // Tool options
     "tools.strokeColor": string;
     "tools.fillColor": string;
+    "tools.noFill": string;
     "tools.strokeWidth": string;
     "tools.opacity": string;
+    "tools.fontSize": string;
+    "tools.lineStyle": string;
+    "tools.lineStyleSolid": string;
+    "tools.lineStyleDashed": string;
+    "tools.lineStyleDotted": string;
+    "tools.arrowHeadStart": string;
+    "tools.arrowHeadEnd": string;
+    "tools.arrowHeadNone": string;
+    "tools.arrowHeadOpen": string;
+    "tools.arrowHeadClosed": string;
 }

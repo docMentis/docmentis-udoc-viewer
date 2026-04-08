@@ -134,3 +134,31 @@ export const ICON_THEME_LIGHT = `<svg viewBox="0 0 24 24" fill="currentColor"><p
 export const ICON_THEME_DARK = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M9.37 5.51A7.35 7.35 0 0 0 9.1 7.5c0 4.08 3.32 7.4 7.4 7.4.68 0 1.35-.09 1.99-.27A7.014 7.014 0 0 1 12 19c-3.86 0-7-3.14-7-7 0-2.93 1.81-5.45 4.37-6.49zM12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/></svg>`;
 
 export const ICON_THEME_SYSTEM = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 18c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2H0v2h24v-2h-4zM4 6h16v10H4V6z"/></svg>`;
+
+// Annotation tool option icons
+
+// Line style icons (horizontal lines)
+export const ICON_LINE_SOLID = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="12" x2="21" y2="12"/></svg>`;
+
+export const ICON_LINE_DASHED = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-dasharray="4 3"><line x1="3" y1="12" x2="21" y2="12"/></svg>`;
+
+export const ICON_LINE_DOTTED = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-dasharray="1 3"><line x1="3" y1="12" x2="21" y2="12"/></svg>`;
+
+// Arrow head icons (line with arrowhead variants)
+export const ICON_ARROW_NONE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="12" x2="20" y2="12"/></svg>`;
+
+export const ICON_ARROW_OPEN = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="12" x2="20" y2="12"/><polyline points="15 7 20 12 15 17"/></svg>`;
+
+export const ICON_ARROW_CLOSED = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="12" x2="17" y2="12"/><polygon points="15 7 21 12 15 17" fill="currentColor"/></svg>`;
+
+// No-fill icon (circle with diagonal strike)
+export const ICON_NO_FILL = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/><line x1="6" y1="18" x2="18" y2="6"/></svg>`;
+
+// Stroke width icon (horizontal lines of different widths)
+export const ICON_STROKE_WIDTH = `<svg viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="5" width="16" height="1" rx="0.5"/><rect x="4" y="10" width="16" height="2" rx="1"/><rect x="4" y="16" width="16" height="3" rx="1.5"/></svg>`;
+
+// Opacity icon (half-filled circle)
+export const ICON_OPACITY = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor" stroke="none"/></svg>`;
+
+// Font size icon
+export const ICON_FONT_SIZE = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 4v3h5v12h3V7h5V4H9zM3 12v3h4v8h3v-8h4v-3H3z"/></svg>`;

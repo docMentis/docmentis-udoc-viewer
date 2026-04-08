@@ -1254,82 +1254,383 @@
     height: 20px;
 }
 
-/* Tool option groups */
-.udoc-viewer-root .udoc-subtoolbar__option-group {
+/* ---- Dropdown trigger (shared) ---- */
+.udoc-viewer-root .udoc-subtoolbar__dropdown-trigger {
     display: flex;
     align-items: center;
     gap: 4px;
+    height: 28px;
+    padding: 0 6px;
+    border: 1px solid var(--udoc-border);
+    border-radius: 4px;
+    background: var(--udoc-bg-panel);
+    cursor: pointer;
+    color: var(--udoc-text-body);
+    box-sizing: border-box;
 }
 
-.udoc-viewer-root .udoc-subtoolbar__option-label {
-    font-size: 10px;
-    font-weight: 600;
-    text-transform: uppercase;
-    color: var(--udoc-text-muted);
-    letter-spacing: 0.05em;
-    white-space: nowrap;
-    margin-right: 2px;
+.udoc-viewer-root .udoc-subtoolbar__dropdown-trigger:hover {
+    background: var(--udoc-hover-overlay);
 }
 
-/* Color swatches */
-.udoc-viewer-root .udoc-subtoolbar__color-swatch {
+.udoc-viewer-root .udoc-subtoolbar__dropdown-trigger--icon svg {
     width: 20px;
     height: 20px;
+}
+
+.udoc-viewer-root .udoc-subtoolbar__dropdown-arrow {
+    font-size: 10px;
+    line-height: 1;
+    color: var(--udoc-text-muted);
+}
+
+/* ---- Color swatch in trigger ---- */
+.udoc-viewer-root .udoc-subtoolbar__color-swatch {
+    display: block;
+    width: 18px;
+    height: 18px;
     border-radius: 50%;
-    border: 2px solid transparent;
+    padding: 0;
+    box-sizing: border-box;
+    pointer-events: none;
+}
+
+/* Stroke swatch: outlined ring */
+.udoc-viewer-root .udoc-subtoolbar__color-swatch--stroke {
+    background: transparent;
+    border: 3px solid var(--swatch-color);
+}
+
+/* Stroke none: dashed ring */
+.udoc-viewer-root .udoc-subtoolbar__color-swatch--stroke-none {
+    border-color: var(--udoc-text-muted);
+    border-style: dashed;
+    border-width: 2px;
+}
+
+/* Fill swatch: solid disc */
+.udoc-viewer-root .udoc-subtoolbar__color-swatch--fill {
     background: var(--swatch-color);
+    border: 2px solid var(--udoc-border);
+}
+
+/* Fill none: diagonal strike */
+.udoc-viewer-root .udoc-subtoolbar__color-swatch--fill-none {
+    background: transparent;
+    position: relative;
+    overflow: hidden;
+}
+
+.udoc-viewer-root .udoc-subtoolbar__color-swatch--fill-none::after {
+    content: "";
+    position: absolute;
+    width: 140%;
+    height: 2px;
+    background: var(--udoc-text-muted);
+    top: 50%;
+    left: -20%;
+    transform: rotate(-45deg);
+}
+
+/* ---- NumberInput trigger ---- */
+.udoc-viewer-root .udoc-number-input__trigger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    width: 68px;
+    height: 28px;
+    padding: 0 4px;
+    border: 1px solid var(--udoc-border);
+    border-radius: 4px;
+    background: var(--udoc-bg-panel);
+    cursor: pointer;
+    color: var(--udoc-text-body);
+    box-sizing: border-box;
+}
+
+.udoc-viewer-root .udoc-number-input__trigger:hover {
+    background: var(--udoc-hover-overlay);
+}
+
+.udoc-viewer-root .udoc-number-input__icon {
+    display: flex;
+    align-items: center;
+    width: 14px;
+    height: 14px;
+    color: var(--udoc-text-muted);
+}
+
+.udoc-viewer-root .udoc-number-input__icon svg {
+    width: 14px;
+    height: 14px;
+}
+
+.udoc-viewer-root .udoc-number-input__value {
+    font-size: 11px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+/* ---- NumberInput floating panel ---- */
+.udoc-viewer-root .udoc-number-input-panel {
+    display: none;
+    position: absolute;
+    top: 100%;
+    margin-top: 2px;
+    padding: 8px 10px;
+    background: var(--udoc-bg-panel);
+    border: 1px solid var(--udoc-border);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 100;
+}
+
+.udoc-viewer-root .udoc-number-input-panel--open {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.udoc-viewer-root .udoc-number-input-panel__slider {
+    width: 100px;
+    height: 4px;
+    cursor: pointer;
+    accent-color: var(--udoc-primary);
+}
+
+.udoc-viewer-root .udoc-number-input-panel__text {
+    width: 48px;
+    text-align: center;
+    border: 1px solid var(--udoc-border);
+    border-radius: 4px;
+    padding: 3px 4px;
+    font-size: 11px;
+    font-family: inherit;
+    color: var(--udoc-text-body);
+    background: var(--udoc-bg-panel);
+    box-sizing: border-box;
+}
+
+.udoc-viewer-root .udoc-number-input-panel__text:focus {
+    outline: 2px solid var(--udoc-primary);
+    outline-offset: -1px;
+}
+
+/* ---- Color panel (floating) ---- */
+.udoc-viewer-root .udoc-color-panel {
+    display: none;
+    position: absolute;
+    top: 100%;
+    margin-top: 2px;
+    padding: 8px;
+    background: var(--udoc-bg-panel);
+    border: 1px solid var(--udoc-border);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 100;
+}
+
+.udoc-viewer-root .udoc-color-panel--open {
+    display: block;
+}
+
+.udoc-viewer-root .udoc-color-panel__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    justify-items: center;
+}
+
+/* Base swatch (shared) */
+.udoc-viewer-root .udoc-color-panel__swatch {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
     cursor: pointer;
     padding: 0;
     box-sizing: border-box;
 }
 
-.udoc-viewer-root .udoc-subtoolbar__color-swatch:hover {
+/* Fill panel: solid discs with subtle border */
+.udoc-viewer-root .udoc-color-panel__grid--fill .udoc-color-panel__swatch:not(.udoc-color-panel__swatch--none) {
+    background: var(--swatch-color);
+    border: 2px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Stroke panel: outlined rings */
+.udoc-viewer-root .udoc-color-panel__grid--stroke .udoc-color-panel__swatch:not(.udoc-color-panel__swatch--none) {
+    background: transparent;
+    border: 3px solid var(--swatch-color);
+}
+
+/* Hover: both use outline */
+.udoc-viewer-root .udoc-color-panel__swatch:hover:not(.udoc-color-panel__swatch--active) {
+    outline: 2px solid var(--udoc-text-muted);
+    outline-offset: 1px;
+}
+
+/* Active: both use outline */
+.udoc-viewer-root .udoc-color-panel__swatch--active:not(.udoc-color-panel__swatch--none) {
+    outline: 2px solid var(--udoc-primary);
+    outline-offset: 2px;
+}
+
+/* None swatch — shared base */
+.udoc-viewer-root .udoc-color-panel__swatch--none {
+    background: transparent;
+    cursor: pointer;
+}
+
+.udoc-viewer-root .udoc-color-panel__swatch--none.udoc-color-panel__swatch--active {
+    outline: 2px solid var(--udoc-primary);
+    outline-offset: 2px;
+}
+
+/* None stroke: dashed ring (matches toolbar trigger) */
+.udoc-viewer-root .udoc-color-panel__swatch--none-stroke {
+    border: 2px dashed var(--udoc-text-muted);
+}
+
+/* None fill: diagonal strike (matches toolbar trigger) */
+.udoc-viewer-root .udoc-color-panel__swatch--none-fill {
+    border: 2px solid var(--udoc-border);
+    position: relative;
+    overflow: hidden;
+}
+
+.udoc-viewer-root .udoc-color-panel__swatch--none-fill::after {
+    content: "";
+    position: absolute;
+    width: 140%;
+    height: 2px;
+    background: var(--udoc-text-muted);
+    top: 50%;
+    left: -20%;
+    transform: rotate(-45deg);
+}
+
+.udoc-viewer-root .udoc-color-panel__swatch--none:hover {
     border-color: var(--udoc-text-muted);
 }
 
-.udoc-viewer-root .udoc-subtoolbar__color-swatch--active {
-    border-color: var(--udoc-primary);
+/* ---- Line style panel (floating) ---- */
+.udoc-viewer-root .udoc-linestyle-panel {
+    display: none;
+    position: absolute;
+    top: 100%;
+    margin-top: 2px;
+    padding: 4px;
+    background: var(--udoc-bg-panel);
+    border: 1px solid var(--udoc-border);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 100;
 }
 
-/* Stroke width buttons */
-.udoc-viewer-root .udoc-subtoolbar__width-btn {
+.udoc-viewer-root .udoc-linestyle-panel--open {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.udoc-viewer-root .udoc-linestyle-panel__item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    cursor: pointer;
+    white-space: nowrap;
+    color: var(--udoc-text-body);
+}
+
+.udoc-viewer-root .udoc-linestyle-panel__item:hover {
+    background: var(--udoc-hover-overlay);
+}
+
+.udoc-viewer-root .udoc-linestyle-panel__item--active {
+    background: var(--udoc-primary-active-bg);
+}
+
+.udoc-viewer-root .udoc-linestyle-panel__icon {
+    display: flex;
+    width: 24px;
+    height: 24px;
+}
+
+.udoc-viewer-root .udoc-linestyle-panel__icon svg {
+    width: 24px;
+    height: 24px;
+}
+
+.udoc-viewer-root .udoc-linestyle-panel__label {
+    font-size: 11px;
+}
+
+/* ---- Arrow head panel (floating) ---- */
+.udoc-viewer-root .udoc-arrowhead-panel {
+    display: none;
+    position: absolute;
+    top: 100%;
+    margin-top: 2px;
+    padding: 8px;
+    background: var(--udoc-bg-panel);
+    border: 1px solid var(--udoc-border);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 100;
+}
+
+.udoc-viewer-root .udoc-arrowhead-panel--open {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.udoc-viewer-root .udoc-arrowhead-panel__row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.udoc-viewer-root .udoc-arrowhead-panel__row-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--udoc-text-muted);
+    letter-spacing: 0.05em;
+    width: 36px;
+    flex-shrink: 0;
+}
+
+.udoc-viewer-root .udoc-arrowhead-panel__btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 28px;
+    width: 32px;
     height: 28px;
     padding: 0;
     border: none;
     border-radius: 4px;
     background: transparent;
     cursor: pointer;
+    color: var(--udoc-text-body);
 }
 
-.udoc-viewer-root .udoc-subtoolbar__width-btn:hover {
+.udoc-viewer-root .udoc-arrowhead-panel__btn svg {
+    width: 20px;
+    height: 20px;
+}
+
+.udoc-viewer-root .udoc-arrowhead-panel__btn:hover {
     background: var(--udoc-hover-overlay);
 }
 
-.udoc-viewer-root .udoc-subtoolbar__width-btn--active {
+.udoc-viewer-root .udoc-arrowhead-panel__btn--active {
     background: var(--udoc-primary-active-bg);
-}
-
-.udoc-viewer-root .udoc-subtoolbar__width-btn--active:hover {
-    background: var(--udoc-primary-active-bg-hover);
-}
-
-.udoc-viewer-root .udoc-subtoolbar__width-line {
-    display: block;
-    width: 16px;
-    border-radius: 1px;
-    background: var(--udoc-text-body);
-}
-
-/* Opacity slider */
-.udoc-viewer-root .udoc-subtoolbar__opacity-slider {
-    width: 80px;
-    height: 4px;
-    cursor: pointer;
-    accent-color: var(--udoc-primary);
 }
 
 /* Right Panel */

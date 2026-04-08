@@ -196,6 +196,17 @@ export const en: TranslationKeys = {
     // Tool options
     "tools.strokeColor": "Stroke color",
     "tools.fillColor": "Fill color",
+    "tools.noFill": "No fill",
     "tools.strokeWidth": "Stroke width",
     "tools.opacity": "Opacity",
+    "tools.fontSize": "Font size",
+    "tools.lineStyle": "Line style",
+    "tools.lineStyleSolid": "Solid",
+    "tools.lineStyleDashed": "Dashed",
+    "tools.lineStyleDotted": "Dotted",
+    "tools.arrowHeadStart": "Start",
+    "tools.arrowHeadEnd": "End",
+    "tools.arrowHeadNone": "None",
+    "tools.arrowHeadOpen": "Open",
+    "tools.arrowHeadClosed": "Closed",
 };
