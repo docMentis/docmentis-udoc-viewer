@@ -169,4 +169,4 @@ export const ICON_FONT_SIZE = `<svg viewBox="0 0 24 24" fill="currentColor"><pat
 export const ICON_SUBTOOL_SELECT = `<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor"><path d="M5 2l8 7.5-3.9.3 2.2 4.9-1.5.7-2.2-5L5 12.4V2z" stroke="none"/><rect x="11" y="11" width="11" height="11" rx="1" fill="none" stroke-width="1.5" stroke-dasharray="2 2"/></svg>`;
 
 // Delete icon (trash can)
-export const ICON_DELETE = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>`;
+export const ICON_DELETE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12"/><path d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/></svg>`;

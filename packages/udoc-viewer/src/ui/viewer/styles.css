@@ -2329,7 +2329,6 @@
 
 /* Delete button in sub-toolbar */
 .udoc-viewer-root .udoc-subtoolbar__btn--delete {
-    color: var(--udoc-text-color);
     transition:
         color 0.15s ease,
         opacity 0.15s ease;
@@ -2341,7 +2340,7 @@
 }
 
 .udoc-viewer-root .udoc-subtoolbar__btn--delete:not(:disabled):hover {
-    color: var(--udoc-error, #d32f2f);
+    color: var(--udoc-error-text);
 }
 
 /* Mobile Panel Overlay */
