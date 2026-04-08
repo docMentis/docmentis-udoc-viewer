@@ -269,12 +269,12 @@ if (!('encodeInto' in cachedTextEncoder)) {
 
 let WASM_VECTOR_LEN = 0;
 
-function __wasm_bindgen_func_elem_4165(arg0, arg1, arg2) {
-    wasm.__wasm_bindgen_func_elem_4165(arg0, arg1, addHeapObject(arg2));
+function __wasm_bindgen_func_elem_4164(arg0, arg1, arg2) {
+    wasm.__wasm_bindgen_func_elem_4164(arg0, arg1, addHeapObject(arg2));
 }
 
-function __wasm_bindgen_func_elem_22334(arg0, arg1, arg2, arg3) {
-    wasm.__wasm_bindgen_func_elem_22334(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
+function __wasm_bindgen_func_elem_22337(arg0, arg1, arg2, arg3) {
+    wasm.__wasm_bindgen_func_elem_22337(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
 }
 
 const __wbindgen_enum_GpuBufferBindingType = ["uniform", "storage", "read-only-storage"];
@@ -2066,7 +2066,7 @@ function __wbg_get_imports() {
                 const a = state0.a;
                 state0.a = 0;
                 try {
-                    return __wasm_bindgen_func_elem_22334(a, state0.b, arg0, arg1);
+                    return __wasm_bindgen_func_elem_22337(a, state0.b, arg0, arg1);
                 } finally {
                     state0.a = a;
                 }
@@ -2558,7 +2558,7 @@ function __wbg_get_imports() {
     };
     imports.wbg.__wbindgen_cast_e95d7a09ad75920b = function(arg0, arg1) {
         // Cast intrinsic for `Closure(Closure { dtor_idx: 259, function: Function { arguments: [Externref], shim_idx: 260, ret: Unit, inner_ret: Some(Unit) }, mutable: true }) -> Externref`.
-        const ret = makeMutClosure(arg0, arg1, wasm.__wasm_bindgen_func_elem_4149, __wasm_bindgen_func_elem_4165);
+        const ret = makeMutClosure(arg0, arg1, wasm.__wasm_bindgen_func_elem_4148, __wasm_bindgen_func_elem_4164);
         return addHeapObject(ret);
     };
     imports.wbg.__wbindgen_object_clone_ref = function(arg0) {
