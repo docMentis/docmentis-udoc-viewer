@@ -6,6 +6,8 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+## [0.6.24] - 2026-04-08
+
 ### Bug Fixes
 
 - Improve delete button appearance in dark theme
