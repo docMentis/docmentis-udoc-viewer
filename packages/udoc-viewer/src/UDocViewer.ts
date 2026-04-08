@@ -10,7 +10,7 @@ import type { ViewerOptions } from "./UDocClient.js";
 import { mountViewerShell, type ViewerShell, type InitialStateOverrides } from "./ui/viewer/shell.js";
 import type { PrintDialogResult, PrintPageRange, PrintQuality } from "./ui/viewer/components/PrintDialog.js";
 import type { Destination, OutlineItem, ScrollAlignment } from "./ui/viewer/navigation.js";
-import type { Annotation } from "./ui/viewer/annotation/index.js";
+import { renderAnnotationsToLayer, type Annotation } from "./ui/viewer/annotation/index.js";
 export type { Annotation } from "./ui/viewer/annotation/index.js";
 export type { SearchMatch } from "./ui/viewer/state.js";
 import type { LayoutPage } from "./worker/index.js";
@@ -1490,12 +1490,29 @@ export class UDocViewer {
 
             let pagesHtml = "";
             for (let idx = 0; idx < totalPages; idx++) {
-                const info = this._pageInfo[pageIndices[idx]];
+                const pageIndex = pageIndices[idx];
+                const info = this._pageInfo[pageIndex];
                 const widthIn = (info.width / 72).toFixed(4);
                 const heightIn = (info.height / 72).toFixed(4);
+                // Render annotations at scale=1 (1 PDF point = 1px). The page container
+                // is sized in inches (1in = 96 CSS px), so we scale by 96/72 to convert
+                // PDF points to CSS pixels.
+                const state = this.uiShell?.store.getState();
+                const pageAnnotations = state?.pageAnnotations.get(pageIndex);
+                let annotationLayer = "";
+                if (pageAnnotations && pageAnnotations.length > 0) {
+                    const tempLayer = document.createElement("div");
+                    renderAnnotationsToLayer(tempLayer, pageAnnotations, 1);
+                    const ptToCss = 96 / 72; // 1.333...
+                    annotationLayer =
+                        `<div style="position:absolute;top:0;left:0;width:${info.width}px;height:${info.height}px;` +
+                        `transform-origin:top left;transform:scale(${ptToCss});` +
+                        `pointer-events:none;">${tempLayer.innerHTML}</div>`;
+                }
                 pagesHtml +=
-                    `<div class="page" style="width:${widthIn}in;height:${heightIn}in;">` +
+                    `<div class="page" style="position:relative;width:${widthIn}in;height:${heightIn}in;">` +
                     `<img src="${blobUrls[idx]}" style="width:100%;height:100%;">` +
+                    annotationLayer +
                     `</div>`;
             }
 
