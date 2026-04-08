@@ -57,3 +57,16 @@ export {
 export { renderAnnotation, renderAnnotationsToLayer, closeAnnotationPopup, showAnnotationPopup } from "./render";
 
 export type { ShowPopupCallback } from "./render";
+
+// Property conversion utilities (annotation <-> ToolOptions)
+export {
+    parseHexColor,
+    annotationColorToHex,
+    toLineEnding,
+    fromLineEnding,
+    toBorderStyle,
+    fromBorderStyle,
+    annotationToToolOptions,
+    applyToolOptionsToAnnotation,
+    getEditableOptionsForAnnotation,
+} from "./propertyUtils";

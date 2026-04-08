@@ -4,6 +4,12 @@ import type { I18n } from "../i18n/index.js";
 import type { ViewerState, ActiveTool, SubTool, ToolOptions, LineStyle, ArrowHeadStyle } from "../state";
 import { isToolSet, DEFAULT_TOOL_OPTIONS } from "../state";
 import type { Action } from "../actions";
+import type { Annotation } from "../annotation/types";
+import {
+    annotationToToolOptions,
+    applyToolOptionsToAnnotation,
+    getEditableOptionsForAnnotation,
+} from "../annotation/propertyUtils";
 import { createNumberInput, type NumberInputInstance } from "./NumberInput";
 import { createColorSelect, type ColorSelectInstance } from "./ColorSelect";
 import {
@@ -95,6 +101,16 @@ interface SubToolbarSlice {
     activeSubTool: SubTool | null;
     toolOptions: Record<string, ToolOptions>;
     selectedAnnotation: ViewerState["selectedAnnotation"];
+    /** Resolved annotation object (null if nothing selected or not found). */
+    selectedAnnotationObj: Annotation | null;
+}
+
+function resolveAnnotation(s: ViewerState): Annotation | null {
+    const sel = s.selectedAnnotation;
+    if (!sel) return null;
+    const list = s.pageAnnotations.get(sel.pageIndex);
+    if (!list || sel.annotationIndex >= list.length) return null;
+    return list[sel.annotationIndex];
 }
 
 function selectSlice(s: ViewerState): SubToolbarSlice {
@@ -103,6 +119,7 @@ function selectSlice(s: ViewerState): SubToolbarSlice {
         activeSubTool: s.activeSubTool,
         toolOptions: s.toolOptions,
         selectedAnnotation: s.selectedAnnotation,
+        selectedAnnotationObj: resolveAnnotation(s),
     };
 }
 
@@ -111,7 +128,8 @@ function sliceEqual(a: SubToolbarSlice, b: SubToolbarSlice): boolean {
         a.activeTool === b.activeTool &&
         a.activeSubTool === b.activeSubTool &&
         a.toolOptions === b.toolOptions &&
-        a.selectedAnnotation === b.selectedAnnotation
+        a.selectedAnnotation === b.selectedAnnotation &&
+        a.selectedAnnotationObj === b.selectedAnnotationObj
     );
 }
 
@@ -143,6 +161,8 @@ export function createSubToolbar() {
     const currentToolBtns: Map<string, HTMLButtonElement> = new Map();
     let currentToolSet: string | null = null;
     let builtSubTool: SubTool | null = null;
+    /** Annotation type for which controls were built (when editing a selected annotation). */
+    let builtForAnnotationType: string | null = null;
     let activeSubTool: SubTool | null = null;
     let openPanel: PanelKey | null = null;
 
@@ -211,8 +231,28 @@ export function createSubToolbar() {
 
     // ---- Dispatch helper ----
 
+    /** Whether we are currently showing controls for a selected annotation (vs drawing tool). */
+    let editingAnnotation = false;
+
     function dispatchOpt(store: Store<ViewerState, Action>, key: string, value: string | number | null): void {
-        if (activeSubTool) store.dispatch({ type: "SET_TOOL_OPTION", subTool: activeSubTool, key, value });
+        if (editingAnnotation) {
+            // Apply the change to the selected annotation
+            const state = store.getState();
+            const sel = state.selectedAnnotation;
+            if (!sel) return;
+            const list = state.pageAnnotations.get(sel.pageIndex);
+            if (!list || sel.annotationIndex >= list.length) return;
+            const annotation = list[sel.annotationIndex];
+            const updated = applyToolOptionsToAnnotation(annotation, { [key]: value } as Partial<ToolOptions>);
+            store.dispatch({
+                type: "UPDATE_ANNOTATION",
+                pageIndex: sel.pageIndex,
+                annotationIndex: sel.annotationIndex,
+                annotation: updated,
+            });
+        } else if (activeSubTool) {
+            store.dispatch({ type: "SET_TOOL_OPTION", subTool: activeSubTool, key, value });
+        }
     }
 
     // ---- Mount ----
@@ -261,25 +301,49 @@ export function createSubToolbar() {
             if (!slice.activeSubTool) {
                 optionsSection.innerHTML = "";
                 builtSubTool = null;
+                builtForAnnotationType = null;
+                editingAnnotation = false;
                 return;
             }
 
             activeSubTool = slice.activeSubTool;
-            const opts = slice.toolOptions[slice.activeSubTool] ?? { ...DEFAULT_TOOL_OPTIONS };
 
-            // If sub-tool changed, rebuild the set of option controls in the toolbar
-            if (builtSubTool !== slice.activeSubTool) {
-                closeAllPanels();
-                buildControls(slice.activeSubTool, opts, store, i18n);
-                builtSubTool = slice.activeSubTool;
-            }
+            // Determine if we're in "edit selected annotation" mode
+            const selAnnotation = slice.activeSubTool === "select" ? slice.selectedAnnotationObj : null;
+            const selAnnotationType = selAnnotation ? selAnnotation.type : null;
+            const selEditableKeys = selAnnotation ? getEditableOptionsForAnnotation(selAnnotation) : null;
 
-            // Always update values in-place
-            updateValues(opts, store, i18n);
+            if (slice.activeSubTool === "select" && selAnnotation && selEditableKeys) {
+                // Editing a selected annotation — show property controls sourced from the annotation
+                editingAnnotation = true;
+                const opts = annotationToToolOptions(selAnnotation);
 
-            // Update delete button state for select tool
-            if (deleteBtn) {
-                deleteBtn.disabled = !slice.selectedAnnotation;
+                // Rebuild controls if sub-tool changed or annotation type changed
+                if (builtSubTool !== "select" || builtForAnnotationType !== selAnnotationType) {
+                    closeAllPanels();
+                    buildControlsForAnnotation(selEditableKeys, opts, store, i18n);
+                    builtSubTool = "select";
+                    builtForAnnotationType = selAnnotationType;
+                }
+
+                updateValues(opts, store, i18n);
+                if (deleteBtn) deleteBtn.disabled = false;
+            } else {
+                // Normal mode: drawing tool options or select with no/non-editable annotation
+                editingAnnotation = false;
+                const opts = slice.toolOptions[slice.activeSubTool] ?? { ...DEFAULT_TOOL_OPTIONS };
+
+                if (builtSubTool !== slice.activeSubTool || builtForAnnotationType !== null) {
+                    closeAllPanels();
+                    buildControls(slice.activeSubTool, opts, store, i18n);
+                    builtSubTool = slice.activeSubTool;
+                    builtForAnnotationType = null;
+                }
+
+                updateValues(opts, store, i18n);
+                if (deleteBtn) {
+                    deleteBtn.disabled = !slice.selectedAnnotation;
+                }
             }
         };
 
@@ -454,6 +518,151 @@ export function createSubToolbar() {
                 optionsSection.appendChild(arrowHeadTrigger);
             }
         }
+    }
+
+    // ====================================================================
+    // buildControlsForAnnotation — select mode with a selected annotation
+    // ====================================================================
+
+    function buildControlsForAnnotation(
+        editableKeys: readonly string[],
+        opts: ToolOptions,
+        store: Store<ViewerState, Action>,
+        i18n: I18n,
+    ): void {
+        optionsSection.innerHTML = "";
+        lineStyleTrigger = null;
+        arrowHeadTrigger = null;
+        deleteBtn = null;
+
+        // Build property controls based on the annotation's editable keys
+        for (const optKey of editableKeys) {
+            if (optKey === "strokeColor") {
+                if (!strokeColorSelect) {
+                    strokeColorSelect = createColorSelect({
+                        variant: "stroke",
+                        label: i18n.t("tools.strokeColor"),
+                        noneLabel: i18n.t("tools.noFill"),
+                        onSelect: () => closeAllPanels(),
+                        onChange: (color) => dispatchOpt(store, "strokeColor", color),
+                    });
+                    containerRef!.appendChild(strokeColorSelect.panel);
+                    strokeColorSelect.el.addEventListener("click", (e) => {
+                        e.stopPropagation();
+                        openPanelAt("strokeColor", strokeColorSelect!.el);
+                    });
+                }
+                optionsSection.appendChild(strokeColorSelect.el);
+            } else if (optKey === "fillColor") {
+                if (!fillColorSelect) {
+                    fillColorSelect = createColorSelect({
+                        variant: "fill",
+                        label: i18n.t("tools.fillColor"),
+                        noneLabel: i18n.t("tools.noFill"),
+                        onSelect: () => closeAllPanels(),
+                        onChange: (color) => dispatchOpt(store, "fillColor", color),
+                    });
+                    containerRef!.appendChild(fillColorSelect.panel);
+                    fillColorSelect.el.addEventListener("click", (e) => {
+                        e.stopPropagation();
+                        openPanelAt("fillColor", fillColorSelect!.el);
+                    });
+                }
+                optionsSection.appendChild(fillColorSelect.el);
+            } else if (optKey === "strokeWidth") {
+                if (!strokeWidthInput) {
+                    strokeWidthInput = createNumberInput({
+                        min: 0.5,
+                        max: 12,
+                        step: 0.5,
+                        value: opts.strokeWidth,
+                        icon: ICON_STROKE_WIDTH,
+                        formatValue: (v) => `${v}pt`,
+                        parseValue: (s) => {
+                            const n = parseFloat(s.replace(/pt$/i, ""));
+                            return isNaN(n) ? null : n;
+                        },
+                        label: i18n.t("tools.strokeWidth"),
+                        onChange: (v) => dispatchOpt(store, "strokeWidth", v),
+                    });
+                    containerRef!.appendChild(strokeWidthInput.panel);
+                    strokeWidthInput.el.addEventListener("click", (e) => {
+                        e.stopPropagation();
+                        openPanelAt("strokeWidth", strokeWidthInput!.el);
+                    });
+                }
+                optionsSection.appendChild(strokeWidthInput.el);
+            } else if (optKey === "opacity") {
+                if (!opacityInput) {
+                    opacityInput = createNumberInput({
+                        min: 10,
+                        max: 100,
+                        step: 10,
+                        value: Math.round(opts.opacity * 100),
+                        icon: ICON_OPACITY,
+                        formatValue: (v) => `${Math.round(v)}%`,
+                        parseValue: (s) => {
+                            const n = parseFloat(s.replace(/%$/i, ""));
+                            return isNaN(n) ? null : n;
+                        },
+                        label: i18n.t("tools.opacity"),
+                        onChange: (v) => dispatchOpt(store, "opacity", v / 100),
+                    });
+                    containerRef!.appendChild(opacityInput.panel);
+                    opacityInput.el.addEventListener("click", (e) => {
+                        e.stopPropagation();
+                        openPanelAt("opacity", opacityInput!.el);
+                    });
+                }
+                optionsSection.appendChild(opacityInput.el);
+            } else if (optKey === "lineStyle") {
+                lineStyleTrigger = document.createElement("button");
+                lineStyleTrigger.className =
+                    "udoc-subtoolbar__dropdown-trigger udoc-subtoolbar__dropdown-trigger--icon";
+                lineStyleTrigger.title = i18n.t("tools.lineStyle");
+                const arrow = document.createElement("span");
+                arrow.className = "udoc-subtoolbar__dropdown-arrow";
+                arrow.textContent = "\u25BE";
+                lineStyleTrigger.appendChild(arrow);
+                lineStyleTrigger.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    openPanelAt("lineStyle", lineStyleTrigger!);
+                });
+                optionsSection.appendChild(lineStyleTrigger);
+            } else if (optKey === "arrowHead") {
+                arrowHeadTrigger = document.createElement("button");
+                arrowHeadTrigger.className =
+                    "udoc-subtoolbar__dropdown-trigger udoc-subtoolbar__dropdown-trigger--icon";
+                arrowHeadTrigger.title = i18n.t("tools.arrowHeadEnd");
+                const arrow = document.createElement("span");
+                arrow.className = "udoc-subtoolbar__dropdown-arrow";
+                arrow.textContent = "\u25BE";
+                arrowHeadTrigger.appendChild(arrow);
+                arrowHeadTrigger.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    openPanelAt("arrowHead", arrowHeadTrigger!);
+                });
+                optionsSection.appendChild(arrowHeadTrigger);
+            }
+        }
+
+        // Always add delete button at the end
+        deleteBtn = document.createElement("button");
+        deleteBtn.className = "udoc-subtoolbar__btn udoc-subtoolbar__btn--delete";
+        deleteBtn.innerHTML = ICON_DELETE;
+        deleteBtn.title = i18n.t("tools.deleteAnnotation" as keyof typeof i18n.t);
+        deleteBtn.setAttribute("aria-label", i18n.t("tools.deleteAnnotation" as keyof typeof i18n.t));
+        deleteBtn.addEventListener("click", () => {
+            const sel = store.getState().selectedAnnotation;
+            if (sel) {
+                store.dispatch({
+                    type: "REMOVE_ANNOTATION",
+                    pageIndex: sel.pageIndex,
+                    annotationIndex: sel.annotationIndex,
+                });
+            }
+        });
+        optionsSection.appendChild(deleteBtn);
     }
 
     // ====================================================================

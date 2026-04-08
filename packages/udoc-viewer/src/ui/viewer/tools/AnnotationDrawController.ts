@@ -19,12 +19,10 @@ import type {
     CircleAnnotation,
     PolygonAnnotation,
     PolyLineAnnotation,
-    AnnotationColor,
-    LineEnding,
-    BorderStyle,
     Point,
     Rect,
 } from "../annotation/types";
+import { parseHexColor, toLineEnding, toBorderStyle } from "../annotation/propertyUtils";
 
 export interface AnnotationDrawControllerOptions {
     /** The scroll container that holds all spread/page elements */
@@ -36,28 +34,6 @@ export interface AnnotationDrawControllerOptions {
 
 // CSS class for crosshair cursor during annotation drawing
 const DRAW_CURSOR_CLASS = "udoc-viewer--tool-draw";
-
-/** Parse hex color (#rrggbb) to AnnotationColor (0-1 range). */
-function parseHexColor(hex: string): AnnotationColor {
-    const h = hex.replace("#", "");
-    return {
-        r: parseInt(h.substring(0, 2), 16) / 255,
-        g: parseInt(h.substring(2, 4), 16) / 255,
-        b: parseInt(h.substring(4, 6), 16) / 255,
-    };
-}
-
-/** Map ArrowHeadStyle to PDF LineEnding. */
-function toLineEnding(style: string): LineEnding {
-    switch (style) {
-        case "open":
-            return "OpenArrow";
-        case "closed":
-            return "ClosedArrow";
-        default:
-            return "None";
-    }
-}
 
 /** Compute bounding rect from a list of points. */
 function boundingRect(points: Point[]): Rect {
@@ -103,12 +79,6 @@ export function createAnnotationDrawController(options: AnnotationDrawController
         const px = e.clientX - rect.left;
         const py = e.clientY - rect.top;
         return { x: px / drawScale, y: py / drawScale };
-    }
-
-    /** Map tool lineStyle to PDF borderStyle. */
-    function toBorderStyle(lineStyle: string): BorderStyle {
-        if (lineStyle === "dashed" || lineStyle === "dotted") return "dashed";
-        return "solid";
     }
 
     /** Build an Annotation object from the current drawing state, or null if invalid. */
