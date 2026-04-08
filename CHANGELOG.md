@@ -6,6 +6,12 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+### Bug Fixes
+
+- Improve delete button appearance in dark theme
+- Add missing i18n translations for tool names across all 10 locales (ar, de, es, fr, ja, ko, pt-BR, ru, zh-CN, zh-TW)
+- Skip decode array for indexed colorspace images (engine)
+
 ## [0.6.23] - 2026-04-08
 
 ### Features
