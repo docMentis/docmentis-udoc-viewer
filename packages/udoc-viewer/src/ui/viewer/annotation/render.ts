@@ -113,9 +113,12 @@ export function renderAnnotation(
         case "redact":
             return ShapeRenderer.renderRedact(layer, annotation as RedactAnnotation, scale);
 
-        default:
-            // Unknown annotation type - create generic placeholder
-            return createGenericAnnotation(layer, annotation, scale);
+        default: {
+            // Unknown annotation type - skip if no bounds
+            const unknown = annotation as Annotation;
+            if (!unknown.bounds) return null;
+            return createGenericAnnotation(layer, unknown, scale);
+        }
     }
 }
 

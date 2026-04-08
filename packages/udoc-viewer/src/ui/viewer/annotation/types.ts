@@ -195,7 +195,7 @@ export type LineEnding =
     | "Slash";
 
 /** Border style. */
-export type BorderStyle = "solid" | "dashed" | "beveled" | "inset" | "underline";
+export type BorderStyle = "solid" | "dashed" | "dotted" | "beveled" | "inset" | "underline";
 
 /** Line annotation. */
 export interface LineAnnotation extends BaseAnnotation {
@@ -207,6 +207,7 @@ export interface LineAnnotation extends BaseAnnotation {
     color?: AnnotationColor;
     interiorColor?: AnnotationColor;
     borderWidth?: number;
+    borderStyle?: BorderStyle;
     opacity?: number;
 }
 
@@ -237,6 +238,7 @@ export interface PolygonAnnotation extends BaseAnnotation {
     color?: AnnotationColor;
     interiorColor?: AnnotationColor;
     borderWidth?: number;
+    borderStyle?: BorderStyle;
     opacity?: number;
 }
 
@@ -247,6 +249,7 @@ export interface PolyLineAnnotation extends BaseAnnotation {
     color?: AnnotationColor;
     interiorColor?: AnnotationColor;
     borderWidth?: number;
+    borderStyle?: BorderStyle;
     opacity?: number;
 }
 
@@ -256,6 +259,7 @@ export interface InkAnnotation extends BaseAnnotation {
     inkList: Point[][];
     color?: AnnotationColor;
     borderWidth?: number;
+    borderStyle?: BorderStyle;
     opacity?: number;
 }
 

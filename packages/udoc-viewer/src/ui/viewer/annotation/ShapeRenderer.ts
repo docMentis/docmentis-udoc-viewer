@@ -11,7 +11,17 @@ import type {
     RedactAnnotation,
     LineEnding,
 } from "./types";
+import type { BorderStyle } from "./types";
 import { colorToRgb, scaleBounds, createSvgOverlay, createSvgElement } from "./utils";
+
+/** Apply stroke-dasharray to an SVG element based on border style. */
+function applyDashPattern(el: SVGElement, borderStyle: BorderStyle | undefined, strokeWidth: number): void {
+    if (borderStyle === "dashed") {
+        el.setAttribute("stroke-dasharray", `${strokeWidth * 3} ${strokeWidth * 2}`);
+    } else if (borderStyle === "dotted") {
+        el.setAttribute("stroke-dasharray", `${strokeWidth} ${strokeWidth}`);
+    }
+}
 
 /**
  * Render a line annotation with optional line endings.
@@ -41,6 +51,7 @@ export function renderLine(layer: HTMLElement, annotation: LineAnnotation, scale
     line.setAttribute("y2", String(endY));
     line.setAttribute("stroke", color);
     line.setAttribute("stroke-width", String(strokeWidth));
+    applyDashPattern(line, annotation.borderStyle, strokeWidth);
     g.appendChild(line);
 
     // Draw line endings
@@ -227,10 +238,7 @@ export function renderSquare(layer: HTMLElement, annotation: SquareAnnotation, s
     rect.setAttribute("stroke-width", String(strokeWidth));
     rect.setAttribute("opacity", String(opacity));
 
-    // Apply dash pattern for dashed style
-    if (annotation.borderStyle === "dashed") {
-        rect.setAttribute("stroke-dasharray", `${strokeWidth * 3} ${strokeWidth * 2}`);
-    }
+    applyDashPattern(rect, annotation.borderStyle, strokeWidth);
 
     svg.appendChild(rect);
     layer.appendChild(svg);
@@ -264,10 +272,7 @@ export function renderCircle(layer: HTMLElement, annotation: CircleAnnotation, s
     ellipse.setAttribute("stroke-width", String(strokeWidth));
     ellipse.setAttribute("opacity", String(opacity));
 
-    // Apply dash pattern for dashed style
-    if (annotation.borderStyle === "dashed") {
-        ellipse.setAttribute("stroke-dasharray", `${strokeWidth * 3} ${strokeWidth * 2}`);
-    }
+    applyDashPattern(ellipse, annotation.borderStyle, strokeWidth);
 
     svg.appendChild(ellipse);
     layer.appendChild(svg);
@@ -329,6 +334,7 @@ export function renderPolyLine(layer: HTMLElement, annotation: PolyLineAnnotatio
     polyline.setAttribute("stroke", color);
     polyline.setAttribute("stroke-width", String(strokeWidth));
     polyline.setAttribute("opacity", String(opacity));
+    applyDashPattern(polyline, annotation.borderStyle, strokeWidth);
 
     svg.appendChild(polyline);
     layer.appendChild(svg);
@@ -369,6 +375,7 @@ export function renderInk(layer: HTMLElement, annotation: InkAnnotation, scale: 
         path.setAttribute("stroke-width", String(strokeWidth));
         path.setAttribute("stroke-linecap", "round");
         path.setAttribute("stroke-linejoin", "round");
+        applyDashPattern(path, annotation.borderStyle, strokeWidth);
         g.appendChild(path);
     }
 

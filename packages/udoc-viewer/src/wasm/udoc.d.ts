@@ -1,9 +1,28 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
- * Annotation type for JavaScript serialization.
+ * Markup metadata for JavaScript serialization (author, subject, contents, state).
  */
-export type JsAnnotationType = { type: "link"; action: JsLinkAction } | { type: "highlight"; quads: JsQuad[]; color?: JsColor; opacity?: number } | { type: "underline"; quads: JsQuad[]; color?: JsColor; opacity?: number } | { type: "strikeOut"; quads: JsQuad[]; color?: JsColor; opacity?: number } | { type: "squiggly"; quads: JsQuad[]; color?: JsColor; opacity?: number } | { type: "text"; icon: string; open: boolean; color?: JsColor } | { type: "freeText"; contents?: string; justification: string; defaultAppearance?: string; color?: JsColor; borderColor?: JsColor; calloutLine?: JsPoint[] } | { type: "stamp"; name?: string; hasCustomAppearance: boolean; color?: JsColor } | { type: "line"; start: JsPoint; end: JsPoint; startEnding: string; endEnding: string; color?: JsColor; interiorColor?: JsColor; borderWidth?: number; opacity?: number } | { type: "square"; color?: JsColor; interiorColor?: JsColor; borderWidth?: number; borderStyle: string; opacity?: number } | { type: "circle"; color?: JsColor; interiorColor?: JsColor; borderWidth?: number; borderStyle: string; opacity?: number } | { type: "polygon"; vertices: JsPoint[]; color?: JsColor; interiorColor?: JsColor; borderWidth?: number; opacity?: number } | { type: "polyLine"; vertices: JsPoint[]; color?: JsColor; interiorColor?: JsColor; borderWidth?: number; opacity?: number } | { type: "ink"; inkList: JsPoint[][]; color?: JsColor; borderWidth?: number; opacity?: number } | { type: "caret"; symbol: string; color?: JsColor; opacity?: number } | { type: "redact"; quads: JsQuad[]; interiorColor?: JsColor; overlayText?: string; justification: string; repeat: boolean; color?: JsColor; opacity?: number };
+export interface JsMarkupMetadata {
+    author?: string;
+    subject?: string;
+    contents?: string;
+    /**
+     * Annotation state (e.g., \"Accepted\", \"Rejected\", \"Completed\", \"Marked\").
+     */
+    state?: string;
+    /**
+     * State model (e.g., \"Review\" or \"Marked\").
+     */
+    stateModel?: string;
+    creationDate?: string;
+    /**
+     * Reply type: \"reply\" or \"group\".
+     */
+    replyType?: string;
+    intent?: string;
+    richContents?: string;
+}
 
 /**
  * Quadrilateral for JavaScript serialization (used in text markup annotations).
@@ -26,20 +45,12 @@ export interface JsRect {
 }
 
 /**
- * Markup metadata for JavaScript serialization (author, subject, contents, state).
+ * RGB color for JavaScript serialization (values 0.0-1.0).
  */
-export interface JsMarkupMetadata {
-    author?: string;
-    subject?: string;
-    contents?: string;
-    /**
-     * Annotation state (e.g., \"Accepted\", \"Rejected\", \"Completed\", \"Marked\").
-     */
-    state?: string;
-    /**
-     * State model (e.g., \"Review\" or \"Marked\").
-     */
-    stateModel?: string;
+export interface JsColor {
+    r: number;
+    g: number;
+    b: number;
 }
 
 /**
@@ -59,21 +70,35 @@ export interface JsAnnotation extends JsAnnotationType {
      * Metadata for markup annotations (author, subject, contents, state).
      */
     metadata?: JsMarkupMetadata;
+    /**
+     * Unique annotation name/identifier (NM field).
+     */
+    name?: string;
+    /**
+     * Last modification date (M field).
+     */
+    modificationDate?: string;
 }
 
 /**
- * RGB color for JavaScript serialization (values 0.0-1.0).
+ * Rectangle differences for JavaScript serialization.
  */
-export interface JsColor {
-    r: number;
-    g: number;
-    b: number;
+export interface JsRectDifferences {
+    left: number;
+    bottom: number;
+    right: number;
+    top: number;
 }
 
 /**
  * Link action for JavaScript serialization.
  */
 export type JsLinkAction = { actionType: "goTo"; destination: JsDestination } | { actionType: "uri"; uri: string };
+
+/**
+ * Annotation type for JavaScript serialization.
+ */
+export type JsAnnotationType = { type: "link"; action: JsLinkAction } | { type: "highlight"; quads: JsQuad[]; color?: JsColor; opacity?: number } | { type: "underline"; quads: JsQuad[]; color?: JsColor; opacity?: number } | { type: "strikeOut"; quads: JsQuad[]; color?: JsColor; opacity?: number } | { type: "squiggly"; quads: JsQuad[]; color?: JsColor; opacity?: number } | { type: "text"; icon: string; open: boolean; color?: JsColor; opacity?: number } | { type: "freeText"; contents?: string; justification: string; defaultAppearance?: string; color?: JsColor; borderColor?: JsColor; calloutLine?: JsPoint[]; opacity?: number; defaultStyle?: string; lineEnding?: string; rectDifferences?: JsRectDifferences } | { type: "stamp"; name?: string; hasCustomAppearance: boolean; color?: JsColor; opacity?: number } | { type: "line"; start: JsPoint; end: JsPoint; startEnding: string; endEnding: string; color?: JsColor; interiorColor?: JsColor; borderWidth?: number; borderStyle: string; dashPattern?: number[]; opacity?: number; leaderLength?: number; leaderExtension?: number; leaderOffset?: number; caption?: boolean; captionPosition?: string; captionOffset?: [number, number] } | { type: "square"; color?: JsColor; interiorColor?: JsColor; borderWidth?: number; borderStyle: string; dashPattern?: number[]; opacity?: number; rectDifferences?: JsRectDifferences } | { type: "circle"; color?: JsColor; interiorColor?: JsColor; borderWidth?: number; borderStyle: string; dashPattern?: number[]; opacity?: number; rectDifferences?: JsRectDifferences } | { type: "polygon"; vertices: JsPoint[]; color?: JsColor; interiorColor?: JsColor; borderWidth?: number; borderStyle: string; dashPattern?: number[]; startEnding: string; endEnding: string; opacity?: number } | { type: "polyLine"; vertices: JsPoint[]; color?: JsColor; interiorColor?: JsColor; borderWidth?: number; borderStyle: string; dashPattern?: number[]; startEnding: string; endEnding: string; opacity?: number } | { type: "ink"; inkList: JsPoint[][]; color?: JsColor; borderWidth?: number; borderStyle: string; dashPattern?: number[]; opacity?: number } | { type: "caret"; symbol: string; color?: JsColor; opacity?: number; rectDifferences?: JsRectDifferences } | { type: "redact"; quads: JsQuad[]; interiorColor?: JsColor; overlayText?: string; justification: string; repeat: boolean; color?: JsColor; opacity?: number; defaultAppearance?: string };
 
 /**
  * Point for JavaScript serialization.
@@ -1043,9 +1068,9 @@ export interface InitOutput {
   readonly wasm_set_visibility_group_visible: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
   readonly wasm_setup_telemetry: (a: number, b: number, c: number) => void;
   readonly wasm_viewer_preferences: (a: number, b: number, c: number, d: number) => void;
-  readonly __wasm_bindgen_func_elem_4024: (a: number, b: number, c: number) => void;
-  readonly __wasm_bindgen_func_elem_4008: (a: number, b: number) => void;
-  readonly __wasm_bindgen_func_elem_22113: (a: number, b: number, c: number, d: number) => void;
+  readonly __wasm_bindgen_func_elem_4166: (a: number, b: number, c: number) => void;
+  readonly __wasm_bindgen_func_elem_4150: (a: number, b: number) => void;
+  readonly __wasm_bindgen_func_elem_22311: (a: number, b: number, c: number, d: number) => void;
   readonly __wbindgen_export: (a: number, b: number) => number;
   readonly __wbindgen_export2: (a: number, b: number, c: number, d: number) => number;
   readonly __wbindgen_export3: (a: number) => void;

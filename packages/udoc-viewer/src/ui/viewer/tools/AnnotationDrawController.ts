@@ -19,6 +19,7 @@ import type {
     CircleAnnotation,
     AnnotationColor,
     LineEnding,
+    BorderStyle,
     Point,
     Rect,
 } from "../annotation/types";
@@ -100,11 +101,18 @@ export function createAnnotationDrawController(options: AnnotationDrawController
         return { x: px / drawScale, y: py / drawScale };
     }
 
+    /** Map tool lineStyle to PDF borderStyle. */
+    function toBorderStyle(lineStyle: string): BorderStyle {
+        if (lineStyle === "dashed" || lineStyle === "dotted") return "dashed";
+        return "solid";
+    }
+
     /** Build an Annotation object from the current drawing state, or null if invalid. */
     function buildCurrentAnnotation(): Annotation | null {
         const color = parseHexColor(drawOptions.strokeColor);
         const opacity = drawOptions.opacity;
         const borderWidth = drawOptions.strokeWidth;
+        const borderStyle = toBorderStyle(drawOptions.lineStyle);
 
         if (drawSubTool === "freehand" && inkPoints.length >= 2) {
             return {
@@ -113,6 +121,7 @@ export function createAnnotationDrawController(options: AnnotationDrawController
                 inkList: [inkPoints],
                 color,
                 borderWidth,
+                borderStyle,
                 opacity,
             } as InkAnnotation;
         }
@@ -127,6 +136,7 @@ export function createAnnotationDrawController(options: AnnotationDrawController
                 endEnding: drawSubTool === "arrow" ? toLineEnding(drawOptions.arrowHeadEnd) : "None",
                 color,
                 borderWidth,
+                borderStyle,
                 opacity,
             } as LineAnnotation;
         }
@@ -140,7 +150,7 @@ export function createAnnotationDrawController(options: AnnotationDrawController
                 color,
                 interiorColor: drawOptions.fillColor ? parseHexColor(drawOptions.fillColor) : undefined,
                 borderWidth,
-                borderStyle: "solid",
+                borderStyle,
                 opacity,
             } as SquareAnnotation;
         }
@@ -154,7 +164,7 @@ export function createAnnotationDrawController(options: AnnotationDrawController
                 color,
                 interiorColor: drawOptions.fillColor ? parseHexColor(drawOptions.fillColor) : undefined,
                 borderWidth,
-                borderStyle: "solid",
+                borderStyle,
                 opacity,
             } as CircleAnnotation;
         }
