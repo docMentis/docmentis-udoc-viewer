@@ -172,7 +172,7 @@ export const zhTW: TranslationKeys = {
     "rightPanel.resizeHandle": "調整面板大小",
     // Tools
     "tools.pointer": "指標",
-    "tools.hand": "手形",
+    "tools.hand": "抓手",
     "tools.zoom": "縮放",
     "tools.annotate": "註解",
     "tools.markup": "標記",

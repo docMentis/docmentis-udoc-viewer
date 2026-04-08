@@ -172,7 +172,7 @@ export const zhCN: TranslationKeys = {
     "rightPanel.resizeHandle": "调整面板大小",
     // Tools
     "tools.pointer": "指针",
-    "tools.hand": "手形",
+    "tools.hand": "抓手",
     "tools.zoom": "缩放",
     "tools.annotate": "批注",
     "tools.markup": "标记",
