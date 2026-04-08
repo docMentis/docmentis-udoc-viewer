@@ -10,11 +10,30 @@ import type {
     JsOutlineSection as OutlineSection,
     JsSplitByOutlineResult as SplitByOutlineResult,
     JsFontRegistration as FontEntry,
-    JsExtractedImage,
-    JsExtractedFont,
+    JsAnnotation as Annotation,
+    JsAnnotationsByPage as AnnotationsByPage,
+    JsOutlineItem as OutlineItem,
+    JsVisibilityGroup as VisibilityGroup,
+    JsFontUsageEntry as FontUsageEntry,
+    JsLayoutPage as LayoutPage,
+    JsPageInfo as PageInfo,
+    JsPageTransition as PageTransition,
 } from "../wasm/udoc.js";
 
-export type { LicenseResult, OutlineSection, SplitByOutlineResult, FontEntry };
+export type {
+    LicenseResult,
+    OutlineSection,
+    SplitByOutlineResult,
+    FontEntry,
+    Annotation,
+    AnnotationsByPage,
+    OutlineItem,
+    VisibilityGroup,
+    FontUsageEntry,
+    LayoutPage,
+    PageInfo,
+    PageTransition,
+};
 
 let wasm: Wasm | null = null;
 let gpuAvailable = false;
@@ -133,23 +152,26 @@ export type WorkerResponse =
     | { type: "authenticate"; success: false; error: string }
     | { type: "getPageCount"; success: true; pageCount: number }
     | { type: "getPageCount"; success: false; error: string }
-    | { type: "getPageInfo"; success: true; width: number; height: number; rotation: number; transition?: unknown }
-    | { type: "getPageInfo"; success: false; error: string }
     | {
-          type: "getAllPageInfo";
+          type: "getPageInfo";
           success: true;
-          pages: Array<{ width: number; height: number; rotation: number; transition?: unknown }>;
+          width: number;
+          height: number;
+          rotation: number;
+          transition?: PageTransition;
       }
+    | { type: "getPageInfo"; success: false; error: string }
+    | { type: "getAllPageInfo"; success: true; pages: PageInfo[] }
     | { type: "getAllPageInfo"; success: false; error: string }
     | { type: "renderPage"; success: true; rgba: Uint8Array; width: number; height: number }
     | { type: "renderPage"; success: false; error: string }
-    | { type: "getOutline"; success: true; outline: unknown[] }
+    | { type: "getOutline"; success: true; outline: OutlineItem[] }
     | { type: "getOutline"; success: false; error: string }
-    | { type: "getPageAnnotations"; success: true; annotations: unknown[] }
+    | { type: "getPageAnnotations"; success: true; annotations: Annotation[] }
     | { type: "getPageAnnotations"; success: false; error: string }
-    | { type: "getAllAnnotations"; success: true; annotations: Record<string, unknown[]> }
+    | { type: "getAllAnnotations"; success: true; annotations: AnnotationsByPage }
     | { type: "getAllAnnotations"; success: false; error: string }
-    | { type: "getLayoutPage"; success: true; layout: unknown }
+    | { type: "getLayoutPage"; success: true; layout: LayoutPage }
     | { type: "getLayoutPage"; success: false; error: string }
     | { type: "pdfCompose"; success: true; documentIds: string[] }
     | { type: "pdfCompose"; success: false; error: string }
@@ -169,13 +191,13 @@ export type WorkerResponse =
     | { type: "registerFonts"; success: false; error: string }
     | { type: "enableGoogleFonts"; success: true }
     | { type: "enableGoogleFonts"; success: false; error: string }
-    | { type: "getVisibilityGroups"; success: true; groups: unknown[] }
+    | { type: "getVisibilityGroups"; success: true; groups: VisibilityGroup[] }
     | { type: "getVisibilityGroups"; success: false; error: string }
     | { type: "setVisibilityGroupVisible"; success: true; updated: boolean }
     | { type: "setVisibilityGroupVisible"; success: false; error: string }
     | { type: "parseFontInfo"; success: true; info: { typeface: string; bold: boolean; italic: boolean } }
     | { type: "parseFontInfo"; success: false; error: string }
-    | { type: "getFontUsage"; success: true; entries: unknown[] }
+    | { type: "getFontUsage"; success: true; entries: FontUsageEntry[] }
     | { type: "getFontUsage"; success: false; error: string };
 
 /** Current request ID for response matching. */
@@ -388,14 +410,14 @@ async function handleMessage(event: MessageEvent<WorkerRequest & { _id?: number 
 
             case "getOutline": {
                 ensureInitialized();
-                const outline = wasm!.get_outline(request.documentId) as unknown[];
+                const outline = wasm!.get_outline(request.documentId);
                 respond({ type: "getOutline", success: true, outline });
                 break;
             }
 
             case "getPageAnnotations": {
                 ensureInitialized();
-                const annotations = wasm!.get_page_annotations(request.documentId, request.pageIndex) as unknown[];
+                const annotations = wasm!.get_page_annotations(request.documentId, request.pageIndex);
                 respond({ type: "getPageAnnotations", success: true, annotations });
                 break;
             }
@@ -409,21 +431,26 @@ async function handleMessage(event: MessageEvent<WorkerRequest & { _id?: number 
 
             case "getAllAnnotations": {
                 ensureInitialized();
-                const annotations = wasm!.get_all_annotations(request.documentId) as Record<string, unknown[]>;
+                const annotations = wasm!.get_all_annotations(request.documentId);
                 respond({ type: "getAllAnnotations", success: true, annotations });
                 break;
             }
 
             case "pdfCompose": {
                 ensureInitialized();
-                const documentIds = wasm!.pdf_compose(request.compositions, request.docIds) as string[];
+                const documentIds = wasm!.pdf_compose(
+                    request.compositions.map((comp) =>
+                        comp.map((pick) => ({ ...pick, rotation: pick.rotation ?? undefined })),
+                    ),
+                    request.docIds,
+                );
                 respond({ type: "pdfCompose", success: true, documentIds });
                 break;
             }
 
             case "getBytes": {
                 ensureInitialized();
-                const bytes = wasm!.get_bytes(request.documentId) as Uint8Array;
+                const bytes = wasm!.get_bytes(request.documentId);
                 respond({ type: "getBytes", success: true, bytes }, [bytes.buffer]);
                 break;
             }
@@ -437,10 +464,7 @@ async function handleMessage(event: MessageEvent<WorkerRequest & { _id?: number 
 
             case "pdfExtractImages": {
                 ensureInitialized();
-                const rawImages = wasm!.pdf_extract_images(
-                    request.documentId,
-                    request.convertRawToPng,
-                ) as JsExtractedImage[];
+                const rawImages = wasm!.pdf_extract_images(request.documentId, request.convertRawToPng);
                 // Copy Uint8Array data to ensure proper transfer across worker boundary
                 // (WASM memory views don't survive structured clone when nested in objects)
                 const images = rawImages.map((img) => ({
@@ -454,7 +478,7 @@ async function handleMessage(event: MessageEvent<WorkerRequest & { _id?: number 
 
             case "pdfExtractFonts": {
                 ensureInitialized();
-                const rawFonts = wasm!.pdf_extract_fonts(request.documentId) as JsExtractedFont[];
+                const rawFonts = wasm!.pdf_extract_fonts(request.documentId);
                 // Copy Uint8Array data to ensure proper transfer across worker boundary
                 // (WASM memory views don't survive structured clone when nested in objects)
                 const fonts = rawFonts.map((font) => ({
@@ -468,14 +492,14 @@ async function handleMessage(event: MessageEvent<WorkerRequest & { _id?: number 
 
             case "pdfCompress": {
                 ensureInitialized();
-                const compressedBytes = wasm!.pdf_compress(request.documentId) as Uint8Array;
+                const compressedBytes = wasm!.pdf_compress(request.documentId);
                 respond({ type: "pdfCompress", success: true, bytes: compressedBytes }, [compressedBytes.buffer]);
                 break;
             }
 
             case "pdfDecompress": {
                 ensureInitialized();
-                const decompressedBytes = wasm!.pdf_decompress(request.documentId) as Uint8Array;
+                const decompressedBytes = wasm!.pdf_decompress(request.documentId);
                 respond({ type: "pdfDecompress", success: true, bytes: decompressedBytes }, [decompressedBytes.buffer]);
                 break;
             }
@@ -496,7 +520,7 @@ async function handleMessage(event: MessageEvent<WorkerRequest & { _id?: number 
 
             case "getVisibilityGroups": {
                 ensureInitialized();
-                const groups = wasm!.get_visibility_groups(request.documentId) as unknown[];
+                const groups = wasm!.get_visibility_groups(request.documentId);
                 respond({ type: "getVisibilityGroups", success: true, groups });
                 break;
             }
@@ -521,7 +545,7 @@ async function handleMessage(event: MessageEvent<WorkerRequest & { _id?: number 
 
             case "getFontUsage": {
                 ensureInitialized();
-                const entries = wasm!.get_font_usage(request.documentId) as unknown[];
+                const entries = wasm!.get_font_usage(request.documentId);
                 respond({ type: "getFontUsage", success: true, entries });
                 break;
             }

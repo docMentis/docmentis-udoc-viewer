@@ -7,14 +7,21 @@
  */
 
 import type {
+    Annotation,
+    AnnotationsByPage,
     Composition,
     ComposePick,
     ExtractedFont,
     ExtractedImage,
     FontEntry,
+    FontUsageEntry,
+    LayoutPage,
     LicenseResult,
+    OutlineItem,
+    PageTransition,
     OutlineSection,
     SplitByOutlineResult,
+    VisibilityGroup,
     WorkerRequest,
     WorkerResponse,
 } from "./worker.js";
@@ -26,11 +33,8 @@ import type {
     JsEightDirection as EightDirection,
     JsInOutDirection as InOutDirection,
     JsTransitionEffect as TransitionEffect,
-    JsPageTransition as PageTransition,
     JsFontSource as FontSource,
     JsResolvedFontInfo as ResolvedFontInfo,
-    JsFontUsageEntry as FontUsageEntry,
-    JsLayoutPage as LayoutPage,
     JsLayoutFrame as LayoutFrame,
     JsLayoutParcel as LayoutParcel,
     JsLayoutLine as LayoutLine,
@@ -53,13 +57,17 @@ import type {
 import { WORKER_INLINE } from "./worker-inline.js";
 
 export type {
+    Annotation,
+    AnnotationsByPage,
     Composition,
     ComposePick,
     ExtractedFont,
     ExtractedImage,
     FontEntry,
+    OutlineItem,
     OutlineSection,
     SplitByOutlineResult,
+    VisibilityGroup,
 };
 
 export type { LicenseResult };
@@ -152,7 +160,7 @@ interface QueuedAnnotationItem {
     docId: string;
     page: number; // 1-based (matches render convention)
     priority: number;
-    resolve: (result: unknown[]) => void;
+    resolve: (result: Annotation[]) => void;
     reject: (error: Error) => void;
 }
 
@@ -161,7 +169,7 @@ interface QueuedTextItem {
     docId: string;
     page: number; // 1-based (matches render convention)
     priority: number;
-    resolve: (result: unknown[]) => void;
+    resolve: (result: LayoutPage) => void;
     reject: (error: Error) => void;
 }
 
@@ -524,11 +532,11 @@ export class WorkerClient {
     /**
      * Get the document outline.
      */
-    async getOutline(documentId: string): Promise<unknown[]> {
+    async getOutline(documentId: string): Promise<OutlineItem[]> {
         const counter = this.getCounter(documentId);
         const eventId = counter?.markStart("getOutline");
         try {
-            const response = (await this.send({ type: "getOutline", documentId })) as { outline: unknown[] };
+            const response = (await this.send({ type: "getOutline", documentId })) as { outline: OutlineItem[] };
             if (eventId) counter?.markEnd(eventId);
             return response.outline;
         } catch (error) {
@@ -540,11 +548,11 @@ export class WorkerClient {
     /**
      * Get font usage information for a document.
      */
-    async getFontUsage(documentId: string): Promise<unknown[]> {
+    async getFontUsage(documentId: string): Promise<FontUsageEntry[]> {
         const counter = this.getCounter(documentId);
         const eventId = counter?.markStart("getFontUsage");
         try {
-            const response = (await this.send({ type: "getFontUsage", documentId })) as { entries: unknown[] };
+            const response = (await this.send({ type: "getFontUsage", documentId })) as { entries: FontUsageEntry[] };
             if (eventId) counter?.markEnd(eventId);
             return response.entries;
         } catch (error) {
@@ -557,7 +565,7 @@ export class WorkerClient {
      * Get annotations for a specific page.
      * Routed through the unified work queue so renders take priority.
      */
-    async getPageAnnotations(documentId: string, pageIndex: number): Promise<unknown[]> {
+    async getPageAnnotations(documentId: string, pageIndex: number): Promise<Annotation[]> {
         return this.requestAnnotations(documentId, pageIndex);
     }
 
@@ -565,7 +573,7 @@ export class WorkerClient {
      * Get the layout model for a specific page (for text selection/search).
      * Routed through the unified work queue so renders take priority.
      */
-    async getLayoutPage(documentId: string, pageIndex: number): Promise<unknown> {
+    async getLayoutPage(documentId: string, pageIndex: number): Promise<LayoutPage> {
         return this.requestText(documentId, pageIndex);
     }
 
@@ -573,13 +581,13 @@ export class WorkerClient {
      * Request annotations via the unified work queue.
      * Lower priority than renders — waits for pending renders to complete first.
      */
-    requestAnnotations(docId: string, pageIndex: number): Promise<unknown[]> {
+    requestAnnotations(docId: string, pageIndex: number): Promise<Annotation[]> {
         const page = pageIndex + 1; // Convert 0-based to 1-based
         const key = `annotation:${docId}:${page}`;
 
         // Check if already in-flight
         if (this.currentWork?.key === key) {
-            return this.currentWork.promise as Promise<unknown[]>;
+            return this.currentWork.promise as Promise<Annotation[]>;
         }
 
         // Check if already queued (dedup)
@@ -590,7 +598,7 @@ export class WorkerClient {
             return new Promise((resolve, reject) => {
                 const originalResolve = queued.resolve;
                 const originalReject = queued.reject;
-                queued.resolve = (result: unknown[]) => {
+                queued.resolve = (result: Annotation[]) => {
                     originalResolve(result);
                     resolve(result);
                 };
@@ -607,7 +615,7 @@ export class WorkerClient {
                 docId,
                 page,
                 priority: 0,
-                resolve: resolve as (r: unknown[]) => void,
+                resolve,
                 reject,
             });
             this.sortQueue();
@@ -619,13 +627,13 @@ export class WorkerClient {
      * Request text content via the unified work queue.
      * Lowest priority — waits for pending renders and annotations to complete first.
      */
-    requestText(docId: string, pageIndex: number): Promise<unknown[]> {
+    requestText(docId: string, pageIndex: number): Promise<LayoutPage> {
         const page = pageIndex + 1; // Convert 0-based to 1-based
         const key = `text:${docId}:${page}`;
 
         // Check if already in-flight
         if (this.currentWork?.key === key) {
-            return this.currentWork.promise as Promise<unknown[]>;
+            return this.currentWork.promise as Promise<LayoutPage>;
         }
 
         // Check if already queued (dedup)
@@ -636,7 +644,7 @@ export class WorkerClient {
             return new Promise((resolve, reject) => {
                 const originalResolve = queued.resolve;
                 const originalReject = queued.reject;
-                queued.resolve = (result: unknown[]) => {
+                queued.resolve = (result: LayoutPage) => {
                     originalResolve(result);
                     resolve(result);
                 };
@@ -653,7 +661,7 @@ export class WorkerClient {
                 docId,
                 page,
                 priority: 0,
-                resolve: resolve as (r: unknown[]) => void,
+                resolve,
                 reject,
             });
             this.sortQueue();
@@ -664,12 +672,12 @@ export class WorkerClient {
     /**
      * Get all annotations grouped by page.
      */
-    async getAllAnnotations(documentId: string): Promise<Record<string, unknown[]>> {
+    async getAllAnnotations(documentId: string): Promise<AnnotationsByPage> {
         const counter = this.getCounter(documentId);
         const eventId = counter?.markStart("getAllAnnotations");
         try {
             const response = (await this.send({ type: "getAllAnnotations", documentId })) as {
-                annotations: Record<string, unknown[]>;
+                annotations: AnnotationsByPage;
             };
             if (eventId) counter?.markEnd(eventId);
             return response.annotations;
@@ -829,8 +837,10 @@ export class WorkerClient {
     /**
      * Get visibility groups for a document.
      */
-    async getVisibilityGroups(documentId: string): Promise<unknown[]> {
-        const response = (await this.send({ type: "getVisibilityGroups", documentId })) as { groups: unknown[] };
+    async getVisibilityGroups(documentId: string): Promise<VisibilityGroup[]> {
+        const response = (await this.send({ type: "getVisibilityGroups", documentId })) as {
+            groups: VisibilityGroup[];
+        };
         return response.groups;
     }
 
@@ -1427,7 +1437,7 @@ export class WorkerClient {
         }
     }
 
-    private async doAnnotation(item: QueuedAnnotationItem): Promise<unknown[]> {
+    private async doAnnotation(item: QueuedAnnotationItem): Promise<Annotation[]> {
         const pageIndex = item.page - 1;
         const counter = this.getCounter(item.docId);
         const eventId = counter?.markStart("getPageAnnotations", { pageIndex });
@@ -1436,7 +1446,7 @@ export class WorkerClient {
                 type: "getPageAnnotations",
                 documentId: item.docId,
                 pageIndex,
-            })) as { annotations: unknown[] };
+            })) as { annotations: Annotation[] };
             if (eventId) counter?.markEnd(eventId);
             item.resolve(response.annotations);
             return response.annotations;
@@ -1447,7 +1457,7 @@ export class WorkerClient {
         }
     }
 
-    private async doText(item: QueuedTextItem): Promise<unknown[]> {
+    private async doText(item: QueuedTextItem): Promise<LayoutPage> {
         const pageIndex = item.page - 1;
         const counter = this.getCounter(item.docId);
         const eventId = counter?.markStart("getLayoutPage", { pageIndex });
@@ -1456,10 +1466,10 @@ export class WorkerClient {
                 type: "getLayoutPage",
                 documentId: item.docId,
                 pageIndex,
-            })) as { layout: unknown };
+            })) as { layout: LayoutPage };
             if (eventId) counter?.markEnd(eventId);
-            item.resolve(response.layout as unknown[]);
-            return response.layout as unknown[];
+            item.resolve(response.layout);
+            return response.layout;
         } catch (error) {
             if (eventId) counter?.markEnd(eventId, false, (error as Error).message);
             item.reject(error instanceof Error ? error : new Error(String(error)));

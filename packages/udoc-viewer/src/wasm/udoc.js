@@ -187,6 +187,16 @@ function passArray8ToWasm0(arg, malloc) {
     return ptr;
 }
 
+function passArrayJsValueToWasm0(array, malloc) {
+    const ptr = malloc(array.length * 4, 4) >>> 0;
+    const mem = getDataViewMemory0();
+    for (let i = 0; i < array.length; i++) {
+        mem.setUint32(ptr + 4 * i, addHeapObject(array[i]), true);
+    }
+    WASM_VECTOR_LEN = array.length;
+    return ptr;
+}
+
 function passStringToWasm0(arg, malloc, realloc) {
     if (realloc === undefined) {
         const buf = cachedTextEncoder.encode(arg);
@@ -259,12 +269,12 @@ if (!('encodeInto' in cachedTextEncoder)) {
 
 let WASM_VECTOR_LEN = 0;
 
-function __wasm_bindgen_func_elem_3974(arg0, arg1, arg2) {
-    wasm.__wasm_bindgen_func_elem_3974(arg0, arg1, addHeapObject(arg2));
+function __wasm_bindgen_func_elem_4024(arg0, arg1, arg2) {
+    wasm.__wasm_bindgen_func_elem_4024(arg0, arg1, addHeapObject(arg2));
 }
 
-function __wasm_bindgen_func_elem_22063(arg0, arg1, arg2, arg3) {
-    wasm.__wasm_bindgen_func_elem_22063(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
+function __wasm_bindgen_func_elem_22113(arg0, arg1, arg2, arg3) {
+    wasm.__wasm_bindgen_func_elem_22113(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
 }
 
 const __wbindgen_enum_GpuBufferBindingType = ["uniform", "storage", "read-only-storage"];
@@ -379,7 +389,7 @@ export class Wasm {
      *
      * Returns an empty array if the document has no outline.
      * @param {string} id
-     * @returns {any}
+     * @returns {JsOutlineItem[]}
      */
     get_outline(id) {
         try {
@@ -390,10 +400,13 @@ export class Wasm {
             var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
             var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
             var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
-            if (r2) {
-                throw takeObject(r1);
+            var r3 = getDataViewMemory0().getInt32(retptr + 4 * 3, true);
+            if (r3) {
+                throw takeObject(r2);
             }
-            return takeObject(r0);
+            var v2 = getArrayJsValueFromWasm0(r0, r1).slice();
+            wasm.__wbindgen_export4(r0, r1 * 4, 4);
+            return v2;
         } finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
@@ -434,21 +447,26 @@ export class Wasm {
      *
      * # Returns
      * Array of IDs for the newly created documents (one per composition).
-     * @param {any} compositions
-     * @param {any} doc_ids
-     * @returns {any}
+     * @param {JsCompositions} compositions
+     * @param {string[]} doc_ids
+     * @returns {string[]}
      */
     pdf_compose(compositions, doc_ids) {
         try {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-            wasm.wasm_pdf_compose(retptr, this.__wbg_ptr, addHeapObject(compositions), addHeapObject(doc_ids));
+            const ptr0 = passArrayJsValueToWasm0(doc_ids, wasm.__wbindgen_export);
+            const len0 = WASM_VECTOR_LEN;
+            wasm.wasm_pdf_compose(retptr, this.__wbg_ptr, addHeapObject(compositions), ptr0, len0);
             var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
             var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
             var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
-            if (r2) {
-                throw takeObject(r1);
+            var r3 = getDataViewMemory0().getInt32(retptr + 4 * 3, true);
+            if (r3) {
+                throw takeObject(r2);
             }
-            return takeObject(r0);
+            var v2 = getArrayJsValueFromWasm0(r0, r1).slice();
+            wasm.__wbindgen_export4(r0, r1 * 4, 4);
+            return v2;
         } finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
@@ -573,7 +591,7 @@ export class Wasm {
      * Returns an array of `PageInfo` objects, one per page.
      * More efficient than calling `page_info` for each page.
      * @param {string} id
-     * @returns {any}
+     * @returns {JsPageInfo[]}
      */
     all_page_info(id) {
         try {
@@ -584,10 +602,13 @@ export class Wasm {
             var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
             var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
             var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
-            if (r2) {
-                throw takeObject(r1);
+            var r3 = getDataViewMemory0().getInt32(retptr + 4 * 3, true);
+            if (r3) {
+                throw takeObject(r2);
             }
-            return takeObject(r0);
+            var v2 = getArrayJsValueFromWasm0(r0, r1).slice();
+            wasm.__wbindgen_export4(r0, r1 * 4, 4);
+            return v2;
         } finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
@@ -616,7 +637,7 @@ export class Wasm {
      * # Returns
      * `FontUsageEntry[]` — see TypeScript types for shape.
      * @param {string} id
-     * @returns {any}
+     * @returns {JsFontUsageEntry[]}
      */
     get_font_usage(id) {
         try {
@@ -627,10 +648,13 @@ export class Wasm {
             var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
             var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
             var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
-            if (r2) {
-                throw takeObject(r1);
+            var r3 = getDataViewMemory0().getInt32(retptr + 4 * 3, true);
+            if (r3) {
+                throw takeObject(r2);
             }
-            return takeObject(r0);
+            var v2 = getArrayJsValueFromWasm0(r0, r1).slice();
+            wasm.__wbindgen_export4(r0, r1 * 4, 4);
+            return v2;
         } finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
@@ -728,12 +752,14 @@ export class Wasm {
      * const docId = udoc.loadPptx(pptxBytes);
      * const pixels = udoc.renderPageToRgba(docId, 0, 800, 600);
      * ```
-     * @param {any} fonts
+     * @param {JsFontRegistration[]} fonts
      */
     registerFonts(fonts) {
         try {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-            wasm.wasm_registerFonts(retptr, this.__wbg_ptr, addHeapObject(fonts));
+            const ptr0 = passArrayJsValueToWasm0(fonts, wasm.__wbindgen_export);
+            const len0 = WASM_VECTOR_LEN;
+            wasm.wasm_registerFonts(retptr, this.__wbg_ptr, ptr0, len0);
             var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
             var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
             if (r1) {
@@ -883,7 +909,7 @@ export class Wasm {
      * - `extension`: File extension (ttf, cff, t1, etc.)
      * - `data`: Raw font data as Uint8Array
      * @param {string} doc_id
-     * @returns {any}
+     * @returns {JsExtractedFont[]}
      */
     pdf_extract_fonts(doc_id) {
         try {
@@ -894,10 +920,13 @@ export class Wasm {
             var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
             var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
             var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
-            if (r2) {
-                throw takeObject(r1);
+            var r3 = getDataViewMemory0().getInt32(retptr + 4 * 3, true);
+            if (r3) {
+                throw takeObject(r2);
             }
-            return takeObject(r0);
+            var v2 = getArrayJsValueFromWasm0(r0, r1).slice();
+            wasm.__wbindgen_export4(r0, r1 * 4, 4);
+            return v2;
         } finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
@@ -918,7 +947,7 @@ export class Wasm {
      * - `data`: Raw image data as Uint8Array
      * @param {string} doc_id
      * @param {boolean} convert_raw_to_png
-     * @returns {any}
+     * @returns {JsExtractedImage[]}
      */
     pdf_extract_images(doc_id, convert_raw_to_png) {
         try {
@@ -929,10 +958,13 @@ export class Wasm {
             var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
             var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
             var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
-            if (r2) {
-                throw takeObject(r1);
+            var r3 = getDataViewMemory0().getInt32(retptr + 4 * 3, true);
+            if (r3) {
+                throw takeObject(r2);
             }
-            return takeObject(r0);
+            var v2 = getArrayJsValueFromWasm0(r0, r1).slice();
+            wasm.__wbindgen_export4(r0, r1 * 4, 4);
+            return v2;
         } finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
@@ -1024,7 +1056,7 @@ export class Wasm {
      *
      * Returns an object mapping page indices (as strings) to arrays of annotations.
      * @param {string} id
-     * @returns {any}
+     * @returns {JsAnnotationsByPage}
      */
     get_all_annotations(id) {
         try {
@@ -1090,7 +1122,7 @@ export class Wasm {
      * Uses per-page loading for efficiency (only loads the requested page).
      * @param {string} id
      * @param {number} page_index
-     * @returns {any}
+     * @returns {JsAnnotation[]}
      */
     get_page_annotations(id, page_index) {
         try {
@@ -1101,10 +1133,13 @@ export class Wasm {
             var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
             var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
             var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
-            if (r2) {
-                throw takeObject(r1);
+            var r3 = getDataViewMemory0().getInt32(retptr + 4 * 3, true);
+            if (r3) {
+                throw takeObject(r2);
             }
-            return takeObject(r0);
+            var v2 = getArrayJsValueFromWasm0(r0, r1).slice();
+            wasm.__wbindgen_export4(r0, r1 * 4, 4);
+            return v2;
         } finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
@@ -1132,7 +1167,7 @@ export class Wasm {
      * const pdfBytes = udoc.pdf_save_annotations(docId, annotations);
      * ```
      * @param {string} doc_id
-     * @param {any} annotations_by_page
+     * @param {JsAnnotationsByPage} annotations_by_page
      * @returns {Uint8Array}
      */
     pdf_save_annotations(doc_id, annotations_by_page) {
@@ -1201,7 +1236,7 @@ export class Wasm {
      *
      * Returns an empty array for documents without visibility groups.
      * @param {string} id
-     * @returns {any}
+     * @returns {JsVisibilityGroup[]}
      */
     get_visibility_groups(id) {
         try {
@@ -1212,10 +1247,13 @@ export class Wasm {
             var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
             var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
             var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
-            if (r2) {
-                throw takeObject(r1);
+            var r3 = getDataViewMemory0().getInt32(retptr + 4 * 3, true);
+            if (r3) {
+                throw takeObject(r2);
             }
-            return takeObject(r0);
+            var v2 = getArrayJsValueFromWasm0(r0, r1).slice();
+            wasm.__wbindgen_export4(r0, r1 * 4, 4);
+            return v2;
         } finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
@@ -2028,7 +2066,7 @@ function __wbg_get_imports() {
                 const a = state0.a;
                 state0.a = 0;
                 try {
-                    return __wasm_bindgen_func_elem_22063(a, state0.b, arg0, arg1);
+                    return __wasm_bindgen_func_elem_22113(a, state0.b, arg0, arg1);
                 } finally {
                     state0.a = a;
                 }
@@ -2493,7 +2531,7 @@ function __wbg_get_imports() {
     };
     imports.wbg.__wbindgen_cast_363ab6ba52868a22 = function(arg0, arg1) {
         // Cast intrinsic for `Closure(Closure { dtor_idx: 256, function: Function { arguments: [Externref], shim_idx: 257, ret: Unit, inner_ret: Some(Unit) }, mutable: true }) -> Externref`.
-        const ret = makeMutClosure(arg0, arg1, wasm.__wasm_bindgen_func_elem_3958, __wasm_bindgen_func_elem_3974);
+        const ret = makeMutClosure(arg0, arg1, wasm.__wasm_bindgen_func_elem_4008, __wasm_bindgen_func_elem_4024);
         return addHeapObject(ret);
     };
     imports.wbg.__wbindgen_cast_4625c577ab2ec9ee = function(arg0) {

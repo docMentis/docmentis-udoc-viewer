@@ -102,6 +102,12 @@ export type JsInOutDirection = "in" | "out";
 export type JsFontSpec = { typeface: string; bold: boolean; italic: boolean } | { fontId: string };
 
 /**
+ * Nested `Vec<Vec<T>>` can\'t cross the WASM boundary directly, so we use a
+ * transparent Tsify wrapper.
+ */
+export type JsCompositions = JsPick[][];
+
+/**
  * Resolved font info for JavaScript serialization.
  */
 export interface JsResolvedFontInfo {
@@ -125,6 +131,14 @@ export type JsSideDirection = "left" | "right" | "up" | "down";
 export type JsOrientation = "horizontal" | "vertical";
 
 export type JsGlitterPattern = "diamond" | "hexagon";
+
+/**
+ * Annotations grouped by page index (as string keys).
+ *
+ * Uses manual `IntoWasmAbi` to serialize maps as plain JS objects
+ * (not `Map`), matching the existing API shape: `{ \"0\": [...], \"3\": [...] }`.
+ */
+export type JsAnnotationsByPage = Record<string, JsAnnotation[]>;
 
 /**
  * Font registration entry from JavaScript.
@@ -484,7 +498,7 @@ export class Wasm {
    *
    * Returns an empty array if the document has no outline.
    */
-  get_outline(id: string): any;
+  get_outline(id: string): JsOutlineItem[];
   /**
    * Check if a feature is enabled by the current license.
    */
@@ -515,7 +529,7 @@ export class Wasm {
    * # Returns
    * Array of IDs for the newly created documents (one per composition).
    */
-  pdf_compose(compositions: any, doc_ids: any): any;
+  pdf_compose(compositions: JsCompositions, doc_ids: string[]): string[];
   /**
    * Set the license key.
    *
@@ -567,7 +581,7 @@ export class Wasm {
    * Returns an array of `PageInfo` objects, one per page.
    * More efficient than calling `page_info` for each page.
    */
-  all_page_info(id: string): any;
+  all_page_info(id: string): JsPageInfo[];
   /**
    * Get font usage information for a document.
    *
@@ -584,7 +598,7 @@ export class Wasm {
    * # Returns
    * `FontUsageEntry[]` — see TypeScript types for shape.
    */
-  get_font_usage(id: string): any;
+  get_font_usage(id: string): JsFontUsageEntry[];
   /**
    * Get current license status.
    */
@@ -636,7 +650,7 @@ export class Wasm {
    * const pixels = udoc.renderPageToRgba(docId, 0, 800, 600);
    * ```
    */
-  registerFonts(fonts: any): void;
+  registerFonts(fonts: JsFontRegistration[]): void;
   /**
    * Get the format of a loaded document.
    *
@@ -705,7 +719,7 @@ export class Wasm {
    * - `extension`: File extension (ttf, cff, t1, etc.)
    * - `data`: Raw font data as Uint8Array
    */
-  pdf_extract_fonts(doc_id: string): any;
+  pdf_extract_fonts(doc_id: string): JsExtractedFont[];
   /**
    * Extract all embedded images from a PDF document.
    *
@@ -721,7 +735,7 @@ export class Wasm {
    * - `height`: Height in pixels
    * - `data`: Raw image data as Uint8Array
    */
-  pdf_extract_images(doc_id: string, convert_raw_to_png: boolean): any;
+  pdf_extract_images(doc_id: string, convert_raw_to_png: boolean): JsExtractedImage[];
   /**
    * Render a page to PNG bytes.
    *
@@ -765,7 +779,7 @@ export class Wasm {
    *
    * Returns an object mapping page indices (as strings) to arrays of annotations.
    */
-  get_all_annotations(id: string): any;
+  get_all_annotations(id: string): JsAnnotationsByPage;
   /**
    * Render a page to raw RGBA pixel data.
    *
@@ -788,7 +802,7 @@ export class Wasm {
    * Returns an array of annotation objects for the given page.
    * Uses per-page loading for efficiency (only loads the requested page).
    */
-  get_page_annotations(id: string, page_index: number): any;
+  get_page_annotations(id: string, page_index: number): JsAnnotation[];
   /**
    * Save annotations back to a PDF document.
    *
@@ -812,7 +826,7 @@ export class Wasm {
    * const pdfBytes = udoc.pdf_save_annotations(docId, annotations);
    * ```
    */
-  pdf_save_annotations(doc_id: string, annotations_by_page: any): Uint8Array;
+  pdf_save_annotations(doc_id: string, annotations_by_page: JsAnnotationsByPage): Uint8Array;
   /**
    * Split a PDF document by its outline (bookmarks) structure.
    *
@@ -839,7 +853,7 @@ export class Wasm {
    *
    * Returns an empty array for documents without visibility groups.
    */
-  get_visibility_groups(id: string): any;
+  get_visibility_groups(id: string): JsVisibilityGroup[];
   /**
    * Set the visibility of a specific visibility group.
    *
@@ -1013,14 +1027,14 @@ export interface InitOutput {
   readonly wasm_new: (a: number, b: number, c: number, d: number) => number;
   readonly wasm_page_count: (a: number, b: number, c: number, d: number) => void;
   readonly wasm_page_info: (a: number, b: number, c: number, d: number, e: number) => void;
-  readonly wasm_pdf_compose: (a: number, b: number, c: number, d: number) => void;
+  readonly wasm_pdf_compose: (a: number, b: number, c: number, d: number, e: number) => void;
   readonly wasm_pdf_compress: (a: number, b: number, c: number, d: number) => void;
   readonly wasm_pdf_decompress: (a: number, b: number, c: number, d: number) => void;
   readonly wasm_pdf_extract_fonts: (a: number, b: number, c: number, d: number) => void;
   readonly wasm_pdf_extract_images: (a: number, b: number, c: number, d: number, e: number) => void;
   readonly wasm_pdf_save_annotations: (a: number, b: number, c: number, d: number, e: number) => void;
   readonly wasm_pdf_split_by_outline: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
-  readonly wasm_registerFonts: (a: number, b: number, c: number) => void;
+  readonly wasm_registerFonts: (a: number, b: number, c: number, d: number) => void;
   readonly wasm_remove_document: (a: number, b: number, c: number) => number;
   readonly wasm_render_page_gpu: (a: number, b: number, c: number, d: number, e: number, f: number) => number;
   readonly wasm_render_page_to_png: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
@@ -1029,9 +1043,9 @@ export interface InitOutput {
   readonly wasm_set_visibility_group_visible: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
   readonly wasm_setup_telemetry: (a: number, b: number, c: number) => void;
   readonly wasm_viewer_preferences: (a: number, b: number, c: number, d: number) => void;
-  readonly __wasm_bindgen_func_elem_3974: (a: number, b: number, c: number) => void;
-  readonly __wasm_bindgen_func_elem_3958: (a: number, b: number) => void;
-  readonly __wasm_bindgen_func_elem_22063: (a: number, b: number, c: number, d: number) => void;
+  readonly __wasm_bindgen_func_elem_4024: (a: number, b: number, c: number) => void;
+  readonly __wasm_bindgen_func_elem_4008: (a: number, b: number) => void;
+  readonly __wasm_bindgen_func_elem_22113: (a: number, b: number, c: number, d: number) => void;
   readonly __wbindgen_export: (a: number, b: number) => number;
   readonly __wbindgen_export2: (a: number, b: number, c: number, d: number) => number;
   readonly __wbindgen_export3: (a: number) => void;
