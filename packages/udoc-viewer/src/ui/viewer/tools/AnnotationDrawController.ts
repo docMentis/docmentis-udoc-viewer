@@ -3,13 +3,14 @@
  *
  * Converts pointer events on page slots into annotation objects dispatched to the store.
  * Supports: freehand (ink), line, arrow, rectangle, ellipse.
- * Draws a live preview SVG overlay during the drag gesture.
+ * Uses the same renderAnnotation() for both live preview and final result.
  */
 
 import type { Store } from "../../framework/store";
 import type { ViewerState, ToolOptions, SubTool } from "../state";
 import { getPointsToPixels, isToolSet, DEFAULT_TOOL_OPTIONS, ANNOTATION_FORMATS } from "../state";
 import type { Action } from "../actions";
+import { renderAnnotation } from "../annotation/render";
 import type {
     Annotation,
     InkAnnotation,
@@ -73,9 +74,8 @@ function boundingRect(points: Point[]): Rect {
 export function createAnnotationDrawController(options: AnnotationDrawControllerOptions) {
     const { scrollArea, viewerRoot, store } = options;
 
-    // Live preview overlay (SVG positioned over the page slot being drawn on)
-    let previewSvg: SVGSVGElement | null = null;
-    let previewPath: SVGPathElement | SVGRectElement | SVGEllipseElement | SVGLineElement | null = null;
+    // Preview layer (a div placed over the page slot, rendered via renderAnnotation)
+    let previewLayer: HTMLDivElement | null = null;
 
     // Drawing state
     let isDrawing = false;
@@ -100,158 +100,27 @@ export function createAnnotationDrawController(options: AnnotationDrawController
         return { x: px / drawScale, y: py / drawScale };
     }
 
-    /** Create the SVG preview overlay inside the page slot. */
-    function createPreview(): void {
-        if (!drawSlot) return;
-        previewSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-        previewSvg.style.position = "absolute";
-        previewSvg.style.inset = "0";
-        previewSvg.style.width = "100%";
-        previewSvg.style.height = "100%";
-        previewSvg.style.pointerEvents = "none";
-        previewSvg.style.zIndex = "10";
-        previewSvg.setAttribute("class", "udoc-annotation-draw-preview");
-        drawSlot.appendChild(previewSvg);
-    }
-
-    /** Update the live preview based on current drawing state. */
-    function updatePreview(): void {
-        if (!previewSvg) return;
-
-        const color = drawOptions.strokeColor;
-        const width = drawOptions.strokeWidth * drawScale;
-        const opacity = String(drawOptions.opacity);
-
-        // Remove old preview element
-        if (previewPath) {
-            previewPath.remove();
-            previewPath = null;
-        }
-
-        if (drawSubTool === "freehand" && inkPoints.length > 1) {
-            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-            let d = `M ${inkPoints[0].x * drawScale} ${inkPoints[0].y * drawScale}`;
-            for (let i = 1; i < inkPoints.length; i++) {
-                d += ` L ${inkPoints[i].x * drawScale} ${inkPoints[i].y * drawScale}`;
-            }
-            path.setAttribute("d", d);
-            path.setAttribute("fill", "none");
-            path.setAttribute("stroke", color);
-            path.setAttribute("stroke-width", String(width));
-            path.setAttribute("stroke-opacity", opacity);
-            path.setAttribute("stroke-linecap", "round");
-            path.setAttribute("stroke-linejoin", "round");
-            previewSvg.appendChild(path);
-            previewPath = path;
-        } else if (drawSubTool === "line" || drawSubTool === "arrow") {
-            const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-            line.setAttribute("x1", String(startPt.x * drawScale));
-            line.setAttribute("y1", String(startPt.y * drawScale));
-            line.setAttribute("x2", String(endPt.x * drawScale));
-            line.setAttribute("y2", String(endPt.y * drawScale));
-            line.setAttribute("stroke", color);
-            line.setAttribute("stroke-width", String(width));
-            line.setAttribute("stroke-opacity", opacity);
-            if (drawSubTool === "arrow") {
-                // Simple arrowhead marker
-                const markerId = "udoc-draw-arrow";
-                let defs = previewSvg.querySelector("defs");
-                if (!defs) {
-                    defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
-                    previewSvg.appendChild(defs);
-                }
-                if (!defs.querySelector(`#${markerId}`)) {
-                    const marker = document.createElementNS("http://www.w3.org/2000/svg", "marker");
-                    marker.setAttribute("id", markerId);
-                    marker.setAttribute("markerWidth", "10");
-                    marker.setAttribute("markerHeight", "7");
-                    marker.setAttribute("refX", "10");
-                    marker.setAttribute("refY", "3.5");
-                    marker.setAttribute("orient", "auto");
-                    const polygon = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
-                    polygon.setAttribute("points", "0 0, 10 3.5, 0 7");
-                    polygon.setAttribute("fill", color);
-                    marker.appendChild(polygon);
-                    defs.appendChild(marker);
-                }
-                line.setAttribute("marker-end", `url(#${markerId})`);
-            }
-            previewSvg.appendChild(line);
-            previewPath = line;
-        } else if (drawSubTool === "rectangle") {
-            const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-            const x = Math.min(startPt.x, endPt.x) * drawScale;
-            const y = Math.min(startPt.y, endPt.y) * drawScale;
-            const w = Math.abs(endPt.x - startPt.x) * drawScale;
-            const h = Math.abs(endPt.y - startPt.y) * drawScale;
-            rect.setAttribute("x", String(x));
-            rect.setAttribute("y", String(y));
-            rect.setAttribute("width", String(w));
-            rect.setAttribute("height", String(h));
-            rect.setAttribute("fill", drawOptions.fillColor ?? "none");
-            rect.setAttribute("fill-opacity", drawOptions.fillColor ? opacity : "0");
-            rect.setAttribute("stroke", color);
-            rect.setAttribute("stroke-width", String(width));
-            rect.setAttribute("stroke-opacity", opacity);
-            previewSvg.appendChild(rect);
-            previewPath = rect;
-        } else if (drawSubTool === "ellipse") {
-            const ellipse = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
-            const cx = ((startPt.x + endPt.x) / 2) * drawScale;
-            const cy = ((startPt.y + endPt.y) / 2) * drawScale;
-            const rx = (Math.abs(endPt.x - startPt.x) / 2) * drawScale;
-            const ry = (Math.abs(endPt.y - startPt.y) / 2) * drawScale;
-            ellipse.setAttribute("cx", String(cx));
-            ellipse.setAttribute("cy", String(cy));
-            ellipse.setAttribute("rx", String(rx));
-            ellipse.setAttribute("ry", String(ry));
-            ellipse.setAttribute("fill", drawOptions.fillColor ?? "none");
-            ellipse.setAttribute("fill-opacity", drawOptions.fillColor ? opacity : "0");
-            ellipse.setAttribute("stroke", color);
-            ellipse.setAttribute("stroke-width", String(width));
-            ellipse.setAttribute("stroke-opacity", opacity);
-            previewSvg.appendChild(ellipse);
-            previewPath = ellipse;
-        }
-    }
-
-    /** Remove the preview overlay. */
-    function removePreview(): void {
-        if (previewSvg) {
-            previewSvg.remove();
-            previewSvg = null;
-            previewPath = null;
-        }
-    }
-
-    /** Finalize drawing and dispatch the annotation to the store. */
-    function finishDrawing(): void {
-        if (!isDrawing) return;
-        isDrawing = false;
-
+    /** Build an Annotation object from the current drawing state, or null if invalid. */
+    function buildCurrentAnnotation(): Annotation | null {
         const color = parseHexColor(drawOptions.strokeColor);
         const opacity = drawOptions.opacity;
         const borderWidth = drawOptions.strokeWidth;
-        let annotation: Annotation | null = null;
 
         if (drawSubTool === "freehand" && inkPoints.length >= 2) {
-            const bounds = boundingRect(inkPoints);
-            annotation = {
+            return {
                 type: "ink",
-                bounds,
+                bounds: boundingRect(inkPoints),
                 inkList: [inkPoints],
                 color,
                 borderWidth,
                 opacity,
             } as InkAnnotation;
-        } else if (
-            (drawSubTool === "line" || drawSubTool === "arrow") &&
-            (startPt.x !== endPt.x || startPt.y !== endPt.y)
-        ) {
-            const bounds = boundingRect([startPt, endPt]);
-            const lineAnnotation: LineAnnotation = {
+        }
+
+        if ((drawSubTool === "line" || drawSubTool === "arrow") && (startPt.x !== endPt.x || startPt.y !== endPt.y)) {
+            return {
                 type: "line",
-                bounds,
+                bounds: boundingRect([startPt, endPt]),
                 start: startPt,
                 end: endPt,
                 startEnding: drawSubTool === "arrow" ? toLineEnding(drawOptions.arrowHeadStart) : "None",
@@ -259,30 +128,29 @@ export function createAnnotationDrawController(options: AnnotationDrawController
                 color,
                 borderWidth,
                 opacity,
-            };
-            annotation = lineAnnotation;
-        } else if (drawSubTool === "rectangle" && startPt.x !== endPt.x && startPt.y !== endPt.y) {
+            } as LineAnnotation;
+        }
+
+        if (drawSubTool === "rectangle" && startPt.x !== endPt.x && startPt.y !== endPt.y) {
             const x = Math.min(startPt.x, endPt.x);
             const y = Math.min(startPt.y, endPt.y);
-            const w = Math.abs(endPt.x - startPt.x);
-            const h = Math.abs(endPt.y - startPt.y);
-            annotation = {
+            return {
                 type: "square",
-                bounds: { x, y, width: w, height: h },
+                bounds: { x, y, width: Math.abs(endPt.x - startPt.x), height: Math.abs(endPt.y - startPt.y) },
                 color,
                 interiorColor: drawOptions.fillColor ? parseHexColor(drawOptions.fillColor) : undefined,
                 borderWidth,
                 borderStyle: "solid",
                 opacity,
             } as SquareAnnotation;
-        } else if (drawSubTool === "ellipse" && startPt.x !== endPt.x && startPt.y !== endPt.y) {
+        }
+
+        if (drawSubTool === "ellipse" && startPt.x !== endPt.x && startPt.y !== endPt.y) {
             const x = Math.min(startPt.x, endPt.x);
             const y = Math.min(startPt.y, endPt.y);
-            const w = Math.abs(endPt.x - startPt.x);
-            const h = Math.abs(endPt.y - startPt.y);
-            annotation = {
+            return {
                 type: "circle",
-                bounds: { x, y, width: w, height: h },
+                bounds: { x, y, width: Math.abs(endPt.x - startPt.x), height: Math.abs(endPt.y - startPt.y) },
                 color,
                 interiorColor: drawOptions.fillColor ? parseHexColor(drawOptions.fillColor) : undefined,
                 borderWidth,
@@ -291,6 +159,46 @@ export function createAnnotationDrawController(options: AnnotationDrawController
             } as CircleAnnotation;
         }
 
+        return null;
+    }
+
+    /** Create the preview layer inside the page slot. */
+    function createPreviewLayer(): void {
+        if (!drawSlot) return;
+        previewLayer = document.createElement("div");
+        previewLayer.style.position = "absolute";
+        previewLayer.style.inset = "0";
+        previewLayer.style.pointerEvents = "none";
+        previewLayer.style.zIndex = "10";
+        previewLayer.className = "udoc-annotation-draw-preview";
+        drawSlot.appendChild(previewLayer);
+    }
+
+    /** Update the live preview using the same renderer as final annotations. */
+    function updatePreview(): void {
+        if (!previewLayer) return;
+        previewLayer.innerHTML = "";
+
+        const annotation = buildCurrentAnnotation();
+        if (annotation) {
+            renderAnnotation(previewLayer, annotation, drawScale);
+        }
+    }
+
+    /** Remove the preview layer. */
+    function removePreview(): void {
+        if (previewLayer) {
+            previewLayer.remove();
+            previewLayer = null;
+        }
+    }
+
+    /** Finalize drawing and dispatch the annotation to the store. */
+    function finishDrawing(): void {
+        if (!isDrawing) return;
+        isDrawing = false;
+
+        const annotation = buildCurrentAnnotation();
         if (annotation && drawPageIndex >= 0) {
             store.dispatch({ type: "ADD_ANNOTATION", pageIndex: drawPageIndex, annotation });
         }
@@ -340,7 +248,7 @@ export function createAnnotationDrawController(options: AnnotationDrawController
         endPt = pt;
         inkPoints = [pt];
 
-        createPreview();
+        createPreviewLayer();
         scrollArea.setPointerCapture(e.pointerId);
         e.preventDefault();
     }
