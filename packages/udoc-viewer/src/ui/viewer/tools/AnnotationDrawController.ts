@@ -424,7 +424,8 @@ export function createAnnotationDrawController(options: AnnotationDrawController
             ANNOTATION_FORMATS.has(s.documentFormat) &&
             isToolSet(s.activeTool) &&
             s.activeTool === "annotate" &&
-            s.activeSubTool !== null
+            s.activeSubTool !== null &&
+            s.activeSubTool !== "select"
         );
     }
 

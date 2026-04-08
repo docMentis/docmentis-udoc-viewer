@@ -58,6 +58,7 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
                 pageAnnotations: new Map(),
                 annotationsLoading: new Set(),
                 annotationsDirtyPages: new Set(),
+                selectedAnnotation: null,
                 pageText: new Map(),
                 textLoading: new Set(),
                 textFailed: new Set(),
@@ -555,10 +556,15 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
             if (isToolSet(tool)) {
                 // Activate tool set with last-used sub-tool
                 const subTool = state.lastSubToolPerSet[tool];
-                return { ...state, activeTool: tool, activeSubTool: subTool };
+                return {
+                    ...state,
+                    activeTool: tool,
+                    activeSubTool: subTool,
+                    selectedAnnotation: subTool === "select" ? state.selectedAnnotation : null,
+                };
             }
             // Simple tool
-            return { ...state, activeTool: tool, activeSubTool: null };
+            return { ...state, activeTool: tool, activeSubTool: null, selectedAnnotation: null };
         }
         case "SET_SUB_TOOL": {
             const activeTool = state.activeTool;
@@ -571,6 +577,8 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
                     ...state.lastSubToolPerSet,
                     [activeTool as ToolSet]: action.subTool,
                 },
+                // Clear selection when switching away from select tool
+                selectedAnnotation: action.subTool !== "select" ? null : state.selectedAnnotation,
             };
         }
         case "SET_TOOL_OPTION": {
@@ -599,7 +607,27 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
             newAnnotations.set(action.pageIndex, newList);
             const newDirty = new Set(state.annotationsDirtyPages);
             newDirty.add(action.pageIndex);
-            return { ...state, pageAnnotations: newAnnotations, annotationsDirtyPages: newDirty };
+            return {
+                ...state,
+                pageAnnotations: newAnnotations,
+                annotationsDirtyPages: newDirty,
+                selectedAnnotation: null,
+            };
+        }
+
+        // Annotation selection
+        case "SELECT_ANNOTATION": {
+            const sel = state.selectedAnnotation;
+            if (sel && sel.pageIndex === action.pageIndex && sel.annotationIndex === action.annotationIndex)
+                return state;
+            return {
+                ...state,
+                selectedAnnotation: { pageIndex: action.pageIndex, annotationIndex: action.annotationIndex },
+            };
+        }
+        case "DESELECT_ANNOTATION": {
+            if (state.selectedAnnotation === null) return state;
+            return { ...state, selectedAnnotation: null };
         }
 
         default:

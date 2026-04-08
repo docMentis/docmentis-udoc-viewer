@@ -177,6 +177,9 @@ export const es: TranslationKeys = {
     "tools.annotate": "Annotate",
     "tools.markup": "Markup",
     "tools.subtoolbar": "Tool options",
+    // Shared sub-tools
+    "tools.select": "Select",
+    "tools.deleteAnnotation": "Delete annotation",
     // Annotate sub-tools
     "tools.freehand": "Freehand",
     "tools.line": "Line",

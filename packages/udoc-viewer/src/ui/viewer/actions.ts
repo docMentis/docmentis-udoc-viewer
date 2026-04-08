@@ -139,4 +139,7 @@ export type Action =
     | { type: "SET_TOOL_OPTION"; subTool: string; key: string; value: string | number | null }
     // Annotation editing
     | { type: "ADD_ANNOTATION"; pageIndex: number; annotation: Annotation }
-    | { type: "REMOVE_ANNOTATION"; pageIndex: number; annotationIndex: number };
+    | { type: "REMOVE_ANNOTATION"; pageIndex: number; annotationIndex: number }
+    // Annotation selection
+    | { type: "SELECT_ANNOTATION"; pageIndex: number; annotationIndex: number }
+    | { type: "DESELECT_ANNOTATION" };

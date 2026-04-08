@@ -70,10 +70,18 @@ export type ToolSet = "annotate" | "markup";
 export type ActiveTool = SimpleTool | ToolSet;
 
 /** Individual annotation sub-tools */
-export type AnnotateSubTool = "freehand" | "line" | "arrow" | "rectangle" | "ellipse" | "polygon" | "polyline";
+export type AnnotateSubTool =
+    | "select"
+    | "freehand"
+    | "line"
+    | "arrow"
+    | "rectangle"
+    | "ellipse"
+    | "polygon"
+    | "polyline";
 
 /** Individual markup sub-tools */
-export type MarkupSubTool = "highlight" | "underline" | "strikethrough" | "squiggly";
+export type MarkupSubTool = "select" | "highlight" | "underline" | "strikethrough" | "squiggly";
 
 /** Any sub-tool */
 export type SubTool = AnnotateSubTool | MarkupSubTool;
@@ -346,6 +354,8 @@ export interface ViewerState {
     // Annotation editing
     /** Set of page indices that have been modified by user annotation edits */
     annotationsDirtyPages: ReadonlySet<number>;
+    /** Currently selected annotation for editing (null = none) */
+    selectedAnnotation: { pageIndex: number; annotationIndex: number } | null;
 
     // Tools
     /** Set of tools/tool sets that are disabled (hidden from the UI). */
@@ -449,6 +459,7 @@ export const initialState: ViewerState = {
     panelTransitionsDisabled: false,
 
     annotationsDirtyPages: new Set(),
+    selectedAnnotation: null,
 
     disabledTools: new Set<ActiveTool>(["annotate", "markup"]),
     activeTool: "pointer",

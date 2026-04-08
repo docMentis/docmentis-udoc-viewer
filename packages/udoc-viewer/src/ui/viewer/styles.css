@@ -2224,6 +2224,52 @@
     z-index: 20;
 }
 
+/* Annotation select tool */
+.udoc-viewer--tool-select .udoc-spread__text-layer {
+    pointer-events: none;
+}
+
+.udoc-viewer--tool-select .udoc-text-run {
+    user-select: none;
+}
+
+/* SVG shape annotations: make drawn strokes/fills clickable (not empty SVG space) */
+.udoc-viewer--tool-select .udoc-spread__annotation-layer svg[data-annotation-index] * {
+    pointer-events: painted;
+    cursor: pointer;
+}
+
+/* HTML-based annotations (markup quads, text icons, etc.): make children clickable */
+.udoc-viewer--tool-select .udoc-spread__annotation-layer div[data-annotation-index] > * {
+    pointer-events: auto !important;
+    cursor: pointer;
+}
+
+/* Selected annotation bounding box */
+.udoc-viewer-root .udoc-annotation-select-bbox {
+    box-sizing: border-box;
+    border: 1.5px dashed var(--udoc-primary);
+    border-radius: 2px;
+    z-index: 20;
+}
+
+/* Delete button in sub-toolbar */
+.udoc-viewer-root .udoc-subtoolbar__btn--delete {
+    color: var(--udoc-text-color);
+    transition:
+        color 0.15s ease,
+        opacity 0.15s ease;
+}
+
+.udoc-viewer-root .udoc-subtoolbar__btn--delete:disabled {
+    opacity: 0.35;
+    cursor: default;
+}
+
+.udoc-viewer-root .udoc-subtoolbar__btn--delete:not(:disabled):hover {
+    color: var(--udoc-error, #d32f2f);
+}
+
 /* Mobile Panel Overlay */
 .udoc-viewer-root .udoc-panel-overlay {
     display: none;

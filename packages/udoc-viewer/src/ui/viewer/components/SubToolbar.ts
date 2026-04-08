@@ -7,6 +7,7 @@ import type { Action } from "../actions";
 import { createNumberInput, type NumberInputInstance } from "./NumberInput";
 import { createColorSelect, type ColorSelectInstance } from "./ColorSelect";
 import {
+    ICON_SUBTOOL_SELECT,
     ICON_SUBTOOL_FREEHAND,
     ICON_SUBTOOL_LINE,
     ICON_SUBTOOL_ARROW,
@@ -27,6 +28,7 @@ import {
     ICON_STROKE_WIDTH,
     ICON_OPACITY,
     ICON_FONT_SIZE,
+    ICON_DELETE,
 } from "../icons";
 
 // ---- Static data ----
@@ -38,6 +40,7 @@ interface SubToolDef {
 }
 
 const ANNOTATE_SUB_TOOLS: SubToolDef[] = [
+    { id: "select", icon: ICON_SUBTOOL_SELECT, labelKey: "tools.select" },
     { id: "freehand", icon: ICON_SUBTOOL_FREEHAND, labelKey: "tools.freehand" },
     { id: "line", icon: ICON_SUBTOOL_LINE, labelKey: "tools.line" },
     { id: "arrow", icon: ICON_SUBTOOL_ARROW, labelKey: "tools.arrow" },
@@ -48,6 +51,7 @@ const ANNOTATE_SUB_TOOLS: SubToolDef[] = [
 ];
 
 const MARKUP_SUB_TOOLS: SubToolDef[] = [
+    { id: "select", icon: ICON_SUBTOOL_SELECT, labelKey: "tools.select" },
     { id: "highlight", icon: ICON_SUBTOOL_HIGHLIGHT, labelKey: "tools.highlight" },
     { id: "underline", icon: ICON_SUBTOOL_UNDERLINE, labelKey: "tools.underline" },
     { id: "strikethrough", icon: ICON_SUBTOOL_STRIKETHROUGH, labelKey: "tools.strikethrough" },
@@ -90,14 +94,25 @@ interface SubToolbarSlice {
     activeTool: ActiveTool;
     activeSubTool: SubTool | null;
     toolOptions: Record<string, ToolOptions>;
+    selectedAnnotation: ViewerState["selectedAnnotation"];
 }
 
 function selectSlice(s: ViewerState): SubToolbarSlice {
-    return { activeTool: s.activeTool, activeSubTool: s.activeSubTool, toolOptions: s.toolOptions };
+    return {
+        activeTool: s.activeTool,
+        activeSubTool: s.activeSubTool,
+        toolOptions: s.toolOptions,
+        selectedAnnotation: s.selectedAnnotation,
+    };
 }
 
 function sliceEqual(a: SubToolbarSlice, b: SubToolbarSlice): boolean {
-    return a.activeTool === b.activeTool && a.activeSubTool === b.activeSubTool && a.toolOptions === b.toolOptions;
+    return (
+        a.activeTool === b.activeTool &&
+        a.activeSubTool === b.activeSubTool &&
+        a.toolOptions === b.toolOptions &&
+        a.selectedAnnotation === b.selectedAnnotation
+    );
 }
 
 // ---- Panel key ----
@@ -138,6 +153,9 @@ export function createSubToolbar() {
     let strokeWidthInput: NumberInputInstance | null = null;
     let opacityInput: NumberInputInstance | null = null;
     let fontSizeInput: NumberInputInstance | null = null;
+
+    // Delete button for select tool
+    let deleteBtn: HTMLButtonElement | null = null;
 
     // Line style & arrow head (panels + triggers)
     const lineStylePanel = document.createElement("div");
@@ -258,6 +276,11 @@ export function createSubToolbar() {
 
             // Always update values in-place
             updateValues(opts, store, i18n);
+
+            // Update delete button state for select tool
+            if (deleteBtn) {
+                deleteBtn.disabled = !slice.selectedAnnotation;
+            }
         };
 
         applyState(selectSlice(store.getState()));
@@ -272,6 +295,29 @@ export function createSubToolbar() {
         optionsSection.innerHTML = "";
         lineStyleTrigger = null;
         arrowHeadTrigger = null;
+        deleteBtn = null;
+
+        // Select tool shows a delete button instead of drawing options
+        if (subTool === "select") {
+            deleteBtn = document.createElement("button");
+            deleteBtn.className = "udoc-subtoolbar__btn udoc-subtoolbar__btn--delete";
+            deleteBtn.innerHTML = ICON_DELETE;
+            deleteBtn.title = i18n.t("tools.deleteAnnotation" as keyof typeof i18n.t);
+            deleteBtn.setAttribute("aria-label", i18n.t("tools.deleteAnnotation" as keyof typeof i18n.t));
+            deleteBtn.disabled = true;
+            deleteBtn.addEventListener("click", () => {
+                const sel = store.getState().selectedAnnotation;
+                if (sel) {
+                    store.dispatch({
+                        type: "REMOVE_ANNOTATION",
+                        pageIndex: sel.pageIndex,
+                        annotationIndex: sel.annotationIndex,
+                    });
+                }
+            });
+            optionsSection.appendChild(deleteBtn);
+            return;
+        }
 
         const supported = TOOL_OPTIONS_CONFIG[subTool];
         if (!supported || supported.length === 0) return;

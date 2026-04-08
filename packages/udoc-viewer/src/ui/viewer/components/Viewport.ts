@@ -34,6 +34,7 @@ import { getDevicePixelRatio, snapToDevice, toCssPixels, toDevicePixels } from "
 import { runTransition, type TransitionHandle } from "../transition";
 import { createViewToolController } from "../tools/ViewToolController";
 import { createAnnotationDrawController } from "../tools/AnnotationDrawController";
+import { createAnnotationSelectController } from "../tools/AnnotationSelectController";
 
 interface HighlightedAnnotation {
     pageIndex: number;
@@ -633,6 +634,7 @@ export function createViewport(showAttribution = true) {
 
     let viewToolController: ReturnType<typeof createViewToolController> | null = null;
     let annotationDrawController: ReturnType<typeof createAnnotationDrawController> | null = null;
+    let annotationSelectController: ReturnType<typeof createAnnotationSelectController> | null = null;
     let workerClient: WorkerClient | null = null;
     let storeRef: Store<ViewerState, Action> | null = null;
     let i18nRef: I18n | null = null;
@@ -868,6 +870,11 @@ export function createViewport(showAttribution = true) {
                 store,
             });
             annotationDrawController = createAnnotationDrawController({
+                scrollArea,
+                viewerRoot,
+                store,
+            });
+            annotationSelectController = createAnnotationSelectController({
                 scrollArea,
                 viewerRoot,
                 store,
@@ -1682,6 +1689,8 @@ export function createViewport(showAttribution = true) {
         viewToolController = null;
         if (annotationDrawController) annotationDrawController.destroy();
         annotationDrawController = null;
+        if (annotationSelectController) annotationSelectController.destroy();
+        annotationSelectController = null;
         floatingToolbar.destroy();
         clearSpreads();
         workerClient = null;

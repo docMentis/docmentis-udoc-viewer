@@ -178,6 +178,9 @@ export interface TranslationKeys {
     "tools.annotate": string;
     "tools.markup": string;
     "tools.subtoolbar": string;
+    // Shared sub-tools
+    "tools.select": string;
+    "tools.deleteAnnotation": string;
     // Annotate sub-tools
     "tools.freehand": string;
     "tools.line": string;

@@ -153,9 +153,13 @@ export function renderAnnotationsToLayer(
 
     layer.innerHTML = "";
 
-    for (const annotation of annotations) {
+    for (let i = 0; i < annotations.length; i++) {
+        const annotation = annotations[i];
         const el = renderAnnotation(layer, annotation, scale, onShowPopup);
         if (el) {
+            // Tag with index for hit-testing by the select tool
+            el.setAttribute("data-annotation-index", String(i));
+
             // Check if this annotation should be highlighted
             if (highlightBounds && boundsMatch(annotation.bounds, highlightBounds)) {
                 if (isFullLayerAnnotation(annotation.type) || isSvgBasedAnnotation(annotation.type)) {
