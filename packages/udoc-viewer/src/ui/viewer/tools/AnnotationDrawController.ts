@@ -254,14 +254,12 @@ export function createAnnotationDrawController(options: AnnotationDrawController
                 bounds,
                 start: startPt,
                 end: endPt,
+                startEnding: drawSubTool === "arrow" ? toLineEnding(drawOptions.arrowHeadStart) : "None",
+                endEnding: drawSubTool === "arrow" ? toLineEnding(drawOptions.arrowHeadEnd) : "None",
                 color,
                 borderWidth,
                 opacity,
             };
-            if (drawSubTool === "arrow") {
-                lineAnnotation.startEnding = toLineEnding(drawOptions.arrowHeadStart);
-                lineAnnotation.endEnding = toLineEnding(drawOptions.arrowHeadEnd);
-            }
             annotation = lineAnnotation;
         } else if (drawSubTool === "rectangle" && startPt.x !== endPt.x && startPt.y !== endPt.y) {
             const x = Math.min(startPt.x, endPt.x);
@@ -274,6 +272,7 @@ export function createAnnotationDrawController(options: AnnotationDrawController
                 color,
                 interiorColor: drawOptions.fillColor ? parseHexColor(drawOptions.fillColor) : undefined,
                 borderWidth,
+                borderStyle: "solid",
                 opacity,
             } as SquareAnnotation;
         } else if (drawSubTool === "ellipse" && startPt.x !== endPt.x && startPt.y !== endPt.y) {
@@ -287,6 +286,7 @@ export function createAnnotationDrawController(options: AnnotationDrawController
                 color,
                 interiorColor: drawOptions.fillColor ? parseHexColor(drawOptions.fillColor) : undefined,
                 borderWidth,
+                borderStyle: "solid",
                 opacity,
             } as CircleAnnotation;
         }
