@@ -6,6 +6,30 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+### Features
+
+- Annotation drawing support for PDF documents with polygon, polyline, and freeform tools
+- Annotation select tool with move, resize handles, and delete
+- Overlay annotations on printed pages in rendered print path
+- Annotation subtoolbar overhaul with reusable components and expanded 15-color preset grid
+- Strong WASM types adopted in worker layer for type-safe annotation data
+- Border style support for annotations
+- Radar chart rendering with spider web axes (engine)
+- Stock chart rendering with dual-axis combo support (engine)
+- PDF writer module with round-trip test infrastructure (engine)
+- Gradient fills, tiling patterns, and JPEG filter in PDF writer (engine)
+- PDF appearance streams (AP/N) for saved annotations (engine)
+- Complete PDF annotation field coverage for lossless round-trip (engine)
+- `pdf_save_annotations` WASM API for annotation editing (engine)
+- Strong TypeScript types for all WASM/JS API boundaries (engine)
+- Uniform `LayoutNode` trait across layout tree (engine)
+
+### Bug Fixes
+
+- Pixel-perfect PDF writer round-trip tests (engine)
+- Align AP stream rendering with viewer JS visuals (engine)
+- Line ending arrows and actual dash patterns in AP streams (engine)
+
 ## [0.6.22] - 2026-04-06
 
 ### Features
