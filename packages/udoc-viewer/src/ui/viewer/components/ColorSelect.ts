@@ -7,10 +7,17 @@ const COLOR_PRESETS: { hex: string; name: string }[] = [
     { hex: "#ff0000", name: "Red" },
     { hex: "#ff8800", name: "Orange" },
     { hex: "#ffcc00", name: "Yellow" },
+    { hex: "#88cc00", name: "Lime" },
     { hex: "#00cc00", name: "Green" },
+    { hex: "#00cccc", name: "Cyan" },
     { hex: "#0088ff", name: "Blue" },
     { hex: "#8800ff", name: "Purple" },
+    { hex: "#ff00cc", name: "Pink" },
+    { hex: "#884400", name: "Brown" },
     { hex: "#000000", name: "Black" },
+    { hex: "#444444", name: "Dark Gray" },
+    { hex: "#999999", name: "Gray" },
+    { hex: "#cccccc", name: "Light Gray" },
     { hex: "#ffffff", name: "White" },
 ];
 
