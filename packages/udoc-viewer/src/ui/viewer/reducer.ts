@@ -615,6 +615,17 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
             };
         }
 
+        case "UPDATE_ANNOTATION": {
+            const existing = state.pageAnnotations.get(action.pageIndex);
+            if (!existing || action.annotationIndex >= existing.length) return state;
+            const newList = existing.map((a, i) => (i === action.annotationIndex ? action.annotation : a));
+            const newAnnotations = new Map(state.pageAnnotations);
+            newAnnotations.set(action.pageIndex, newList);
+            const newDirty = new Set(state.annotationsDirtyPages);
+            newDirty.add(action.pageIndex);
+            return { ...state, pageAnnotations: newAnnotations, annotationsDirtyPages: newDirty };
+        }
+
         // Annotation selection
         case "SELECT_ANNOTATION": {
             const sel = state.selectedAnnotation;

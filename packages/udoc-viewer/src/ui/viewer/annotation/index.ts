@@ -49,6 +49,7 @@ export {
     createSvgOverlay,
     createSvgElement,
     boundsMatch,
+    offsetAnnotation,
 } from "./utils";
 
 // Render functions

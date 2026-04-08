@@ -1,7 +1,7 @@
 /**
  * Shared utilities for annotation rendering.
  */
-import type { AnnotationColor, Point, Rect } from "./types";
+import type { Annotation, AnnotationColor, Point, Quad, Rect } from "./types";
 
 /**
  * Convert annotation color to CSS rgba() string.
@@ -94,4 +94,64 @@ export function boundsMatch(a: Rect, b: Rect, epsilon = 0.1): boolean {
         Math.abs(a.width - b.width) < epsilon &&
         Math.abs(a.height - b.height) < epsilon
     );
+}
+
+// =============================================================================
+// Annotation geometry helpers
+// =============================================================================
+
+function offsetRect(r: Rect, dx: number, dy: number): Rect {
+    return { x: r.x + dx, y: r.y + dy, width: r.width, height: r.height };
+}
+
+function offsetPoint(p: Point, dx: number, dy: number): Point {
+    return { x: p.x + dx, y: p.y + dy };
+}
+
+function offsetQuads(quads: Quad[], dx: number, dy: number): Quad[] {
+    return quads.map((q) => ({
+        points: q.points.map((p) => offsetPoint(p, dx, dy)) as Quad["points"],
+    }));
+}
+
+/**
+ * Return a new annotation with all geometry offset by (dx, dy) in page coordinates.
+ */
+export function offsetAnnotation(annotation: Annotation, dx: number, dy: number): Annotation {
+    const base = { bounds: offsetRect(annotation.bounds, dx, dy) };
+
+    switch (annotation.type) {
+        case "line":
+            return {
+                ...annotation,
+                ...base,
+                start: offsetPoint(annotation.start, dx, dy),
+                end: offsetPoint(annotation.end, dx, dy),
+            };
+        case "polygon":
+        case "polyLine":
+            return { ...annotation, ...base, vertices: annotation.vertices.map((p) => offsetPoint(p, dx, dy)) };
+        case "ink":
+            return {
+                ...annotation,
+                ...base,
+                inkList: annotation.inkList.map((stroke) => stroke.map((p) => offsetPoint(p, dx, dy))),
+            };
+        case "highlight":
+        case "underline":
+        case "strikeOut":
+        case "squiggly":
+            return { ...annotation, ...base, quads: offsetQuads(annotation.quads, dx, dy) };
+        case "redact":
+            return {
+                ...annotation,
+                ...base,
+                quads: annotation.quads ? offsetQuads(annotation.quads, dx, dy) : undefined,
+            };
+        case "freeText":
+            return { ...annotation, ...base, calloutLine: annotation.calloutLine?.map((p) => offsetPoint(p, dx, dy)) };
+        default:
+            // square, circle, text, stamp, caret, link — only bounds
+            return { ...annotation, ...base };
+    }
 }

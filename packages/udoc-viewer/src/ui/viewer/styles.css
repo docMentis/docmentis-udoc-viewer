@@ -2247,10 +2247,26 @@
 
 /* Selected annotation bounding box */
 .udoc-viewer-root .udoc-annotation-select-bbox {
+    pointer-events: none;
+    z-index: 10;
+    overflow: visible;
+}
+
+.udoc-viewer-root .udoc-annotation-select-bbox__inner {
     box-sizing: border-box;
     border: 1.5px dashed var(--udoc-primary);
     border-radius: 2px;
-    z-index: 20;
+    cursor: grab;
+    pointer-events: auto;
+}
+
+/* Moving annotation cursor */
+.udoc-viewer--annotation-moving .udoc-viewport__scroll {
+    cursor: grabbing !important;
+}
+
+.udoc-viewer--annotation-moving .udoc-annotation-select-bbox__inner {
+    cursor: grabbing;
 }
 
 /* Delete button in sub-toolbar */
