@@ -156,6 +156,22 @@ export function createFloatingToolbar() {
     let unsub: (() => void) | null = null;
     const unsubEvents: Array<() => void> = [];
     let rovingTabindex: ReturnType<typeof setupRovingTabindex> | null = null;
+    let idleTimer: ReturnType<typeof setTimeout> | null = null;
+    const IDLE_TIMEOUT_MS = 3000;
+
+    function isFloating(): boolean {
+        return getComputedStyle(el).position === "absolute";
+    }
+
+    function resetIdleTimer(): void {
+        el.classList.remove("udoc-floating-toolbar--idle");
+        if (idleTimer !== null) clearTimeout(idleTimer);
+        idleTimer = setTimeout(() => {
+            // Don't auto-hide when docked as a footer toolbar or when focused
+            if (!isFloating() || el.contains(document.activeElement)) return;
+            el.classList.add("udoc-floating-toolbar--idle");
+        }, IDLE_TIMEOUT_MS);
+    }
 
     function mount(container: HTMLElement, store: Store<ViewerState, Action>, i18n: I18n): void {
         container.appendChild(el);
@@ -178,6 +194,39 @@ export function createFloatingToolbar() {
 
         // Roving tabindex: single Tab stop, arrow keys between buttons
         rovingTabindex = setupRovingTabindex(el, ".udoc-toolbar__btn, input");
+
+        // Auto-hide: fade out after idle, show on activity
+        const onActivity = () => resetIdleTimer();
+        container.addEventListener("mousemove", onActivity);
+        container.addEventListener("mousedown", onActivity);
+        container.addEventListener("wheel", onActivity);
+        container.addEventListener("touchstart", onActivity);
+        container.addEventListener("keydown", onActivity);
+        unsubEvents.push(() => {
+            container.removeEventListener("mousemove", onActivity);
+            container.removeEventListener("mousedown", onActivity);
+            container.removeEventListener("wheel", onActivity);
+            container.removeEventListener("touchstart", onActivity);
+            container.removeEventListener("keydown", onActivity);
+        });
+        // Keep toolbar visible while hovering over it
+        unsubEvents.push(
+            on(el, "mouseenter", () => {
+                if (idleTimer !== null) clearTimeout(idleTimer);
+                el.classList.remove("udoc-floating-toolbar--idle");
+            }),
+            on(el, "mouseleave", () => resetIdleTimer()),
+        );
+        // Keep toolbar visible while it has focus
+        unsubEvents.push(
+            on(el, "focusin", () => {
+                if (idleTimer !== null) clearTimeout(idleTimer);
+                el.classList.remove("udoc-floating-toolbar--idle");
+            }),
+            on(el, "focusout", () => resetIdleTimer()),
+        );
+        // Start the idle timer
+        resetIdleTimer();
 
         // Mount view mode menu
         viewModeMenu.mount(store, i18n);
@@ -407,6 +456,7 @@ export function createFloatingToolbar() {
     }
 
     function destroy(): void {
+        if (idleTimer !== null) clearTimeout(idleTimer);
         if (unsub) unsub();
         if (rovingTabindex) rovingTabindex.destroy();
         for (const off of unsubEvents) off();

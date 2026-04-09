@@ -371,6 +371,12 @@
     border-radius: 8px;
     box-shadow: var(--udoc-shadow-toolbar);
     z-index: 30;
+    transition: opacity 0.3s ease;
+}
+
+.udoc-viewer-root .udoc-floating-toolbar--idle {
+    opacity: 0;
+    pointer-events: none;
 }
 
 /* Zoom Dropdown */
