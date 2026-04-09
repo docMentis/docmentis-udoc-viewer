@@ -6,6 +6,8 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+## [0.6.26] - 2026-04-09
+
 ### Features
 
 - Continuous view mode with linear and grid stitch layouts
