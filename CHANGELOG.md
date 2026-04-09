@@ -6,6 +6,17 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+### Features
+
+- Undo/redo support for annotation editing
+- Edit properties of selected annotations in the subtoolbar
+
+### Bug Fixes
+
+- Annotations saved to PDF not showing when reopened in viewer
+- Top resize handle moving at 2x mouse speed due to duplicate north-handle adjustment
+- Use tsify hashmap_as_object to serialize maps as plain JS objects (engine)
+
 ## [0.6.24] - 2026-04-08
 
 ### Bug Fixes
