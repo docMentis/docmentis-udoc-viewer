@@ -159,11 +159,6 @@ export function createAnnotationSelectController(options: AnnotationSelectContro
         if (handle.includes("e") || handle === "e") {
             width += dx;
         }
-        if (handle.includes("n") && handle !== "ne" && handle !== "nw") {
-            // "n" only
-            y += dy;
-            height -= dy;
-        }
         if (handle === "nw" || handle === "n" || handle === "ne") {
             y += dy;
             height -= dy;
