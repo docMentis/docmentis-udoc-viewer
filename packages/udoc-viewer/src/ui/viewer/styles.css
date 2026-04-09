@@ -1851,6 +1851,7 @@
 /* Annotation draw tool cursor */
 .udoc-viewer--tool-draw .udoc-viewport__scroll {
     cursor: crosshair;
+    touch-action: none;
 }
 
 .udoc-viewer--tool-draw .udoc-spread__text-layer {
@@ -2312,6 +2313,10 @@
 }
 
 /* Annotation select tool */
+.udoc-viewer--tool-select .udoc-viewport__scroll {
+    touch-action: none;
+}
+
 .udoc-viewer--tool-select .udoc-spread__text-layer {
     pointer-events: none;
 }
