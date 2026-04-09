@@ -149,6 +149,11 @@ const client = await UDocClient.create({
     // Requires a valid license with the "no_telemetry" feature
     disableTelemetry: false,
 
+    // Disable checking npm registry for a newer version on startup (default: false)
+    // When enabled (default), a background check logs a console reminder if a newer version is available
+    // Never blocks initialization
+    disableUpdateCheck: false,
+
     // Enable Google Fonts for automatic font fetching (default: true)
     // When enabled, missing fonts are fetched from Google Fonts on-demand during rendering
     googleFonts: true,
