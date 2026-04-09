@@ -114,42 +114,22 @@ export function createViewToolController(options: ViewToolControllerOptions) {
             const viewX = (e.clientX - rect.left) / rect.width;
             const viewY = (e.clientY - rect.top) / rect.height;
 
-            // Scroll position before zoom
-            const prevScrollLeft = scrollArea.scrollLeft;
-            const prevScrollTop = scrollArea.scrollTop;
-            const prevScrollWidth = scrollArea.scrollWidth;
-            const prevScrollHeight = scrollArea.scrollHeight;
+            // Anchor data so the Viewport can scroll to keep the click point stable
+            const anchor = {
+                viewX,
+                viewY,
+                scrollLeft: scrollArea.scrollLeft,
+                scrollTop: scrollArea.scrollTop,
+                scrollWidth: scrollArea.scrollWidth,
+                scrollHeight: scrollArea.scrollHeight,
+            };
 
             // Alt/Shift+click = zoom out, normal click = zoom in
             if (e.altKey || e.shiftKey) {
-                store.dispatch({ type: "ZOOM_OUT" });
+                store.dispatch({ type: "ZOOM_OUT", anchor });
             } else {
-                store.dispatch({ type: "ZOOM_IN" });
+                store.dispatch({ type: "ZOOM_IN", anchor });
             }
-
-            // After zoom dispatched, schedule scroll adjustment to keep click point stable.
-            // We use requestAnimationFrame because the layout needs to update first.
-            requestAnimationFrame(() => {
-                const newScrollWidth = scrollArea.scrollWidth;
-                const newScrollHeight = scrollArea.scrollHeight;
-
-                if (prevScrollWidth === 0 || prevScrollHeight === 0) return;
-
-                const scaleX = newScrollWidth / prevScrollWidth;
-                const scaleY = newScrollHeight / prevScrollHeight;
-
-                // The point under the cursor in the old scroll space
-                const pointX = prevScrollLeft + viewX * rect.width;
-                const pointY = prevScrollTop + viewY * rect.height;
-
-                // Where that same point is in the new scroll space
-                const newPointX = pointX * scaleX;
-                const newPointY = pointY * scaleY;
-
-                // Adjust scroll so the point stays under the cursor
-                scrollArea.scrollLeft = newPointX - viewX * rect.width;
-                scrollArea.scrollTop = newPointY - viewY * rect.height;
-            });
         };
 
         scrollArea.addEventListener("click", onClick);

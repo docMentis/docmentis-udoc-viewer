@@ -287,7 +287,7 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
             const nextStep = steps.find((s) => s > currentZoom + 1e-9) ?? steps[steps.length - 1];
             const clamped = Math.min(nextStep, state.maxZoom);
             if (currentZoom >= clamped - 1e-9 && state.zoomMode === "custom") return state;
-            return { ...state, zoom: clamped, zoomMode: "custom" };
+            return { ...state, zoom: clamped, zoomMode: "custom", zoomAnchor: action.anchor ?? null };
         }
         case "ZOOM_OUT": {
             const steps = state.zoomSteps;
@@ -295,7 +295,11 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
             const prevStep = [...steps].reverse().find((s) => s < currentZoom - 1e-9) ?? steps[0];
             const clamped = Math.max(prevStep, state.minZoom);
             if (currentZoom <= clamped + 1e-9 && state.zoomMode === "custom") return state;
-            return { ...state, zoom: clamped, zoomMode: "custom" };
+            return { ...state, zoom: clamped, zoomMode: "custom", zoomAnchor: action.anchor ?? null };
+        }
+        case "CLEAR_ZOOM_ANCHOR": {
+            if (!state.zoomAnchor) return state;
+            return { ...state, zoomAnchor: null };
         }
         case "SET_PAGE_ROTATION": {
             if (state.pageRotation === action.rotation) return state;

@@ -11,6 +11,7 @@ import {
     type PageInfo,
     type SpacingMode,
     type SearchMatch,
+    type ZoomAnchor,
 } from "../state";
 import type { Action } from "../actions";
 import type { NavigationTarget, Destination } from "../navigation";
@@ -64,6 +65,7 @@ interface ViewportSlice {
     pageText: Map<number, LayoutPage>;
     searchMatches: SearchMatch[];
     searchActiveIndex: number;
+    zoomAnchor: ZoomAnchor | null;
 }
 
 function viewportSliceEqual(a: ViewportSlice, b: ViewportSlice): boolean {
@@ -86,7 +88,8 @@ function viewportSliceEqual(a: ViewportSlice, b: ViewportSlice): boolean {
         a.highlightedAnnotation === b.highlightedAnnotation &&
         a.pageText === b.pageText &&
         a.searchMatches === b.searchMatches &&
-        a.searchActiveIndex === b.searchActiveIndex
+        a.searchActiveIndex === b.searchActiveIndex &&
+        a.zoomAnchor === b.zoomAnchor
     );
 }
 
@@ -979,48 +982,64 @@ export function createViewport(showAttribution = true) {
 
         if (slice.scrollMode === "continuous") {
             applyContinuousLayout(metrics, layoutState);
-            if (plan.shouldScrollToPage) {
-                scrollToPage(slice.page, metrics);
-            } else if (plan.shouldRestorePosition && viewportTopPosition) {
-                restoreViewportPosition(viewportTopPosition, metrics, layoutState);
+            if (!slice.zoomAnchor) {
+                if (plan.shouldScrollToPage) {
+                    scrollToPage(slice.page, metrics);
+                } else if (plan.shouldRestorePosition && viewportTopPosition) {
+                    restoreViewportPosition(viewportTopPosition, metrics, layoutState);
+                }
             }
             updateVisibleSpreads(slice, metrics, layoutState);
         } else {
             applySingleLayout(slice, metrics, layoutState);
-            if (plan.shouldScrollToPage) {
-                scrollArea.scrollTop = 0;
-                scrollArea.scrollLeft = 0;
-                lastOverflowX = null;
-                lastOverflowY = null;
-            } else if (plan.shouldRestorePosition && viewportTopPosition) {
-                // In spread mode, restore position by showing the correct page
-                const targetPage = viewportTopPosition.page;
-                if (slice.page !== targetPage && storeRef) {
-                    storeRef.dispatch({ type: "SET_PAGE", page: targetPage });
-                }
-                // Reset scroll and try to restore position within the spread if it's scrollable
-                scrollArea.scrollLeft = 0;
-                const spreadIndex = findSpreadForPage(layoutState.spreads, targetPage);
-                const layout = layoutState.layouts[spreadIndex];
-                if (layout && layout.height > metrics.innerHeight && !viewportTopPosition.inSpacing) {
-                    // Spread is larger than viewport and we have a content offset
-                    // Calculate scroll position to show the same relative position
-                    const spreadTopInContainer = getCenteredOffset(containerSize.height, layout.height);
-                    const offsetPixels = viewportTopPosition.offset * layout.height;
-                    scrollArea.scrollTop = Math.max(0, spreadTopInContainer + offsetPixels);
-                } else {
+            if (!slice.zoomAnchor) {
+                if (plan.shouldScrollToPage) {
                     scrollArea.scrollTop = 0;
+                    scrollArea.scrollLeft = 0;
+                    lastOverflowX = null;
+                    lastOverflowY = null;
+                } else if (plan.shouldRestorePosition && viewportTopPosition) {
+                    // In spread mode, restore position by showing the correct page
+                    const targetPage = viewportTopPosition.page;
+                    if (slice.page !== targetPage && storeRef) {
+                        storeRef.dispatch({ type: "SET_PAGE", page: targetPage });
+                    }
+                    // Reset scroll and try to restore position within the spread if it's scrollable
+                    scrollArea.scrollLeft = 0;
+                    const spreadIndex = findSpreadForPage(layoutState.spreads, targetPage);
+                    const layout = layoutState.layouts[spreadIndex];
+                    if (layout && layout.height > metrics.innerHeight && !viewportTopPosition.inSpacing) {
+                        // Spread is larger than viewport and we have a content offset
+                        // Calculate scroll position to show the same relative position
+                        const spreadTopInContainer = getCenteredOffset(containerSize.height, layout.height);
+                        const offsetPixels = viewportTopPosition.offset * layout.height;
+                        scrollArea.scrollTop = Math.max(0, spreadTopInContainer + offsetPixels);
+                    } else {
+                        scrollArea.scrollTop = 0;
+                    }
+                    lastOverflowX = null;
+                    lastOverflowY = null;
                 }
-                lastOverflowX = null;
-                lastOverflowY = null;
             }
             showSingleSpread(slice, metrics, layoutState);
         }
 
         updateOverflow(slice, metrics);
 
+        // Apply zoom anchor AFTER overflow is resolved, so that setting
+        // overflow to "hidden" (when content shrinks on zoom-out) doesn't
+        // reset the scroll position we're about to set.
+        if (slice.zoomAnchor) {
+            applyZoomAnchor(slice.zoomAnchor, metrics);
+        }
+
         // Update tracked viewport position after layout is applied
         updateViewportTopPosition(slice, layoutState);
+
+        // Clear zoom anchor after it has been consumed
+        if (slice.zoomAnchor && storeRef) {
+            storeRef.dispatch({ type: "CLEAR_ZOOM_ANCHOR" });
+        }
 
         lastSlice = slice;
     }
@@ -1202,6 +1221,32 @@ export function createViewport(showAttribution = true) {
 
         const maxScrollTop = Math.max(0, containerSize.height - metrics.innerHeight);
         scrollArea.scrollTop = clamp(targetScrollTop, 0, maxScrollTop);
+    }
+
+    /**
+     * Adjusts scroll position after a zoom-tool click so that the clicked
+     * point in the document stays under the cursor.
+     */
+    function applyZoomAnchor(anchor: ZoomAnchor, metrics: ViewportMetrics): void {
+        const newScrollWidth = scrollArea.scrollWidth;
+        const newScrollHeight = scrollArea.scrollHeight;
+
+        if (anchor.scrollWidth === 0 || anchor.scrollHeight === 0) return;
+
+        const scaleX = newScrollWidth / anchor.scrollWidth;
+        const scaleY = newScrollHeight / anchor.scrollHeight;
+
+        // The point under the cursor in the old scroll coordinate space
+        const pointX = anchor.scrollLeft + anchor.viewX * metrics.innerWidth;
+        const pointY = anchor.scrollTop + anchor.viewY * metrics.innerHeight;
+
+        // Where that same point is in the new scroll coordinate space
+        const newPointX = pointX * scaleX;
+        const newPointY = pointY * scaleY;
+
+        // Adjust scroll so the point stays under the cursor
+        scrollArea.scrollLeft = newPointX - anchor.viewX * metrics.innerWidth;
+        scrollArea.scrollTop = newPointY - anchor.viewY * metrics.innerHeight;
     }
 
     function updateVisibleSpreads(slice: ViewportSlice, metrics: ViewportMetrics, state: LayoutState): void {
@@ -1793,5 +1838,6 @@ function selectViewport(state: ViewerState): ViewportSlice {
         pageText: state.pageText,
         searchMatches: state.searchMatches,
         searchActiveIndex: state.searchActiveIndex,
+        zoomAnchor: state.zoomAnchor,
     };
 }

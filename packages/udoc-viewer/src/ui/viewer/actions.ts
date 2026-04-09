@@ -14,6 +14,7 @@ import type {
     ActiveTool,
     SubTool,
     DocumentFormat,
+    ZoomAnchor,
 } from "./state";
 import type { Destination, OutlineItem, ScrollAlignment } from "./navigation";
 import type { Annotation } from "./annotation";
@@ -77,8 +78,9 @@ export type Action =
     | { type: "SET_ZOOM"; zoom: number }
     | { type: "SET_EFFECTIVE_ZOOM"; zoom: number | null }
     | { type: "SET_ZOOM_STEPS"; steps: readonly number[] }
-    | { type: "ZOOM_IN" }
-    | { type: "ZOOM_OUT" }
+    | { type: "ZOOM_IN"; anchor?: ZoomAnchor }
+    | { type: "ZOOM_OUT"; anchor?: ZoomAnchor }
+    | { type: "CLEAR_ZOOM_ANCHOR" }
     | { type: "SET_PAGE_ROTATION"; rotation: PageRotation }
     | { type: "SET_SPACING_MODE"; mode: SpacingMode }
     // Spacing

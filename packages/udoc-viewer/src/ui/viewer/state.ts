@@ -198,6 +198,22 @@ export function getPointsToPixels(dpi: number): number {
 }
 
 // -----------------------------------------------------------------------------
+// Zoom anchor (for zoom-tool click-to-point)
+// -----------------------------------------------------------------------------
+
+export interface ZoomAnchor {
+    /** Click position relative to viewport (0-1 range) */
+    viewX: number;
+    viewY: number;
+    /** Scroll position before zoom */
+    scrollLeft: number;
+    scrollTop: number;
+    /** Scroll content dimensions before zoom */
+    scrollWidth: number;
+    scrollHeight: number;
+}
+
+// -----------------------------------------------------------------------------
 // Viewer state
 // -----------------------------------------------------------------------------
 
@@ -368,6 +384,10 @@ export interface ViewerState {
     /** Currently selected annotation for editing (null = none) */
     selectedAnnotation: { pageIndex: number; annotationIndex: number } | null;
 
+    // Zoom anchor (for zoom-to-click-point)
+    /** Anchor data from zoom tool click, consumed by Viewport to scroll to click point */
+    zoomAnchor: ZoomAnchor | null;
+
     // Tools
     /** Set of tools/tool sets that are disabled (hidden from the UI). */
     disabledTools: ReadonlySet<ActiveTool>;
@@ -472,6 +492,8 @@ export const initialState: ViewerState = {
 
     annotationsDirtyPages: new Set(),
     selectedAnnotation: null,
+
+    zoomAnchor: null,
 
     disabledTools: new Set<ActiveTool>(["annotate", "markup"]),
     activeTool: "pointer",
