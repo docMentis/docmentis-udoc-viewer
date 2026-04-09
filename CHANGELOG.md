@@ -6,6 +6,8 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+## [0.6.25] - 2026-04-08
+
 ### Features
 
 - Undo/redo support for annotation editing
