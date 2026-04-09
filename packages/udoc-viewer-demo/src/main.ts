@@ -109,7 +109,7 @@ async function createViewer() {
         client = await UDocClient.create({
             license:
                 "eyJ2IjoxLCJpZCI6ImxpY19jOGNlZjE4ZiIsImQiOlsiZG9jbWVudGlzLmNvbSIsIiouZG9jbWVudGlzLmNvbSJdLCJmIjpbIm5vX2F0dHJpYnV0aW9uIl0sImUiOjE4MDU1MDA3OTksImkiOjE3NzM4ODU1MDYsIm8iOiJkb2NNZW50aXMifQ.E-Wef8w3LnFAbFgZBTrXa4uQ8VMFby59Fg8VLOrm0lNgI4BcLuDxpH_2NheFA89eW8QmKs_vGOdtG619XcOcCg",
-            gpu: gpuEnabled,
+            __experimentalGpu: gpuEnabled,
             fonts: [
                 {
                     typeface: "Roboto",
@@ -144,7 +144,7 @@ async function createViewer() {
         enableTransitions,
         disableViewTools,
         disableAnnotateTools,
-        disableMarkupTools: !enableMarkupTools,
+        __experimentalDisableMarkupTools: !enableMarkupTools,
         locale: currentLocale,
         enablePerformanceCounter: true,
         onPerformanceLog: (entry) => {

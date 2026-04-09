@@ -100,7 +100,7 @@ export interface ClientOptions {
      * Falls back to CPU if the browser doesn't support WebGPU.
      * @default false
      */
-    gpu?: boolean;
+    __experimentalGpu?: boolean;
 
     /**
      * Enable Google Fonts for automatic font fetching.
@@ -407,7 +407,7 @@ export interface ViewerOptions {
      * Disable the markup tool set (highlight, underline, strikethrough, squiggly).
      * @default true
      */
-    disableMarkupTools?: boolean;
+    __experimentalDisableMarkupTools?: boolean;
 
     /**
      * Enable slide transition animations for PPTX documents.
@@ -534,7 +534,7 @@ export class UDocClient {
         let lastError: unknown;
         for (const wasmUrl of wasmUrls) {
             try {
-                await workerClient.init(wasmUrl, options.gpu, domain, UDocClient.version);
+                await workerClient.init(wasmUrl, options.__experimentalGpu, domain, UDocClient.version);
                 lastError = null;
                 break;
             } catch (e) {

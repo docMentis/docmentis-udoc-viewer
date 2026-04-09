@@ -366,7 +366,7 @@ export class UDocViewer {
         if (options.disableAnnotateTools) {
             disabledTools.push("annotate");
         }
-        if (options.disableMarkupTools !== false) {
+        if (options.__experimentalDisableMarkupTools !== false) {
             disabledTools.push("markup");
         }
         overrides.disabledTools = new Set(disabledTools);
