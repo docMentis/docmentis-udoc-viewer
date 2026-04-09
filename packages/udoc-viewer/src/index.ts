@@ -37,6 +37,7 @@ export { createI18n } from "./ui/viewer/i18n/index.js";
 
 // View mode and panel types
 export type {
+    ViewMode,
     ScrollMode,
     LayoutMode,
     ZoomMode,

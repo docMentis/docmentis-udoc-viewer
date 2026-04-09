@@ -268,6 +268,80 @@
     box-shadow: none;
 }
 
+/* Continuous view mode: seamless stitching, no page chrome */
+.udoc-viewer-root .udoc-viewport--continuous .udoc-spread__slot {
+    box-shadow: none;
+    background: transparent;
+    --stitch-color: rgba(0, 0, 0, 0.15);
+}
+
+.udoc-viewer-dark .udoc-viewport--continuous .udoc-spread__slot {
+    --stitch-color: rgba(255, 255, 255, 0.15);
+}
+
+.udoc-viewer-root .udoc-viewport--continuous .udoc-spread__slot::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 3;
+    background-image:
+        repeating-linear-gradient(
+            to right,
+            var(--stitch-color) 0,
+            var(--stitch-color) 6px,
+            transparent 6px,
+            transparent 12px
+        ),
+        repeating-linear-gradient(
+            to bottom,
+            var(--stitch-color) 0,
+            var(--stitch-color) 6px,
+            transparent 6px,
+            transparent 12px
+        );
+    background-size:
+        100% 1px,
+        1px 100%;
+    background-position:
+        bottom left,
+        top right;
+    background-repeat: repeat-x, repeat-y;
+}
+
+/* Hide bottom stitch line on last row */
+.udoc-viewer-root .udoc-viewport--continuous .udoc-spread--last-row .udoc-spread__slot::after {
+    background-image: repeating-linear-gradient(
+        to bottom,
+        var(--stitch-color) 0,
+        var(--stitch-color) 6px,
+        transparent 6px,
+        transparent 12px
+    );
+    background-size: 1px 100%;
+    background-position: top right;
+    background-repeat: repeat-y;
+}
+
+/* Hide right stitch line on last column */
+.udoc-viewer-root .udoc-viewport--continuous .udoc-spread--last-col .udoc-spread__slot::after {
+    background-image: repeating-linear-gradient(
+        to right,
+        var(--stitch-color) 0,
+        var(--stitch-color) 6px,
+        transparent 6px,
+        transparent 12px
+    );
+    background-size: 100% 1px;
+    background-position: bottom left;
+    background-repeat: repeat-x;
+}
+
+/* Hide both on last row + last column */
+.udoc-viewer-root .udoc-viewport--continuous .udoc-spread--last-row.udoc-spread--last-col .udoc-spread__slot::after {
+    background-image: none;
+}
+
 .udoc-viewer-root .udoc-spread__slot--empty {
     background: transparent;
     box-shadow: none;

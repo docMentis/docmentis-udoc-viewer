@@ -25,6 +25,7 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
                 activeTool: toolNowUnavailable ? "pointer" : state.activeTool,
                 activeSubTool: toolNowUnavailable ? null : state.activeSubTool,
                 // Reset view mode to defaults (format-specific if provided)
+                viewMode: vd?.viewMode ?? initialState.viewMode,
                 scrollMode: vd?.scrollMode ?? initialState.scrollMode,
                 layoutMode: vd?.layoutMode ?? initialState.layoutMode,
                 zoomMode: vd?.zoomMode ?? initialState.zoomMode,
@@ -229,6 +230,32 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
         }
 
         // View modes
+        case "SET_VIEW_MODE": {
+            if (state.viewMode === action.mode) return state;
+            switch (action.mode) {
+                case "continuous":
+                    return {
+                        ...state,
+                        viewMode: "continuous",
+                        layoutMode: "single-page",
+                        scrollMode: "continuous",
+                        spacingMode: "none",
+                        pageSpacing: 0,
+                        spreadSpacing: 0,
+                        pageRotation: 0,
+                    };
+                case "paged":
+                    return {
+                        ...state,
+                        viewMode: "paged",
+                        // Restore paged defaults
+                        spacingMode: "all",
+                        pageSpacing: 20,
+                        spreadSpacing: 20,
+                    };
+            }
+            break;
+        }
         case "SET_SCROLL_MODE": {
             if (state.scrollMode === action.mode) return state;
             return { ...state, scrollMode: action.mode };

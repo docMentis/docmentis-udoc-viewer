@@ -47,6 +47,13 @@ export const ICON_ZOOM_OUT = `<svg viewBox="0 0 24 24" fill="currentColor"><path
 // View mode menu icon (sliders/adjustments)
 export const ICON_VIEW_MODE = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z"/></svg>`;
 
+// View mode icons (paged vs continuous)
+// Paged: single page with border
+export const ICON_VIEW_PAGED = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="3" width="14" height="18" rx="1"/></svg>`;
+
+// Continuous: two vertical lines (page edges) with a horizontal S-curve (S rotated 90°)
+export const ICON_VIEW_CONTINUOUS = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="3" x2="5" y2="21"/><line x1="19" y1="3" x2="19" y2="21"/><path d="M5 12 C5 7 12 7 12 12 C12 17 19 17 19 12" stroke-width="1.5" fill="none"/></svg>`;
+
 // Scroll mode icons (matching main branch style)
 export const ICON_SCROLL_SPREAD = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="4" width="14" height="16" rx="1"/></svg>`;
 

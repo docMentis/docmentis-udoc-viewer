@@ -101,6 +101,9 @@ export const ptBR: TranslationKeys = {
 
     // View mode menu
     "viewMode.label": "Configurações de exibição",
+    "viewMode.view": "Visualização",
+    "viewMode.paged": "Paginado",
+    "viewMode.continuousView": "Contínuo",
     "viewMode.scroll": "Rolagem",
     "viewMode.layout": "Layout",
     "viewMode.rotation": "Rotação",

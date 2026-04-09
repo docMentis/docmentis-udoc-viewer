@@ -117,9 +117,20 @@ export interface JsViewerPreferences {
 
 export type JsViewerLayoutMode = "single-page" | "double-page-odd-right" | "double-page-odd-left";
 
-export type JsEightDirection = "left" | "right" | "up" | "down" | "leftUp" | "rightUp" | "leftDown" | "rightDown";
+/**
+ * Nested `Vec<Vec<T>>` can\'t cross the WASM boundary directly, so we use a
+ * transparent Tsify wrapper.
+ */
+export type JsCompositions = JsPick[][];
 
-export type JsInOutDirection = "in" | "out";
+export type JsSideDirection = "left" | "right" | "up" | "down";
+
+export type JsCornerDirection = "leftUp" | "rightUp" | "leftDown" | "rightDown";
+
+/**
+ * Font source for JavaScript serialization.
+ */
+export type JsFontSource = "embedded" | "standard" | "googleFonts" | "url" | "local" | { custom: string };
 
 /**
  * Font spec for JavaScript serialization.
@@ -127,52 +138,14 @@ export type JsInOutDirection = "in" | "out";
 export type JsFontSpec = { typeface: string; bold: boolean; italic: boolean } | { fontId: string };
 
 /**
- * Nested `Vec<Vec<T>>` can\'t cross the WASM boundary directly, so we use a
- * transparent Tsify wrapper.
+ * Extracted font info for JavaScript.
  */
-export type JsCompositions = JsPick[][];
-
-/**
- * Resolved font info for JavaScript serialization.
- */
-export interface JsResolvedFontInfo {
-    familyName: string;
-    postscriptName?: string;
-    source: JsFontSource;
-    bold: boolean;
-    italic: boolean;
+export interface JsExtractedFont {
+    name: string;
+    fontType: string;
+    extension: string;
+    data: number[];
 }
-
-/**
- * Result from pdf_split_by_outline.
- */
-export interface JsSplitByOutlineResult {
-    documentIds: string[];
-    sections: JsOutlineSection[];
-}
-
-export type JsSideDirection = "left" | "right" | "up" | "down";
-
-export type JsOrientation = "horizontal" | "vertical";
-
-export type JsGlitterPattern = "diamond" | "hexagon";
-
-/**
- * Annotations grouped by page index (as string keys).
- */
-export type JsAnnotationsByPage = Record<string, JsAnnotation[]>;
-
-/**
- * Font registration entry from JavaScript.
- */
-export interface JsFontRegistration {
-    typeface: string;
-    bold: boolean;
-    italic: boolean;
-    url: string;
-}
-
-export type JsMorphOption = "byObject" | "byWord" | "byChar";
 
 /**
  * A pick specification from JavaScript.
@@ -193,41 +166,9 @@ export interface JsPick {
 }
 
 /**
- * Extracted image info for JavaScript.
+ * Transition effect as a discriminated union (tagged by `type`).
  */
-export interface JsExtractedImage {
-    name: string;
-    format: string;
-    width: number | undefined;
-    height: number | undefined;
-    data: number[];
-}
-
-/**
- * Font info returned by `parseFontInfo`.
- */
-export interface JsParsedFontInfo {
-    typeface: string;
-    bold: boolean;
-    italic: boolean;
-}
-
-/**
- * Font usage entry for JavaScript serialization.
- */
-export interface JsFontUsageEntry {
-    spec: JsFontSpec;
-    resolved: JsResolvedFontInfo;
-    fallbacks: JsResolvedFontInfo[];
-}
-
-/**
- * Outline section info for split_by_outline results.
- */
-export interface JsOutlineSection {
-    title: string;
-    index: number;
-}
+export type JsTransitionEffect = { type: "blinds"; orientation: JsOrientation } | { type: "checker"; orientation: JsOrientation } | { type: "circle" } | { type: "dissolve" } | { type: "comb"; orientation: JsOrientation } | { type: "cover"; direction: JsEightDirection } | { type: "cut"; throughBlack: boolean } | { type: "diamond" } | { type: "fade"; throughBlack: boolean } | { type: "newsflash" } | { type: "plus" } | { type: "pull"; direction: JsEightDirection } | { type: "push"; direction: JsSideDirection } | { type: "random" } | { type: "randomBar"; orientation: JsOrientation } | { type: "split"; orientation: JsOrientation; inOut: JsInOutDirection } | { type: "strips"; direction: JsCornerDirection } | { type: "wedge" } | { type: "wheel"; spokes: number } | { type: "wipe"; direction: JsSideDirection } | { type: "zoom"; inOut: JsInOutDirection } | { type: "box"; inOut: JsInOutDirection } | { type: "glitter"; direction: JsSideDirection; pattern: JsGlitterPattern } | { type: "fly"; direction: JsSideDirection } | { type: "uncover"; direction: JsEightDirection } | { type: "replace" } | { type: "vortex"; direction: JsSideDirection } | { type: "switch"; direction: JsSideDirection } | { type: "flip"; direction: JsSideDirection } | { type: "ripple"; direction: JsRippleDirection } | { type: "honeycomb" } | { type: "prism"; direction: JsSideDirection; isContent: boolean; isInverted: boolean } | { type: "doors"; orientation: JsOrientation } | { type: "window"; orientation: JsOrientation } | { type: "ferris"; direction: JsSideDirection } | { type: "gallery"; direction: JsSideDirection } | { type: "conveyor"; direction: JsSideDirection } | { type: "pan"; direction: JsSideDirection } | { type: "warp"; inOut: JsInOutDirection } | { type: "flythrough"; inOut: JsInOutDirection; hasBounce: boolean } | { type: "flash" } | { type: "shred"; pattern: JsShredPattern; inOut: JsInOutDirection } | { type: "reveal"; throughBlack: boolean; direction: JsSideDirection } | { type: "wheelReverse"; spokes: number } | { type: "morph"; option: JsMorphOption };
 
 /**
  * Page transition info for serialization to JavaScript.
@@ -254,29 +195,49 @@ export interface JsPageTransition {
     advanceAfterMs?: number;
 }
 
-export type JsRippleDirection = "center" | "leftUp" | "rightUp" | "leftDown" | "rightDown";
+export type JsInOutDirection = "in" | "out";
 
 /**
- * Extracted font info for JavaScript.
+ * Font registration entry from JavaScript.
  */
-export interface JsExtractedFont {
-    name: string;
-    fontType: string;
-    extension: string;
-    data: number[];
+export interface JsFontRegistration {
+    typeface: string;
+    bold: boolean;
+    italic: boolean;
+    url: string;
 }
 
 /**
- * Transition effect as a discriminated union (tagged by `type`).
+ * Font usage entry for JavaScript serialization.
  */
-export type JsTransitionEffect = { type: "blinds"; orientation: JsOrientation } | { type: "checker"; orientation: JsOrientation } | { type: "circle" } | { type: "dissolve" } | { type: "comb"; orientation: JsOrientation } | { type: "cover"; direction: JsEightDirection } | { type: "cut"; throughBlack: boolean } | { type: "diamond" } | { type: "fade"; throughBlack: boolean } | { type: "newsflash" } | { type: "plus" } | { type: "pull"; direction: JsEightDirection } | { type: "push"; direction: JsSideDirection } | { type: "random" } | { type: "randomBar"; orientation: JsOrientation } | { type: "split"; orientation: JsOrientation; inOut: JsInOutDirection } | { type: "strips"; direction: JsCornerDirection } | { type: "wedge" } | { type: "wheel"; spokes: number } | { type: "wipe"; direction: JsSideDirection } | { type: "zoom"; inOut: JsInOutDirection } | { type: "box"; inOut: JsInOutDirection } | { type: "glitter"; direction: JsSideDirection; pattern: JsGlitterPattern } | { type: "fly"; direction: JsSideDirection } | { type: "uncover"; direction: JsEightDirection } | { type: "replace" } | { type: "vortex"; direction: JsSideDirection } | { type: "switch"; direction: JsSideDirection } | { type: "flip"; direction: JsSideDirection } | { type: "ripple"; direction: JsRippleDirection } | { type: "honeycomb" } | { type: "prism"; direction: JsSideDirection; isContent: boolean; isInverted: boolean } | { type: "doors"; orientation: JsOrientation } | { type: "window"; orientation: JsOrientation } | { type: "ferris"; direction: JsSideDirection } | { type: "gallery"; direction: JsSideDirection } | { type: "conveyor"; direction: JsSideDirection } | { type: "pan"; direction: JsSideDirection } | { type: "warp"; inOut: JsInOutDirection } | { type: "flythrough"; inOut: JsInOutDirection; hasBounce: boolean } | { type: "flash" } | { type: "shred"; pattern: JsShredPattern; inOut: JsInOutDirection } | { type: "reveal"; throughBlack: boolean; direction: JsSideDirection } | { type: "wheelReverse"; spokes: number } | { type: "morph"; option: JsMorphOption };
+export interface JsFontUsageEntry {
+    spec: JsFontSpec;
+    resolved: JsResolvedFontInfo;
+    fallbacks: JsResolvedFontInfo[];
+}
 
 export type JsShredPattern = "strip" | "rectangle";
 
+export type JsGlitterPattern = "diamond" | "hexagon";
+
 /**
- * Font source for JavaScript serialization.
+ * Outline section info for split_by_outline results.
  */
-export type JsFontSource = "embedded" | "standard" | "googleFonts" | "url" | "local" | { custom: string };
+export interface JsOutlineSection {
+    title: string;
+    index: number;
+}
+
+/**
+ * Resolved font info for JavaScript serialization.
+ */
+export interface JsResolvedFontInfo {
+    familyName: string;
+    postscriptName?: string;
+    source: JsFontSource;
+    bold: boolean;
+    italic: boolean;
+}
 
 /**
  * Visibility group info for serialization to JavaScript.
@@ -288,7 +249,64 @@ export interface JsVisibilityGroup {
     locked: boolean;
 }
 
-export type JsCornerDirection = "leftUp" | "rightUp" | "leftDown" | "rightDown";
+/**
+ * Tile position in a 2D page grid.
+ */
+export interface JsTilePos {
+    row: number;
+    col: number;
+}
+
+/**
+ * Annotations grouped by page index (as string keys).
+ */
+export type JsAnnotationsByPage = Record<string, JsAnnotation[]>;
+
+export type JsEightDirection = "left" | "right" | "up" | "down" | "leftUp" | "rightUp" | "leftDown" | "rightDown";
+
+/**
+ * Result from pdf_split_by_outline.
+ */
+export interface JsSplitByOutlineResult {
+    documentIds: string[];
+    sections: JsOutlineSection[];
+}
+
+/**
+ * A simple rectangle for serialization to JavaScript.
+ */
+export interface JsRect {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+}
+
+export type JsRippleDirection = "center" | "leftUp" | "rightUp" | "leftDown" | "rightDown";
+
+/**
+ * Extracted image info for JavaScript.
+ */
+export interface JsExtractedImage {
+    name: string;
+    format: string;
+    width: number | undefined;
+    height: number | undefined;
+    data: number[];
+}
+
+export type JsMorphOption = "byObject" | "byWord" | "byChar";
+
+export type JsOrientation = "horizontal" | "vertical";
+
+/**
+ * Font info returned by `parseFontInfo`.
+ */
+export interface JsParsedFontInfo {
+    typeface: string;
+    bold: boolean;
+    italic: boolean;
+}
 
 /**
  * Page info for serialization to JavaScript.
@@ -304,6 +322,16 @@ export interface JsPageInfo {
      * Transition effect metadata (None when no transition is defined).
      */
     transition?: JsPageTransition;
+    /**
+     * Content area for continuous mode cropping (DOCX body bounds, XLSX grid area).
+     * Absent for PDF/PPTX where the full page is the content.
+     */
+    contentRect?: JsRect;
+    /**
+     * Tile position in a 2D page grid (XLSX only).
+     * Absent for linear formats (PDF, PPTX, DOCX).
+     */
+    tilePos?: JsTilePos;
 }
 
 export interface JsLayoutTableCell {
@@ -1065,9 +1093,9 @@ export interface InitOutput {
   readonly wasm_set_visibility_group_visible: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
   readonly wasm_setup_telemetry: (a: number, b: number, c: number) => void;
   readonly wasm_viewer_preferences: (a: number, b: number, c: number, d: number) => void;
-  readonly __wasm_bindgen_func_elem_4164: (a: number, b: number, c: number) => void;
-  readonly __wasm_bindgen_func_elem_4148: (a: number, b: number) => void;
-  readonly __wasm_bindgen_func_elem_22337: (a: number, b: number, c: number, d: number) => void;
+  readonly __wasm_bindgen_func_elem_4167: (a: number, b: number, c: number) => void;
+  readonly __wasm_bindgen_func_elem_4151: (a: number, b: number) => void;
+  readonly __wasm_bindgen_func_elem_22340: (a: number, b: number, c: number, d: number) => void;
   readonly __wbindgen_export: (a: number, b: number) => number;
   readonly __wbindgen_export2: (a: number, b: number, c: number, d: number) => number;
   readonly __wbindgen_export3: (a: number) => void;

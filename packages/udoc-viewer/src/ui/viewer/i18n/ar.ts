@@ -101,6 +101,9 @@ export const ar: TranslationKeys = {
 
     // View mode menu
     "viewMode.label": "إعدادات العرض",
+    "viewMode.view": "العرض",
+    "viewMode.paged": "مقسم لصفحات",
+    "viewMode.continuousView": "متواصل",
     "viewMode.scroll": "التمرير",
     "viewMode.layout": "التخطيط",
     "viewMode.rotation": "التدوير",

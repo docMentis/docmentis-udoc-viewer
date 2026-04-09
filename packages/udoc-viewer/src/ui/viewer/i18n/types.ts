@@ -99,6 +99,9 @@ export interface TranslationKeys {
 
     // View mode menu
     "viewMode.label": string;
+    "viewMode.view": string;
+    "viewMode.paged": string;
+    "viewMode.continuousView": string;
     "viewMode.scroll": string;
     "viewMode.layout": string;
     "viewMode.rotation": string;

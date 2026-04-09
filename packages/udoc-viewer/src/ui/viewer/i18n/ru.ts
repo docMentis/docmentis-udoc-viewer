@@ -102,6 +102,9 @@ export const ru: TranslationKeys = {
 
     // View mode menu
     "viewMode.label": "Настройки отображения",
+    "viewMode.view": "Вид",
+    "viewMode.paged": "Постраничный",
+    "viewMode.continuousView": "Непрерывный",
     "viewMode.scroll": "Прокрутка",
     "viewMode.layout": "Макет",
     "viewMode.rotation": "Поворот",

@@ -19,12 +19,22 @@ export interface SpreadRenderOptions {
     dpi: number;
 }
 
+/**
+ * How to crop pages to contentRect in continuous view mode.
+ * - "none": no cropping (paged mode)
+ * - "vertical": crop top/bottom only, keep full page width (Word/PDF/PPTX continuous)
+ * - "full": crop all four sides (XLSX grid continuous)
+ */
+export type CropMode = "none" | "vertical" | "full";
+
 export interface SpreadLayoutOptions {
     pageInfos: readonly PageInfo[];
     scale: number;
     dpi: number;
     rotation: PageRotation;
     pageSpacing: number;
+    /** How to crop pages to contentRect (continuous view mode) */
+    cropMode?: CropMode;
 }
 
 interface PageSlotElement {
@@ -353,6 +363,7 @@ export function createSpread(data: SpreadData, showAttribution = true, i18n?: I1
         const dpr = getDevicePixelRatio();
         const pointsToPixels = getPointsToPixels(options.dpi);
         const userRotation = normalizeRotation(options.rotation);
+        const cropMode = options.cropMode ?? "none";
 
         const gapCss = toCssPixels(toDevicePixels(options.pageSpacing, dpr), dpr);
         wrapper.style.gap = `${gapCss}px`;
@@ -393,19 +404,122 @@ export function createSpread(data: SpreadData, showAttribution = true, i18n?: I1
             const baseWidthDevice = toDevicePixels(baseSize.width, dpr);
             const baseHeightDevice = toDevicePixels(baseSize.height, dpr);
             const rotatedSize = rotateSize({ width: baseWidthDevice, height: baseHeightDevice }, effectiveRotation);
-            slotEl.container.style.width = formatCssSize(toCssPixels(rotatedSize.width, dpr));
-            slotEl.container.style.height = formatCssSize(toCssPixels(rotatedSize.height, dpr));
 
             slotEl.cssWidth = toCssPixels(baseWidthDevice, dpr);
             slotEl.cssHeight = toCssPixels(baseHeightDevice, dpr);
 
-            // Calculate pixel-snapped center position for the canvas
-            // Container dimensions (rotated)
-            const containerWidth = toCssPixels(rotatedSize.width, dpr);
-            const containerHeight = toCssPixels(rotatedSize.height, dpr);
-            // Center position to place canvas center at container center
-            const centerLeft = snapToDevice((containerWidth - slotEl.cssWidth) / 2, dpr);
-            const centerTop = snapToDevice((containerHeight - slotEl.cssHeight) / 2, dpr);
+            // Crop the container based on cropMode and contentRect
+            const cr = cropMode !== "none" && pageInfo?.contentRect ? pageInfo.contentRect : null;
+            let containerWidth: number;
+            let containerHeight: number;
+            let cropOffsetLeft = 0;
+            let cropOffsetTop = 0;
+
+            if (cr) {
+                // Content rect offset/size in CSS pixels (pre-rotation)
+                const crLeft = cr.x * pointsToPixels * options.scale;
+                const crTop = cr.y * pointsToPixels * options.scale;
+                const crWidth = cr.width * pointsToPixels * options.scale;
+                const crHeight = cr.height * pointsToPixels * options.scale;
+
+                const crWidthDevice = toDevicePixels(crWidth, dpr);
+                const crHeightDevice = toDevicePixels(crHeight, dpr);
+
+                if (cropMode === "vertical") {
+                    // Vertical crop only: keep full page width, crop top/bottom
+                    const crRotatedHeight = rotateSize(
+                        { width: crWidthDevice, height: crHeightDevice },
+                        effectiveRotation,
+                    );
+                    containerWidth = toCssPixels(rotatedSize.width, dpr);
+                    containerHeight = toCssPixels(crRotatedHeight.height, dpr);
+
+                    const crTopDevice = toDevicePixels(crTop, dpr);
+                    // Offset canvas vertically to show content area
+                    switch (effectiveRotation) {
+                        case 0:
+                            cropOffsetTop = -toCssPixels(crTopDevice, dpr);
+                            break;
+                        case 90:
+                            // When rotated 90°, original top becomes left
+                            cropOffsetTop = -(
+                                slotEl.cssWidth -
+                                toCssPixels(toDevicePixels(crLeft, dpr), dpr) -
+                                toCssPixels(crWidthDevice, dpr)
+                            );
+                            break;
+                        case 180:
+                            cropOffsetTop = -(
+                                slotEl.cssHeight -
+                                toCssPixels(crTopDevice, dpr) -
+                                toCssPixels(crHeightDevice, dpr)
+                            );
+                            break;
+                        case 270:
+                            cropOffsetTop = -toCssPixels(toDevicePixels(crLeft, dpr), dpr);
+                            break;
+                    }
+                } else {
+                    // Full crop: crop all four sides
+                    const crRotated = rotateSize({ width: crWidthDevice, height: crHeightDevice }, effectiveRotation);
+                    containerWidth = toCssPixels(crRotated.width, dpr);
+                    containerHeight = toCssPixels(crRotated.height, dpr);
+
+                    const crLeftDevice = toDevicePixels(crLeft, dpr);
+                    const crTopDevice = toDevicePixels(crTop, dpr);
+                    switch (effectiveRotation) {
+                        case 0:
+                            cropOffsetLeft = -toCssPixels(crLeftDevice, dpr);
+                            cropOffsetTop = -toCssPixels(crTopDevice, dpr);
+                            break;
+                        case 90:
+                            cropOffsetLeft = -toCssPixels(crTopDevice, dpr);
+                            cropOffsetTop = -(
+                                slotEl.cssWidth -
+                                toCssPixels(crLeftDevice, dpr) -
+                                toCssPixels(crWidthDevice, dpr)
+                            );
+                            break;
+                        case 180:
+                            cropOffsetLeft = -(
+                                slotEl.cssWidth -
+                                toCssPixels(crLeftDevice, dpr) -
+                                toCssPixels(crWidthDevice, dpr)
+                            );
+                            cropOffsetTop = -(
+                                slotEl.cssHeight -
+                                toCssPixels(crTopDevice, dpr) -
+                                toCssPixels(crHeightDevice, dpr)
+                            );
+                            break;
+                        case 270:
+                            cropOffsetLeft = -(
+                                slotEl.cssHeight -
+                                toCssPixels(crTopDevice, dpr) -
+                                toCssPixels(crHeightDevice, dpr)
+                            );
+                            cropOffsetTop = -toCssPixels(crLeftDevice, dpr);
+                            break;
+                    }
+                }
+            } else {
+                containerWidth = toCssPixels(rotatedSize.width, dpr);
+                containerHeight = toCssPixels(rotatedSize.height, dpr);
+            }
+
+            slotEl.container.style.width = formatCssSize(containerWidth);
+            slotEl.container.style.height = formatCssSize(containerHeight);
+
+            // Canvas position: center if no crop, offset if cropping
+            let centerLeft: number;
+            let centerTop: number;
+            if (cr) {
+                centerLeft = cropOffsetLeft;
+                centerTop = cropOffsetTop;
+            } else {
+                centerLeft = snapToDevice((containerWidth - slotEl.cssWidth) / 2, dpr);
+                centerTop = snapToDevice((containerHeight - slotEl.cssHeight) / 2, dpr);
+            }
 
             if (slotEl.previewCanvas) {
                 slotEl.previewCanvas.style.width = formatCssSize(slotEl.cssWidth);

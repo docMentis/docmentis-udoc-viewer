@@ -1,5 +1,6 @@
 import type {
     PanelTab,
+    ViewMode,
     ScrollMode,
     LayoutMode,
     ZoomMode,
@@ -69,6 +70,7 @@ export type Action =
     | { type: "SET_NAVIGATION_SCROLL_ALIGNMENT"; alignment: ScrollAlignment }
     | { type: "SET_SEARCH_SCROLL_ALIGNMENT"; alignment: ScrollAlignment }
     // View modes
+    | { type: "SET_VIEW_MODE"; mode: ViewMode }
     | { type: "SET_SCROLL_MODE"; mode: ScrollMode }
     | { type: "SET_LAYOUT_MODE"; mode: LayoutMode }
     | { type: "SET_ZOOM_MODE"; mode: ZoomMode }

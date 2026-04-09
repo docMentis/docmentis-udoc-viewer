@@ -18,6 +18,7 @@ import {
     getFormatDefaults,
     type DocumentFormat,
     type ViewModeDefaults,
+    type ViewMode,
     type PanelTab,
     type ScrollMode,
     type LayoutMode,
@@ -853,6 +854,27 @@ export class UDocViewer {
     /** Whether the viewer is in fullscreen mode. */
     get isFullscreen(): boolean {
         return this.uiShell?.getState().isFullscreen ?? false;
+    }
+
+    /** Current view mode. */
+    get viewMode(): ViewMode {
+        return this.uiShell?.getState().viewMode ?? "paged";
+    }
+
+    /**
+     * Set view mode (paged or continuous).
+     */
+    setViewMode(mode: ViewMode): void {
+        this.ensureNotDestroyed();
+        this.ensureUiMode();
+        this.uiShell!.dispatch({ type: "SET_VIEW_MODE", mode });
+    }
+
+    /**
+     * Get the current view mode.
+     */
+    getViewMode(): ViewMode {
+        return this.viewMode;
     }
 
     /**

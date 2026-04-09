@@ -127,6 +127,12 @@ export interface PageInfo {
     rotation: 0 | 90 | 180 | 270;
     /** Slide transition (PPTX only) */
     transition?: PageTransition;
+    /** Content area for continuous mode cropping (DOCX body bounds, XLSX grid area).
+     * Absent for PDF/PPTX where the full page is the content. */
+    contentRect?: { x: number; y: number; width: number; height: number };
+    /** Tile position in a 2D page grid (XLSX only).
+     * Absent for linear formats (PDF, PPTX, DOCX). */
+    tilePos?: { row: number; col: number };
 }
 
 // =============================================================================

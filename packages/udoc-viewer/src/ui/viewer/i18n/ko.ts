@@ -102,6 +102,9 @@ export const ko: TranslationKeys = {
 
     // View mode menu
     "viewMode.label": "보기 설정",
+    "viewMode.view": "보기",
+    "viewMode.paged": "페이지",
+    "viewMode.continuousView": "연속 보기",
     "viewMode.scroll": "스크롤",
     "viewMode.layout": "레이아웃",
     "viewMode.rotation": "회전",

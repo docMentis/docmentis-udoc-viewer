@@ -3,6 +3,7 @@ import { subscribeSelector } from "../../framework/selectors";
 import {
     getPointsToPixels,
     type ViewerState,
+    type ViewMode,
     type ScrollMode,
     type LayoutMode,
     type ZoomMode,
@@ -20,12 +21,14 @@ import type { I18n } from "../i18n/index.js";
 import {
     calculateSpreads,
     calculateSpreadLayouts,
+    calculateContinuousLayout,
     findSpreadForPage,
     findVisibleSpreadRange,
     getSpreadPrimaryPage,
     getSpreadDimensions,
     type Spread,
     type SpreadLayout,
+    type ContinuousLayoutResult,
 } from "../layout/spreadLayout";
 import { createSpread, type SpreadComponent } from "./Spread";
 import { createFloatingToolbar } from "./FloatingToolbar";
@@ -46,6 +49,7 @@ interface ViewportSlice {
     page: number;
     pageCount: number;
     pageInfos: readonly PageInfo[];
+    viewMode: ViewMode;
     scrollMode: ScrollMode;
     layoutMode: LayoutMode;
     zoomMode: ZoomMode;
@@ -68,6 +72,7 @@ function viewportSliceEqual(a: ViewportSlice, b: ViewportSlice): boolean {
         a.page === b.page &&
         a.pageCount === b.pageCount &&
         a.pageInfos === b.pageInfos &&
+        a.viewMode === b.viewMode &&
         a.scrollMode === b.scrollMode &&
         a.layoutMode === b.layoutMode &&
         a.zoomMode === b.zoomMode &&
@@ -106,6 +111,8 @@ interface LayoutState {
     contentWidth: number;
     contentHeight: number;
     scale: number;
+    /** Continuous layout result (only set when viewMode === 'continuous') */
+    continuousLayout: ContinuousLayoutResult | null;
 }
 
 /**
@@ -354,6 +361,19 @@ function computeScale(
 function buildLayout(slice: ViewportSlice, metrics: ViewportMetrics, scrollbarVisible: boolean): LayoutState {
     const spreads = calculateSpreads(slice.pageCount, slice.layoutMode);
     const scale = computeScale(slice, metrics, spreads, scrollbarVisible);
+
+    if (slice.viewMode === "continuous") {
+        const contLayout = calculateContinuousLayout(spreads, slice.pageInfos, scale, slice.dpi, slice.pageRotation);
+        return {
+            spreads,
+            layouts: contLayout.layouts,
+            contentWidth: contLayout.contentWidth,
+            contentHeight: contLayout.contentHeight,
+            scale,
+            continuousLayout: contLayout,
+        };
+    }
+
     const layout = calculateSpreadLayouts(
         spreads,
         slice.pageInfos,
@@ -370,6 +390,7 @@ function buildLayout(slice: ViewportSlice, metrics: ViewportMetrics, scrollbarVi
         contentWidth: layout.contentWidth,
         contentHeight: layout.contentHeight,
         scale,
+        continuousLayout: null,
     };
 }
 
@@ -386,6 +407,7 @@ function computeViewportUpdate(
         nextSlice.docId !== prevSlice.docId ||
         nextSlice.pageCount !== prevSlice.pageCount ||
         nextSlice.pageInfos !== prevSlice.pageInfos ||
+        nextSlice.viewMode !== prevSlice.viewMode ||
         nextSlice.scrollMode !== prevSlice.scrollMode ||
         nextSlice.layoutMode !== prevSlice.layoutMode ||
         nextSlice.zoomMode !== prevSlice.zoomMode ||
@@ -402,6 +424,7 @@ function computeViewportUpdate(
         nextSlice.docId !== prevSlice.docId ||
         nextSlice.pageCount !== prevSlice.pageCount ||
         nextSlice.pageInfos !== prevSlice.pageInfos ||
+        nextSlice.viewMode !== prevSlice.viewMode ||
         nextSlice.layoutMode !== prevSlice.layoutMode;
 
     const shouldClearSpreads = layoutChanged && spreadsChanged;
@@ -914,9 +937,11 @@ export function createViewport(showAttribution = true) {
     }
 
     function applyState(slice: ViewportSlice): void {
-        scrollArea.style.paddingLeft = `${slice.pageSpacing}px`;
-        scrollArea.style.paddingRight = `${slice.pageSpacing}px`;
-        el.classList.toggle("udoc-viewport--seamless", slice.spacingMode === "none");
+        const sidePadding = slice.viewMode === "continuous" ? 0 : slice.pageSpacing;
+        scrollArea.style.paddingLeft = `${sidePadding}px`;
+        scrollArea.style.paddingRight = `${sidePadding}px`;
+        el.classList.toggle("udoc-viewport--seamless", slice.spacingMode === "none" || slice.viewMode === "continuous");
+        el.classList.toggle("udoc-viewport--continuous", slice.viewMode === "continuous");
         const metrics = readViewportMetrics(scrollArea, container);
         const hasDoc = !!slice.docId && slice.pageCount > 0 && slice.pageInfos.length > 0;
 
@@ -1188,12 +1213,20 @@ export function createViewport(showAttribution = true) {
 
         const rangeChanged = visibleRange.start !== lastVisibleRange.start || visibleRange.end !== lastVisibleRange.end;
 
+        const isContinuousView = slice.viewMode === "continuous";
+        const contLayout = state.continuousLayout;
+        const cropMode = isContinuousView
+            ? contLayout?.isGridLayout
+                ? ("full" as const)
+                : ("vertical" as const)
+            : ("none" as const);
         const layoutOptions = {
             pageInfos: slice.pageInfos,
             scale: state.scale,
             dpi: slice.dpi,
             rotation: slice.pageRotation,
             pageSpacing: slice.pageSpacing,
+            cropMode,
         };
 
         if (layoutDirty || rangeChanged) {
@@ -1225,16 +1258,51 @@ export function createViewport(showAttribution = true) {
                 spreadComp.updateLayout(layoutOptions);
 
                 // Set spread position and dimensions from layout.
-                // Layout values are pre-snapped with cumulative consistency.
-                // Use left:0 + right:0 instead of explicit width so the spread
-                // fills the container via CSS (responds to resize without JS lag).
                 const spreadEl = spreadComp.getElement();
                 spreadEl.style.position = "absolute";
                 spreadEl.style.top = `${layout.top}px`;
                 spreadEl.style.height = `${layout.height}px`;
-                spreadEl.style.left = "0px";
-                spreadEl.style.right = "0px";
-                spreadEl.style.width = "";
+
+                if (isContinuousView && contLayout?.isGridLayout) {
+                    // Grid continuous (XLSX): position using left offset from row layout
+                    const pageIndex = layout.slots[0] ? layout.slots[0] - 1 : i;
+                    const rowLayout = contLayout.rowLayouts.find((r) => r.pages.some((p) => p.pageIndex === pageIndex));
+                    const pageDef = rowLayout?.pages.find((p) => p.pageIndex === pageIndex);
+                    if (pageDef) {
+                        spreadEl.style.left = `${pageDef.left}px`;
+                        spreadEl.style.width = `${pageDef.width}px`;
+                        spreadEl.style.right = "";
+                    } else {
+                        spreadEl.style.left = "0px";
+                        spreadEl.style.right = "0px";
+                        spreadEl.style.width = "";
+                    }
+                    // No centering in grid mode — content is flush to left
+                    spreadEl.style.justifyContent = "flex-start";
+
+                    // Mark last-col / last-row for stitch line hiding
+                    const isLastCol = pageDef ? pageDef.col === contLayout.columnWidths.length - 1 : false;
+                    const isLastRow = rowLayout
+                        ? rowLayout.row === contLayout.rowLayouts[contLayout.rowLayouts.length - 1].row
+                        : false;
+                    spreadEl.classList.toggle("udoc-spread--last-col", isLastCol);
+                    spreadEl.classList.toggle("udoc-spread--last-row", isLastRow);
+                } else if (isContinuousView) {
+                    // Linear continuous: center, single column = always last col
+                    spreadEl.style.left = "0px";
+                    spreadEl.style.right = "0px";
+                    spreadEl.style.width = "";
+                    spreadEl.style.justifyContent = "";
+                    spreadEl.classList.add("udoc-spread--last-col");
+                    spreadEl.classList.toggle("udoc-spread--last-row", i === state.layouts.length - 1);
+                } else {
+                    // Paged mode
+                    spreadEl.style.left = "0px";
+                    spreadEl.style.right = "0px";
+                    spreadEl.style.width = "";
+                    spreadEl.style.justifyContent = "";
+                    spreadEl.classList.remove("udoc-spread--last-col", "udoc-spread--last-row");
+                }
                 spreadEl.style.transform = "none";
 
                 // Skip render during resize animation (renders debounced separately)
@@ -1710,6 +1778,7 @@ function selectViewport(state: ViewerState): ViewportSlice {
         page: state.page,
         pageCount: state.pageCount,
         pageInfos: state.pageInfos,
+        viewMode: state.viewMode,
         scrollMode: state.scrollMode,
         layoutMode: state.layoutMode,
         zoomMode: state.zoomMode,

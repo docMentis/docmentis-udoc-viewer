@@ -49,6 +49,7 @@ export function isLeftPanelTab(tab: PanelTab): tab is LeftPanelTab {
 // View mode types
 // -----------------------------------------------------------------------------
 
+export type ViewMode = "paged" | "continuous";
 export type ScrollMode = "spread" | "continuous";
 export type LayoutMode = "single-page" | "double-page" | "double-page-odd-right" | "double-page-odd-left";
 export type ZoomMode = "fit-spread-width" | "fit-spread-width-max" | "fit-spread-height" | "fit-spread" | "custom";
@@ -135,6 +136,7 @@ export const ANNOTATION_FORMATS: ReadonlySet<DocumentFormat> = new Set(["pdf"]);
 
 /** Subset of view mode state that can be overridden per format */
 export interface ViewModeDefaults {
+    viewMode?: ViewMode;
     scrollMode?: ScrollMode;
     layoutMode?: LayoutMode;
     zoomMode?: ZoomMode;
@@ -150,12 +152,20 @@ export interface ViewModeDefaults {
 export function getFormatDefaults(format: DocumentFormat): ViewModeDefaults {
     switch (format) {
         case "pdf":
+            return { viewMode: "paged", scrollMode: "continuous", zoomMode: "fit-spread-width-max" };
         case "docx":
+            return { viewMode: "paged", scrollMode: "continuous", zoomMode: "fit-spread-width-max" };
         case "xlsx":
-            return { scrollMode: "continuous", zoomMode: "fit-spread-width-max" };
+            return {
+                viewMode: "continuous",
+                scrollMode: "continuous",
+                layoutMode: "single-page",
+                spacingMode: "none",
+                zoomMode: "fit-spread-width-max",
+            };
         case "pptx":
         case "image":
-            return { scrollMode: "spread", zoomMode: "fit-spread" };
+            return { viewMode: "paged", scrollMode: "spread", zoomMode: "fit-spread" };
     }
 }
 
@@ -242,6 +252,7 @@ export interface ViewerState {
     searchScrollAlignment: ScrollAlignment;
 
     // View modes
+    viewMode: ViewMode;
     scrollMode: ScrollMode;
     layoutMode: LayoutMode;
     zoomMode: ZoomMode;
@@ -398,6 +409,7 @@ export const initialState: ViewerState = {
     navigationScrollAlignment: "top",
     searchScrollAlignment: "nearest",
 
+    viewMode: "paged",
     scrollMode: "continuous",
     layoutMode: "single-page",
     zoomMode: "fit-spread-width",

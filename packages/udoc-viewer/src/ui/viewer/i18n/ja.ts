@@ -102,6 +102,9 @@ export const ja: TranslationKeys = {
 
     // View mode menu
     "viewMode.label": "表示設定",
+    "viewMode.view": "表示",
+    "viewMode.paged": "ページ",
+    "viewMode.continuousView": "連続表示",
     "viewMode.scroll": "スクロール",
     "viewMode.layout": "レイアウト",
     "viewMode.rotation": "回転",

@@ -101,6 +101,9 @@ export const es: TranslationKeys = {
 
     // View mode menu
     "viewMode.label": "Ajustes de vista",
+    "viewMode.view": "Vista",
+    "viewMode.paged": "Paginado",
+    "viewMode.continuousView": "Continuo",
     "viewMode.scroll": "Desplazamiento",
     "viewMode.layout": "Diseño",
     "viewMode.rotation": "Rotación",

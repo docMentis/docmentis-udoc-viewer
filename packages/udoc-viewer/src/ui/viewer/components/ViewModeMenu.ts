@@ -1,11 +1,13 @@
 import type { Store } from "../../framework/store";
 import { subscribeSelector } from "../../framework/selectors";
 import { on } from "../../framework/events";
-import type { ViewerState, ScrollMode, LayoutMode, PageRotation, SpacingMode } from "../state";
+import type { ViewerState, ViewMode, ScrollMode, LayoutMode, PageRotation, SpacingMode } from "../state";
 import type { Action } from "../actions";
 import type { I18n } from "../i18n/index.js";
 import {
     ICON_VIEW_MODE,
+    ICON_VIEW_PAGED,
+    ICON_VIEW_CONTINUOUS,
     ICON_SCROLL_SPREAD,
     ICON_SCROLL_CONTINUOUS,
     ICON_LAYOUT_SINGLE,
@@ -23,6 +25,7 @@ import {
 } from "../icons";
 
 interface ViewModeSlice {
+    viewMode: ViewMode;
     scrollMode: ScrollMode;
     layoutMode: LayoutMode;
     pageRotation: PageRotation;
@@ -31,6 +34,7 @@ interface ViewModeSlice {
 
 function sliceEqual(a: ViewModeSlice, b: ViewModeSlice): boolean {
     return (
+        a.viewMode === b.viewMode &&
         a.scrollMode === b.scrollMode &&
         a.layoutMode === b.layoutMode &&
         a.pageRotation === b.pageRotation &&
@@ -43,6 +47,11 @@ interface MenuOption<T> {
     icon: string;
     label: string;
 }
+
+const VIEW_MODE_OPTIONS: MenuOption<ViewMode>[] = [
+    { value: "paged", icon: ICON_VIEW_PAGED, label: "viewMode.paged" },
+    { value: "continuous", icon: ICON_VIEW_CONTINUOUS, label: "viewMode.continuousView" },
+];
 
 const SCROLL_OPTIONS: MenuOption<ScrollMode>[] = [
     { value: "spread", icon: ICON_SCROLL_SPREAD, label: "viewMode.spread" },
@@ -174,32 +183,67 @@ export function createViewModeMenu() {
         // Clear existing content
         dropdown.innerHTML = "";
 
+        const isPaged = slice.viewMode === "paged";
+
+        // View mode section (paged vs continuous)
+        dropdown.appendChild(
+            createSection(i18nRef!.t("viewMode.view"), VIEW_MODE_OPTIONS, slice.viewMode, (mode) => {
+                storeRef?.dispatch({ type: "SET_VIEW_MODE", mode });
+            }),
+        );
+
+        const disabledInContinuous = !isPaged ? { disabled: true, allowNoSelection: true } : {};
+
         // Scroll mode section
         dropdown.appendChild(
-            createSection(i18nRef!.t("viewMode.scroll"), SCROLL_OPTIONS, slice.scrollMode, (mode) => {
-                storeRef?.dispatch({ type: "SET_SCROLL_MODE", mode });
-            }),
+            createSection(
+                i18nRef!.t("viewMode.scroll"),
+                SCROLL_OPTIONS,
+                slice.scrollMode,
+                (mode) => {
+                    storeRef?.dispatch({ type: "SET_SCROLL_MODE", mode });
+                },
+                disabledInContinuous,
+            ),
         );
 
         // Layout mode section
         dropdown.appendChild(
-            createSection(i18nRef!.t("viewMode.layout"), LAYOUT_OPTIONS, slice.layoutMode, (mode) => {
-                storeRef?.dispatch({ type: "SET_LAYOUT_MODE", mode });
-            }),
+            createSection(
+                i18nRef!.t("viewMode.layout"),
+                LAYOUT_OPTIONS,
+                slice.layoutMode,
+                (mode) => {
+                    storeRef?.dispatch({ type: "SET_LAYOUT_MODE", mode });
+                },
+                disabledInContinuous,
+            ),
         );
 
         // Page rotation section
         dropdown.appendChild(
-            createSection(i18nRef!.t("viewMode.rotation"), ROTATION_OPTIONS, slice.pageRotation, (rotation) => {
-                storeRef?.dispatch({ type: "SET_PAGE_ROTATION", rotation });
-            }),
+            createSection(
+                i18nRef!.t("viewMode.rotation"),
+                ROTATION_OPTIONS,
+                slice.pageRotation,
+                (rotation) => {
+                    storeRef?.dispatch({ type: "SET_PAGE_ROTATION", rotation });
+                },
+                disabledInContinuous,
+            ),
         );
 
         // Spacing section
         dropdown.appendChild(
-            createSection(i18nRef!.t("viewMode.spacing"), SPACING_OPTIONS, slice.spacingMode, (mode) => {
-                storeRef?.dispatch({ type: "SET_SPACING_MODE", mode });
-            }),
+            createSection(
+                i18nRef!.t("viewMode.spacing"),
+                SPACING_OPTIONS,
+                slice.spacingMode,
+                (mode) => {
+                    storeRef?.dispatch({ type: "SET_SPACING_MODE", mode });
+                },
+                disabledInContinuous,
+            ),
         );
     }
 
@@ -279,6 +323,7 @@ export function createViewModeMenu() {
 
 function selectSlice(state: ViewerState): ViewModeSlice {
     return {
+        viewMode: state.viewMode,
         scrollMode: state.scrollMode,
         layoutMode: state.layoutMode,
         pageRotation: state.pageRotation,

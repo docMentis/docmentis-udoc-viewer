@@ -481,3 +481,317 @@ function findLastVisibleSpread(layouts: SpreadLayout[], viewportBottom: number, 
 
     return result;
 }
+
+// -----------------------------------------------------------------------------
+// Continuous Mode Layout
+// -----------------------------------------------------------------------------
+
+/**
+ * Get the cropped content size for a page in continuous mode.
+ * Uses contentRect if available, otherwise falls back to full page size.
+ */
+export function getCroppedPageSize(pageInfo: PageInfo, rotation: PageRotation): Size {
+    if (pageInfo.contentRect) {
+        const cr = pageInfo.contentRect;
+        const size = { width: cr.width, height: cr.height };
+        return applyRotationToSize(size, pageInfo, rotation);
+    }
+    return applyRotation(pageInfo, rotation);
+}
+
+function applyRotationToSize(size: Size, pageInfo: PageInfo, userRotation: PageRotation): Size {
+    const documentRotation = normalizeRotation((pageInfo.rotation ?? 0) as PageRotation);
+    const effectiveRotation = combineRotation(documentRotation, userRotation);
+    if (effectiveRotation === 90 || effectiveRotation === 270) {
+        return { width: size.height, height: size.width };
+    }
+    return size;
+}
+
+/**
+ * Derives the grid structure from page infos.
+ * For XLSX: uses tilePos from each page.
+ * For DOCX/PDF: single column, pages stack vertically.
+ */
+export function deriveGrid(pageInfos: readonly PageInfo[]): {
+    columns: number;
+    rows: number;
+    pageGrid: Array<{ pageIndex: number; row: number; col: number }>;
+} {
+    const pageGrid: Array<{ pageIndex: number; row: number; col: number }> = [];
+    let maxCol = 0;
+    let maxRow = 0;
+    let hasTilePos = false;
+
+    for (let i = 0; i < pageInfos.length; i++) {
+        const pi = pageInfos[i];
+        if (pi.tilePos) {
+            hasTilePos = true;
+            pageGrid.push({ pageIndex: i, row: pi.tilePos.row, col: pi.tilePos.col });
+            maxCol = Math.max(maxCol, pi.tilePos.col);
+            maxRow = Math.max(maxRow, pi.tilePos.row);
+        }
+    }
+
+    if (!hasTilePos) {
+        // Linear layout: single column
+        for (let i = 0; i < pageInfos.length; i++) {
+            pageGrid.push({ pageIndex: i, row: i, col: 0 });
+        }
+        return { columns: 1, rows: pageInfos.length, pageGrid };
+    }
+
+    return { columns: maxCol + 1, rows: maxRow + 1, pageGrid };
+}
+
+/**
+ * Layout for a single row in the continuous grid.
+ * Each row is one spread containing all pages in that row.
+ */
+export interface ContinuousRowLayout {
+    /** Row index in the grid */
+    row: number;
+    /** Y position from top of container (CSS pixels) */
+    top: number;
+    /** Width of this row (CSS pixels) */
+    width: number;
+    /** Height of this row (CSS pixels) */
+    height: number;
+    /** Pages in this row, in column order */
+    pages: Array<{ pageIndex: number; col: number; left: number; width: number; height: number }>;
+}
+
+export interface ContinuousLayoutResult {
+    /** One SpreadLayout per page (for compatibility with existing Viewport) */
+    layouts: SpreadLayout[];
+    /** Row layouts for the continuous grid */
+    rowLayouts: ContinuousRowLayout[];
+    /** Total content width (CSS pixels) */
+    contentWidth: number;
+    /** Total content height (CSS pixels) */
+    contentHeight: number;
+    /** Column widths in CSS pixels (for consistent column alignment) */
+    columnWidths: number[];
+    /** Whether this is a grid layout (XLSX with tilePos) vs linear stitch (Word/PDF/PPTX) */
+    isGridLayout: boolean;
+}
+
+/**
+ * Calculate continuous mode layout.
+ *
+ * Two sub-modes determined by the presence of `tilePos` on pages:
+ *
+ * 1. **Linear stitch** (Word/PDF/PPTX — no tilePos): Full-width pages stacked
+ *    vertically with zero spacing, centered. No content-rect cropping.
+ *    This is visually the same as paged mode but without shadows/gaps.
+ *
+ * 2. **Grid stitch** (XLSX — has tilePos): Pages cropped to contentRect and
+ *    arranged in a 2D grid with column alignment.
+ */
+export function calculateContinuousLayout(
+    spreads: Spread[],
+    pageInfos: readonly PageInfo[],
+    scale: number,
+    dpi: number,
+    rotation: PageRotation,
+): ContinuousLayoutResult {
+    const grid = deriveGrid(pageInfos);
+
+    if (grid.columns === 1 && !pageInfos.some((p) => p.tilePos)) {
+        // Linear stitch: full pages, no cropping, zero spacing, centered
+        return calculateLinearContinuousLayout(spreads, pageInfos, scale, dpi, rotation);
+    }
+
+    // Grid stitch: crop to contentRect, tile-based positioning
+    return calculateGridContinuousLayout(spreads, pageInfos, scale, dpi, rotation, grid);
+}
+
+/**
+ * Get the vertically-cropped page size (crop top/bottom via contentRect, keep full width).
+ * Used for Word/PDF/PPTX continuous mode to remove headers/footers.
+ */
+function getVerticallyCroppedPageSize(pageInfo: PageInfo, rotation: PageRotation): Size {
+    const fullSize = applyRotation(pageInfo, rotation);
+    if (!pageInfo.contentRect) return fullSize;
+
+    const cr = pageInfo.contentRect;
+    // Keep full page width, use contentRect height
+    const size = { width: pageInfo.width, height: cr.height };
+    return applyRotationToSize(size, pageInfo, rotation);
+}
+
+/**
+ * Linear continuous layout for Word/PDF/PPTX.
+ * Full page width, centered, vertically cropped to contentRect (headers/footers removed).
+ */
+function calculateLinearContinuousLayout(
+    spreads: Spread[],
+    pageInfos: readonly PageInfo[],
+    scale: number,
+    dpi: number,
+    rotation: PageRotation,
+): ContinuousLayoutResult {
+    const dpr = getDevicePixelRatio();
+    const pointsToPixels = getPointsToPixels(dpi);
+    const layouts: SpreadLayout[] = [];
+    let currentTopDevice = 0;
+    let maxWidthDevice = 0;
+
+    for (const spread of spreads) {
+        // Use full page width but cropped height
+        let spreadWidthDevice = 0;
+        let spreadHeightDevice = 0;
+
+        for (const slot of spread.slots) {
+            if (slot !== null) {
+                const pageInfo = pageInfos[slot - 1];
+                if (pageInfo) {
+                    const cropped = getVerticallyCroppedPageSize(pageInfo, rotation);
+                    const wDevice = toDevicePixels(cropped.width * pointsToPixels * scale, dpr);
+                    const hDevice = toDevicePixels(cropped.height * pointsToPixels * scale, dpr);
+                    spreadWidthDevice = Math.max(spreadWidthDevice, wDevice);
+                    spreadHeightDevice = Math.max(spreadHeightDevice, hDevice);
+                }
+            }
+        }
+
+        layouts.push({
+            index: spread.index,
+            slots: spread.slots,
+            top: toCssPixels(currentTopDevice, dpr),
+            width: toCssPixels(spreadWidthDevice, dpr),
+            height: toCssPixels(spreadHeightDevice, dpr),
+        });
+
+        currentTopDevice += spreadHeightDevice;
+        maxWidthDevice = Math.max(maxWidthDevice, spreadWidthDevice);
+    }
+
+    return {
+        layouts,
+        rowLayouts: [],
+        contentWidth: toCssPixels(maxWidthDevice, dpr),
+        contentHeight: toCssPixels(currentTopDevice, dpr),
+        columnWidths: [],
+        isGridLayout: false,
+    };
+}
+
+/**
+ * Grid continuous layout for XLSX.
+ * Pages cropped to contentRect and arranged in a 2D grid.
+ */
+function calculateGridContinuousLayout(
+    spreads: Spread[],
+    pageInfos: readonly PageInfo[],
+    scale: number,
+    dpi: number,
+    rotation: PageRotation,
+    grid: ReturnType<typeof deriveGrid>,
+): ContinuousLayoutResult {
+    const dpr = getDevicePixelRatio();
+    const pointsToPixels = getPointsToPixels(dpi);
+
+    // Calculate cropped dimensions for each page
+    const pageDims: Array<{ width: number; height: number }> = [];
+    for (let i = 0; i < pageInfos.length; i++) {
+        const cropped = getCroppedPageSize(pageInfos[i], rotation);
+        pageDims.push({
+            width: toCssPixels(toDevicePixels(cropped.width * pointsToPixels * scale, dpr), dpr),
+            height: toCssPixels(toDevicePixels(cropped.height * pointsToPixels * scale, dpr), dpr),
+        });
+    }
+
+    // Calculate column widths (max width in each column across all rows)
+    const columnWidths: number[] = new Array(grid.columns).fill(0);
+    for (const pg of grid.pageGrid) {
+        const dim = pageDims[pg.pageIndex];
+        if (dim) {
+            columnWidths[pg.col] = Math.max(columnWidths[pg.col], dim.width);
+        }
+    }
+
+    // Group pages by row
+    const rowPages = new Map<number, Array<{ pageIndex: number; col: number }>>();
+    for (const pg of grid.pageGrid) {
+        let pages = rowPages.get(pg.row);
+        if (!pages) {
+            pages = [];
+            rowPages.set(pg.row, pages);
+        }
+        pages.push({ pageIndex: pg.pageIndex, col: pg.col });
+    }
+
+    // Sort rows and calculate layouts
+    const rowIndices = Array.from(rowPages.keys()).sort((a, b) => a - b);
+    const rowLayouts: ContinuousRowLayout[] = [];
+    const layouts: SpreadLayout[] = [];
+    let currentTop = 0;
+    const totalWidth = columnWidths.reduce((sum, w) => sum + w, 0);
+
+    for (const rowIdx of rowIndices) {
+        const pages = rowPages.get(rowIdx)!;
+        pages.sort((a, b) => a.col - b.col);
+
+        // Row height = max cropped page height in this row
+        let rowHeight = 0;
+        for (const p of pages) {
+            const dim = pageDims[p.pageIndex];
+            if (dim) {
+                rowHeight = Math.max(rowHeight, dim.height);
+            }
+        }
+
+        // Calculate left offsets for each page based on column widths
+        const rowPageLayouts: ContinuousRowLayout["pages"] = [];
+        for (const p of pages) {
+            let left = 0;
+            for (let c = 0; c < p.col; c++) {
+                left += columnWidths[c];
+            }
+            const dim = pageDims[p.pageIndex];
+            rowPageLayouts.push({
+                pageIndex: p.pageIndex,
+                col: p.col,
+                left,
+                width: dim?.width ?? 0,
+                height: dim?.height ?? 0,
+            });
+        }
+
+        rowLayouts.push({
+            row: rowIdx,
+            top: currentTop,
+            width: totalWidth,
+            height: rowHeight,
+            pages: rowPageLayouts,
+        });
+
+        // Create SpreadLayout for each page in this row (for Viewport compatibility)
+        // All pages in a row share the row height so they align vertically.
+        for (const p of pages) {
+            const spreadIndex = p.pageIndex;
+            if (spreadIndex < spreads.length) {
+                const dim = pageDims[p.pageIndex];
+                layouts.push({
+                    index: spreadIndex,
+                    slots: spreads[spreadIndex].slots,
+                    top: currentTop,
+                    width: dim?.width ?? 0,
+                    height: rowHeight,
+                });
+            }
+        }
+
+        currentTop += rowHeight;
+    }
+
+    return {
+        layouts,
+        rowLayouts,
+        contentWidth: totalWidth,
+        contentHeight: currentTop,
+        columnWidths,
+        isGridLayout: true,
+    };
+}

@@ -102,6 +102,9 @@ export const de: TranslationKeys = {
 
     // View mode menu
     "viewMode.label": "Anzeigeeinstellungen",
+    "viewMode.view": "Ansicht",
+    "viewMode.paged": "Seitenweise",
+    "viewMode.continuousView": "Fortlaufend",
     "viewMode.scroll": "Scrollen",
     "viewMode.layout": "Layout",
     "viewMode.rotation": "Drehung",

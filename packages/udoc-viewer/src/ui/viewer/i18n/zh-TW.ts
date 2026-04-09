@@ -101,6 +101,9 @@ export const zhTW: TranslationKeys = {
 
     // View mode menu
     "viewMode.label": "檢視設定",
+    "viewMode.view": "檢視",
+    "viewMode.paged": "分頁",
+    "viewMode.continuousView": "連續",
     "viewMode.scroll": "捲動",
     "viewMode.layout": "版面",
     "viewMode.rotation": "旋轉",

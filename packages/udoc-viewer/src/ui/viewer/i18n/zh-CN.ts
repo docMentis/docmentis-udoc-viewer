@@ -101,6 +101,9 @@ export const zhCN: TranslationKeys = {
 
     // View mode menu
     "viewMode.label": "视图设置",
+    "viewMode.view": "视图",
+    "viewMode.paged": "分页",
+    "viewMode.continuousView": "连续",
     "viewMode.scroll": "滚动",
     "viewMode.layout": "布局",
     "viewMode.rotation": "旋转",
