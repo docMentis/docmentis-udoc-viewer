@@ -6,6 +6,27 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+### Features
+
+- Continuous view mode with linear and grid stitch layouts
+- Auto-hide floating toolbar after 3 seconds of inactivity
+- Content rect and tile position info for continuous mode pages (engine)
+
+### Bug Fixes
+
+- Zoom tool now scrolls to keep the clicked point under the cursor
+- Enable annotation tools on mobile by setting touch-action: none
+- Use paragraph default run properties for runs without explicit styling in PPTX text (engine)
+- Improve chart title, data labels, legend overlay, and number format handling (engine)
+- Add built-in PPTX table styles and fix empty line after forced break (engine)
+- Exclude formatting-only rows and column defs from XLSX used range (engine)
+- Normalize content rect height across pages in same XLSX tile row (engine)
+- Use tight-fit content rect for DOCX continuous mode (engine)
+
+### Refactors
+
+- Rename beta flags with `__experimental` prefix for visibility
+
 ## [0.6.25] - 2026-04-08
 
 ### Features
