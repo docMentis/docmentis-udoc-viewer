@@ -333,7 +333,14 @@ export function createSubToolbar() {
                     btn.innerHTML = def.icon;
                     btn.title = i18n.t(def.labelKey as keyof typeof i18n.t);
                     btn.setAttribute("aria-label", i18n.t(def.labelKey as keyof typeof i18n.t));
-                    btn.addEventListener("click", () => store.dispatch({ type: "SET_SUB_TOOL", subTool: def.id }));
+                    btn.addEventListener("click", () => {
+                        const state = store.getState();
+                        if (state.activeSubTool === def.id && (def.id === "polygon" || def.id === "polyline")) {
+                            document.dispatchEvent(new Event("udoc-finish-drawing"));
+                        } else {
+                            store.dispatch({ type: "SET_SUB_TOOL", subTool: def.id });
+                        }
+                    });
                     toolsSection.appendChild(btn);
                     currentToolBtns.set(def.id, btn);
                 }

@@ -381,10 +381,7 @@ export function createAnnotationDrawController(options: AnnotationDrawController
         scrollArea.removeEventListener("click", onClick);
         scrollArea.removeEventListener("dblclick", onDblClick);
         if (isDrawing) {
-            isDrawing = false;
-            removePreview();
-            inkPoints = [];
-            polygonVertices = [];
+            finishDrawing();
         }
     }
 
@@ -400,13 +397,23 @@ export function createAnnotationDrawController(options: AnnotationDrawController
     }
 
     // Subscribe to store for tool changes
-    const unsub = store.subscribeRender((_prev, next) => {
+    const unsub = store.subscribeRender((prev, next) => {
         if (canDraw(next)) {
+            // If the sub-tool changed while drawing, finish the in-progress shape
+            if (isDrawing && prev.activeSubTool !== next.activeSubTool) {
+                finishDrawing();
+            }
             activate();
         } else {
             deactivate();
         }
     });
+
+    // Listen for finish-drawing events (e.g. re-clicking the active polygon/polyline tool)
+    const onFinishDrawing = () => {
+        if (isDrawing) finishDrawing();
+    };
+    document.addEventListener("udoc-finish-drawing", onFinishDrawing);
 
     // Check initial state
     if (canDraw(store.getState())) {
@@ -415,6 +422,7 @@ export function createAnnotationDrawController(options: AnnotationDrawController
 
     function destroy(): void {
         unsub();
+        document.removeEventListener("udoc-finish-drawing", onFinishDrawing);
         deactivate();
     }
 
