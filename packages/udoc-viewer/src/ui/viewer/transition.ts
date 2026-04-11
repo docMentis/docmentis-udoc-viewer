@@ -16,6 +16,7 @@ import type {
     EightDirection,
     CornerDirection,
 } from "../../worker/index.js";
+import { tryRunGLTransition } from "./transition-gl.js";
 
 // ---------------------------------------------------------------------------
 // Public API
@@ -43,6 +44,15 @@ export function runTransition(
     onComplete: () => void,
 ): TransitionHandle {
     const durationMs = transition.durationMs ?? 500;
+
+    // Try the WebGL-accelerated backend first. It returns null when the
+    // effect isn't GL-backed or when GL setup fails, in which case we fall
+    // through to the CSS path below.
+    if (durationMs > 0) {
+        const glHandle = tryRunGLTransition(outgoing, incoming, transition, forward, durationMs, onComplete);
+        if (glHandle) return glHandle;
+    }
+
     const apply = resolveEffect(transition.effect, forward);
 
     // Instant transitions
