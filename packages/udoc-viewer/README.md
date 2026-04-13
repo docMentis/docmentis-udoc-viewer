@@ -287,6 +287,10 @@ const viewer = await client.createViewer({
     // Hide the "Powered by docMentis" attribution link (default: false)
     // Requires a valid license with the "no_attribution" feature
     hideAttribution: true,
+
+    // Hide the loading overlay shown during document download and processing (default: false)
+    // Requires a valid license with the "no_attribution" feature
+    hideLoadingOverlay: true,
 });
 ```
 
