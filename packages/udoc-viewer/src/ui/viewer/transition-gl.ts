@@ -38,8 +38,13 @@ export function tryRunGLTransition(
     onComplete: () => void,
 ): TransitionHandle | null {
     const effect = transition.effect;
-    if (effect.type !== "vortex") return null;
-    return runVortex(outgoing, incoming, effect.direction, durationMs, onComplete);
+    if (effect.type === "vortex") {
+        return runVortex(outgoing, incoming, effect.direction, durationMs, onComplete);
+    }
+    if (effect.type === "switch") {
+        return runSwitch(outgoing, incoming, effect.direction, durationMs, onComplete);
+    }
+    return null;
 }
 
 // ---------------------------------------------------------------------------
@@ -359,6 +364,394 @@ void main() {
     // Backface hide without relying on winding/cull, so the shader works
     // regardless of y-flip conventions.
     if (v_facing < 0.5) discard;
+    outColor = texture(u_tex, v_uv);
+}
+`;
+
+// ---------------------------------------------------------------------------
+// Switch
+// ---------------------------------------------------------------------------
+//
+// Visual model (dir="left"):
+//
+//   Two sheets of paper stacked at z≈0, both facing the viewer. Paper 1
+//   (outgoing) is slightly in front, paper 2 (incoming) slightly behind and
+//   hidden. Left hand grabs paper 1 at its LEFT edge; right hand grabs
+//   paper 2 at its RIGHT edge. Both hands move apart while each paper
+//   rotates outward around its own hinge — the free edges swing forward
+//   toward the viewer, opening like two cabinet doors. At the midpoint
+//   the papers no longer touch. Then everything reverses and the stack
+//   closes back up — but by then paper 2 has taken paper 1's place on top.
+//
+// The "swap" is invisible during the motion because the papers are rotated
+// apart. We implement it as a linear z-interpolation on each paper's hinge
+// base-z: paper 1 drifts from +Z_SEP to -Z_SEP, paper 2 from -Z_SEP to
+// +Z_SEP. With depth test enabled the nearer paper wins at every frame.
+//
+// Parameters (all tunable below): MAX_ANGLE is how far the papers open,
+// HAND_SHIFT is how far the hinges translate outward, Z_SEP is just the
+// tiny depth offset needed to break the initial/final ties.
+
+// Keyframes (hinge position + rotation), using paper-local coordinate signs:
+//
+//   Left page  (hinge = left edge):
+//     t=0.0   x=0,   z=0,  rot=0
+//     t=0.5   x=-50, z=10, rot=+30°
+//     t=1.0   x=0,   z=20, rot=0
+//
+//   Right page (hinge = right edge):
+//     t=0.0   x=W,   z=20, rot=0
+//     t=0.5   x=W+50,z=10, rot=-30°
+//     t=1.0   x=W,   z=0,  rot=0
+//
+// Interpolation: x and rotation follow sin(πt) (peak at mid, zero at ends).
+// z is linear monotonic — the two pages swap depth over the animation, so
+// paper 1 ends up behind paper 2 by t=1.
+const SWITCH_MAX_ANGLE_RAD = (Math.PI / 180) * 45;
+const SWITCH_HAND_SHIFT_PX = 200;
+const SWITCH_Z_MAX = 350;
+
+interface SwitchGeometry {
+    /** Hinge position in paper-local coordinates. */
+    p1HingeLocal: [number, number];
+    p2HingeLocal: [number, number];
+    /** Sign applied to theta for each paper so its free edge rotates +z. */
+    p1RotSign: number;
+    p2RotSign: number;
+    /** Unit vector giving the direction each paper's hinge translates in. */
+    p1Shift: [number, number];
+    p2Shift: [number, number];
+}
+
+function computeSwitchGeometry(dir: SideDirection, slideW: number, slideH: number): SwitchGeometry {
+    // Rotation signs are chosen so each paper's free edge rotates BACKWARD
+    // (into the screen, away from the viewer). Sibling papers open like two
+    // panels falling away from each other into a cavity behind the plane.
+    switch (dir) {
+        case "left":
+            return {
+                p1HingeLocal: [0, 0],
+                p2HingeLocal: [slideW, 0],
+                p1RotSign: +1,
+                p2RotSign: -1,
+                p1Shift: [-1, 0],
+                p2Shift: [+1, 0],
+            };
+        case "right":
+            return {
+                p1HingeLocal: [slideW, 0],
+                p2HingeLocal: [0, 0],
+                p1RotSign: -1,
+                p2RotSign: +1,
+                p1Shift: [+1, 0],
+                p2Shift: [-1, 0],
+            };
+        case "up":
+            return {
+                p1HingeLocal: [0, 0],
+                p2HingeLocal: [0, slideH],
+                p1RotSign: -1,
+                p2RotSign: +1,
+                p1Shift: [0, -1],
+                p2Shift: [0, +1],
+            };
+        case "down":
+            return {
+                p1HingeLocal: [0, slideH],
+                p2HingeLocal: [0, 0],
+                p1RotSign: +1,
+                p2RotSign: -1,
+                p1Shift: [0, +1],
+                p2Shift: [0, -1],
+            };
+    }
+}
+
+function runSwitch(
+    outgoing: HTMLElement,
+    incoming: HTMLElement,
+    dir: SideDirection,
+    durationMs: number,
+    onComplete: () => void,
+): TransitionHandle | null {
+    const outCanvas = outgoing.querySelector<HTMLCanvasElement>("canvas");
+    const inCanvas =
+        incoming.querySelector<HTMLCanvasElement>(".udoc-spread__canvas") ??
+        incoming.querySelector<HTMLCanvasElement>("canvas");
+    if (!outCanvas || !inCanvas || outCanvas.width === 0 || inCanvas.width === 0) {
+        return null;
+    }
+
+    const dpr = window.devicePixelRatio || 1;
+    const slideW = outCanvas.width / dpr;
+    const slideH = outCanvas.height / dpr;
+
+    const glCanvas = document.createElement("canvas");
+    glCanvas.width = outCanvas.width;
+    glCanvas.height = outCanvas.height;
+
+    const gl = glCanvas.getContext("webgl2", {
+        alpha: false,
+        antialias: true,
+        depth: true,
+        premultipliedAlpha: false,
+    }) as WebGL2RenderingContext | null;
+    if (!gl) return null;
+
+    const maxTex = gl.getParameter(gl.MAX_TEXTURE_SIZE) as number;
+    if (outCanvas.width > maxTex || outCanvas.height > maxTex || inCanvas.width > maxTex || inCanvas.height > maxTex) {
+        return null;
+    }
+
+    const program = createProgram(gl, SWITCH_VS, SWITCH_FS);
+    if (!program) return null;
+
+    const outTex = uploadTexture(gl, outCanvas);
+    const inTex = uploadTexture(gl, inCanvas);
+    if (!outTex || !inTex) {
+        if (outTex) gl.deleteTexture(outTex);
+        if (inTex) gl.deleteTexture(inTex);
+        gl.deleteProgram(program);
+        return null;
+    }
+
+    // A single slide-sized quad shared by both papers (4 floats per vert:
+    // localX, localY, u, v). 2 triangles, 6 verts total.
+    const meshData = new Float32Array([
+        0,
+        0,
+        0,
+        0,
+        slideW,
+        0,
+        1,
+        0,
+        slideW,
+        slideH,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        slideW,
+        slideH,
+        1,
+        1,
+        0,
+        slideH,
+        0,
+        1,
+    ]);
+    const vertexCount = 6;
+
+    const vbo = gl.createBuffer();
+    if (!vbo) {
+        gl.deleteTexture(outTex);
+        gl.deleteTexture(inTex);
+        gl.deleteProgram(program);
+        return null;
+    }
+    gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+    gl.bufferData(gl.ARRAY_BUFFER, meshData, gl.STATIC_DRAW);
+
+    gl.useProgram(program);
+
+    const F = 4;
+    const STRIDE = 4 * F;
+    bindAttrib(gl, program, "a_localPos", 2, STRIDE, 0 * F);
+    bindAttrib(gl, program, "a_uv", 2, STRIDE, 2 * F);
+
+    const uResolution = gl.getUniformLocation(program, "u_resolution");
+    const uPerspective = gl.getUniformLocation(program, "u_perspective");
+    const uIsHorizontal = gl.getUniformLocation(program, "u_isHorizontal");
+    const uHingeWorld = gl.getUniformLocation(program, "u_hingeWorld");
+    const uHingeLocal = gl.getUniformLocation(program, "u_hingeLocal");
+    const uAngle = gl.getUniformLocation(program, "u_angle");
+    const uTex = gl.getUniformLocation(program, "u_tex");
+
+    const isH = dir === "left" || dir === "right";
+    const maxDim = Math.max(slideW, slideH);
+    const geom = computeSwitchGeometry(dir, slideW, slideH);
+
+    gl.uniform2f(uResolution, slideW, slideH);
+    gl.uniform1f(uPerspective, maxDim * 2);
+    gl.uniform1f(uIsHorizontal, isH ? 1 : 0);
+    gl.uniform1i(uTex, 0);
+
+    gl.viewport(0, 0, glCanvas.width, glCanvas.height);
+    gl.enable(gl.DEPTH_TEST);
+    gl.depthFunc(gl.LEQUAL);
+    gl.clearColor(0, 0, 0, 1);
+    gl.clearDepth(1);
+    gl.activeTexture(gl.TEXTURE0);
+
+    // ---- Commit DOM mutations ----
+    glCanvas.style.position = "absolute";
+    glCanvas.style.left = "0";
+    glCanvas.style.top = "0";
+    glCanvas.style.width = `${slideW}px`;
+    glCanvas.style.height = `${slideH}px`;
+    glCanvas.style.display = "block";
+
+    outgoing.innerHTML = "";
+    outgoing.style.overflow = "visible";
+    outgoing.style.zIndex = "1";
+    outgoing.style.pointerEvents = "none";
+    outgoing.appendChild(glCanvas);
+
+    incoming.style.opacity = "0";
+
+    function drawFrame(t: number): void {
+        gl!.clear(gl!.COLOR_BUFFER_BIT | gl!.DEPTH_BUFFER_BIT);
+
+        const sinPiT = Math.sin(Math.PI * t);
+        const theta = SWITCH_MAX_ANGLE_RAD * sinPiT;
+        const shift = SWITCH_HAND_SHIFT_PX * sinPiT;
+
+        // Linear z swap between the two pages:
+        //   paper 1:  0        → -SWITCH_Z_MAX    (moves back)
+        //   paper 2: -SWITCH_Z_MAX → 0            (moves forward)
+        const p1BaseZ = -SWITCH_Z_MAX * t;
+        const p2BaseZ = -SWITCH_Z_MAX * (1 - t);
+
+        const p1Wx = geom.p1HingeLocal[0] + geom.p1Shift[0] * shift;
+        const p1Wy = geom.p1HingeLocal[1] + geom.p1Shift[1] * shift;
+        const p2Wx = geom.p2HingeLocal[0] + geom.p2Shift[0] * shift;
+        const p2Wy = geom.p2HingeLocal[1] + geom.p2Shift[1] * shift;
+
+        // Paper 1 (outgoing)
+        gl!.uniform3f(uHingeWorld, p1Wx, p1Wy, p1BaseZ);
+        gl!.uniform2f(uHingeLocal, geom.p1HingeLocal[0], geom.p1HingeLocal[1]);
+        gl!.uniform1f(uAngle, geom.p1RotSign * theta);
+        gl!.bindTexture(gl!.TEXTURE_2D, outTex!);
+        gl!.drawArrays(gl!.TRIANGLES, 0, vertexCount);
+
+        // Paper 2 (incoming)
+        gl!.uniform3f(uHingeWorld, p2Wx, p2Wy, p2BaseZ);
+        gl!.uniform2f(uHingeLocal, geom.p2HingeLocal[0], geom.p2HingeLocal[1]);
+        gl!.uniform1f(uAngle, geom.p2RotSign * theta);
+        gl!.bindTexture(gl!.TEXTURE_2D, inTex!);
+        gl!.drawArrays(gl!.TRIANGLES, 0, vertexCount);
+    }
+
+    drawFrame(0);
+
+    let rafId = 0;
+    let done = false;
+    const startTime = performance.now();
+
+    function tick(now: number): void {
+        if (done) return;
+        const elapsed = now - startTime;
+        const raw = Math.min(elapsed / durationMs, 1);
+        const eased = easeInOut(raw);
+        drawFrame(eased);
+        if (raw < 1) {
+            rafId = requestAnimationFrame(tick);
+        } else {
+            finish();
+        }
+    }
+
+    function finish(): void {
+        if (done) return;
+        done = true;
+        cancelAnimationFrame(rafId);
+
+        try {
+            gl!.deleteTexture(outTex!);
+            gl!.deleteTexture(inTex!);
+            gl!.deleteBuffer(vbo);
+            gl!.deleteProgram(program!);
+            const lose = gl!.getExtension("WEBGL_lose_context");
+            if (lose) lose.loseContext();
+        } catch {
+            // ignore
+        }
+
+        incoming.style.opacity = "";
+        incoming.style.clipPath = "";
+        onComplete();
+    }
+
+    glCanvas.addEventListener("webglcontextlost", (e) => {
+        e.preventDefault();
+        finish();
+    });
+
+    rafId = requestAnimationFrame(tick);
+
+    return { cancel: finish };
+}
+
+// Switch vertex shader: each paper is rigid-rotated around its hinge line
+// (vertical for horizontal directions, horizontal for vertical directions).
+// Per vertex: translate into hinge-local space, apply the rotation, add
+// the hinge's current world position, then apply a CSS-style perspective
+// divide so the projection matches the vortex shader.
+const SWITCH_VS = `#version 300 es
+precision highp float;
+
+in vec2 a_localPos;
+in vec2 a_uv;
+
+uniform vec2 u_resolution;
+uniform float u_perspective;
+uniform float u_isHorizontal;
+uniform vec3 u_hingeWorld;
+uniform vec2 u_hingeLocal;
+uniform float u_angle;
+
+out vec2 v_uv;
+
+void main() {
+    vec2 rel = a_localPos - u_hingeLocal;
+
+    float c = cos(u_angle);
+    float s = sin(u_angle);
+
+    vec3 rotated;
+    if (u_isHorizontal > 0.5) {
+        // Rotate around Y axis: x' = c*x, z' = -s*x  (initial z = 0)
+        rotated = vec3(c * rel.x, rel.y, -s * rel.x);
+    } else {
+        // Rotate around X axis: y' = c*y, z' =  s*y  (initial z = 0)
+        rotated = vec3(rel.x, c * rel.y, s * rel.y);
+    }
+
+    vec3 world = u_hingeWorld + rotated;
+
+    // CSS-style perspective divide around slide center.
+    vec2 center = u_resolution * 0.5;
+    float wp = max(1.0 - world.z / u_perspective, 0.001);
+    vec2 screen = center + (world.xy - center) / wp;
+
+    float clipX = (screen.x / u_resolution.x) * 2.0 - 1.0;
+    float clipY = 1.0 - (screen.y / u_resolution.y) * 2.0;
+    float clipZ = clamp(-world.z / u_perspective, -0.99, 0.99);
+
+    // Output in full homogeneous form so GL's own perspective divide
+    // undoes the *wp multiply and, crucially, uses 1/w for
+    // perspective-correct interpolation of v_uv across the quad's two
+    // triangles. Outputting w=1 (pre-divided) makes GL interpolate
+    // linearly in screen space, which produces a visible fold along
+    // the shared diagonal once the paper is significantly rotated.
+    gl_Position = vec4(clipX * wp, clipY * wp, clipZ * wp, wp);
+    v_uv = a_uv;
+}
+`;
+
+const SWITCH_FS = `#version 300 es
+precision highp float;
+
+in vec2 v_uv;
+
+uniform sampler2D u_tex;
+
+out vec4 outColor;
+
+void main() {
     outColor = texture(u_tex, v_uv);
 }
 `;
