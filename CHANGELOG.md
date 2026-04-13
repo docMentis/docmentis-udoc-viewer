@@ -6,6 +6,19 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+### Features
+
+- Add `hideLoadingOverlay` option to suppress the loading screen
+- GPU-accelerated vortex slide transition via WebGL2
+- WebGL2 switch slide transition with 3D depth swap effect
+- Skip Google Fonts requests for fonts not in their catalog (engine)
+
+### Bug Fixes
+
+- Finish polygon/polyline drawing when switching tools or re-clicking the active tool
+- Per-point data label overrides, no-stroke for chart data points, and balanced legend rows (engine)
+- Use effective inherited resources for PDF page rendering (engine)
+
 ## [0.6.26] - 2026-04-09
 
 ### Features
