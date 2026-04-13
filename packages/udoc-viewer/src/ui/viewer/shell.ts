@@ -54,6 +54,7 @@ export function mountViewerShell(
     workerClient: WorkerClient,
     overrides?: InitialStateOverrides,
     showAttribution = true,
+    showLoadingOverlay = true,
     locale?: string,
     translations?: Record<string, string>,
 ): ViewerShell {
@@ -180,8 +181,8 @@ export function mountViewerShell(
     let callbacks: ViewerShellCallbacks = {};
 
     // Loading overlay (mounted to viewport slot, shows during document download)
-    const loadingOverlay = createLoadingOverlay(showAttribution);
-    loadingOverlay.mount(layout, store, i18n);
+    const loadingOverlay = showLoadingOverlay ? createLoadingOverlay(showAttribution) : null;
+    loadingOverlay?.mount(layout, store, i18n);
 
     // Password dialog (mounted to viewport slot so it covers only the viewer area)
     const passwordDialog = createPasswordDialog();
@@ -430,7 +431,7 @@ export function mountViewerShell(
         leftPanel.destroy();
         viewport.destroy();
         rightPanel.destroy();
-        loadingOverlay.destroy();
+        loadingOverlay?.destroy();
         passwordDialog.destroy();
         printDialog.destroy();
         layout.remove();

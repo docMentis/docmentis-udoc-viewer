@@ -251,6 +251,14 @@ export interface ViewerOptions {
     hideAttribution?: boolean;
 
     /**
+     * Hide the loading overlay shown during document download and processing.
+     * Requires a valid license with the "no_attribution" feature.
+     * Ignored without a qualifying license.
+     * @default false
+     */
+    hideLoadingOverlay?: boolean;
+
+    /**
      * Hide the top toolbar.
      * @default false
      */
@@ -652,7 +660,14 @@ export class UDocClient {
         this.ensureNotDestroyed();
 
         const showAttribution = !(options.hideAttribution && this.hasFeature("no_attribution"));
-        const viewer = new UDocViewer(this.workerClient, options, showAttribution, UDocClient.version);
+        const showLoadingOverlay = !(options.hideLoadingOverlay && this.hasFeature("no_attribution"));
+        const viewer = new UDocViewer(
+            this.workerClient,
+            options,
+            showAttribution,
+            showLoadingOverlay,
+            UDocClient.version,
+        );
         this.viewers.add(viewer);
 
         return viewer;
@@ -744,7 +759,7 @@ export class UDocClient {
         // Create viewers for the composed documents
         const viewers: UDocViewer[] = [];
         for (const docId of newDocIds) {
-            const viewer = new UDocViewer(this.workerClient, {}, true, UDocClient.version);
+            const viewer = new UDocViewer(this.workerClient, {}, true, true, UDocClient.version);
             await viewer.initializeFromDocId(docId);
             this.viewers.add(viewer);
             viewers.push(viewer);
@@ -794,7 +809,7 @@ export class UDocClient {
             // Create viewers for the split documents
             const viewers: UDocViewer[] = [];
             for (const newDocId of result.documentIds) {
-                const viewer = new UDocViewer(this.workerClient, {}, true, UDocClient.version);
+                const viewer = new UDocViewer(this.workerClient, {}, true, true, UDocClient.version);
                 await viewer.initializeFromDocId(newDocId);
                 this.viewers.add(viewer);
                 viewers.push(viewer);

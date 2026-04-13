@@ -180,6 +180,7 @@ export class UDocViewer {
         workerClient: WorkerClient,
         options: ViewerOptions = {},
         showAttribution = true,
+        showLoadingOverlay = true,
         sdkVersion = "__VERSION__",
     ) {
         this.workerClient = workerClient;
@@ -214,6 +215,7 @@ export class UDocViewer {
                 this.workerClient,
                 overrides,
                 showAttribution,
+                showLoadingOverlay,
                 options.locale,
                 options.translations,
             );
