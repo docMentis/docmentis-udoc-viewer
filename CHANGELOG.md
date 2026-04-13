@@ -6,6 +6,8 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+## [0.6.27] - 2026-04-12
+
 ### Features
 
 - Add `hideLoadingOverlay` option to suppress the loading screen
