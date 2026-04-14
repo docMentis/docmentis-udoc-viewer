@@ -276,7 +276,7 @@ export function createThumbnailPanel() {
 
             item.renderKey = key;
         } catch (error) {
-            if (!(error instanceof Error && error.message === "Request cancelled")) {
+            if (mounted && !(error instanceof Error && error.message === "Request cancelled")) {
                 console.error(`Thumbnail render failed for page ${pageNumber}:`, error);
             }
         } finally {
