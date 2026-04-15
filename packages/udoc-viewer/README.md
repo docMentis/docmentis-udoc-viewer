@@ -823,6 +823,7 @@ udoc-viewer collects anonymous, non-personally-identifiable usage data to help u
 | `size_bucket`    | File size in units of 100 KB (`floor(bytes / 100000)`) | `3`            |
 | `viewer_version` | SDK version string                                     | `0.5.19`       |
 | `license_hash`   | SHA-256 hash of the license key (empty if none)        | `a1b2c3...`    |
+| `license_info`   | Non-sensitive license metadata (identifier, validity)  | —              |
 | `distinct_id`    | Anonymous random UUID stored in localStorage           | `f47ac10b-...` |
 
 ### Opting out
