@@ -31,6 +31,11 @@ export function createEffects(store: Store<ViewerState, Action>, engine: EngineA
     // and bail out if it no longer matches.
     let docGeneration = 0;
 
+    // Set to true when destroy() runs. In-flight worker requests reject with
+    // "WorkerClient destroyed" / "Worker terminated" during teardown — those
+    // rejections are expected and must not be logged or dispatched.
+    let destroyed = false;
+
     // Note: Cache invalidation is handled by UDocViewer.close() when switching documents.
     // Rendering is handled by Viewport/Spread components with properly computed scale.
 
@@ -54,7 +59,7 @@ export function createEffects(store: Store<ViewerState, Action>, engine: EngineA
                     if (gen !== docGeneration) return; // stale
                     store.dispatch({ type: "SET_OUTLINE", outline });
                 } catch (error) {
-                    if (gen !== docGeneration) return; // stale
+                    if (destroyed || gen !== docGeneration) return; // stale or torn down
                     console.error("Failed to load outline", error);
                     store.dispatch({ type: "SET_OUTLINE", outline: [] });
                 }
@@ -81,7 +86,7 @@ export function createEffects(store: Store<ViewerState, Action>, engine: EngineA
                     if (gen !== docGeneration) return;
                     store.dispatch({ type: "SET_VISIBILITY_GROUPS", groups });
                 } catch (error) {
-                    if (gen !== docGeneration) return;
+                    if (destroyed || gen !== docGeneration) return;
                     console.error("Failed to load visibility groups", error);
                     store.dispatch({ type: "SET_VISIBILITY_GROUPS", groups: [] });
                 }
@@ -125,7 +130,7 @@ export function createEffects(store: Store<ViewerState, Action>, engine: EngineA
                     if (gen !== docGeneration) return; // stale
                     store.dispatch({ type: "SET_PAGE_ANNOTATIONS", pageIndex, annotations });
                 } catch (error) {
-                    if (gen !== docGeneration) return; // stale
+                    if (destroyed || gen !== docGeneration) return; // stale or torn down
                     console.error(`Failed to load annotations for page ${pageIndex}`, error);
                     store.dispatch({ type: "SET_PAGE_ANNOTATIONS", pageIndex, annotations: [] });
                 }
@@ -172,7 +177,7 @@ export function createEffects(store: Store<ViewerState, Action>, engine: EngineA
                     if (gen !== docGeneration) return; // stale
                     store.dispatch({ type: "SET_PAGE_TEXT", pageIndex, text });
                 } catch (error) {
-                    if (gen !== docGeneration) return; // stale
+                    if (destroyed || gen !== docGeneration) return; // stale or torn down
                     console.error(`Failed to load text for page ${pageIndex}`, error);
                     store.dispatch({ type: "SET_PAGE_TEXT_FAILED", pageIndex });
                 }
@@ -206,7 +211,7 @@ export function createEffects(store: Store<ViewerState, Action>, engine: EngineA
                     if (gen !== docGeneration) return; // stale
                     store.dispatch({ type: "SET_PAGE_ANNOTATIONS", pageIndex, annotations });
                 } catch (error) {
-                    if (gen !== docGeneration) return; // stale
+                    if (destroyed || gen !== docGeneration) return; // stale or torn down
                     console.error(`Failed to load annotations for page ${pageIndex}`, error);
                     store.dispatch({ type: "SET_PAGE_ANNOTATIONS", pageIndex, annotations: [] });
                 }
@@ -291,13 +296,13 @@ export function createEffects(store: Store<ViewerState, Action>, engine: EngineA
                     if (gen !== docGeneration) return;
                     store.dispatch({ type: "SET_PAGE_TEXT", pageIndex, text });
                 } catch (error) {
-                    if (gen !== docGeneration) return;
+                    if (destroyed || gen !== docGeneration) return;
                     console.error(`Failed to load text for page ${pageIndex}`, error);
                     store.dispatch({ type: "SET_PAGE_TEXT_FAILED", pageIndex });
                 }
             }
 
-            if (gen !== docGeneration) return;
+            if (destroyed || gen !== docGeneration) return;
             store.dispatch({ type: "SET_SEARCH_TEXT_LOADING", loading: false });
             store.dispatch({ type: "SET_SEARCH_TEXT_LOADED", loaded: true });
         }),
@@ -369,6 +374,7 @@ export function createEffects(store: Store<ViewerState, Action>, engine: EngineA
 
     return {
         destroy: () => {
+            destroyed = true;
             for (const unsub of unsubscribers) {
                 unsub();
             }

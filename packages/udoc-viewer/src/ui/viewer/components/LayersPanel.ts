@@ -28,6 +28,7 @@ export function createLayersPanel() {
     let workerClientRef: WorkerClient | null = null;
     let i18nRef: I18n | null = null;
     let currentSlice: LayersSlice | null = null;
+    let destroyed = false;
 
     let unsubRender: (() => void) | null = null;
     const unsubEvents: Array<() => void> = [];
@@ -78,15 +79,19 @@ export function createLayersPanel() {
                     if (!state.doc) return;
 
                     const newVisible = !group.visible;
+                    const docId = state.doc.id;
+                    const client = workerClientRef;
 
-                    // Update engine state
-                    await workerClientRef.setVisibilityGroupVisible(state.doc.id, group.id, newVisible);
+                    try {
+                        await client.setVisibilityGroupVisible(docId, group.id, newVisible);
+                    } catch {
+                        // Worker terminated mid-flight — ignore
+                        return;
+                    }
+                    if (destroyed || !storeRef) return;
 
-                    // Update UI state
                     storeRef.dispatch({ type: "SET_VISIBILITY_GROUP_VISIBLE", groupId: group.id, visible: newVisible });
-
-                    // Invalidate render cache — Viewport subscribes to this and re-renders
-                    workerClientRef.invalidateRenderCache(state.doc.id, "page");
+                    client.invalidateRenderCache(docId, "page");
                 };
                 toggle.addEventListener("click", onClick);
                 unsubEvents.push(() => toggle.removeEventListener("click", onClick));
@@ -152,6 +157,7 @@ export function createLayersPanel() {
     }
 
     function destroy(): void {
+        destroyed = true;
         if (unsubRender) unsubRender();
         for (const off of unsubEvents) off();
         unsubEvents.length = 0;

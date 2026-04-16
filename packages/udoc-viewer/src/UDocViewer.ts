@@ -201,9 +201,13 @@ export class UDocViewer {
 
         // Subscribe to font usage changes from the worker
         this.fontUsageUnsub = this.workerClient.onFontUsageChanged(async (docId) => {
-            if (this.documentId === docId) {
+            if (this.documentId !== docId) return;
+            try {
                 const entries = await this.workerClient.getFontUsage(docId);
+                if (this.destroyed || this.documentId !== docId) return;
                 this.emit("font:usageChange", { entries: entries as FontUsageEntry[] });
+            } catch {
+                // Worker terminated or document closed mid-flight — ignore
             }
         });
 
