@@ -357,7 +357,30 @@ if (viewer.isLoaded) {
 
     // Get annotations on a page (0-based index)
     const annotations = await viewer.getPageAnnotations(0);
+
+    // Get plain text of a page (matches what search indexes)
+    const text = await viewer.getPageText(0);
 }
+```
+
+### Extracting Page Text
+
+`getPageText(page)` returns the flat text of a page exactly as the search
+engine sees it. Glyph runs are concatenated in visual order; spaces and tabs
+become `" "`, line breaks and paragraph ends become `"\n"`, and inline
+drawings become `"\uFFFC"` (object replacement character). Works uniformly
+across PDF, DOCX, PPTX, and XLSX.
+
+```typescript
+// Extract text from a single page (0-based index)
+const pageText = await viewer.getPageText(0);
+
+// Extract the full document
+const pages: string[] = [];
+for (let i = 0; i < viewer.pageCount; i++) {
+    pages.push(await viewer.getPageText(i));
+}
+const fullText = pages.join("\n\n");
 ```
 
 ### Programmatic Viewer Control
