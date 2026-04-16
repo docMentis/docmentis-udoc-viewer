@@ -195,23 +195,15 @@ async function loadDocument(
     // Update mobile document name display
     docNameEl.textContent = doc.name;
 
-    // Apply per-document viewer options if they differ from current state
-    let needsRecreate = false;
-    if (
-        doc.viewerOptions?.enableTransitions !== undefined &&
-        doc.viewerOptions.enableTransitions !== enableTransitions
-    ) {
+    // Apply per-document viewer options
+    if (doc.viewerOptions?.enableTransitions !== undefined) {
         enableTransitions = doc.viewerOptions.enableTransitions;
         const cb = document.querySelector<HTMLInputElement>('[data-option-id="transitions"]');
         if (cb) cb.checked = enableTransitions;
-        needsRecreate = true;
-    }
-    if (needsRecreate) {
-        await createViewer();
     }
 
-    // Load document
-    await viewer?.load(doc.path);
+    // Always recreate viewer; createViewer() reloads currentDocSource
+    await createViewer();
 
     // Close mobile dropdown
     closeDocDropdown();
@@ -321,7 +313,7 @@ async function openUrl() {
         currentDocName = url.split("/").pop() || url;
         updateActiveStates(null, null);
         docNameEl.textContent = currentDocName;
-        await viewer?.load(url);
+        await createViewer();
     }
 }
 
@@ -359,7 +351,7 @@ function setupEventListeners() {
             currentDocName = file.name;
             updateActiveStates(null, null);
             docNameEl.textContent = file.name;
-            await viewer?.load(file);
+            await createViewer();
             fileInput.value = "";
         }
     });
