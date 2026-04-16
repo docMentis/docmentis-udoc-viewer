@@ -11,6 +11,7 @@ import { mountViewerShell, type ViewerShell, type InitialStateOverrides } from "
 import type { PrintDialogResult, PrintPageRange, PrintQuality } from "./ui/viewer/components/PrintDialog.js";
 import type { Destination, OutlineItem, ScrollAlignment } from "./ui/viewer/navigation.js";
 import { renderAnnotationsToLayer, type Annotation } from "./ui/viewer/annotation/index.js";
+import { extractPageText } from "./ui/viewer/search/index.js";
 export type { Annotation } from "./ui/viewer/annotation/index.js";
 export type { SearchMatch } from "./ui/viewer/state.js";
 import type { LayoutPage } from "./worker/index.js";
@@ -697,6 +698,20 @@ export class UDocViewer {
             throw new Error(`Page index ${page} out of bounds (0-${this._pageCount - 1})`);
         }
         return (await this.workerClient.getLayoutPage(this.documentId!, page)) as LayoutPage;
+    }
+
+    /**
+     * Get the plain text of a page, matching exactly what the search engine sees.
+     *
+     * Text is extracted from the layout model: glyph runs are concatenated in
+     * visual order, with spaces/tabs rendered as " ", paragraph ends and line
+     * breaks as "\n", and inline drawings as U+FFFC (object replacement char).
+     *
+     * @param page - Page index (0-based)
+     */
+    async getPageText(page: number): Promise<string> {
+        const layout = await this.getLayoutPage(page);
+        return extractPageText(layout);
     }
 
     // ===========================================================================

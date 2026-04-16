@@ -1,1 +1,1 @@
-export { executeSearch } from "./search";
+export { executeSearch, extractPageText } from "./search";

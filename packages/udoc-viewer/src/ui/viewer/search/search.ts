@@ -191,6 +191,19 @@ function collectGrid(out: ResolvedRun[], grid: LayoutGrid): void {
 }
 
 /**
+ * Extract the flat text of a page, matching exactly what search sees.
+ */
+export function extractPageText(layout: LayoutPage): string {
+    const runs = extractRuns(layout);
+    let text = "";
+    for (const run of runs) {
+        if (!run.text || run.glyphs.length === 0) continue;
+        text += run.text;
+    }
+    return text;
+}
+
+/**
  * Build a flat text string from resolved runs, with a mapping from each
  * character position back to its source run and glyph index.
  */
