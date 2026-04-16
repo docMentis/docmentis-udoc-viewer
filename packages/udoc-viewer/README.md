@@ -432,6 +432,20 @@ console.log(`Found ${matches.length} matches`);
 // Search with options
 const matches = await viewer.search("hello", { caseSensitive: true });
 
+// Restrict search to a page range (inclusive, 0-based).
+// Both text loading and match collection are limited to the range —
+// useful for large documents when only a subset is of interest.
+const matches = await viewer.search("invoice", { pageRange: [10, 20] });
+
+// Each search() call is self-contained: the range is reset unless
+// explicitly provided, so a prior scoped search can't leak into a
+// later broad one.
+await viewer.search("invoice", { pageRange: [10, 20] }); // pages 10-20
+await viewer.search("payment"); // whole doc
+
+// Note: the built-in search panel always searches the entire document.
+// pageRange is only honored when calling the API directly.
+
 // Each match contains location, highlight rects, and context snippet
 for (const match of matches) {
     console.log(`Page ${match.pageIndex + 1}: "${match.context[1]}"`);
