@@ -31,6 +31,51 @@ interface PendingSpan {
     angle: number;
 }
 
+let pendingMeasure: PendingSpan[] | null = null;
+let measureRaf = 0;
+
+function scheduleMeasure(spans: PendingSpan[]): void {
+    if (pendingMeasure) {
+        pendingMeasure.push(...spans);
+    } else {
+        pendingMeasure = spans;
+    }
+    if (!measureRaf) {
+        measureRaf = requestAnimationFrame(flushMeasure);
+    }
+}
+
+function flushMeasure(): void {
+    measureRaf = 0;
+    const spans = pendingMeasure;
+    if (!spans || spans.length === 0) {
+        pendingMeasure = null;
+        return;
+    }
+    pendingMeasure = null;
+
+    const measurements: number[] = new Array(spans.length);
+    for (let i = 0; i < spans.length; i++) {
+        measurements[i] = spans[i].span.offsetWidth;
+    }
+    for (let i = 0; i < spans.length; i++) {
+        const { span, targetWidth, angle } = spans[i];
+        const naturalWidth = measurements[i];
+        const hasRotation = Math.abs(angle) > 0.1;
+        if (naturalWidth > 0 && targetWidth > 0) {
+            const sx = targetWidth / naturalWidth;
+            if (Math.abs(sx - 1) > 0.001) {
+                span.style.transform = hasRotation ? `rotate(${angle}deg) scaleX(${sx})` : `scaleX(${sx})`;
+            } else if (hasRotation) {
+                span.style.transform = `rotate(${angle}deg)`;
+            }
+        } else if (hasRotation) {
+            span.style.transform = `rotate(${angle}deg)`;
+        }
+        span.style.width = px(naturalWidth);
+    }
+}
+
 function px(v: number): string {
     return `${v}px`;
 }
@@ -130,28 +175,8 @@ function renderFlat(layer: HTMLDivElement, layout: LayoutPage, scale: number): v
 
     layer.replaceChildren(fragment);
 
-    // Batch reads then writes
     if (pendingSpans.length > 0) {
-        const measurements: number[] = new Array(pendingSpans.length);
-        for (let i = 0; i < pendingSpans.length; i++) {
-            measurements[i] = pendingSpans[i].span.offsetWidth;
-        }
-        for (let i = 0; i < pendingSpans.length; i++) {
-            const { span, targetWidth, angle } = pendingSpans[i];
-            const naturalWidth = measurements[i];
-            const hasRotation = Math.abs(angle) > 0.1;
-            if (naturalWidth > 0 && targetWidth > 0) {
-                const sx = targetWidth / naturalWidth;
-                if (Math.abs(sx - 1) > 0.001) {
-                    span.style.transform = hasRotation ? `rotate(${angle}deg) scaleX(${sx})` : `scaleX(${sx})`;
-                } else if (hasRotation) {
-                    span.style.transform = `rotate(${angle}deg)`;
-                }
-            } else if (hasRotation) {
-                span.style.transform = `rotate(${angle}deg)`;
-            }
-            span.style.width = px(naturalWidth);
-        }
+        scheduleMeasure(pendingSpans);
     }
 }
 
@@ -326,23 +351,8 @@ function renderHierarchical(layer: HTMLDivElement, layout: LayoutPage, scale: nu
 
     layer.replaceChildren(fragment);
 
-    // Batch reads then writes to avoid layout thrashing.
     if (pendingSpans.length > 0) {
-        const measurements: number[] = new Array(pendingSpans.length);
-        for (let i = 0; i < pendingSpans.length; i++) {
-            measurements[i] = pendingSpans[i].span.offsetWidth;
-        }
-        for (let i = 0; i < pendingSpans.length; i++) {
-            const { span, targetWidth } = pendingSpans[i];
-            const naturalWidth = measurements[i];
-            if (naturalWidth > 0 && targetWidth > 0) {
-                const sx = targetWidth / naturalWidth;
-                if (Math.abs(sx - 1) > 0.001) {
-                    span.style.transform = `scaleX(${sx})`;
-                }
-            }
-            span.style.width = px(naturalWidth);
-        }
+        scheduleMeasure(pendingSpans);
     }
 }
 

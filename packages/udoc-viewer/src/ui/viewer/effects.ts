@@ -296,12 +296,11 @@ export function createEffects(store: Store<ViewerState, Action>, engine: EngineA
     unsubscribers.push(
         store.subscribeEffect((prev, next) => {
             // Only re-run search when search-relevant state actually changes
-            const searchInputChanged =
-                prev.searchQuery !== next.searchQuery ||
-                prev.searchCaseSensitive !== next.searchCaseSensitive ||
-                prev.pageText !== next.pageText;
+            const queryChanged =
+                prev.searchQuery !== next.searchQuery || prev.searchCaseSensitive !== next.searchCaseSensitive;
+            const textChanged = prev.pageText !== next.pageText;
 
-            if (!searchInputChanged) return;
+            if (!queryChanged && !textChanged) return;
 
             if (!next.searchQuery.trim()) {
                 if (next.searchMatches.length > 0) {
@@ -311,7 +310,7 @@ export function createEffects(store: Store<ViewerState, Action>, engine: EngineA
             }
 
             const matches = executeSearch(next.searchQuery, next.searchCaseSensitive, next.pageText, next.pageCount);
-            store.dispatch({ type: "SET_SEARCH_MATCHES", matches });
+            store.dispatch({ type: "SET_SEARCH_MATCHES", matches, resetActiveIndex: queryChanged });
         }),
     );
 

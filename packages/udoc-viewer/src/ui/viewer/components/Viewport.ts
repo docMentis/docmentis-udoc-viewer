@@ -63,8 +63,6 @@ interface ViewportSlice {
     pageAnnotations: Map<number, Annotation[]>;
     highlightedAnnotation: HighlightedAnnotation | null;
     pageText: Map<number, LayoutPage>;
-    searchMatches: SearchMatch[];
-    searchActiveIndex: number;
     zoomAnchor: ZoomAnchor | null;
 }
 
@@ -87,8 +85,6 @@ function viewportSliceEqual(a: ViewportSlice, b: ViewportSlice): boolean {
         a.pageAnnotations === b.pageAnnotations &&
         a.highlightedAnnotation === b.highlightedAnnotation &&
         a.pageText === b.pageText &&
-        a.searchMatches === b.searchMatches &&
-        a.searchActiveIndex === b.searchActiveIndex &&
         a.zoomAnchor === b.zoomAnchor
     );
 }
@@ -667,6 +663,9 @@ export function createViewport(showAttribution = true) {
     let unsubRender: (() => void) | null = null;
     let unsubScroll: (() => void) | null = null;
     let unsubNavigation: (() => void) | null = null;
+    let unsubSearch: (() => void) | null = null;
+    let currentSearchMatches: SearchMatch[] = [];
+    let currentSearchActiveIndex = -1;
     let resizeObserver: ResizeObserver | null = null;
 
     let currentSlice: ViewportSlice | null = null;
@@ -727,6 +726,19 @@ export function createViewport(showAttribution = true) {
                 equality: viewportSliceEqual,
             },
         );
+
+        // Separate subscription for search state — lightweight update that only
+        // touches search highlight overlays on already-visible spreads, avoiding
+        // the full applyState layout/text-layer cycle.
+        currentSearchMatches = store.getState().searchMatches;
+        currentSearchActiveIndex = store.getState().searchActiveIndex;
+        unsubSearch = store.subscribeRender((_prev, next) => {
+            if (next.searchMatches === currentSearchMatches && next.searchActiveIndex === currentSearchActiveIndex)
+                return;
+            currentSearchMatches = next.searchMatches;
+            currentSearchActiveIndex = next.searchActiveIndex;
+            updateVisibleSearchHighlights();
+        });
 
         // Re-render visible spreads when the render cache is invalidated
         // (e.g. after a visibility group toggle)
@@ -927,6 +939,23 @@ export function createViewport(showAttribution = true) {
 
             store.dispatch({ type: "CLEAR_NAVIGATION_TARGET" });
         });
+    }
+
+    function updateVisibleSearchHighlights(): void {
+        if (!currentSlice || !layoutState) return;
+        const layoutOptions = {
+            pageInfos: currentSlice.pageInfos,
+            scale: layoutState.scale,
+            dpi: currentSlice.dpi,
+            rotation: currentSlice.pageRotation,
+            pageSpacing: currentSlice.pageSpacing,
+        };
+        for (let i = lastVisibleRange.start; i <= lastVisibleRange.end; i++) {
+            const spreadComp = spreadComponents.get(i);
+            if (spreadComp) {
+                spreadComp.updateSearchHighlights(currentSearchMatches, currentSearchActiveIndex, layoutOptions);
+            }
+        }
     }
 
     function scheduleUpdate(): void {
@@ -1370,7 +1399,7 @@ export function createViewport(showAttribution = true) {
             if (spreadComp) {
                 spreadComp.updateAnnotations(slice.pageAnnotations, layoutOptions, slice.highlightedAnnotation);
                 spreadComp.updateTextLayer(slice.pageText, layoutOptions);
-                spreadComp.updateSearchHighlights(slice.searchMatches, slice.searchActiveIndex, layoutOptions);
+                spreadComp.updateSearchHighlights(currentSearchMatches, currentSearchActiveIndex, layoutOptions);
             }
         }
 
@@ -1481,7 +1510,7 @@ export function createViewport(showAttribution = true) {
                 };
                 spreadComp.updateAnnotations(slice.pageAnnotations, layoutOptions, slice.highlightedAnnotation);
                 spreadComp.updateTextLayer(slice.pageText, layoutOptions);
-                spreadComp.updateSearchHighlights(slice.searchMatches, slice.searchActiveIndex, layoutOptions);
+                spreadComp.updateSearchHighlights(currentSearchMatches, currentSearchActiveIndex, layoutOptions);
             }
             lastVisibleRange = { start: spreadIndex, end: spreadIndex };
             return;
@@ -1538,7 +1567,7 @@ export function createViewport(showAttribution = true) {
         spreadComp.updateLayout(layoutOptions);
         spreadComp.updateAnnotations(slice.pageAnnotations, layoutOptions, slice.highlightedAnnotation);
         spreadComp.updateTextLayer(slice.pageText, layoutOptions);
-        spreadComp.updateSearchHighlights(slice.searchMatches, slice.searchActiveIndex, layoutOptions);
+        spreadComp.updateSearchHighlights(currentSearchMatches, currentSearchActiveIndex, layoutOptions);
 
         // Layout values are pre-snapped
         const top = getCenteredOffset(containerSize.height, layout.height);
@@ -1791,6 +1820,7 @@ export function createViewport(showAttribution = true) {
         if (unsubRender) unsubRender();
         if (unsubScroll) unsubScroll();
         if (unsubNavigation) unsubNavigation();
+        if (unsubSearch) unsubSearch();
         if (resizeObserver) resizeObserver.disconnect();
         for (const off of unsubEvents) off();
         if (updateRaf) cancelAnimationFrame(updateRaf);
@@ -1836,8 +1866,6 @@ function selectViewport(state: ViewerState): ViewportSlice {
         pageAnnotations: state.pageAnnotations,
         highlightedAnnotation: state.highlightedAnnotation,
         pageText: state.pageText,
-        searchMatches: state.searchMatches,
-        searchActiveIndex: state.searchActiveIndex,
         zoomAnchor: state.zoomAnchor,
     };
 }

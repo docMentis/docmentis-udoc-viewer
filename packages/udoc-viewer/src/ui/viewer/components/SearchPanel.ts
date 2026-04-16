@@ -18,6 +18,10 @@ import type { Action } from "../actions";
 import { ICON_CHEVRON_UP, ICON_CHEVRON_DOWN, ICON_SEARCH, ICON_CLEAR } from "../icons";
 import type { I18n } from "../i18n/index.js";
 
+function matchEquals(a: SearchMatch, b: SearchMatch): boolean {
+    return a.pageIndex === b.pageIndex && a.charOffset === b.charOffset && a.length === b.length;
+}
+
 type SearchPanelSlice = {
     isOpen: boolean;
     query: string;
@@ -157,9 +161,23 @@ export function createSearchPanel() {
             status.textContent = "";
         }
 
-        // Rebuild result list only when matches change
+        // During incremental text loading, executeSearch creates a new array each
+        // time a page's text arrives.  Pages load in order, so new matches are
+        // always appended.  Detect append-only updates by comparing the last
+        // previously-rendered match (by value, not reference) and patch the DOM
+        // instead of wiping it — a full innerHTML="" between mousedown and
+        // mouseup kills the click event on result items.
         if (slice.matches !== renderedMatchesRef) {
-            renderResultList(slice);
+            const prevLen = renderedMatchesRef ? renderedMatchesRef.length : 0;
+            const isAppend =
+                prevLen > 0 &&
+                slice.matches.length >= prevLen &&
+                matchEquals(renderedMatchesRef![prevLen - 1], slice.matches[prevLen - 1]);
+            if (isAppend && slice.matches.length > prevLen) {
+                appendResultItems(slice.matches, prevLen);
+            } else if (!isAppend) {
+                renderResultList(slice);
+            }
             renderedMatchesRef = slice.matches;
         }
 
@@ -169,53 +187,56 @@ export function createSearchPanel() {
         lastSlice = slice;
     }
 
+    function createResultItem(match: SearchMatch, globalIndex: number): HTMLDivElement {
+        const item = document.createElement("div");
+        item.className = "udoc-search-result";
+        item.setAttribute("role", "option");
+        item.dataset.matchIndex = String(globalIndex);
+
+        const contextEl = document.createElement("span");
+        contextEl.className = "udoc-search-result__context";
+        const [before, matched, after] = match.context;
+        const beforeText = document.createTextNode(before);
+        const matchSpan = document.createElement("mark");
+        matchSpan.className = "udoc-search-result__match";
+        matchSpan.textContent = matched;
+        const afterText = document.createTextNode(after);
+        contextEl.append(beforeText, matchSpan, afterText);
+        item.appendChild(contextEl);
+
+        const idx = globalIndex;
+        item.addEventListener("click", () => {
+            if (storeRef) {
+                storeRef.dispatch({ type: "SET_SEARCH_ACTIVE_INDEX", index: idx });
+            }
+        });
+
+        return item;
+    }
+
+    let lastRenderedPage = -1;
+
     function renderResultList(slice: SearchPanelSlice): void {
         results.innerHTML = "";
+        lastRenderedPage = -1;
 
         if (slice.matches.length === 0) return;
 
-        // Group matches by page
-        let currentPage = -1;
-        let matchGlobalIndex = 0;
+        appendResultItems(slice.matches, 0);
+    }
 
-        for (const match of slice.matches) {
-            // Page header
-            if (match.pageIndex !== currentPage) {
-                currentPage = match.pageIndex;
+    function appendResultItems(matches: SearchMatch[], fromIndex: number): void {
+        for (let i = fromIndex; i < matches.length; i++) {
+            const match = matches[i];
+            if (match.pageIndex !== lastRenderedPage) {
+                lastRenderedPage = match.pageIndex;
                 const pageHeader = document.createElement("div");
                 pageHeader.className = "udoc-search-result__page-header";
                 pageHeader.textContent = i18n!.t("search.pageHeader", { page: match.pageIndex + 1 });
                 results.appendChild(pageHeader);
             }
 
-            // Result item
-            const item = document.createElement("div");
-            item.className = "udoc-search-result";
-            item.setAttribute("role", "option");
-            item.dataset.matchIndex = String(matchGlobalIndex);
-
-            const contextEl = document.createElement("span");
-            contextEl.className = "udoc-search-result__context";
-            // Show text snippet with the match highlighted
-            const [before, matched, after] = match.context;
-            const beforeText = document.createTextNode(before);
-            const matchSpan = document.createElement("mark");
-            matchSpan.className = "udoc-search-result__match";
-            matchSpan.textContent = matched;
-            const afterText = document.createTextNode(after);
-            contextEl.append(beforeText, matchSpan, afterText);
-            item.appendChild(contextEl);
-
-            // Click to navigate
-            const idx = matchGlobalIndex;
-            item.addEventListener("click", () => {
-                if (storeRef) {
-                    storeRef.dispatch({ type: "SET_SEARCH_ACTIVE_INDEX", index: idx });
-                }
-            });
-
-            results.appendChild(item);
-            matchGlobalIndex++;
+            results.appendChild(createResultItem(match, i));
         }
     }
 

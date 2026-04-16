@@ -117,7 +117,7 @@ export type Action =
     // Search
     | { type: "SET_SEARCH_QUERY"; query: string }
     | { type: "SET_SEARCH_CASE_SENSITIVE"; caseSensitive: boolean }
-    | { type: "SET_SEARCH_MATCHES"; matches: SearchMatch[] }
+    | { type: "SET_SEARCH_MATCHES"; matches: SearchMatch[]; resetActiveIndex?: boolean }
     | { type: "SET_SEARCH_ACTIVE_INDEX"; index: number; scrollAlignment?: ScrollAlignment }
     | { type: "SEARCH_NEXT"; scrollAlignment?: ScrollAlignment }
     | { type: "SEARCH_PREV"; scrollAlignment?: ScrollAlignment }

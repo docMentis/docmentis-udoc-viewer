@@ -464,11 +464,20 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
         }
         case "SET_SEARCH_MATCHES": {
             const hasMatches = action.matches.length > 0;
+            const hadMatches = state.searchActiveIndex >= 0;
+            const resetActive = action.resetActiveIndex !== false;
+            const shouldReset = resetActive || !hadMatches;
+            const activeIndex = hasMatches
+                ? shouldReset
+                    ? 0
+                    : Math.min(state.searchActiveIndex, action.matches.length - 1)
+                : -1;
+            const navChanged = shouldReset && hasMatches;
             return {
                 ...state,
                 searchMatches: action.matches,
-                searchActiveIndex: hasMatches ? 0 : -1,
-                searchNavGen: hasMatches ? state.searchNavGen + 1 : state.searchNavGen,
+                searchActiveIndex: activeIndex,
+                searchNavGen: navChanged ? state.searchNavGen + 1 : state.searchNavGen,
             };
         }
         case "SET_SEARCH_ACTIVE_INDEX": {
