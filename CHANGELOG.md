@@ -6,6 +6,29 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+### Features
+
+- `UDocViewer.getPageText(page)` API returning the exact text that the search engine indexes
+- `pageRange` option on the search API to restrict matching to a page range
+- Default `searchScrollAlignment` to `'center'` so jumped-to matches land mid-viewport
+- Log license hash in the `udoc-wasm-license create` command (engine)
+- Record license id, org, validity, and expiry in telemetry (engine)
+
+### Bug Fixes
+
+- Stabilize search UX and reduce render cost while text is still loading
+- Suppress render errors logged after the viewer unmounts
+- Apply chart axis title rotation and reserve space for it in the plot area (engine)
+- Inherit chart-level `txPr` for axis and legend labels (engine)
+- Suppress chart auto-title when multi-series and no explicit title is set (engine)
+- Apply PPTX paragraph-level `defRPr` to run property inheritance (engine)
+- Correct 3D bevel lighting for the Contrasting rig with reversed rotation (engine)
+- Inherit PPTX bullet from master `bodyStyle` for paragraphs without `lvl` (engine)
+- Extend underline and strikethrough across whitespace runs (engine)
+- Exclude trailing whitespace from the flush-time line overflow check (engine)
+- Fall back to presentation `defaultTextStyle` for PPTX table cell font size (engine)
+- Extend `EXTRA_GOOGLE_FONTS` with Standard 14 and common Microsoft fonts (engine)
+
 ## [0.6.27] - 2026-04-12
 
 ### Features
