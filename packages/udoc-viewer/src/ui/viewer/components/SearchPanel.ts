@@ -280,6 +280,7 @@ export function createSearchPanel() {
                     e.preventDefault();
                     const queryChanged = storeRef.getState().searchQuery !== input.value;
                     if (queryChanged) {
+                        storeRef.dispatch({ type: "SET_SEARCH_PAGE_RANGE", range: null });
                         storeRef.dispatch({ type: "SET_SEARCH_QUERY", query: input.value });
                     } else if (e.shiftKey) {
                         storeRef.dispatch({ type: "SEARCH_PREV" });

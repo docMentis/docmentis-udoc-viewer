@@ -351,6 +351,12 @@ export interface ViewerState {
     searchNavGen: number;
     /** Per-call scroll alignment override for the current search navigation (cleared after use). */
     searchNavScrollAlignment: ScrollAlignment | null;
+    /**
+     * Optional page range to restrict search to (inclusive, 0-based).
+     * When non-null, both text loading and match collection are limited to
+     * pages in [start, end]. null means search all pages.
+     */
+    searchPageRange: { start: number; end: number } | null;
     /** Whether all page text has been loaded for search */
     searchTextLoaded: boolean;
     /** Whether search text is currently being loaded */
@@ -474,6 +480,7 @@ export const initialState: ViewerState = {
     searchActiveIndex: -1,
     searchNavGen: 0,
     searchNavScrollAlignment: null,
+    searchPageRange: null,
     searchTextLoaded: false,
     searchTextLoading: false,
 

@@ -122,6 +122,7 @@ export type Action =
     | { type: "SEARCH_NEXT"; scrollAlignment?: ScrollAlignment }
     | { type: "SEARCH_PREV"; scrollAlignment?: ScrollAlignment }
     | { type: "CLEAR_SEARCH" }
+    | { type: "SET_SEARCH_PAGE_RANGE"; range: { start: number; end: number } | null }
     | { type: "SET_SEARCH_TEXT_LOADING"; loading: boolean }
     | { type: "SET_SEARCH_TEXT_LOADED"; loaded: boolean }
     // Download progress

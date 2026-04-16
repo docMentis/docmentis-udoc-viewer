@@ -1129,9 +1129,17 @@ export class UDocViewer {
      *
      * @param query - The text to search for
      * @param options - Search options
+     * @param options.caseSensitive - Whether to match case (overrides current default)
+     * @param options.pageRange - Inclusive 0-based page range `[start, end]` to restrict
+     *   search to. Both text loading and match collection are limited to this range.
+     *   Omit to search the entire document. Each `search()` call is self-contained —
+     *   the range is reset to "all pages" unless explicitly provided.
      * @returns Promise resolving with the search matches
      */
-    search(query: string, options?: { caseSensitive?: boolean }): Promise<SearchMatch[]> {
+    search(
+        query: string,
+        options?: { caseSensitive?: boolean; pageRange?: [number, number] | null },
+    ): Promise<SearchMatch[]> {
         this.ensureNotDestroyed();
         this.ensureUiMode();
 
@@ -1139,6 +1147,8 @@ export class UDocViewer {
         if (options?.caseSensitive !== undefined) {
             this.uiShell!.dispatch({ type: "SET_SEARCH_CASE_SENSITIVE", caseSensitive: options.caseSensitive });
         }
+        const range = options?.pageRange ? { start: options.pageRange[0], end: options.pageRange[1] } : null;
+        this.uiShell!.dispatch({ type: "SET_SEARCH_PAGE_RANGE", range });
         this.uiShell!.dispatch({ type: "SET_SEARCH_QUERY", query });
 
         // Empty/whitespace query — resolve immediately

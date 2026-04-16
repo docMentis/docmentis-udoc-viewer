@@ -342,6 +342,18 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
             if (state.disabledPanels.has(action.panel)) return state;
             const newPanel = state.activePanel === action.panel ? null : action.panel;
             if (state.activePanel === newPanel) return state;
+            // Opening the search panel always searches the entire document —
+            // a range set by a prior API call must not leak into the UI.
+            if (newPanel === "search" && state.searchPageRange !== null) {
+                return {
+                    ...state,
+                    activePanel: newPanel,
+                    searchPageRange: null,
+                    searchMatches: [],
+                    searchActiveIndex: -1,
+                    searchTextLoaded: false,
+                };
+            }
             return { ...state, activePanel: newPanel };
         }
         case "CLOSE_PANEL": {
@@ -514,6 +526,20 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
             if (state.searchQuery === "" && state.searchMatches.length === 0 && state.searchActiveIndex === -1)
                 return state;
             return { ...state, searchQuery: "", searchMatches: [], searchActiveIndex: -1 };
+        }
+        case "SET_SEARCH_PAGE_RANGE": {
+            const prev = state.searchPageRange;
+            const next = action.range;
+            const same =
+                prev === next || (prev !== null && next !== null && prev.start === next.start && prev.end === next.end);
+            if (same) return state;
+            return {
+                ...state,
+                searchPageRange: next,
+                searchMatches: [],
+                searchActiveIndex: -1,
+                searchTextLoaded: false,
+            };
         }
         case "SET_SEARCH_TEXT_LOADING": {
             if (state.searchTextLoading === action.loading) return state;

@@ -309,12 +309,13 @@ function pushRect(
 }
 
 /**
- * Execute text search across all loaded pages.
+ * Execute text search across loaded pages.
  *
  * @param query - Search string
  * @param caseSensitive - Whether to match case
  * @param pageLayouts - Map of page index to LayoutPage
  * @param pageCount - Total number of pages
+ * @param pageRange - Optional inclusive range to restrict search to (null = all pages)
  * @returns Array of search matches with pre-computed highlight rects
  */
 export function executeSearch(
@@ -322,13 +323,17 @@ export function executeSearch(
     caseSensitive: boolean,
     pageLayouts: Map<number, LayoutPage>,
     pageCount: number,
+    pageRange: { start: number; end: number } | null = null,
 ): SearchMatch[] {
     if (!query.trim()) return [];
 
     const matches: SearchMatch[] = [];
     const searchQuery = caseSensitive ? query : query.toLowerCase();
 
-    for (let pageIndex = 0; pageIndex < pageCount; pageIndex++) {
+    const startPage = pageRange ? Math.max(0, pageRange.start) : 0;
+    const endPage = pageRange ? Math.min(pageCount - 1, pageRange.end) : pageCount - 1;
+
+    for (let pageIndex = startPage; pageIndex <= endPage; pageIndex++) {
         const layout = pageLayouts.get(pageIndex);
         if (!layout) continue;
 

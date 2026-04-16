@@ -259,14 +259,26 @@ export function createEffects(store: Store<ViewerState, Action>, engine: EngineA
             const docLoadedWithSearchOpen = next.activePanel === "search" && prev.doc !== next.doc;
             const queryJustSet = next.searchQuery !== "" && prev.searchQuery === "";
             const docLoadedWithQuery = next.searchQuery !== "" && prev.doc !== next.doc;
+            const rangeChangedWithQuery = next.searchQuery !== "" && prev.searchPageRange !== next.searchPageRange;
 
-            if (!searchJustOpened && !docLoadedWithSearchOpen && !queryJustSet && !docLoadedWithQuery) return;
+            if (
+                !searchJustOpened &&
+                !docLoadedWithSearchOpen &&
+                !queryJustSet &&
+                !docLoadedWithQuery &&
+                !rangeChangedWithQuery
+            )
+                return;
             if (next.searchTextLoaded || next.searchTextLoading) return;
 
             const gen = docGeneration;
+            const startPage = next.searchPageRange ? Math.max(0, next.searchPageRange.start) : 0;
+            const endPage = next.searchPageRange
+                ? Math.min(next.pageCount - 1, next.searchPageRange.end)
+                : next.pageCount - 1;
             store.dispatch({ type: "SET_SEARCH_TEXT_LOADING", loading: true });
 
-            for (let pageIndex = 0; pageIndex < next.pageCount; pageIndex++) {
+            for (let pageIndex = startPage; pageIndex <= endPage; pageIndex++) {
                 if (gen !== docGeneration) return;
                 const currentState = store.getState();
                 if (currentState.pageText.has(pageIndex)) continue;
@@ -299,8 +311,9 @@ export function createEffects(store: Store<ViewerState, Action>, engine: EngineA
             const queryChanged =
                 prev.searchQuery !== next.searchQuery || prev.searchCaseSensitive !== next.searchCaseSensitive;
             const textChanged = prev.pageText !== next.pageText;
+            const rangeChanged = prev.searchPageRange !== next.searchPageRange;
 
-            if (!queryChanged && !textChanged) return;
+            if (!queryChanged && !textChanged && !rangeChanged) return;
 
             if (!next.searchQuery.trim()) {
                 if (next.searchMatches.length > 0) {
@@ -309,8 +322,18 @@ export function createEffects(store: Store<ViewerState, Action>, engine: EngineA
                 return;
             }
 
-            const matches = executeSearch(next.searchQuery, next.searchCaseSensitive, next.pageText, next.pageCount);
-            store.dispatch({ type: "SET_SEARCH_MATCHES", matches, resetActiveIndex: queryChanged });
+            const matches = executeSearch(
+                next.searchQuery,
+                next.searchCaseSensitive,
+                next.pageText,
+                next.pageCount,
+                next.searchPageRange,
+            );
+            store.dispatch({
+                type: "SET_SEARCH_MATCHES",
+                matches,
+                resetActiveIndex: queryChanged || rangeChanged,
+            });
         }),
     );
 
