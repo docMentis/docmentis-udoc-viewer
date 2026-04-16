@@ -216,8 +216,8 @@ const viewer = await client.createViewer({
     navigationScrollAlignment: "top",
 
     // Default scroll alignment for search result navigation
-    // 'top' | 'center' | 'bottom' | 'nearest' (default: 'nearest')
-    searchScrollAlignment: "nearest",
+    // 'top' | 'center' | 'bottom' | 'nearest' (default: 'center')
+    searchScrollAlignment: "center",
 
     // --- Spacing & layout ---
 

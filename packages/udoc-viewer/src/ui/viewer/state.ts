@@ -427,7 +427,7 @@ export const initialState: ViewerState = {
 
     navigationTarget: null,
     navigationScrollAlignment: "top",
-    searchScrollAlignment: "nearest",
+    searchScrollAlignment: "center",
 
     viewMode: "paged",
     scrollMode: "continuous",

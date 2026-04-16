@@ -895,7 +895,7 @@ export class UDocViewer {
 
     /** Default scroll alignment for search result navigation. */
     get searchScrollAlignment(): ScrollAlignment {
-        return this.uiShell?.getState().searchScrollAlignment ?? "nearest";
+        return this.uiShell?.getState().searchScrollAlignment ?? "center";
     }
 
     /**
