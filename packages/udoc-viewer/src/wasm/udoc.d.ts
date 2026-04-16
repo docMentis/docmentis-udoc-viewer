@@ -1,6 +1,48 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
+ * Rectangle differences for JavaScript serialization.
+ */
+export interface JsRectDifferences {
+    left: number;
+    bottom: number;
+    right: number;
+    top: number;
+}
+
+/**
+ * Point for JavaScript serialization.
+ */
+export interface JsPoint {
+    x: number;
+    y: number;
+}
+
+/**
+ * RGB color for JavaScript serialization (values 0.0-1.0).
+ */
+export interface JsColor {
+    r: number;
+    g: number;
+    b: number;
+}
+
+/**
+ * Quadrilateral for JavaScript serialization (used in text markup annotations).
+ */
+export interface JsQuad {
+    /**
+     * Four corner points: [bottom-left, bottom-right, top-right, top-left]
+     */
+    points: [JsPoint, JsPoint, JsPoint, JsPoint];
+}
+
+/**
+ * Link action for JavaScript serialization.
+ */
+export type JsLinkAction = { actionType: "goTo"; destination: JsDestination } | { actionType: "uri"; uri: string };
+
+/**
  * Markup metadata for JavaScript serialization (author, subject, contents, state).
  */
 export interface JsMarkupMetadata {
@@ -22,35 +64,6 @@ export interface JsMarkupMetadata {
     replyType?: string;
     intent?: string;
     richContents?: string;
-}
-
-/**
- * Quadrilateral for JavaScript serialization (used in text markup annotations).
- */
-export interface JsQuad {
-    /**
-     * Four corner points: [bottom-left, bottom-right, top-right, top-left]
-     */
-    points: [JsPoint, JsPoint, JsPoint, JsPoint];
-}
-
-/**
- * Rectangle for JavaScript serialization.
- */
-export interface JsRect {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-}
-
-/**
- * RGB color for JavaScript serialization (values 0.0-1.0).
- */
-export interface JsColor {
-    r: number;
-    g: number;
-    b: number;
 }
 
 /**
@@ -81,34 +94,19 @@ export interface JsAnnotation extends JsAnnotationType {
 }
 
 /**
- * Rectangle differences for JavaScript serialization.
- */
-export interface JsRectDifferences {
-    left: number;
-    bottom: number;
-    right: number;
-    top: number;
-}
-
-/**
- * Link action for JavaScript serialization.
- */
-export type JsLinkAction = { actionType: "goTo"; destination: JsDestination } | { actionType: "uri"; uri: string };
-
-/**
  * Annotation type for JavaScript serialization.
  */
 export type JsAnnotationType = { type: "link"; action: JsLinkAction } | { type: "highlight"; quads: JsQuad[]; color?: JsColor; opacity?: number } | { type: "underline"; quads: JsQuad[]; color?: JsColor; opacity?: number } | { type: "strikeOut"; quads: JsQuad[]; color?: JsColor; opacity?: number } | { type: "squiggly"; quads: JsQuad[]; color?: JsColor; opacity?: number } | { type: "text"; icon: string; open: boolean; color?: JsColor; opacity?: number } | { type: "freeText"; contents?: string; justification: string; defaultAppearance?: string; color?: JsColor; borderColor?: JsColor; calloutLine?: JsPoint[]; opacity?: number; defaultStyle?: string; lineEnding?: string; rectDifferences?: JsRectDifferences } | { type: "stamp"; name?: string; hasCustomAppearance: boolean; color?: JsColor; opacity?: number } | { type: "line"; start: JsPoint; end: JsPoint; startEnding: string; endEnding: string; color?: JsColor; interiorColor?: JsColor; borderWidth?: number; borderStyle: string; dashPattern?: number[]; opacity?: number; leaderLength?: number; leaderExtension?: number; leaderOffset?: number; caption?: boolean; captionPosition?: string; captionOffset?: [number, number] } | { type: "square"; color?: JsColor; interiorColor?: JsColor; borderWidth?: number; borderStyle: string; dashPattern?: number[]; opacity?: number; rectDifferences?: JsRectDifferences } | { type: "circle"; color?: JsColor; interiorColor?: JsColor; borderWidth?: number; borderStyle: string; dashPattern?: number[]; opacity?: number; rectDifferences?: JsRectDifferences } | { type: "polygon"; vertices: JsPoint[]; color?: JsColor; interiorColor?: JsColor; borderWidth?: number; borderStyle: string; dashPattern?: number[]; startEnding: string; endEnding: string; opacity?: number } | { type: "polyLine"; vertices: JsPoint[]; color?: JsColor; interiorColor?: JsColor; borderWidth?: number; borderStyle: string; dashPattern?: number[]; startEnding: string; endEnding: string; opacity?: number } | { type: "ink"; inkList: JsPoint[][]; color?: JsColor; borderWidth?: number; borderStyle: string; dashPattern?: number[]; opacity?: number } | { type: "caret"; symbol: string; color?: JsColor; opacity?: number; rectDifferences?: JsRectDifferences } | { type: "redact"; quads: JsQuad[]; interiorColor?: JsColor; overlayText?: string; justification: string; repeat: boolean; color?: JsColor; opacity?: number; defaultAppearance?: string };
 
 /**
- * Point for JavaScript serialization.
+ * Rectangle for JavaScript serialization.
  */
-export interface JsPoint {
+export interface JsRect {
     x: number;
     y: number;
+    width: number;
+    height: number;
 }
-
-export type JsViewerScrollMode = "spread" | "continuous";
 
 export interface JsViewerPreferences {
     layoutMode?: JsViewerLayoutMode;
@@ -117,35 +115,7 @@ export interface JsViewerPreferences {
 
 export type JsViewerLayoutMode = "single-page" | "double-page-odd-right" | "double-page-odd-left";
 
-/**
- * Nested `Vec<Vec<T>>` can\'t cross the WASM boundary directly, so we use a
- * transparent Tsify wrapper.
- */
-export type JsCompositions = JsPick[][];
-
-export type JsSideDirection = "left" | "right" | "up" | "down";
-
-export type JsCornerDirection = "leftUp" | "rightUp" | "leftDown" | "rightDown";
-
-/**
- * Font source for JavaScript serialization.
- */
-export type JsFontSource = "embedded" | "standard" | "googleFonts" | "url" | "local" | { custom: string };
-
-/**
- * Font spec for JavaScript serialization.
- */
-export type JsFontSpec = { typeface: string; bold: boolean; italic: boolean } | { fontId: string };
-
-/**
- * Extracted font info for JavaScript.
- */
-export interface JsExtractedFont {
-    name: string;
-    fontType: string;
-    extension: string;
-    data: number[];
-}
+export type JsViewerScrollMode = "spread" | "continuous";
 
 /**
  * A pick specification from JavaScript.
@@ -165,10 +135,91 @@ export interface JsPick {
     rotation: number | undefined;
 }
 
+export type JsShredPattern = "strip" | "rectangle";
+
 /**
- * Transition effect as a discriminated union (tagged by `type`).
+ * Font spec for JavaScript serialization.
  */
-export type JsTransitionEffect = { type: "blinds"; orientation: JsOrientation } | { type: "checker"; orientation: JsOrientation } | { type: "circle" } | { type: "dissolve" } | { type: "comb"; orientation: JsOrientation } | { type: "cover"; direction: JsEightDirection } | { type: "cut"; throughBlack: boolean } | { type: "diamond" } | { type: "fade"; throughBlack: boolean } | { type: "newsflash" } | { type: "plus" } | { type: "pull"; direction: JsEightDirection } | { type: "push"; direction: JsSideDirection } | { type: "random" } | { type: "randomBar"; orientation: JsOrientation } | { type: "split"; orientation: JsOrientation; inOut: JsInOutDirection } | { type: "strips"; direction: JsCornerDirection } | { type: "wedge" } | { type: "wheel"; spokes: number } | { type: "wipe"; direction: JsSideDirection } | { type: "zoom"; inOut: JsInOutDirection } | { type: "box"; inOut: JsInOutDirection } | { type: "glitter"; direction: JsSideDirection; pattern: JsGlitterPattern } | { type: "fly"; direction: JsSideDirection } | { type: "uncover"; direction: JsEightDirection } | { type: "replace" } | { type: "vortex"; direction: JsSideDirection } | { type: "switch"; direction: JsSideDirection } | { type: "flip"; direction: JsSideDirection } | { type: "ripple"; direction: JsRippleDirection } | { type: "honeycomb" } | { type: "prism"; direction: JsSideDirection; isContent: boolean; isInverted: boolean } | { type: "doors"; orientation: JsOrientation } | { type: "window"; orientation: JsOrientation } | { type: "ferris"; direction: JsSideDirection } | { type: "gallery"; direction: JsSideDirection } | { type: "conveyor"; direction: JsSideDirection } | { type: "pan"; direction: JsSideDirection } | { type: "warp"; inOut: JsInOutDirection } | { type: "flythrough"; inOut: JsInOutDirection; hasBounce: boolean } | { type: "flash" } | { type: "shred"; pattern: JsShredPattern; inOut: JsInOutDirection } | { type: "reveal"; throughBlack: boolean; direction: JsSideDirection } | { type: "wheelReverse"; spokes: number } | { type: "morph"; option: JsMorphOption };
+export type JsFontSpec = { typeface: string; bold: boolean; italic: boolean } | { fontId: string };
+
+/**
+ * Visibility group info for serialization to JavaScript.
+ */
+export interface JsVisibilityGroup {
+    id: string;
+    name: string;
+    visible: boolean;
+    locked: boolean;
+}
+
+/**
+ * Result from pdf_split_by_outline.
+ */
+export interface JsSplitByOutlineResult {
+    documentIds: string[];
+    sections: JsOutlineSection[];
+}
+
+/**
+ * Annotations grouped by page index (as string keys).
+ */
+export type JsAnnotationsByPage = Record<string, JsAnnotation[]>;
+
+export type JsEightDirection = "left" | "right" | "up" | "down" | "leftUp" | "rightUp" | "leftDown" | "rightDown";
+
+export type JsCornerDirection = "leftUp" | "rightUp" | "leftDown" | "rightDown";
+
+export type JsOrientation = "horizontal" | "vertical";
+
+/**
+ * Outline section info for split_by_outline results.
+ */
+export interface JsOutlineSection {
+    title: string;
+    index: number;
+}
+
+/**
+ * Tile position in a 2D page grid.
+ */
+export interface JsTilePos {
+    row: number;
+    col: number;
+}
+
+/**
+ * Font info returned by `parseFontInfo`.
+ */
+export interface JsParsedFontInfo {
+    typeface: string;
+    bold: boolean;
+    italic: boolean;
+}
+
+export type JsInOutDirection = "in" | "out";
+
+export type JsSideDirection = "left" | "right" | "up" | "down";
+
+/**
+ * Resolved font info for JavaScript serialization.
+ */
+export interface JsResolvedFontInfo {
+    familyName: string;
+    postscriptName?: string;
+    source: JsFontSource;
+    bold: boolean;
+    italic: boolean;
+}
+
+/**
+ * A simple rectangle for serialization to JavaScript.
+ */
+export interface JsRect {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+}
 
 /**
  * Page transition info for serialization to JavaScript.
@@ -195,94 +246,7 @@ export interface JsPageTransition {
     advanceAfterMs?: number;
 }
 
-export type JsInOutDirection = "in" | "out";
-
-/**
- * Font registration entry from JavaScript.
- */
-export interface JsFontRegistration {
-    typeface: string;
-    bold: boolean;
-    italic: boolean;
-    url: string;
-}
-
-/**
- * Font usage entry for JavaScript serialization.
- */
-export interface JsFontUsageEntry {
-    spec: JsFontSpec;
-    resolved: JsResolvedFontInfo;
-    fallbacks: JsResolvedFontInfo[];
-}
-
-export type JsShredPattern = "strip" | "rectangle";
-
-export type JsGlitterPattern = "diamond" | "hexagon";
-
-/**
- * Outline section info for split_by_outline results.
- */
-export interface JsOutlineSection {
-    title: string;
-    index: number;
-}
-
-/**
- * Resolved font info for JavaScript serialization.
- */
-export interface JsResolvedFontInfo {
-    familyName: string;
-    postscriptName?: string;
-    source: JsFontSource;
-    bold: boolean;
-    italic: boolean;
-}
-
-/**
- * Visibility group info for serialization to JavaScript.
- */
-export interface JsVisibilityGroup {
-    id: string;
-    name: string;
-    visible: boolean;
-    locked: boolean;
-}
-
-/**
- * Tile position in a 2D page grid.
- */
-export interface JsTilePos {
-    row: number;
-    col: number;
-}
-
-/**
- * Annotations grouped by page index (as string keys).
- */
-export type JsAnnotationsByPage = Record<string, JsAnnotation[]>;
-
-export type JsEightDirection = "left" | "right" | "up" | "down" | "leftUp" | "rightUp" | "leftDown" | "rightDown";
-
-/**
- * Result from pdf_split_by_outline.
- */
-export interface JsSplitByOutlineResult {
-    documentIds: string[];
-    sections: JsOutlineSection[];
-}
-
-/**
- * A simple rectangle for serialization to JavaScript.
- */
-export interface JsRect {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-}
-
-export type JsRippleDirection = "center" | "leftUp" | "rightUp" | "leftDown" | "rightDown";
+export type JsMorphOption = "byObject" | "byWord" | "byChar";
 
 /**
  * Extracted image info for JavaScript.
@@ -295,18 +259,38 @@ export interface JsExtractedImage {
     data: number[];
 }
 
-export type JsMorphOption = "byObject" | "byWord" | "byChar";
-
-export type JsOrientation = "horizontal" | "vertical";
+/**
+ * Nested `Vec<Vec<T>>` can\'t cross the WASM boundary directly, so we use a
+ * transparent Tsify wrapper.
+ */
+export type JsCompositions = JsPick[][];
 
 /**
- * Font info returned by `parseFontInfo`.
+ * Font source for JavaScript serialization.
  */
-export interface JsParsedFontInfo {
+export type JsFontSource = "embedded" | "standard" | "googleFonts" | "url" | "local" | { custom: string };
+
+/**
+ * Font registration entry from JavaScript.
+ */
+export interface JsFontRegistration {
     typeface: string;
     bold: boolean;
     italic: boolean;
+    url: string;
 }
+
+/**
+ * Extracted font info for JavaScript.
+ */
+export interface JsExtractedFont {
+    name: string;
+    fontType: string;
+    extension: string;
+    data: number[];
+}
+
+export type JsGlitterPattern = "diamond" | "hexagon";
 
 /**
  * Page info for serialization to JavaScript.
@@ -334,10 +318,70 @@ export interface JsPageInfo {
     tilePos?: JsTilePos;
 }
 
+/**
+ * Font usage entry for JavaScript serialization.
+ */
+export interface JsFontUsageEntry {
+    spec: JsFontSpec;
+    resolved: JsResolvedFontInfo;
+    fallbacks: JsResolvedFontInfo[];
+}
+
+export type JsRippleDirection = "center" | "leftUp" | "rightUp" | "leftDown" | "rightDown";
+
+/**
+ * Transition effect as a discriminated union (tagged by `type`).
+ */
+export type JsTransitionEffect = { type: "blinds"; orientation: JsOrientation } | { type: "checker"; orientation: JsOrientation } | { type: "circle" } | { type: "dissolve" } | { type: "comb"; orientation: JsOrientation } | { type: "cover"; direction: JsEightDirection } | { type: "cut"; throughBlack: boolean } | { type: "diamond" } | { type: "fade"; throughBlack: boolean } | { type: "newsflash" } | { type: "plus" } | { type: "pull"; direction: JsEightDirection } | { type: "push"; direction: JsSideDirection } | { type: "random" } | { type: "randomBar"; orientation: JsOrientation } | { type: "split"; orientation: JsOrientation; inOut: JsInOutDirection } | { type: "strips"; direction: JsCornerDirection } | { type: "wedge" } | { type: "wheel"; spokes: number } | { type: "wipe"; direction: JsSideDirection } | { type: "zoom"; inOut: JsInOutDirection } | { type: "box"; inOut: JsInOutDirection } | { type: "glitter"; direction: JsSideDirection; pattern: JsGlitterPattern } | { type: "fly"; direction: JsSideDirection } | { type: "uncover"; direction: JsEightDirection } | { type: "replace" } | { type: "vortex"; direction: JsSideDirection } | { type: "switch"; direction: JsSideDirection } | { type: "flip"; direction: JsSideDirection } | { type: "ripple"; direction: JsRippleDirection } | { type: "honeycomb" } | { type: "prism"; direction: JsSideDirection; isContent: boolean; isInverted: boolean } | { type: "doors"; orientation: JsOrientation } | { type: "window"; orientation: JsOrientation } | { type: "ferris"; direction: JsSideDirection } | { type: "gallery"; direction: JsSideDirection } | { type: "conveyor"; direction: JsSideDirection } | { type: "pan"; direction: JsSideDirection } | { type: "warp"; inOut: JsInOutDirection } | { type: "flythrough"; inOut: JsInOutDirection; hasBounce: boolean } | { type: "flash" } | { type: "shred"; pattern: JsShredPattern; inOut: JsInOutDirection } | { type: "reveal"; throughBlack: boolean; direction: JsSideDirection } | { type: "wheelReverse"; spokes: number } | { type: "morph"; option: JsMorphOption };
+
+export interface JsLayoutGlyph {
+    x: number;
+    y: number;
+    advance: number;
+    /**
+     * Byte offset of this glyph\'s source character relative to the parent run\'s text.
+     */
+    offset: number;
+}
+
 export interface JsLayoutTableCell {
     colIndex: number;
     colSpan: number;
     rowSpan: number;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    parcel?: JsLayoutParcel;
+}
+
+export interface JsLayoutParcel {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    lines: JsLayoutLine[];
+}
+
+export interface JsLayoutTableRow {
+    y: number;
+    height: number;
+    cells: JsLayoutTableCell[];
+}
+
+export type JsLayoutRunContent = { type: "glyphs"; text: string; fontSize: number; ascent: number; descent: number; glyphs: JsLayoutGlyph[] } | { type: "space"; advance: number; fontSize: number; ascent: number; descent: number } | { type: "tab"; advance: number; fontSize: number; ascent: number; descent: number } | { type: "paragraphEnd"; advance: number } | { type: "break" } | { type: "inlineDrawing"; width: number; height: number };
+
+export type JsLayoutLineContent = ({ type: "runList" } & JsLayoutRunList) | ({ type: "table" } & JsLayoutTable);
+
+export interface JsLayoutTable {
+    width: number;
+    height: number;
+    columns: JsLayoutTableColumn[];
+    rows: JsLayoutTableRow[];
+}
+
+export interface JsLayoutGridCell {
+    colIndex: number;
     x: number;
     y: number;
     width: number;
@@ -356,19 +400,52 @@ export interface JsLayoutLine {
     content: JsLayoutLineContent;
 }
 
+export interface JsLayoutFrame {
+    transform: JsTransform;
+    parcel?: JsLayoutParcel;
+}
+
+export interface JsLayoutTableColumn {
+    x: number;
+    width: number;
+}
+
+export interface JsLayoutRunList {
+    baseline: number;
+    width: number;
+    height: number;
+    runs: JsLayoutRun[];
+}
+
+export interface JsTransform {
+    scaleX: number;
+    skewY: number;
+    skewX: number;
+    scaleY: number;
+    translateX: number;
+    translateY: number;
+}
+
+export interface JsLayoutGrid {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    scale: number;
+    columns: JsLayoutGridColumn[];
+    rows: JsLayoutGridRow[];
+}
+
+export interface JsLayoutGridColumn {
+    x: number;
+    width: number;
+}
+
 export interface JsLayoutRun {
     x: number;
     width: number;
     transform: JsTransform;
     content: JsLayoutRunContent;
-}
-
-export interface JsLayoutParcel {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-    lines: JsLayoutLine[];
 }
 
 export interface JsLayoutGridRow {
@@ -383,83 +460,6 @@ export interface JsLayoutPage {
     frames: JsLayoutFrame[];
     grid?: JsLayoutGrid;
 }
-
-export interface JsLayoutRunList {
-    baseline: number;
-    width: number;
-    height: number;
-    runs: JsLayoutRun[];
-}
-
-export interface JsLayoutTable {
-    width: number;
-    height: number;
-    columns: JsLayoutTableColumn[];
-    rows: JsLayoutTableRow[];
-}
-
-export type JsLayoutRunContent = { type: "glyphs"; text: string; fontSize: number; ascent: number; descent: number; glyphs: JsLayoutGlyph[] } | { type: "space"; advance: number; fontSize: number; ascent: number; descent: number } | { type: "tab"; advance: number; fontSize: number; ascent: number; descent: number } | { type: "paragraphEnd"; advance: number } | { type: "break" } | { type: "inlineDrawing"; width: number; height: number };
-
-export interface JsLayoutTableRow {
-    y: number;
-    height: number;
-    cells: JsLayoutTableCell[];
-}
-
-export interface JsLayoutGrid {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-    scale: number;
-    columns: JsLayoutGridColumn[];
-    rows: JsLayoutGridRow[];
-}
-
-export interface JsLayoutGridCell {
-    colIndex: number;
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-    parcel?: JsLayoutParcel;
-}
-
-export interface JsLayoutGridColumn {
-    x: number;
-    width: number;
-}
-
-export interface JsLayoutGlyph {
-    x: number;
-    y: number;
-    advance: number;
-    /**
-     * Byte offset of this glyph\'s source character relative to the parent run\'s text.
-     */
-    offset: number;
-}
-
-export interface JsLayoutFrame {
-    transform: JsTransform;
-    parcel?: JsLayoutParcel;
-}
-
-export interface JsLayoutTableColumn {
-    x: number;
-    width: number;
-}
-
-export interface JsTransform {
-    scaleX: number;
-    skewY: number;
-    skewX: number;
-    scaleY: number;
-    translateX: number;
-    translateY: number;
-}
-
-export type JsLayoutLineContent = ({ type: "runList" } & JsLayoutRunList) | ({ type: "table" } & JsLayoutTable);
 
 /**
  * Result returned to JavaScript after license validation.
@@ -492,17 +492,17 @@ export interface LicenseResult {
 }
 
 /**
- * Destination display parameters for JavaScript serialization.
- */
-export type JsDestinationDisplay = { type: "xyz"; left: number | undefined; top: number | undefined; zoom: number | undefined } | { type: "fit" } | { type: "fitH"; top: number | undefined } | { type: "fitV"; left: number | undefined } | { type: "fitR"; left: number; top: number; right: number; bottom: number } | { type: "fitB" } | { type: "fitBH"; top: number | undefined } | { type: "fitBV"; left: number | undefined };
-
-/**
  * Destination for JavaScript serialization.
  */
 export interface JsDestination {
     pageIndex: number;
     display: JsDestinationDisplay;
 }
+
+/**
+ * Destination display parameters for JavaScript serialization.
+ */
+export type JsDestinationDisplay = { type: "xyz"; left: number | undefined; top: number | undefined; zoom: number | undefined } | { type: "fit" } | { type: "fitH"; top: number | undefined } | { type: "fitV"; left: number | undefined } | { type: "fitR"; left: number; top: number; right: number; bottom: number } | { type: "fitB" } | { type: "fitBH"; top: number | undefined } | { type: "fitBV"; left: number | undefined };
 
 /**
  * Outline item for JavaScript serialization.
@@ -1093,8 +1093,8 @@ export interface InitOutput {
   readonly wasm_set_visibility_group_visible: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
   readonly wasm_setup_telemetry: (a: number, b: number, c: number) => void;
   readonly wasm_viewer_preferences: (a: number, b: number, c: number, d: number) => void;
-  readonly __wasm_bindgen_func_elem_4167: (a: number, b: number, c: number) => void;
-  readonly __wasm_bindgen_func_elem_4151: (a: number, b: number) => void;
+  readonly __wasm_bindgen_func_elem_4169: (a: number, b: number, c: number) => void;
+  readonly __wasm_bindgen_func_elem_4153: (a: number, b: number) => void;
   readonly __wasm_bindgen_func_elem_22364: (a: number, b: number, c: number, d: number) => void;
   readonly __wbindgen_export: (a: number, b: number) => number;
   readonly __wbindgen_export2: (a: number, b: number, c: number, d: number) => number;

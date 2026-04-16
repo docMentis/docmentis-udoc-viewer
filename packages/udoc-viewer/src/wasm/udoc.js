@@ -269,8 +269,8 @@ if (!('encodeInto' in cachedTextEncoder)) {
 
 let WASM_VECTOR_LEN = 0;
 
-function __wasm_bindgen_func_elem_4167(arg0, arg1, arg2) {
-    wasm.__wasm_bindgen_func_elem_4167(arg0, arg1, addHeapObject(arg2));
+function __wasm_bindgen_func_elem_4169(arg0, arg1, arg2) {
+    wasm.__wasm_bindgen_func_elem_4169(arg0, arg1, addHeapObject(arg2));
 }
 
 function __wasm_bindgen_func_elem_22364(arg0, arg1, arg2, arg3) {
@@ -2558,7 +2558,7 @@ function __wbg_get_imports() {
     };
     imports.wbg.__wbindgen_cast_e95d7a09ad75920b = function(arg0, arg1) {
         // Cast intrinsic for `Closure(Closure { dtor_idx: 259, function: Function { arguments: [Externref], shim_idx: 260, ret: Unit, inner_ret: Some(Unit) }, mutable: true }) -> Externref`.
-        const ret = makeMutClosure(arg0, arg1, wasm.__wasm_bindgen_func_elem_4151, __wasm_bindgen_func_elem_4167);
+        const ret = makeMutClosure(arg0, arg1, wasm.__wasm_bindgen_func_elem_4153, __wasm_bindgen_func_elem_4169);
         return addHeapObject(ret);
     };
     imports.wbg.__wbindgen_object_clone_ref = function(arg0) {
