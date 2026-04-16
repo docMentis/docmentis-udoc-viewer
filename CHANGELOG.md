@@ -6,6 +6,8 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+## [0.6.28] - 2026-04-16
+
 ### Features
 
 - `UDocViewer.getPageText(page)` API returning the exact text that the search engine indexes
