@@ -1390,10 +1390,17 @@ export class WorkerClient {
         }
 
         this.currentWork = { key, promise };
-        promise.finally(() => {
+
+        // Run the same cleanup whether the work resolved or rejected. Rejections
+        // are already forwarded to the requester via req.reject inside doRender /
+        // doAnnotation / doText, so consuming them here in onRejected is what
+        // prevents an "unhandled promise" warning. If cleanup itself ever throws,
+        // that still surfaces — only the already-handled work rejection is hidden.
+        const onSettled = () => {
             this.currentWork = null;
             this.processWorkQueue();
-        });
+        };
+        promise.then(onSettled, onSettled);
     }
 
     private async doRender(req: QueuedRequest, key: string): Promise<RenderResult> {
