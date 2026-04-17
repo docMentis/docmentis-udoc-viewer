@@ -1149,6 +1149,11 @@ export class UDocViewer {
      * @param query - The text to search for
      * @param options - Search options
      * @param options.caseSensitive - Whether to match case (overrides current default)
+     * @param options.fuzzy - Enable fuzzy matching. When true, all whitespace, control
+     *   characters, pipes (`|`), and zero-width characters are stripped from both the
+     *   query and the document text before comparison. This allows AI-generated citations
+     *   to match even when spacing or separators differ from the original document
+     *   (e.g. `"cell A | cell B"` will match `"cell A\ncell B"`).
      * @param options.pageRange - Inclusive 0-based page range `[start, end]` to restrict
      *   search to. Both text loading and match collection are limited to this range.
      *   Omit to search the entire document. Each `search()` call is self-contained —
