@@ -6,6 +6,29 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+### Features
+
+- Fuzzy search mode for AI-citation matching
+- Render SmartArt diagrams via pre-rendered fallback (engine)
+- Apply shape effects (shadows, glows) to picture frames (engine)
+- Bundle Liberation font family as built-in fonts, replacing Noto Sans (engine)
+
+### Bug Fixes
+
+- Suppress errors from in-flight worker requests during viewer teardown
+- Avoid unhandled rejection in work-queue cleanup chain
+- Render DOCX inline pictures at extent size instead of shape transform size (engine)
+- Namespace DOCX image IDs by source part to avoid cross-part rId collisions (engine)
+- Recurse into nested DOCX hyperlink elements (engine)
+- DOCX table background precedence: cell shading overrides table-level, row-level `tblPrEx` shading respected (engine)
+- Treat spanned cell outer edges correctly for border conflict resolution (engine)
+- Scale WPG group child positions and stop shrinking positioned runs (engine)
+- Render DOCX WPS line connectors with theme-inherited strokes (engine)
+- Preserve PPTX table background underlay beneath semi-transparent cell fills (engine)
+- Allow negative paragraph left margin to extend past the container (engine)
+- Render empty major gridlines and scale chart tick intervals to plot size (engine)
+- Ignore PowerPoint rotation sentinel and fix radar chart tick scaling (engine)
+
 ## [0.6.28] - 2026-04-16
 
 ### Features
