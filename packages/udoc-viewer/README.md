@@ -124,7 +124,7 @@ Full working examples for every major framework are in the [`examples/`](../../e
 - 📄 **Multi-format rendering** — PDF, DOCX, PPTX, and images in one unified viewer
 - 🎯 **High-fidelity output** — custom Rust rendering engine compiled to WebAssembly
 - 🔍 **Zoom & navigation** — toolbar with zoom controls, page thumbnails, and keyboard navigation
-- 🔎 **Full-text search** — search with match highlighting and navigation
+- 🔎 **Full-text search** — search with match highlighting, navigation, and fuzzy matching for AI citations
 - 🌓 **Dark mode** — built-in light/dark theme with system preference support
 - 🎨 **Customizable** — override colors and styles via CSS variables
 - 📱 **Responsive** — works on desktop and mobile browsers
@@ -454,6 +454,12 @@ console.log(`Found ${matches.length} matches`);
 
 // Search with options
 const matches = await viewer.search("hello", { caseSensitive: true });
+
+// Fuzzy matching — strips all whitespace, control characters, pipes (|),
+// and zero-width characters from both the query and document text before
+// comparison. Designed for AI-generated citations where spacing or
+// separators may differ from the original document text.
+const matches = await viewer.search("cell A | cell B", { fuzzy: true });
 
 // Restrict search to a page range (inclusive, 0-based).
 // Both text loading and match collection are limited to the range —
