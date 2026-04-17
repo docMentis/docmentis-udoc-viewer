@@ -6,6 +6,8 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+## [0.6.29] - 2026-04-16
+
 ### Features
 
 - Fuzzy search mode for AI-citation matching
