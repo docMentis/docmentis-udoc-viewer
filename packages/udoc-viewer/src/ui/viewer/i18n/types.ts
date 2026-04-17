@@ -52,6 +52,7 @@ export interface TranslationKeys {
     "search.placeholder": string;
     "search.label": string;
     "search.matchCase": string;
+    "search.fuzzyMatch": string;
     "search.previousMatch": string;
     "search.nextMatch": string;
     "search.loadingText": string;

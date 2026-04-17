@@ -54,6 +54,7 @@ export const ja: TranslationKeys = {
     "search.placeholder": "文書内を検索...",
     "search.label": "検索テキスト",
     "search.matchCase": "大文字と小文字を区別",
+    "search.fuzzyMatch": "あいまい検索",
     "search.previousMatch": "前の一致 (Shift+Enter)",
     "search.nextMatch": "次の一致 (Enter)",
     "search.loadingText": "テキストを読み込み中\u2026",

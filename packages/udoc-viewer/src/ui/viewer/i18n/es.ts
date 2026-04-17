@@ -54,6 +54,7 @@ export const es: TranslationKeys = {
     "search.placeholder": "Buscar en el documento...",
     "search.label": "Texto de búsqueda",
     "search.matchCase": "Distinguir mayúsculas",
+    "search.fuzzyMatch": "Coincidencia aproximada",
     "search.previousMatch": "Coincidencia anterior (Shift+Enter)",
     "search.nextMatch": "Siguiente coincidencia (Enter)",
     "search.loadingText": "Cargando texto…",

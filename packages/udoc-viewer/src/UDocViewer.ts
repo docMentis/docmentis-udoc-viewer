@@ -1157,7 +1157,7 @@ export class UDocViewer {
      */
     search(
         query: string,
-        options?: { caseSensitive?: boolean; pageRange?: [number, number] | null },
+        options?: { caseSensitive?: boolean; fuzzy?: boolean; pageRange?: [number, number] | null },
     ): Promise<SearchMatch[]> {
         this.ensureNotDestroyed();
         this.ensureUiMode();
@@ -1165,6 +1165,9 @@ export class UDocViewer {
         const stateBefore = this.uiShell!.getState();
         if (options?.caseSensitive !== undefined) {
             this.uiShell!.dispatch({ type: "SET_SEARCH_CASE_SENSITIVE", caseSensitive: options.caseSensitive });
+        }
+        if (options?.fuzzy !== undefined) {
+            this.uiShell!.dispatch({ type: "SET_SEARCH_FUZZY", fuzzy: options.fuzzy });
         }
         const range = options?.pageRange ? { start: options.pageRange[0], end: options.pageRange[1] } : null;
         this.uiShell!.dispatch({ type: "SET_SEARCH_PAGE_RANGE", range });

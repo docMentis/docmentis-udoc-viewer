@@ -3129,6 +3129,36 @@
     background: var(--udoc-primary-hover);
 }
 
+.udoc-viewer-root .udoc-search-panel__fuzzy {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--udoc-border-input);
+    border-radius: 4px;
+    background: var(--udoc-bg-input);
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--udoc-text-label);
+    flex-shrink: 0;
+}
+
+.udoc-viewer-root .udoc-search-panel__fuzzy:hover {
+    background: var(--udoc-bg-page-header);
+}
+
+.udoc-viewer-root .udoc-search-panel__fuzzy--active {
+    background: var(--udoc-primary);
+    color: var(--udoc-text-on-primary);
+    border-color: var(--udoc-primary);
+}
+
+.udoc-viewer-root .udoc-search-panel__fuzzy--active:hover {
+    background: var(--udoc-primary-hover);
+}
+
 .udoc-viewer-root .udoc-search-panel__nav {
     display: flex;
     align-items: center;

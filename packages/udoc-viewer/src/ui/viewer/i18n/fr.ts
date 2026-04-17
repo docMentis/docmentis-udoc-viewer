@@ -54,6 +54,7 @@ export const fr: TranslationKeys = {
     "search.placeholder": "Rechercher dans le document...",
     "search.label": "Texte de recherche",
     "search.matchCase": "Respecter la casse",
+    "search.fuzzyMatch": "Correspondance floue",
     "search.previousMatch": "Résultat précédent (Shift+Enter)",
     "search.nextMatch": "Résultat suivant (Enter)",
     "search.loadingText": "Chargement du texte…",

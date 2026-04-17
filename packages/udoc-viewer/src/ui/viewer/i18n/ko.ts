@@ -54,6 +54,7 @@ export const ko: TranslationKeys = {
     "search.placeholder": "문서에서 검색...",
     "search.label": "검색 텍스트",
     "search.matchCase": "대소문자 구분",
+    "search.fuzzyMatch": "유사 검색",
     "search.previousMatch": "이전 일치 (Shift+Enter)",
     "search.nextMatch": "다음 일치 (Enter)",
     "search.loadingText": "텍스트 로딩 중\u2026",

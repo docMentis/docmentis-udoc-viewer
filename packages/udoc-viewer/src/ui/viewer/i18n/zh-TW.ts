@@ -54,6 +54,7 @@ export const zhTW: TranslationKeys = {
     "search.placeholder": "在文件中搜尋…",
     "search.label": "搜尋文字",
     "search.matchCase": "區分大小寫",
+    "search.fuzzyMatch": "模糊比對",
     "search.previousMatch": "上一個符合項目 (Shift+Enter)",
     "search.nextMatch": "下一個符合項目 (Enter)",
     "search.loadingText": "正在載入文字…",

@@ -314,7 +314,9 @@ export function createEffects(store: Store<ViewerState, Action>, engine: EngineA
         store.subscribeEffect((prev, next) => {
             // Only re-run search when search-relevant state actually changes
             const queryChanged =
-                prev.searchQuery !== next.searchQuery || prev.searchCaseSensitive !== next.searchCaseSensitive;
+                prev.searchQuery !== next.searchQuery ||
+                prev.searchCaseSensitive !== next.searchCaseSensitive ||
+                prev.searchFuzzy !== next.searchFuzzy;
             const textChanged = prev.pageText !== next.pageText;
             const rangeChanged = prev.searchPageRange !== next.searchPageRange;
 
@@ -333,6 +335,7 @@ export function createEffects(store: Store<ViewerState, Action>, engine: EngineA
                 next.pageText,
                 next.pageCount,
                 next.searchPageRange,
+                next.searchFuzzy,
             );
             store.dispatch({
                 type: "SET_SEARCH_MATCHES",

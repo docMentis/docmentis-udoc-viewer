@@ -54,6 +54,7 @@ export const ptBR: TranslationKeys = {
     "search.placeholder": "Pesquisar no documento...",
     "search.label": "Texto de pesquisa",
     "search.matchCase": "Diferenciar maiúsculas e minúsculas",
+    "search.fuzzyMatch": "Correspondência aproximada",
     "search.previousMatch": "Resultado anterior (Shift+Enter)",
     "search.nextMatch": "Próximo resultado (Enter)",
     "search.loadingText": "Carregando texto\u2026",

@@ -54,6 +54,7 @@ export const ar: TranslationKeys = {
     "search.placeholder": "البحث في المستند...",
     "search.label": "نص البحث",
     "search.matchCase": "مطابقة حالة الأحرف",
+    "search.fuzzyMatch": "مطابقة غامضة",
     "search.previousMatch": "النتيجة السابقة (Shift+Enter)",
     "search.nextMatch": "النتيجة التالية (Enter)",
     "search.loadingText": "جارٍ تحميل النص\u2026",

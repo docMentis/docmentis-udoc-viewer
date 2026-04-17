@@ -321,6 +321,54 @@ function pushRect(
     rects.push({ x, y, width, height: fontSize, angle });
 }
 
+// ---------------------------------------------------------------------------
+// Text normalization for fuzzy (AI-citation) matching
+// ---------------------------------------------------------------------------
+
+/** Characters treated as whitespace/separators during fuzzy matching. */
+function isNormalizableChar(code: number, ch: string): boolean {
+    return (
+        ch === " " ||
+        ch === "\t" ||
+        ch === "\n" ||
+        ch === "\r" ||
+        ch === "|" ||
+        ch === "\uFFFC" || // inline drawing placeholder
+        ch === "\u00A0" || // non-breaking space
+        ch === "\uFEFF" || // BOM / zero-width no-break space
+        ch === "\u200B" || // zero-width space
+        ch === "\u200C" || // zero-width non-joiner
+        ch === "\u200D" || // zero-width joiner
+        ch === "\u2028" || // line separator
+        ch === "\u2029" || // paragraph separator
+        code < 0x20 // other control characters
+    );
+}
+
+/**
+ * Normalize text for fuzzy matching: strip all whitespace/control/separator
+ * characters and return a mapping from each normalized character index back
+ * to its original index in the source string.
+ */
+function normalizeText(text: string): { normalized: string; origIndices: number[] } {
+    let normalized = "";
+    const origIndices: number[] = [];
+
+    for (let i = 0; i < text.length; i++) {
+        const ch = text[i];
+        const code = ch.charCodeAt(0);
+
+        if (isNormalizableChar(code, ch)) {
+            continue;
+        }
+
+        normalized += ch;
+        origIndices.push(i);
+    }
+
+    return { normalized, origIndices };
+}
+
 /**
  * Execute text search across loaded pages.
  *
@@ -329,6 +377,9 @@ function pushRect(
  * @param pageLayouts - Map of page index to LayoutPage
  * @param pageCount - Total number of pages
  * @param pageRange - Optional inclusive range to restrict search to (null = all pages)
+ * @param fuzzy - When true, normalize whitespace/control characters before matching
+ *   so that e.g. AI-generated citations match the original document text even when
+ *   whitespace or special characters differ.
  * @returns Array of search matches with pre-computed highlight rects
  */
 export function executeSearch(
@@ -337,14 +388,25 @@ export function executeSearch(
     pageLayouts: Map<number, LayoutPage>,
     pageCount: number,
     pageRange: { start: number; end: number } | null = null,
+    fuzzy: boolean = false,
 ): SearchMatch[] {
     if (!query.trim()) return [];
 
     const matches: SearchMatch[] = [];
-    const searchQuery = caseSensitive ? query : query.toLowerCase();
 
     const startPage = pageRange ? Math.max(0, pageRange.start) : 0;
     const endPage = pageRange ? Math.min(pageCount - 1, pageRange.end) : pageCount - 1;
+
+    // Prepare the search query (normalize if fuzzy, then apply case)
+    let searchQuery: string;
+    if (fuzzy) {
+        const { normalized } = normalizeText(query);
+        searchQuery = caseSensitive ? normalized : normalized.toLowerCase();
+    } else {
+        searchQuery = caseSensitive ? query : query.toLowerCase();
+    }
+
+    if (!searchQuery) return [];
 
     for (let pageIndex = startPage; pageIndex <= endPage; pageIndex++) {
         const layout = pageLayouts.get(pageIndex);
@@ -354,30 +416,57 @@ export function executeSearch(
         if (runs.length === 0) continue;
 
         const { fullText, charMap } = buildPageTextMap(runs);
-        const compareText = caseSensitive ? fullText : fullText.toLowerCase();
 
-        let searchStart = 0;
-        while (searchStart < compareText.length) {
-            const idx = compareText.indexOf(searchQuery, searchStart);
-            if (idx === -1) break;
+        if (fuzzy) {
+            // Fuzzy mode: normalize page text and match, then map back to original positions
+            const caseText = caseSensitive ? fullText : fullText.toLowerCase();
+            const { normalized: normText, origIndices } = normalizeText(caseText);
 
-            const rects = computeMatchRects(charMap, idx, searchQuery.length);
-            const rawBefore = fullText.substring(Math.max(0, idx - 30), idx);
-            const rawAfter = fullText.substring(idx + searchQuery.length, idx + searchQuery.length + 30);
-            const beforeUpToNl = rawBefore.includes("\n")
-                ? rawBefore.substring(rawBefore.lastIndexOf("\n") + 1)
-                : rawBefore;
-            const afterUpToNl = rawAfter.includes("\n") ? rawAfter.substring(0, rawAfter.indexOf("\n")) : rawAfter;
-            const before = trimToLastNWords(beforeUpToNl, 3);
-            const matched = fullText.substring(idx, idx + searchQuery.length);
-            const after = trimToFirstNWords(afterUpToNl, 3);
-            const beforePrefix = before.length < beforeUpToNl.length ? "\u2026" : "";
-            const afterSuffix = after.length < afterUpToNl.length ? "\u2026" : "";
-            const context: [string, string, string] = [beforePrefix + before, matched, after + afterSuffix];
-            matches.push({ pageIndex, charOffset: idx, length: searchQuery.length, rects, context });
-            searchStart = idx + 1;
+            let searchStart = 0;
+            while (searchStart < normText.length) {
+                const idx = normText.indexOf(searchQuery, searchStart);
+                if (idx === -1) break;
+
+                // Map normalized match back to original text positions
+                const origStart = origIndices[idx];
+                const origEndChar = origIndices[idx + searchQuery.length - 1];
+                const origLen = origEndChar - origStart + 1;
+
+                const rects = computeMatchRects(charMap, origStart, origLen);
+                const context = buildContext(fullText, origStart, origLen);
+                matches.push({ pageIndex, charOffset: origStart, length: origLen, rects, context });
+                searchStart = idx + 1;
+            }
+        } else {
+            // Exact mode: direct indexOf on full text
+            const compareText = caseSensitive ? fullText : fullText.toLowerCase();
+
+            let searchStart = 0;
+            while (searchStart < compareText.length) {
+                const idx = compareText.indexOf(searchQuery, searchStart);
+                if (idx === -1) break;
+
+                const rects = computeMatchRects(charMap, idx, searchQuery.length);
+                const context = buildContext(fullText, idx, searchQuery.length);
+                matches.push({ pageIndex, charOffset: idx, length: searchQuery.length, rects, context });
+                searchStart = idx + 1;
+            }
         }
     }
 
     return matches;
+}
+
+/** Build a context snippet [before, match, after] for display in the result list. */
+function buildContext(fullText: string, offset: number, length: number): [string, string, string] {
+    const rawBefore = fullText.substring(Math.max(0, offset - 30), offset);
+    const rawAfter = fullText.substring(offset + length, offset + length + 30);
+    const beforeUpToNl = rawBefore.includes("\n") ? rawBefore.substring(rawBefore.lastIndexOf("\n") + 1) : rawBefore;
+    const afterUpToNl = rawAfter.includes("\n") ? rawAfter.substring(0, rawAfter.indexOf("\n")) : rawAfter;
+    const before = trimToLastNWords(beforeUpToNl, 3);
+    const matched = fullText.substring(offset, offset + length);
+    const after = trimToFirstNWords(afterUpToNl, 3);
+    const beforePrefix = before.length < beforeUpToNl.length ? "\u2026" : "";
+    const afterSuffix = after.length < afterUpToNl.length ? "\u2026" : "";
+    return [beforePrefix + before, matched, after + afterSuffix];
 }

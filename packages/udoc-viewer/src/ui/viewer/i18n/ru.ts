@@ -54,6 +54,7 @@ export const ru: TranslationKeys = {
     "search.placeholder": "Поиск в документе...",
     "search.label": "Текст для поиска",
     "search.matchCase": "С учётом регистра",
+    "search.fuzzyMatch": "Нечёткое совпадение",
     "search.previousMatch": "Предыдущее совпадение (Shift+Enter)",
     "search.nextMatch": "Следующее совпадение (Enter)",
     "search.loadingText": "Загрузка текста\u2026",

@@ -54,6 +54,7 @@ export const zhCN: TranslationKeys = {
     "search.placeholder": "在文档中搜索…",
     "search.label": "搜索文本",
     "search.matchCase": "区分大小写",
+    "search.fuzzyMatch": "模糊匹配",
     "search.previousMatch": "上一个匹配 (Shift+Enter)",
     "search.nextMatch": "下一个匹配 (Enter)",
     "search.loadingText": "正在加载文本…",

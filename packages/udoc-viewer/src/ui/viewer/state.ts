@@ -343,6 +343,8 @@ export interface ViewerState {
     searchQuery: string;
     /** Whether search is case-sensitive */
     searchCaseSensitive: boolean;
+    /** Whether fuzzy matching is enabled (normalizes whitespace/control characters) */
+    searchFuzzy: boolean;
     /** All search matches across all pages */
     searchMatches: SearchMatch[];
     /** Index of the currently active/focused match (-1 = none) */
@@ -476,6 +478,7 @@ export const initialState: ViewerState = {
 
     searchQuery: "",
     searchCaseSensitive: false,
+    searchFuzzy: false,
     searchMatches: [],
     searchActiveIndex: -1,
     searchNavGen: 0,

@@ -474,6 +474,10 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
             if (state.searchCaseSensitive === action.caseSensitive) return state;
             return { ...state, searchCaseSensitive: action.caseSensitive, searchMatches: [], searchActiveIndex: -1 };
         }
+        case "SET_SEARCH_FUZZY": {
+            if (state.searchFuzzy === action.fuzzy) return state;
+            return { ...state, searchFuzzy: action.fuzzy, searchMatches: [], searchActiveIndex: -1 };
+        }
         case "SET_SEARCH_MATCHES": {
             const hasMatches = action.matches.length > 0;
             const hadMatches = state.searchActiveIndex >= 0;

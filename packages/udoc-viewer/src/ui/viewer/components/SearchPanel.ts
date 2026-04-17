@@ -26,6 +26,7 @@ type SearchPanelSlice = {
     isOpen: boolean;
     query: string;
     caseSensitive: boolean;
+    fuzzy: boolean;
     matches: SearchMatch[];
     activeIndex: number;
     textLoading: boolean;
@@ -70,7 +71,14 @@ export function createSearchPanel() {
     caseBtn.setAttribute("aria-label", "Match case");
     caseBtn.setAttribute("aria-pressed", "false");
 
-    header.append(inputWrapper, caseBtn);
+    const fuzzyBtn = document.createElement("button");
+    fuzzyBtn.className = "udoc-search-panel__fuzzy";
+    fuzzyBtn.textContent = "~";
+    fuzzyBtn.title = "Fuzzy match";
+    fuzzyBtn.setAttribute("aria-label", "Fuzzy match");
+    fuzzyBtn.setAttribute("aria-pressed", "false");
+
+    header.append(inputWrapper, caseBtn, fuzzyBtn);
 
     // --- Navigation bar (status + prev/next) ---
     const nav = document.createElement("div");
@@ -141,6 +149,10 @@ export function createSearchPanel() {
         // Update case button
         caseBtn.classList.toggle("udoc-search-panel__case--active", slice.caseSensitive);
         caseBtn.setAttribute("aria-pressed", String(slice.caseSensitive));
+
+        // Update fuzzy button
+        fuzzyBtn.classList.toggle("udoc-search-panel__fuzzy--active", slice.fuzzy);
+        fuzzyBtn.setAttribute("aria-pressed", String(slice.fuzzy));
 
         // Update nav buttons
         const hasMatches = slice.matches.length > 0;
@@ -267,6 +279,8 @@ export function createSearchPanel() {
         input.setAttribute("aria-label", i18n.t("search.label"));
         caseBtn.title = i18n.t("search.matchCase");
         caseBtn.setAttribute("aria-label", i18n.t("search.matchCase"));
+        fuzzyBtn.title = i18n.t("search.fuzzyMatch");
+        fuzzyBtn.setAttribute("aria-label", i18n.t("search.fuzzyMatch"));
         prevBtn.title = i18n.t("search.previousMatch");
         prevBtn.setAttribute("aria-label", i18n.t("search.previousMatch"));
         nextBtn.title = i18n.t("search.nextMatch");
@@ -300,6 +314,16 @@ export function createSearchPanel() {
                 if (storeRef) {
                     const current = storeRef.getState().searchCaseSensitive;
                     storeRef.dispatch({ type: "SET_SEARCH_CASE_SENSITIVE", caseSensitive: !current });
+                }
+            }),
+        );
+
+        // Fuzzy matching toggle
+        unsubEvents.push(
+            on(fuzzyBtn, "click", () => {
+                if (storeRef) {
+                    const current = storeRef.getState().searchFuzzy;
+                    storeRef.dispatch({ type: "SET_SEARCH_FUZZY", fuzzy: !current });
                 }
             }),
         );
@@ -350,6 +374,7 @@ function selectSearchPanel(state: ViewerState): SearchPanelSlice {
         isOpen: state.activePanel === "search",
         query: state.searchQuery,
         caseSensitive: state.searchCaseSensitive,
+        fuzzy: state.searchFuzzy,
         matches: state.searchMatches,
         activeIndex: state.searchActiveIndex,
         textLoading: state.searchTextLoading,
@@ -363,6 +388,7 @@ function searchPanelEqual(a: SearchPanelSlice, b: SearchPanelSlice): boolean {
         a.isOpen === b.isOpen &&
         a.query === b.query &&
         a.caseSensitive === b.caseSensitive &&
+        a.fuzzy === b.fuzzy &&
         a.matches === b.matches &&
         a.activeIndex === b.activeIndex &&
         a.textLoading === b.textLoading &&
