@@ -42,5 +42,7 @@ export type {
     LayoutGlyph,
     Transform,
     AnnotationsByPage,
+    PageGroup,
+    PageGroupLayout,
 } from "./WorkerClient.js";
 export type { WorkerRequest, WorkerResponse } from "./worker.js";

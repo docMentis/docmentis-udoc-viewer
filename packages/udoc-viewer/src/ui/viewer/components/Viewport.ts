@@ -16,7 +16,7 @@ import {
 import type { Action } from "../actions";
 import type { NavigationTarget, Destination } from "../navigation";
 import { showAnnotationPopup, closeAnnotationPopup, type Annotation } from "../annotation";
-import type { LayoutPage } from "../../../worker/index.js";
+import type { LayoutPage, PageGroup } from "../../../worker/index.js";
 import type { WorkerClient } from "../../../worker/index.js";
 import type { I18n } from "../i18n/index.js";
 import {
@@ -50,6 +50,8 @@ interface ViewportSlice {
     page: number;
     pageCount: number;
     pageInfos: readonly PageInfo[];
+    pageGroups: readonly PageGroup[];
+    activeGroupIndex: number;
     viewMode: ViewMode;
     scrollMode: ScrollMode;
     layoutMode: LayoutMode;
@@ -72,6 +74,8 @@ function viewportSliceEqual(a: ViewportSlice, b: ViewportSlice): boolean {
         a.page === b.page &&
         a.pageCount === b.pageCount &&
         a.pageInfos === b.pageInfos &&
+        a.pageGroups === b.pageGroups &&
+        a.activeGroupIndex === b.activeGroupIndex &&
         a.viewMode === b.viewMode &&
         a.scrollMode === b.scrollMode &&
         a.layoutMode === b.layoutMode &&
@@ -362,7 +366,15 @@ function buildLayout(slice: ViewportSlice, metrics: ViewportMetrics, scrollbarVi
     const scale = computeScale(slice, metrics, spreads, scrollbarVisible);
 
     if (slice.viewMode === "continuous") {
-        const contLayout = calculateContinuousLayout(spreads, slice.pageInfos, scale, slice.dpi, slice.pageRotation);
+        const activeGroup = slice.pageGroups[slice.activeGroupIndex] ?? null;
+        const contLayout = calculateContinuousLayout(
+            spreads,
+            slice.pageInfos,
+            scale,
+            slice.dpi,
+            slice.pageRotation,
+            activeGroup,
+        );
         return {
             spreads,
             layouts: contLayout.layouts,
@@ -406,6 +418,8 @@ function computeViewportUpdate(
         nextSlice.docId !== prevSlice.docId ||
         nextSlice.pageCount !== prevSlice.pageCount ||
         nextSlice.pageInfos !== prevSlice.pageInfos ||
+        nextSlice.pageGroups !== prevSlice.pageGroups ||
+        nextSlice.activeGroupIndex !== prevSlice.activeGroupIndex ||
         nextSlice.viewMode !== prevSlice.viewMode ||
         nextSlice.scrollMode !== prevSlice.scrollMode ||
         nextSlice.layoutMode !== prevSlice.layoutMode ||
@@ -423,6 +437,8 @@ function computeViewportUpdate(
         nextSlice.docId !== prevSlice.docId ||
         nextSlice.pageCount !== prevSlice.pageCount ||
         nextSlice.pageInfos !== prevSlice.pageInfos ||
+        nextSlice.pageGroups !== prevSlice.pageGroups ||
+        nextSlice.activeGroupIndex !== prevSlice.activeGroupIndex ||
         nextSlice.viewMode !== prevSlice.viewMode ||
         nextSlice.layoutMode !== prevSlice.layoutMode;
 
@@ -1323,7 +1339,10 @@ export function createViewport(showAttribution = true) {
 
                 let spreadComp = spreadComponents.get(i);
                 if (!spreadComp) {
-                    const spreadData = state.spreads[i];
+                    // `layouts` may be filtered (XLSX active group only), so
+                    // look up the source spread by its global `.index`, not
+                    // by the filtered array position.
+                    const spreadData = state.spreads[layout.index];
                     spreadComp = createSpread(spreadData, showAttribution, i18nRef ?? undefined);
                     spreadComp.mount(container);
                     spreadComponents.set(i, spreadComp);
@@ -1720,7 +1739,10 @@ export function createViewport(showAttribution = true) {
         if (!slice) return;
 
         const spreadIndex = findSpreadForPage(layoutState.spreads, page);
-        const layout = layoutState.layouts[spreadIndex];
+        // layouts may be filtered (XLSX active group only), so look up by .index
+        // rather than array position, falling back to the first layout when the
+        // target page is outside the active group.
+        const layout = layoutState.layouts.find((l) => l.index === spreadIndex) ?? layoutState.layouts[0];
         if (!layout) return;
 
         // Top-align with spacing (default), or center vertically if requested
@@ -1853,6 +1875,8 @@ function selectViewport(state: ViewerState): ViewportSlice {
         page: state.page,
         pageCount: state.pageCount,
         pageInfos: state.pageInfos,
+        pageGroups: state.pageGroups,
+        activeGroupIndex: state.activeGroupIndex,
         viewMode: state.viewMode,
         scrollMode: state.scrollMode,
         layoutMode: state.layoutMode,

@@ -18,7 +18,7 @@ import type {
 } from "./state";
 import type { Destination, OutlineItem, ScrollAlignment } from "./navigation";
 import type { Annotation } from "./annotation";
-import type { LayoutPage } from "../../worker/index.js";
+import type { LayoutPage, PageGroup } from "../../worker/index.js";
 
 export type Action =
     // Lifecycle
@@ -30,11 +30,13 @@ export type Action =
           documentFormat: DocumentFormat;
           pageCount: number;
           pageInfos: readonly PageInfo[];
+          pageGroups: readonly PageGroup[];
           viewDefaults?: ViewModeDefaults;
       }
     | { type: "UPDATE_PAGE_SIZES"; pageInfos: readonly PageInfo[] }
     | { type: "CLEAR_DOC" }
     | { type: "SET_PAGE"; page: number }
+    | { type: "SET_ACTIVE_GROUP"; groupIndex: number }
     // Password protection
     | { type: "SET_NEEDS_PASSWORD"; needsPassword: boolean }
     | { type: "AUTHENTICATE_START" }

@@ -1,5 +1,6 @@
 import { getPointsToPixels, type LayoutMode, type PageRotation, type PageInfo } from "../state";
 import { getDevicePixelRatio, toCssPixels, toDevicePixels } from "./pixelAlign";
+import type { PageGroup } from "../../../worker/index.js";
 
 /**
  * Represents a page slot within a spread.
@@ -509,39 +510,30 @@ function applyRotationToSize(size: Size, pageInfo: PageInfo, userRotation: PageR
 }
 
 /**
- * Derives the grid structure from page infos.
- * For XLSX: uses tilePos from each page.
- * For DOCX/PDF: single column, pages stack vertically.
+ * Builds the grid structure for a tiled group using group-local `tilePos`
+ * coordinates and the engine-reported grid dimensions.
  */
-export function deriveGrid(pageInfos: readonly PageInfo[]): {
+function gridFromTiledGroup(
+    group: PageGroup,
+    pageInfos: readonly PageInfo[],
+): {
     columns: number;
     rows: number;
     pageGrid: Array<{ pageIndex: number; row: number; col: number }>;
 } {
+    if (group.layout.type !== "tiled") {
+        throw new Error("gridFromTiledGroup called with non-tiled group");
+    }
+    const { rows, cols } = group.layout;
     const pageGrid: Array<{ pageIndex: number; row: number; col: number }> = [];
-    let maxCol = 0;
-    let maxRow = 0;
-    let hasTilePos = false;
-
-    for (let i = 0; i < pageInfos.length; i++) {
-        const pi = pageInfos[i];
-        if (pi.tilePos) {
-            hasTilePos = true;
-            pageGrid.push({ pageIndex: i, row: pi.tilePos.row, col: pi.tilePos.col });
-            maxCol = Math.max(maxCol, pi.tilePos.col);
-            maxRow = Math.max(maxRow, pi.tilePos.row);
+    for (let i = 0; i < group.pageCount; i++) {
+        const globalIndex = group.startPageIndex + i;
+        const pi = pageInfos[globalIndex];
+        if (pi?.tilePos) {
+            pageGrid.push({ pageIndex: globalIndex, row: pi.tilePos.row, col: pi.tilePos.col });
         }
     }
-
-    if (!hasTilePos) {
-        // Linear layout: single column
-        for (let i = 0; i < pageInfos.length; i++) {
-            pageGrid.push({ pageIndex: i, row: i, col: 0 });
-        }
-        return { columns: 1, rows: pageInfos.length, pageGrid };
-    }
-
-    return { columns: maxCol + 1, rows: maxRow + 1, pageGrid };
+    return { columns: cols, rows, pageGrid };
 }
 
 /**
@@ -579,14 +571,13 @@ export interface ContinuousLayoutResult {
 /**
  * Calculate continuous mode layout.
  *
- * Two sub-modes determined by the presence of `tilePos` on pages:
+ * Two sub-modes are selected by the active group's stitching layout
+ * (from the WASM engine, one group per XLSX sheet, one linear group otherwise):
  *
- * 1. **Linear stitch** (Word/PDF/PPTX — no tilePos): Full-width pages stacked
- *    vertically with zero spacing, centered. No content-rect cropping.
- *    This is visually the same as paged mode but without shadows/gaps.
- *
- * 2. **Grid stitch** (XLSX — has tilePos): Pages cropped to contentRect and
- *    arranged in a 2D grid with column alignment.
+ * 1. **Linear stitch** (`linear` group — Word/PDF/PPTX): Full-width pages
+ *    stacked vertically with zero spacing, centered. No content-rect cropping.
+ * 2. **Grid stitch** (`tiled` group — XLSX sheet): Pages cropped to contentRect
+ *    and arranged in a 2D grid whose dimensions come from the group layout.
  */
 export function calculateContinuousLayout(
     spreads: Spread[],
@@ -594,16 +585,13 @@ export function calculateContinuousLayout(
     scale: number,
     dpi: number,
     rotation: PageRotation,
+    activeGroup: PageGroup | null,
 ): ContinuousLayoutResult {
-    const grid = deriveGrid(pageInfos);
-
-    if (grid.columns === 1 && !pageInfos.some((p) => p.tilePos)) {
-        // Linear stitch: full pages, no cropping, zero spacing, centered
-        return calculateLinearContinuousLayout(spreads, pageInfos, scale, dpi, rotation);
+    if (activeGroup?.layout.type === "tiled") {
+        const grid = gridFromTiledGroup(activeGroup, pageInfos);
+        return calculateGridContinuousLayout(spreads, pageInfos, scale, dpi, rotation, grid);
     }
-
-    // Grid stitch: crop to contentRect, tile-based positioning
-    return calculateGridContinuousLayout(spreads, pageInfos, scale, dpi, rotation, grid);
+    return calculateLinearContinuousLayout(spreads, pageInfos, scale, dpi, rotation);
 }
 
 /**
@@ -687,7 +675,11 @@ function calculateGridContinuousLayout(
     scale: number,
     dpi: number,
     rotation: PageRotation,
-    grid: ReturnType<typeof deriveGrid>,
+    grid: {
+        columns: number;
+        rows: number;
+        pageGrid: Array<{ pageIndex: number; row: number; col: number }>;
+    },
 ): ContinuousLayoutResult {
     const dpr = getDevicePixelRatio();
     const pointsToPixels = getPointsToPixels(dpi);

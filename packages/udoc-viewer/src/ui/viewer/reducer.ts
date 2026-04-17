@@ -22,6 +22,8 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
                 page: 1,
                 pageCount: action.pageCount,
                 pageInfos: action.pageInfos,
+                pageGroups: action.pageGroups,
+                activeGroupIndex: 0,
                 activeTool: toolNowUnavailable ? "pointer" : state.activeTool,
                 activeSubTool: toolNowUnavailable ? null : state.activeSubTool,
                 // Reset view mode to defaults (format-specific if provided)
@@ -49,6 +51,8 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
                 page: 1,
                 pageCount: 0,
                 pageInfos: [],
+                pageGroups: [],
+                activeGroupIndex: 0,
                 needsPassword: false,
                 passwordError: null,
                 isAuthenticating: false,
@@ -79,6 +83,13 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
             const page = clamp(action.page, 1, Math.max(1, state.pageCount || 1));
             if (state.page === page) return state;
             return { ...state, page };
+        }
+        case "SET_ACTIVE_GROUP": {
+            const groupIndex = clamp(action.groupIndex, 0, Math.max(0, state.pageGroups.length - 1));
+            if (state.activeGroupIndex === groupIndex) return state;
+            const group = state.pageGroups[groupIndex];
+            const firstPage = group ? group.startPageIndex + 1 : 1;
+            return { ...state, activeGroupIndex: groupIndex, page: firstPage };
         }
 
         // Password protection

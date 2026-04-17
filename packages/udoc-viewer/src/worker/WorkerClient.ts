@@ -18,6 +18,8 @@ import type {
     LayoutPage,
     LicenseResult,
     OutlineItem,
+    PageGroup,
+    PageGroupLayout,
     PageTransition,
     OutlineSection,
     SplitByOutlineResult,
@@ -66,6 +68,8 @@ export type {
     FontEntry,
     OutlineItem,
     OutlineSection,
+    PageGroup,
+    PageGroupLayout,
     SplitByOutlineResult,
     VisibilityGroup,
 };
@@ -252,6 +256,9 @@ export class WorkerClient {
     // Page info cache per document (populated by getAllPageInfo, used by getPageInfo)
     private pageInfoCache = new Map<string, PageInfo[]>();
 
+    // Page group cache per document (populated by getPageGroups)
+    private pageGroupsCache = new Map<string, PageGroup[]>();
+
     private constructor(worker: Worker) {
         this.worker = worker;
         this.worker.onmessage = this.handleMessage.bind(this);
@@ -426,6 +433,7 @@ export class WorkerClient {
      */
     async unloadPdf(documentId: string): Promise<boolean> {
         this.pageInfoCache.delete(documentId);
+        this.pageGroupsCache.delete(documentId);
         this.performanceCounters.delete(documentId);
         this.cancelRenders(documentId);
         const response = (await this.send({ type: "unloadPdf", documentId })) as { removed: boolean };
@@ -533,6 +541,22 @@ export class WorkerClient {
             if (eventId) counter?.markEnd(eventId, false, (error as Error).message);
             throw error;
         }
+    }
+
+    /**
+     * Get stitching groups for a document (one `linear` group for PDF/DOCX/PPTX,
+     * one `tiled` group per sheet for XLSX). Results are cached.
+     */
+    async getPageGroups(documentId: string): Promise<PageGroup[]> {
+        const cached = this.pageGroupsCache.get(documentId);
+        if (cached) {
+            return cached;
+        }
+        const response = (await this.send({ type: "getPageGroups", documentId })) as {
+            groups: PageGroup[];
+        };
+        this.pageGroupsCache.set(documentId, response.groups);
+        return response.groups;
     }
 
     /**

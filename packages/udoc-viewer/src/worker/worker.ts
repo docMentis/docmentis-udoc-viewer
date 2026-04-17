@@ -18,6 +18,8 @@ import type {
     JsLayoutPage as LayoutPage,
     JsPageInfo as PageInfo,
     JsPageTransition as PageTransition,
+    JsPageGroup as PageGroup,
+    JsPageGroupLayout as PageGroupLayout,
 } from "../wasm/udoc.js";
 
 export type {
@@ -33,6 +35,8 @@ export type {
     LayoutPage,
     PageInfo,
     PageTransition,
+    PageGroup,
+    PageGroupLayout,
 };
 
 let wasm: Wasm | null = null;
@@ -97,6 +101,7 @@ export type WorkerRequest =
     | { type: "getPageCount"; documentId: string }
     | { type: "getPageInfo"; documentId: string; pageIndex: number }
     | { type: "getAllPageInfo"; documentId: string }
+    | { type: "getPageGroups"; documentId: string }
     | { type: "renderPage"; documentId: string; pageIndex: number; width: number; height: number }
     | { type: "getOutline"; documentId: string }
     | { type: "getPageAnnotations"; documentId: string; pageIndex: number }
@@ -164,6 +169,8 @@ export type WorkerResponse =
     | { type: "getPageInfo"; success: false; error: string }
     | { type: "getAllPageInfo"; success: true; pages: PageInfo[] }
     | { type: "getAllPageInfo"; success: false; error: string }
+    | { type: "getPageGroups"; success: true; groups: PageGroup[] }
+    | { type: "getPageGroups"; success: false; error: string }
     | { type: "renderPage"; success: true; rgba: Uint8Array; width: number; height: number }
     | { type: "renderPage"; success: false; error: string }
     | { type: "getOutline"; success: true; outline: OutlineItem[] }
@@ -377,6 +384,13 @@ async function handleMessage(event: MessageEvent<WorkerRequest & { _id?: number 
                 ensureInitialized();
                 const pages = wasm!.all_page_info(request.documentId);
                 respond({ type: "getAllPageInfo", success: true, pages });
+                break;
+            }
+
+            case "getPageGroups": {
+                ensureInitialized();
+                const groups = wasm!.page_groups(request.documentId);
+                respond({ type: "getPageGroups", success: true, groups });
                 break;
             }
 

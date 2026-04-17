@@ -458,6 +458,7 @@ export class UDocViewer {
                         documentFormat: format,
                         pageCount: 0,
                         pageInfos: [],
+                        pageGroups: [],
                         viewDefaults: this.computeViewDefaults(format),
                     });
                     this.uiShell.dispatch({ type: "SET_PROCESSING", processing: false });
@@ -470,6 +471,7 @@ export class UDocViewer {
             // Load all page info upfront (fast operation)
             this._pageInfo = await this.workerClient.getAllPageInfo(this.documentId);
             this._pageCount = this._pageInfo.length;
+            const pageGroups = await this.workerClient.getPageGroups(this.documentId);
 
             if (this.uiShell) {
                 const initUiId = this._performanceCounter.markStart("initUiShell");
@@ -479,6 +481,7 @@ export class UDocViewer {
                     documentFormat: format,
                     pageCount: this._pageCount,
                     pageInfos: this._pageInfo,
+                    pageGroups,
                     viewDefaults: this.computeViewDefaults(format),
                 });
                 this._performanceCounter.markEnd(initUiId);
@@ -571,6 +574,7 @@ export class UDocViewer {
                 // Reload page info after successful authentication
                 this._pageInfo = await this.workerClient.getAllPageInfo(this.documentId!);
                 this._pageCount = this._pageInfo.length;
+                const pageGroups = await this.workerClient.getPageGroups(this.documentId!);
 
                 if (this.uiShell) {
                     this.uiShell.dispatch({ type: "AUTHENTICATE_SUCCESS" });
@@ -580,6 +584,7 @@ export class UDocViewer {
                         documentFormat: this.currentFormat ?? "pdf",
                         pageCount: this._pageCount,
                         pageInfos: this._pageInfo,
+                        pageGroups,
                         viewDefaults: this.currentFormat ? this.computeViewDefaults(this.currentFormat) : undefined,
                     });
                 }
@@ -1769,6 +1774,7 @@ img { display: block; }
         this._pageCount = this._pageInfo.length;
         const format = (await this.workerClient.getDocumentFormat(docId)) as DocumentFormat;
         this.currentFormat = format;
+        const pageGroups = await this.workerClient.getPageGroups(docId);
 
         if (this.uiShell) {
             this.uiShell.dispatch({
@@ -1777,6 +1783,7 @@ img { display: block; }
                 documentFormat: format,
                 pageCount: this._pageCount,
                 pageInfos: this._pageInfo,
+                pageGroups,
             });
         }
 

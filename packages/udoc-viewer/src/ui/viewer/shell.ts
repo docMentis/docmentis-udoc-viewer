@@ -13,6 +13,7 @@ import { createToolbar } from "./components/Toolbar";
 import { createSubToolbar } from "./components/SubToolbar";
 import { createLeftPanel } from "./components/LeftPanel";
 import { createViewport } from "./components/Viewport";
+import { createSheetTabBar } from "./components/SheetTabBar";
 import { createRightPanel } from "./components/RightPanel";
 import { createPasswordDialog } from "./components/PasswordDialog";
 import { createPrintDialog } from "./components/PrintDialog";
@@ -171,6 +172,9 @@ export function mountViewerShell(
 
     const viewport = createViewport(showAttribution);
     viewport.mount(viewportSlot, store, workerClient, i18n);
+
+    const sheetTabBar = createSheetTabBar();
+    sheetTabBar.mount(viewportSlot, store);
 
     const rightPanel = createRightPanel();
     rightPanel.mount(rightPanelSlot, store, i18n);
@@ -430,6 +434,7 @@ export function mountViewerShell(
         subToolbar.destroy();
         leftPanel.destroy();
         viewport.destroy();
+        sheetTabBar.destroy();
         rightPanel.destroy();
         loadingOverlay?.destroy();
         passwordDialog.destroy();

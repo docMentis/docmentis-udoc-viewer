@@ -269,12 +269,12 @@ if (!('encodeInto' in cachedTextEncoder)) {
 
 let WASM_VECTOR_LEN = 0;
 
-function __wasm_bindgen_func_elem_4169(arg0, arg1, arg2) {
-    wasm.__wasm_bindgen_func_elem_4169(arg0, arg1, addHeapObject(arg2));
+function __wasm_bindgen_func_elem_4191(arg0, arg1, arg2) {
+    wasm.__wasm_bindgen_func_elem_4191(arg0, arg1, addHeapObject(arg2));
 }
 
-function __wasm_bindgen_func_elem_22407(arg0, arg1, arg2, arg3) {
-    wasm.__wasm_bindgen_func_elem_22407(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
+function __wasm_bindgen_func_elem_22429(arg0, arg1, arg2, arg3) {
+    wasm.__wasm_bindgen_func_elem_22429(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
 }
 
 const __wbindgen_enum_GpuBufferBindingType = ["uniform", "storage", "read-only-storage"];
@@ -421,6 +421,39 @@ export class Wasm {
         const len0 = WASM_VECTOR_LEN;
         const ret = wasm.wasm_has_feature(this.__wbg_ptr, ptr0, len0);
         return ret !== 0;
+    }
+    /**
+     * Get the page groups for a document.
+     *
+     * Each group covers a contiguous range of global page indices with a
+     * shared stitching layout. Use this to build per-group canvases (e.g.,
+     * one panel per Excel sheet) and group-named sidebars.
+     *
+     * - PDF/DOCX: one `linear` group covering all pages, no name.
+     * - PPTX: one `linear` group (per-section groups once sections are modeled).
+     * - XLSX: one `tiled` group per sheet with the sheet name and page-grid dimensions.
+     * @param {string} id
+     * @returns {JsPageGroup[]}
+     */
+    page_groups(id) {
+        try {
+            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+            const ptr0 = passStringToWasm0(id, wasm.__wbindgen_export, wasm.__wbindgen_export2);
+            const len0 = WASM_VECTOR_LEN;
+            wasm.wasm_page_groups(retptr, this.__wbg_ptr, ptr0, len0);
+            var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
+            var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
+            var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
+            var r3 = getDataViewMemory0().getInt32(retptr + 4 * 3, true);
+            if (r3) {
+                throw takeObject(r2);
+            }
+            var v2 = getArrayJsValueFromWasm0(r0, r1).slice();
+            wasm.__wbindgen_export4(r0, r1 * 4, 4);
+            return v2;
+        } finally {
+            wasm.__wbindgen_add_to_stack_pointer(16);
+        }
     }
     /**
      * Compose new PDF documents by cherry-picking pages from source documents.
@@ -2066,7 +2099,7 @@ function __wbg_get_imports() {
                 const a = state0.a;
                 state0.a = 0;
                 try {
-                    return __wasm_bindgen_func_elem_22407(a, state0.b, arg0, arg1);
+                    return __wasm_bindgen_func_elem_22429(a, state0.b, arg0, arg1);
                 } finally {
                     state0.a = a;
                 }
@@ -2558,7 +2591,7 @@ function __wbg_get_imports() {
     };
     imports.wbg.__wbindgen_cast_e95d7a09ad75920b = function(arg0, arg1) {
         // Cast intrinsic for `Closure(Closure { dtor_idx: 259, function: Function { arguments: [Externref], shim_idx: 260, ret: Unit, inner_ret: Some(Unit) }, mutable: true }) -> Externref`.
-        const ret = makeMutClosure(arg0, arg1, wasm.__wasm_bindgen_func_elem_4153, __wasm_bindgen_func_elem_4169);
+        const ret = makeMutClosure(arg0, arg1, wasm.__wasm_bindgen_func_elem_4175, __wasm_bindgen_func_elem_4191);
         return addHeapObject(ret);
     };
     imports.wbg.__wbindgen_object_clone_ref = function(arg0) {

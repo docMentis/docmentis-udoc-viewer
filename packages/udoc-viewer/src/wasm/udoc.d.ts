@@ -117,6 +117,15 @@ export type JsViewerLayoutMode = "single-page" | "double-page-odd-right" | "doub
 
 export type JsViewerScrollMode = "spread" | "continuous";
 
+export type JsRippleDirection = "center" | "leftUp" | "rightUp" | "leftDown" | "rightDown";
+
+/**
+ * Font source for JavaScript serialization.
+ */
+export type JsFontSource = "embedded" | "standard" | "googleFonts" | "url" | "local" | { custom: string };
+
+export type JsMorphOption = "byObject" | "byWord" | "byChar";
+
 /**
  * A pick specification from JavaScript.
  */
@@ -135,91 +144,24 @@ export interface JsPick {
     rotation: number | undefined;
 }
 
-export type JsShredPattern = "strip" | "rectangle";
-
 /**
- * Font spec for JavaScript serialization.
+ * Font usage entry for JavaScript serialization.
  */
-export type JsFontSpec = { typeface: string; bold: boolean; italic: boolean } | { fontId: string };
-
-/**
- * Visibility group info for serialization to JavaScript.
- */
-export interface JsVisibilityGroup {
-    id: string;
-    name: string;
-    visible: boolean;
-    locked: boolean;
+export interface JsFontUsageEntry {
+    spec: JsFontSpec;
+    resolved: JsResolvedFontInfo;
+    fallbacks: JsResolvedFontInfo[];
 }
 
 /**
- * Result from pdf_split_by_outline.
+ * Nested `Vec<Vec<T>>` can\'t cross the WASM boundary directly, so we use a
+ * transparent Tsify wrapper.
  */
-export interface JsSplitByOutlineResult {
-    documentIds: string[];
-    sections: JsOutlineSection[];
-}
-
-/**
- * Annotations grouped by page index (as string keys).
- */
-export type JsAnnotationsByPage = Record<string, JsAnnotation[]>;
-
-export type JsEightDirection = "left" | "right" | "up" | "down" | "leftUp" | "rightUp" | "leftDown" | "rightDown";
-
-export type JsCornerDirection = "leftUp" | "rightUp" | "leftDown" | "rightDown";
-
-export type JsOrientation = "horizontal" | "vertical";
-
-/**
- * Outline section info for split_by_outline results.
- */
-export interface JsOutlineSection {
-    title: string;
-    index: number;
-}
-
-/**
- * Tile position in a 2D page grid.
- */
-export interface JsTilePos {
-    row: number;
-    col: number;
-}
-
-/**
- * Font info returned by `parseFontInfo`.
- */
-export interface JsParsedFontInfo {
-    typeface: string;
-    bold: boolean;
-    italic: boolean;
-}
-
-export type JsInOutDirection = "in" | "out";
+export type JsCompositions = JsPick[][];
 
 export type JsSideDirection = "left" | "right" | "up" | "down";
 
-/**
- * Resolved font info for JavaScript serialization.
- */
-export interface JsResolvedFontInfo {
-    familyName: string;
-    postscriptName?: string;
-    source: JsFontSource;
-    bold: boolean;
-    italic: boolean;
-}
-
-/**
- * A simple rectangle for serialization to JavaScript.
- */
-export interface JsRect {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-}
+export type JsOrientation = "horizontal" | "vertical";
 
 /**
  * Page transition info for serialization to JavaScript.
@@ -246,29 +188,100 @@ export interface JsPageTransition {
     advanceAfterMs?: number;
 }
 
-export type JsMorphOption = "byObject" | "byWord" | "byChar";
+/**
+ * Tile position in a 2D page grid.
+ */
+export interface JsTilePos {
+    row: number;
+    col: number;
+}
 
 /**
- * Extracted image info for JavaScript.
+ * Font info returned by `parseFontInfo`.
  */
-export interface JsExtractedImage {
+export interface JsParsedFontInfo {
+    typeface: string;
+    bold: boolean;
+    italic: boolean;
+}
+
+/**
+ * Annotations grouped by page index (as string keys).
+ */
+export type JsAnnotationsByPage = Record<string, JsAnnotation[]>;
+
+export type JsCornerDirection = "leftUp" | "rightUp" | "leftDown" | "rightDown";
+
+/**
+ * Transition effect as a discriminated union (tagged by `type`).
+ */
+export type JsTransitionEffect = { type: "blinds"; orientation: JsOrientation } | { type: "checker"; orientation: JsOrientation } | { type: "circle" } | { type: "dissolve" } | { type: "comb"; orientation: JsOrientation } | { type: "cover"; direction: JsEightDirection } | { type: "cut"; throughBlack: boolean } | { type: "diamond" } | { type: "fade"; throughBlack: boolean } | { type: "newsflash" } | { type: "plus" } | { type: "pull"; direction: JsEightDirection } | { type: "push"; direction: JsSideDirection } | { type: "random" } | { type: "randomBar"; orientation: JsOrientation } | { type: "split"; orientation: JsOrientation; inOut: JsInOutDirection } | { type: "strips"; direction: JsCornerDirection } | { type: "wedge" } | { type: "wheel"; spokes: number } | { type: "wipe"; direction: JsSideDirection } | { type: "zoom"; inOut: JsInOutDirection } | { type: "box"; inOut: JsInOutDirection } | { type: "glitter"; direction: JsSideDirection; pattern: JsGlitterPattern } | { type: "fly"; direction: JsSideDirection } | { type: "uncover"; direction: JsEightDirection } | { type: "replace" } | { type: "vortex"; direction: JsSideDirection } | { type: "switch"; direction: JsSideDirection } | { type: "flip"; direction: JsSideDirection } | { type: "ripple"; direction: JsRippleDirection } | { type: "honeycomb" } | { type: "prism"; direction: JsSideDirection; isContent: boolean; isInverted: boolean } | { type: "doors"; orientation: JsOrientation } | { type: "window"; orientation: JsOrientation } | { type: "ferris"; direction: JsSideDirection } | { type: "gallery"; direction: JsSideDirection } | { type: "conveyor"; direction: JsSideDirection } | { type: "pan"; direction: JsSideDirection } | { type: "warp"; inOut: JsInOutDirection } | { type: "flythrough"; inOut: JsInOutDirection; hasBounce: boolean } | { type: "flash" } | { type: "shred"; pattern: JsShredPattern; inOut: JsInOutDirection } | { type: "reveal"; throughBlack: boolean; direction: JsSideDirection } | { type: "wheelReverse"; spokes: number } | { type: "morph"; option: JsMorphOption };
+
+/**
+ * Extracted font info for JavaScript.
+ */
+export interface JsExtractedFont {
     name: string;
-    format: string;
-    width: number | undefined;
-    height: number | undefined;
+    fontType: string;
+    extension: string;
     data: number[];
 }
 
 /**
- * Nested `Vec<Vec<T>>` can\'t cross the WASM boundary directly, so we use a
- * transparent Tsify wrapper.
+ * A contiguous group of pages sharing a stitching layout.
+ *
+ * Viewers build one stitched canvas per group (e.g., one panel per Excel
+ * sheet). Per-page `tilePos` values on `JsPageInfo` are local coordinates
+ * within the group.
  */
-export type JsCompositions = JsPick[][];
+export interface JsPageGroup {
+    /**
+     * Display label (sheet name for XLSX). Absent for unnamed linear groups.
+     */
+    name?: string;
+    /**
+     * Global index of the first page in the group.
+     */
+    startPageIndex: number;
+    /**
+     * Number of pages in the group.
+     */
+    pageCount: number;
+    /**
+     * Stitching layout (discriminated union tagged by `type`).
+     */
+    layout: JsPageGroupLayout;
+}
 
 /**
- * Font source for JavaScript serialization.
+ * Stitching layout of a `JsPageGroup` (discriminated union tagged by `type`).
  */
-export type JsFontSource = "embedded" | "standard" | "googleFonts" | "url" | "local" | { custom: string };
+export type JsPageGroupLayout = { type: "linear" } | { type: "tiled"; rows: number; cols: number };
+
+export type JsGlitterPattern = "diamond" | "hexagon";
+
+/**
+ * Visibility group info for serialization to JavaScript.
+ */
+export interface JsVisibilityGroup {
+    id: string;
+    name: string;
+    visible: boolean;
+    locked: boolean;
+}
+
+/**
+ * Outline section info for split_by_outline results.
+ */
+export interface JsOutlineSection {
+    title: string;
+    index: number;
+}
+
+/**
+ * Font spec for JavaScript serialization.
+ */
+export type JsFontSpec = { typeface: string; bold: boolean; italic: boolean } | { fontId: string };
 
 /**
  * Font registration entry from JavaScript.
@@ -281,16 +294,27 @@ export interface JsFontRegistration {
 }
 
 /**
- * Extracted font info for JavaScript.
+ * Extracted image info for JavaScript.
  */
-export interface JsExtractedFont {
+export interface JsExtractedImage {
     name: string;
-    fontType: string;
-    extension: string;
+    format: string;
+    width: number | undefined;
+    height: number | undefined;
     data: number[];
 }
 
-export type JsGlitterPattern = "diamond" | "hexagon";
+export type JsShredPattern = "strip" | "rectangle";
+
+/**
+ * Result from pdf_split_by_outline.
+ */
+export interface JsSplitByOutlineResult {
+    documentIds: string[];
+    sections: JsOutlineSection[];
+}
+
+export type JsInOutDirection = "in" | "out";
 
 /**
  * Page info for serialization to JavaScript.
@@ -319,20 +343,27 @@ export interface JsPageInfo {
 }
 
 /**
- * Font usage entry for JavaScript serialization.
+ * Resolved font info for JavaScript serialization.
  */
-export interface JsFontUsageEntry {
-    spec: JsFontSpec;
-    resolved: JsResolvedFontInfo;
-    fallbacks: JsResolvedFontInfo[];
+export interface JsResolvedFontInfo {
+    familyName: string;
+    postscriptName?: string;
+    source: JsFontSource;
+    bold: boolean;
+    italic: boolean;
 }
 
-export type JsRippleDirection = "center" | "leftUp" | "rightUp" | "leftDown" | "rightDown";
+export type JsEightDirection = "left" | "right" | "up" | "down" | "leftUp" | "rightUp" | "leftDown" | "rightDown";
 
 /**
- * Transition effect as a discriminated union (tagged by `type`).
+ * A simple rectangle for serialization to JavaScript.
  */
-export type JsTransitionEffect = { type: "blinds"; orientation: JsOrientation } | { type: "checker"; orientation: JsOrientation } | { type: "circle" } | { type: "dissolve" } | { type: "comb"; orientation: JsOrientation } | { type: "cover"; direction: JsEightDirection } | { type: "cut"; throughBlack: boolean } | { type: "diamond" } | { type: "fade"; throughBlack: boolean } | { type: "newsflash" } | { type: "plus" } | { type: "pull"; direction: JsEightDirection } | { type: "push"; direction: JsSideDirection } | { type: "random" } | { type: "randomBar"; orientation: JsOrientation } | { type: "split"; orientation: JsOrientation; inOut: JsInOutDirection } | { type: "strips"; direction: JsCornerDirection } | { type: "wedge" } | { type: "wheel"; spokes: number } | { type: "wipe"; direction: JsSideDirection } | { type: "zoom"; inOut: JsInOutDirection } | { type: "box"; inOut: JsInOutDirection } | { type: "glitter"; direction: JsSideDirection; pattern: JsGlitterPattern } | { type: "fly"; direction: JsSideDirection } | { type: "uncover"; direction: JsEightDirection } | { type: "replace" } | { type: "vortex"; direction: JsSideDirection } | { type: "switch"; direction: JsSideDirection } | { type: "flip"; direction: JsSideDirection } | { type: "ripple"; direction: JsRippleDirection } | { type: "honeycomb" } | { type: "prism"; direction: JsSideDirection; isContent: boolean; isInverted: boolean } | { type: "doors"; orientation: JsOrientation } | { type: "window"; orientation: JsOrientation } | { type: "ferris"; direction: JsSideDirection } | { type: "gallery"; direction: JsSideDirection } | { type: "conveyor"; direction: JsSideDirection } | { type: "pan"; direction: JsSideDirection } | { type: "warp"; inOut: JsInOutDirection } | { type: "flythrough"; inOut: JsInOutDirection; hasBounce: boolean } | { type: "flash" } | { type: "shred"; pattern: JsShredPattern; inOut: JsInOutDirection } | { type: "reveal"; throughBlack: boolean; direction: JsSideDirection } | { type: "wheelReverse"; spokes: number } | { type: "morph"; option: JsMorphOption };
+export interface JsRect {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+}
 
 export interface JsLayoutGlyph {
     x: number;
@@ -553,6 +584,18 @@ export class Wasm {
    * Check if a feature is enabled by the current license.
    */
   has_feature(feature: string): boolean;
+  /**
+   * Get the page groups for a document.
+   *
+   * Each group covers a contiguous range of global page indices with a
+   * shared stitching layout. Use this to build per-group canvases (e.g.,
+   * one panel per Excel sheet) and group-named sidebars.
+   *
+   * - PDF/DOCX: one `linear` group covering all pages, no name.
+   * - PPTX: one `linear` group (per-section groups once sections are modeled).
+   * - XLSX: one `tiled` group per sheet with the sheet name and page-grid dimensions.
+   */
+  page_groups(id: string): JsPageGroup[];
   /**
    * Compose new PDF documents by cherry-picking pages from source documents.
    *
@@ -1076,6 +1119,7 @@ export interface InitOutput {
   readonly wasm_needs_password: (a: number, b: number, c: number, d: number) => void;
   readonly wasm_new: (a: number, b: number, c: number, d: number) => number;
   readonly wasm_page_count: (a: number, b: number, c: number, d: number) => void;
+  readonly wasm_page_groups: (a: number, b: number, c: number, d: number) => void;
   readonly wasm_page_info: (a: number, b: number, c: number, d: number, e: number) => void;
   readonly wasm_pdf_compose: (a: number, b: number, c: number, d: number, e: number) => void;
   readonly wasm_pdf_compress: (a: number, b: number, c: number, d: number) => void;
@@ -1093,9 +1137,9 @@ export interface InitOutput {
   readonly wasm_set_visibility_group_visible: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
   readonly wasm_setup_telemetry: (a: number, b: number, c: number) => void;
   readonly wasm_viewer_preferences: (a: number, b: number, c: number, d: number) => void;
-  readonly __wasm_bindgen_func_elem_4169: (a: number, b: number, c: number) => void;
-  readonly __wasm_bindgen_func_elem_4153: (a: number, b: number) => void;
-  readonly __wasm_bindgen_func_elem_22407: (a: number, b: number, c: number, d: number) => void;
+  readonly __wasm_bindgen_func_elem_4191: (a: number, b: number, c: number) => void;
+  readonly __wasm_bindgen_func_elem_4175: (a: number, b: number) => void;
+  readonly __wasm_bindgen_func_elem_22429: (a: number, b: number, c: number, d: number) => void;
   readonly __wbindgen_export: (a: number, b: number) => number;
   readonly __wbindgen_export2: (a: number, b: number, c: number, d: number) => number;
   readonly __wbindgen_export3: (a: number) => void;

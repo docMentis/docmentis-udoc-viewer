@@ -1,7 +1,7 @@
 import type { OutlineItem, NavigationTarget, ScrollAlignment } from "./navigation";
 import type { Annotation } from "./annotation";
 import type { LayoutPage } from "../../worker/index.js";
-import type { PageInfo } from "../../worker/index.js";
+import type { PageInfo, PageGroup } from "../../worker/index.js";
 
 // -----------------------------------------------------------------------------
 // Search types
@@ -225,6 +225,11 @@ export interface ViewerState {
     pageCount: number;
     pageInfos: readonly PageInfo[];
 
+    /** Stitching groups (one per XLSX sheet, one `linear` group for other formats). */
+    pageGroups: readonly PageGroup[];
+    /** Index of the currently active group (used for multi-sheet XLSX). */
+    activeGroupIndex: number;
+
     // Password protection
     /** Whether the document requires a password to open */
     needsPassword: boolean;
@@ -415,6 +420,9 @@ export const initialState: ViewerState = {
     page: 1,
     pageCount: 0,
     pageInfos: [],
+
+    pageGroups: [],
+    activeGroupIndex: 0,
 
     needsPassword: false,
     passwordError: null,
