@@ -51,7 +51,14 @@ export type {
 } from "./ui/viewer/state.js";
 
 // Worker internals (types only, for advanced usage)
-export type { PageInfo, LicenseResult, WorkerRequest, WorkerResponse } from "./worker/index.js";
+export type {
+    PageInfo,
+    LicenseResult,
+    WorkerRequest,
+    WorkerResponse,
+    RenderCacheStats,
+    RenderCacheBucket,
+} from "./worker/index.js";
 
 // Font usage types
 export type { FontSource, ResolvedFontInfo, FontUsageEntry } from "./worker/index.js";

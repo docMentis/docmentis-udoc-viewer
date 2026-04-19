@@ -327,6 +327,30 @@
                 padding: 24px;
                 overflow: hidden;
             }
+            /* Overlay is mounted inside .udoc-viewport__content (relative),
+               so absolute positioning anchors it to the scrollable doc area only. */
+            .memory-overlay {
+                position: absolute;
+                top: 8px;
+                /* Leave room for the scroll area's scrollbar (up to ~17px on desktop). */
+                right: 24px;
+                padding: 8px 10px;
+                background: rgba(17, 24, 39, 0.82);
+                color: #e5e7eb;
+                font:
+                    11px/1.45 ui-monospace,
+                    SFMono-Regular,
+                    Menlo,
+                    monospace;
+                border-radius: 6px;
+                pointer-events: none;
+                z-index: 20;
+                white-space: pre;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+            }
+            .memory-overlay__oom {
+                color: #f87171;
+            }
             #viewer {
                 width: 100%;
                 height: 100%;

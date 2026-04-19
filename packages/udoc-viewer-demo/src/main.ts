@@ -78,6 +78,11 @@ const docNameEl = document.getElementById("doc-name")!;
 let viewer: UDocViewer | null = null;
 let client: UDocClient | null = null;
 let gpuEnabled = false;
+let memoryOverlayEnabled = false;
+let memoryOverlayTimer: ReturnType<typeof setInterval> | null = null;
+let memoryOverlayUnsubOOM: (() => void) | null = null;
+let oomCount = 0;
+let lastOOMMessage: string | null = null;
 let hideAttribution = false;
 let enableTransitions = false;
 let disableViewTools = false;
@@ -88,6 +93,90 @@ let currentDocSource: string | File | null = null;
 let currentDocName: string | null = null;
 let activeDesktopDocItem: HTMLButtonElement | null = null;
 let activeMobileDocItem: HTMLButtonElement | null = null;
+
+function formatBytes(bytes: number): string {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
+}
+
+let lastWasmBytes = 0;
+
+function ensureMemoryOverlayEl(): HTMLDivElement | null {
+    // Mount inside the viewer's scrollable content area so the overlay moves
+    // with the viewer and doesn't cover the toolbar/panels.
+    const host = viewerContainer.querySelector<HTMLElement>(".udoc-viewport__content");
+    if (!host) return null;
+    let el = host.querySelector<HTMLDivElement>(":scope > .memory-overlay");
+    if (!el) {
+        el = document.createElement("div");
+        el.className = "memory-overlay";
+        host.appendChild(el);
+    }
+    return el;
+}
+
+function renderMemoryOverlay() {
+    const el = ensureMemoryOverlayEl();
+    if (!el || !client) return;
+    const s = client.getRenderCacheStats();
+    const pad = (n: number, w: number) => String(n).padStart(w);
+    const stats =
+        `cache          count    bytes\n` +
+        `page       ${pad(s.page.count, 7)}  ${formatBytes(s.page.bytes)}\n` +
+        `thumbnail  ${pad(s.thumbnail.count, 7)}  ${formatBytes(s.thumbnail.bytes)}\n` +
+        `preview    ${pad(s.preview.count, 7)}  ${formatBytes(s.preview.bytes)}\n` +
+        `total      ${pad(s.total.count, 7)}  ${formatBytes(s.total.bytes)}\n` +
+        `wasm       ${" ".repeat(7)}  ${lastWasmBytes > 0 ? formatBytes(lastWasmBytes) : "—"}`;
+    el.textContent = stats;
+    if (oomCount > 0) {
+        const oomLine = document.createElement("div");
+        oomLine.className = "memory-overlay__oom";
+        oomLine.textContent = `OOM fires: ${oomCount}${lastOOMMessage ? ` — ${lastOOMMessage}` : ""}`;
+        el.appendChild(document.createElement("br"));
+        el.appendChild(oomLine);
+    }
+}
+
+function startMemoryOverlay() {
+    oomCount = 0;
+    lastOOMMessage = null;
+    lastWasmBytes = 0;
+    if (memoryOverlayTimer) clearInterval(memoryOverlayTimer);
+    memoryOverlayTimer = setInterval(() => {
+        renderMemoryOverlay();
+        // WASM memory is async — fire-and-forget so the poll tick stays snappy.
+        client
+            ?.getWasmMemoryBytes()
+            .then((b) => {
+                lastWasmBytes = b;
+            })
+            .catch(() => {
+                /* ignore */
+            });
+    }, 1000);
+    renderMemoryOverlay();
+    memoryOverlayUnsubOOM?.();
+    memoryOverlayUnsubOOM =
+        client?.onOOM((err) => {
+            oomCount += 1;
+            lastOOMMessage = err.message.slice(0, 80);
+            renderMemoryOverlay();
+        }) ?? null;
+}
+
+function stopMemoryOverlay() {
+    const host = viewerContainer.querySelector<HTMLElement>(".udoc-viewport__content");
+    const el = host?.querySelector<HTMLDivElement>(":scope > .memory-overlay");
+    el?.remove();
+    if (memoryOverlayTimer) {
+        clearInterval(memoryOverlayTimer);
+        memoryOverlayTimer = null;
+    }
+    memoryOverlayUnsubOOM?.();
+    memoryOverlayUnsubOOM = null;
+}
 
 function formatPerformanceEntry(entry: PerformanceLogEntry): string {
     const ctx = entry.context?.pageIndex !== undefined ? ` page=${entry.context.pageIndex + 1}` : "";
@@ -159,6 +248,11 @@ async function createViewer() {
     // Reload current document if any
     if (currentDocSource) {
         await viewer.load(currentDocSource);
+    }
+
+    // Re-attach memory overlay subscription if it's enabled (client may have been recreated)
+    if (memoryOverlayEnabled) {
+        startMemoryOverlay();
     }
 }
 
@@ -478,6 +572,15 @@ const OPTION_GROUPS: ToggleGroup[] = [
                     enableTransitions = checked;
                     // Transition setting is applied at viewer creation — must recreate
                     await createViewer();
+                },
+            },
+            {
+                label: "Memory Overlay (Debug)",
+                hint: "Shows render cache size & OOM fires",
+                onChange: (checked) => {
+                    memoryOverlayEnabled = checked;
+                    if (checked) startMemoryOverlay();
+                    else stopMemoryOverlay();
                 },
             },
         ],

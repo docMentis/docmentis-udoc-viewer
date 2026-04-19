@@ -40,6 +40,7 @@ export type {
 };
 
 let wasm: Wasm | null = null;
+let wasmMemory: WebAssembly.Memory | null = null;
 let gpuAvailable = false;
 
 /**
@@ -120,7 +121,8 @@ export type WorkerRequest =
     | { type: "setVisibilityGroupVisible"; documentId: string; groupId: string; visible: boolean }
     | { type: "parseFontInfo"; data: Uint8Array }
     | { type: "getFontUsage"; documentId: string }
-    | { type: "pdfSaveAnnotations"; documentId: string; annotationsByPage: AnnotationsByPage };
+    | { type: "pdfSaveAnnotations"; documentId: string; annotationsByPage: AnnotationsByPage }
+    | { type: "getWasmMemoryBytes" };
 
 /**
  * Message types from worker to main thread.
@@ -208,7 +210,9 @@ export type WorkerResponse =
     | { type: "getFontUsage"; success: true; entries: FontUsageEntry[] }
     | { type: "getFontUsage"; success: false; error: string }
     | { type: "pdfSaveAnnotations"; success: true; bytes: Uint8Array }
-    | { type: "pdfSaveAnnotations"; success: false; error: string };
+    | { type: "pdfSaveAnnotations"; success: false; error: string }
+    | { type: "getWasmMemoryBytes"; success: true; bytes: number }
+    | { type: "getWasmMemoryBytes"; success: false; error: string };
 
 /** Current request ID for response matching. */
 let currentRequestId: number | undefined;
@@ -248,7 +252,8 @@ async function handleMessage(event: MessageEvent<WorkerRequest & { _id?: number 
     try {
         switch (request.type) {
             case "init": {
-                await init(request.wasmUrl ? { module_or_path: request.wasmUrl } : undefined);
+                const exports = await init(request.wasmUrl ? { module_or_path: request.wasmUrl } : undefined);
+                wasmMemory = (exports as { memory?: WebAssembly.Memory }).memory ?? null;
                 wasm = new Wasm(request.domain, request.viewerVersion);
                 if (request.gpu) {
                     try {
@@ -571,6 +576,11 @@ async function handleMessage(event: MessageEvent<WorkerRequest & { _id?: number 
                 ensureInitialized();
                 const bytes = wasm!.pdf_save_annotations(request.documentId, request.annotationsByPage) as Uint8Array;
                 respond({ type: "pdfSaveAnnotations", success: true, bytes }, [bytes.buffer]);
+                break;
+            }
+
+            case "getWasmMemoryBytes": {
+                respond({ type: "getWasmMemoryBytes", success: true, bytes: wasmMemory?.buffer.byteLength ?? 0 });
                 break;
             }
 

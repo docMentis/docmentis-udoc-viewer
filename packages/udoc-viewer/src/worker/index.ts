@@ -20,6 +20,8 @@ export type {
     RenderType,
     RenderRequest,
     RenderResult,
+    RenderCacheBucket,
+    RenderCacheStats,
     FontSource,
     ResolvedFontInfo,
     FontUsageEntry,

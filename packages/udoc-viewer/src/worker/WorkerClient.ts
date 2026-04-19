@@ -152,6 +152,18 @@ export interface RenderRequest {
     scale: number;
 }
 
+export interface RenderCacheBucket {
+    count: number;
+    bytes: number;
+}
+
+export interface RenderCacheStats {
+    page: RenderCacheBucket;
+    thumbnail: RenderCacheBucket;
+    preview: RenderCacheBucket;
+    total: RenderCacheBucket;
+}
+
 export interface RenderResult {
     bitmap: ImageBitmap;
     width: number;
@@ -224,6 +236,19 @@ export function makeRenderKey(docId: string, page: number, type: RenderType, sca
     return `${docId}:${page}:${type}:${scale.toFixed(4)}`;
 }
 
+/**
+ * Heuristic detection of allocation/OOM-style errors, covering:
+ *  - JS-side: `RangeError: Array buffer allocation failed`, ImageBitmap OOM.
+ *  - WASM-side: Rust allocator aborts surface as `RuntimeError`/"memory access out of bounds"
+ *    or "unreachable executed" after a failed `memory.grow`.
+ */
+function isOOMError(err: unknown): boolean {
+    if (!err) return false;
+    if (err instanceof RangeError) return true;
+    const msg = err instanceof Error ? err.message : String(err);
+    return /out of memory|allocation failed|memory access out of bounds|unreachable executed|RuntimeError/i.test(msg);
+}
+
 export class WorkerClient {
     private worker: Worker;
     private requestId = 0;
@@ -245,6 +270,10 @@ export class WorkerClient {
 
     // Callbacks notified when render cache is invalidated
     private renderInvalidatedCallbacks = new Set<() => void>();
+
+    // Callbacks notified when an OOM error is detected during render
+    private oomCallbacks = new Set<(error: Error) => void>();
+    private lastOOMClearAt = 0;
 
     // Font usage change detection
     private fontUsageChangedCallbacks = new Set<(docId: string) => void>();
@@ -1121,6 +1150,64 @@ export class WorkerClient {
     }
 
     /**
+     * Subscribe to render OOM events. Fired after caches are cleared so UIs
+     * can surface a warning or trigger quality degradation.
+     */
+    onOOM(callback: (error: Error) => void): () => void {
+        this.oomCallbacks.add(callback);
+        return () => this.oomCallbacks.delete(callback);
+    }
+
+    /**
+     * Current WASM linear-memory size in bytes (reflects every `memory.grow`).
+     * Returns 0 if the worker has not finished initializing yet.
+     */
+    async getWasmMemoryBytes(): Promise<number> {
+        const response = (await this.send({ type: "getWasmMemoryBytes" })) as { bytes: number };
+        return response.bytes;
+    }
+
+    /**
+     * Return a snapshot of cached bitmap counts and estimated memory (bytes).
+     * Estimated as width * height * 4 (RGBA) per ImageBitmap.
+     */
+    getRenderCacheStats(): RenderCacheStats {
+        const measure = (cache: Map<string, CacheEntry>) => {
+            let bytes = 0;
+            for (const entry of cache.values()) {
+                bytes += entry.result.width * entry.result.height * 4;
+            }
+            return { count: cache.size, bytes };
+        };
+        const page = measure(this.pageRenderCache);
+        const thumbnail = measure(this.thumbnailRenderCache);
+        const preview = measure(this.previewRenderCache);
+        return {
+            page,
+            thumbnail,
+            preview,
+            total: {
+                count: page.count + thumbnail.count + preview.count,
+                bytes: page.bytes + thumbnail.bytes + preview.bytes,
+            },
+        };
+    }
+
+    /**
+     * Drop every cached ImageBitmap to free memory, then notify OOM subscribers.
+     * Throttled so a burst of failures doesn't produce a cache-clear storm.
+     */
+    private handleOOM(error: unknown): void {
+        const now = Date.now();
+        if (now - this.lastOOMClearAt > 500) {
+            this.lastOOMClearAt = now;
+            this.clearRenderCache();
+        }
+        const err = error instanceof Error ? error : new Error(String(error));
+        for (const cb of this.oomCallbacks) cb(err);
+    }
+
+    /**
      * Subscribe to font usage change events.
      * Called when font usage changes after a page render.
      * Returns an unsubscribe function.
@@ -1276,6 +1363,7 @@ export class WorkerClient {
             return result;
         } catch (error) {
             if (eventId) counter?.markEnd(eventId, false, (error as Error).message);
+            if (isOOMError(error)) this.handleOOM(error);
             throw error instanceof Error ? error : new Error(String(error));
         }
     }
@@ -1480,6 +1568,7 @@ export class WorkerClient {
             return result;
         } catch (error) {
             if (eventId) counter?.markEnd(eventId, false, (error as Error).message);
+            if (isOOMError(error)) this.handleOOM(error);
             req.reject(error instanceof Error ? error : new Error(String(error)));
             throw error;
         }

@@ -5,6 +5,7 @@
  */
 
 import { WorkerClient } from "./worker/index.js";
+import type { RenderCacheStats } from "./worker/index.js";
 import type {
     LicenseResult,
     Composition,
@@ -1065,6 +1066,30 @@ export class UDocClient {
      */
     getWorkerClient(): WorkerClient {
         return this.workerClient;
+    }
+
+    /**
+     * Snapshot of rendered bitmap caches. Use for debug overlays / memory
+     * pressure monitoring on mobile.
+     */
+    getRenderCacheStats(): RenderCacheStats {
+        return this.workerClient.getRenderCacheStats();
+    }
+
+    /**
+     * Current WASM linear-memory size in bytes for the worker's engine.
+     * Rises when the Rust allocator grows; never shrinks.
+     */
+    async getWasmMemoryBytes(): Promise<number> {
+        return this.workerClient.getWasmMemoryBytes();
+    }
+
+    /**
+     * Subscribe to render OOM events. Fires after the client has cleared its
+     * bitmap caches to reclaim memory.
+     */
+    onOOM(callback: (error: Error) => void): () => void {
+        return this.workerClient.onOOM(callback);
     }
 
     private ensureNotDestroyed(): void {
