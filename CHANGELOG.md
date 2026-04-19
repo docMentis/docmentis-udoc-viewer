@@ -6,6 +6,21 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+### Features
+
+- Multi-sheet XLSX support via page groups
+- OOM detection, cache stats, and a memory debug overlay
+- Expose `pageGroups` so viewers can stitch XLSX sheets separately (engine)
+- Render XLSX merged cells on every page they intersect (engine)
+
+### Bug Fixes
+
+- Clamp canvas DPR at high zoom to stay within iOS canvas limits
+
+### Performance
+
+- Halve render cache budgets to reduce mobile OOMs (engine)
+
 ## [0.6.29] - 2026-04-16
 
 ### Features
