@@ -34,7 +34,7 @@ import {
 import { createSpread, type SpreadComponent } from "./Spread";
 import { createFloatingToolbar } from "./FloatingToolbar";
 import { on } from "../../framework/events";
-import { getDevicePixelRatio, snapToDevice, toCssPixels, toDevicePixels } from "../layout";
+import { getDevicePixelRatio, getEffectiveDpr, snapToDevice, toCssPixels, toDevicePixels } from "../layout";
 import { runTransition, type TransitionHandle } from "../transition";
 import { createViewToolController } from "../tools/ViewToolController";
 import { createAnnotationDrawController } from "../tools/AnnotationDrawController";
@@ -217,6 +217,28 @@ function resolveOverflowState(prev: boolean | null, delta: number, threshold: nu
 
 function clamp(value: number, min: number, max: number): number {
     return Math.min(max, Math.max(min, value));
+}
+
+function computePrerenderScale(
+    pageInfos: readonly PageInfo[],
+    currentPage: number,
+    zoom: number,
+    pointsToPixels: number,
+    dpr: number,
+): number {
+    // Match Spread.render's per-page DPR clamp so prerender cache keys align and WASM doesn't
+    // allocate oversize bitmaps at extreme zoom (iOS Safari / mobile WASM).
+    let minEffDpr = dpr;
+    const range = 2;
+    for (let offset = -range; offset <= range; offset++) {
+        const p = pageInfos[currentPage - 1 + offset];
+        if (!p) continue;
+        const cssW = p.width * pointsToPixels * zoom;
+        const cssH = p.height * pointsToPixels * zoom;
+        const eff = getEffectiveDpr(cssW, cssH, dpr);
+        if (eff < minEffDpr) minEffDpr = eff;
+    }
+    return pointsToPixels * zoom * minEffDpr;
 }
 
 function getCenteredOffset(containerSize: number, contentSize: number): number {
@@ -1661,7 +1683,13 @@ export function createViewport(showAttribution = true) {
                 // Prerender adjacent pages for smooth page flipping
                 const dpr = getDevicePixelRatio();
                 const pointsToPixels = getPointsToPixels(slice.dpi);
-                const renderScale = pointsToPixels * state.scale * dpr;
+                const renderScale = computePrerenderScale(
+                    slice.pageInfos,
+                    slice.page,
+                    state.scale,
+                    pointsToPixels,
+                    dpr,
+                );
                 workerClient.prerenderAdjacentPages(slice.docId, slice.page, renderScale, slice.pageInfos.length);
             }
         } else if (!rendersPaused) {
@@ -1675,7 +1703,7 @@ export function createViewport(showAttribution = true) {
             // Prerender adjacent pages for smooth page flipping
             const dpr = getDevicePixelRatio();
             const pointsToPixels = getPointsToPixels(slice.dpi);
-            const renderScale = pointsToPixels * state.scale * dpr;
+            const renderScale = computePrerenderScale(slice.pageInfos, slice.page, state.scale, pointsToPixels, dpr);
             workerClient.prerenderAdjacentPages(slice.docId, slice.page, renderScale, slice.pageInfos.length);
         }
 

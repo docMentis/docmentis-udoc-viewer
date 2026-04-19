@@ -1,7 +1,7 @@
 import type { Spread as SpreadData, PageSlot } from "../layout/spreadLayout";
 import { makeRenderKey, type WorkerClient } from "../../../worker/index.js";
 import { getPointsToPixels, type PageRotation, type PageInfo } from "../state";
-import { getDevicePixelRatio, toCssPixels, toDevicePixels, snapToDevice } from "../layout";
+import { getDevicePixelRatio, getEffectiveDpr, toCssPixels, toDevicePixels, snapToDevice } from "../layout";
 import { renderAnnotationsToLayer, type Annotation } from "../annotation";
 import { renderTextToLayer, attachSelectionController } from "../text";
 import type { LayoutPage } from "../../../worker/index.js";
@@ -608,7 +608,6 @@ export function createSpread(data: SpreadData, showAttribution = true, i18n?: I1
     async function render(workerClient: WorkerClient, options: SpreadRenderOptions): Promise<void> {
         const dpr = getDevicePixelRatio();
         const pointsToPixels = getPointsToPixels(options.dpi);
-        const renderScale = pointsToPixels * options.scale * dpr;
 
         for (const slotEl of slotElements) {
             if (slotEl.pageNumber === null || slotEl.canvas === null) {
@@ -616,6 +615,10 @@ export function createSpread(data: SpreadData, showAttribution = true, i18n?: I1
                 slotEl.pendingKey = null;
                 continue;
             }
+
+            // Clamp DPR so the canvas stays within iOS Safari's 16M-pixel / 4096px limit at high zoom.
+            const effDpr = getEffectiveDpr(slotEl.cssWidth, slotEl.cssHeight, dpr);
+            const renderScale = pointsToPixels * options.scale * effDpr;
 
             const key = makeRenderKey(options.docId, slotEl.pageNumber, "page", renderScale);
             if (slotEl.renderKey === key || slotEl.pendingKey === key) continue;
@@ -639,7 +642,7 @@ export function createSpread(data: SpreadData, showAttribution = true, i18n?: I1
                             if (!mounted || slotEl.renderToken !== token) return;
                             // Only show preview if full-res hasn't arrived yet
                             if (slotEl.renderKey === key) return;
-                            drawToCanvas(slotEl.previewCanvas!, result, slotEl, dpr);
+                            drawToCanvas(slotEl.previewCanvas!, result, slotEl, effDpr);
                             slotEl.previewCanvas!.style.display = "block";
                             slotEl.previewRenderKey = previewKey;
                             if (slotEl.loadingTimer) {
@@ -667,7 +670,7 @@ export function createSpread(data: SpreadData, showAttribution = true, i18n?: I1
                     continue;
                 }
 
-                drawToCanvas(slotEl.canvas, result, slotEl, dpr);
+                drawToCanvas(slotEl.canvas, result, slotEl, effDpr);
                 if (slotEl.loadingTimer) {
                     clearTimeout(slotEl.loadingTimer);
                     slotEl.loadingTimer = null;
