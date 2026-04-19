@@ -6,6 +6,8 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+## [0.6.30] - 2026-04-18
+
 ### Features
 
 - Multi-sheet XLSX support via page groups
