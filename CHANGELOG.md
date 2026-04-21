@@ -6,6 +6,8 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+## [0.6.31] - 2026-04-20
+
 ### Features
 
 - Render PDF Type 3 bitmap glyphs via tiny-skia (engine)
