@@ -260,7 +260,10 @@ export class WorkerClient {
     private previewRenderCache = new Map<string, CacheEntry>();
     private workQueue: QueuedWorkItem[] = [];
     private currentWork: { key: string; promise: Promise<unknown> } | null = null;
-    private maxPageCacheSize = 100;
+    // Page bitmaps grow with zoom and DPR (a single 4096² bitmap is 64 MB), so
+    // the page cache is sized by bytes rather than entry count. Thumbnail and
+    // preview bitmaps are small, so they stay count-based.
+    private maxPageCacheBytes = 256 * 1024 * 1024;
     private maxThumbnailCacheSize = 500;
     private maxPreviewCacheSize = 50;
 
@@ -960,9 +963,16 @@ export class WorkerClient {
     }
 
     private getMaxCacheSize(type: RenderType): number {
-        if (type === "page") return this.maxPageCacheSize;
         if (type === "preview") return this.maxPreviewCacheSize;
         return this.maxThumbnailCacheSize;
+    }
+
+    private cacheTotalBytes(cache: Map<string, CacheEntry>): number {
+        let bytes = 0;
+        for (const entry of cache.values()) {
+            bytes += entry.result.width * entry.result.height * 4;
+        }
+        return bytes;
     }
 
     /**
@@ -1616,11 +1626,19 @@ export class WorkerClient {
 
     private addToRenderCache(type: RenderType, key: string, result: RenderResult): void {
         const cache = this.getCache(type);
-        const maxSize = this.getMaxCacheSize(type);
 
-        // Evict if at capacity
-        while (cache.size >= maxSize) {
-            this.evictLRU(cache);
+        if (type === "page") {
+            const incoming = result.width * result.height * 4;
+            // Evict oldest entries until the new bitmap fits in the byte budget.
+            // Keep at least one entry so a single huge page still gets cached.
+            while (cache.size > 0 && this.cacheTotalBytes(cache) + incoming > this.maxPageCacheBytes) {
+                if (!this.evictLRU(cache)) break;
+            }
+        } else {
+            const maxSize = this.getMaxCacheSize(type);
+            while (cache.size >= maxSize) {
+                if (!this.evictLRU(cache)) break;
+            }
         }
 
         cache.set(key, {
@@ -1629,7 +1647,7 @@ export class WorkerClient {
         });
     }
 
-    private evictLRU(cache: Map<string, CacheEntry>): void {
+    private evictLRU(cache: Map<string, CacheEntry>): boolean {
         let oldest: string | null = null;
         let oldestTime = Infinity;
 
@@ -1646,7 +1664,9 @@ export class WorkerClient {
                 entry.result.bitmap.close();
             }
             cache.delete(oldest);
+            return true;
         }
+        return false;
     }
 
     /**
