@@ -152,4 +152,54 @@ describe("executeSearch", () => {
         expect(result[0].context[1]).toBe("test");
         expect(result[0].context[2]).toContain("sentence");
     });
+
+    describe("fuzzy mode", () => {
+        it("should match across unicode bullet markers in document text", () => {
+            const pageLayouts = new Map<number, LayoutPage>();
+            pageLayouts.set(0, createMockLayoutPage("• Paragraph"));
+
+            const result = executeSearch("Paragraph", false, pageLayouts, 1, null, true);
+            expect(result).toHaveLength(1);
+            expect(result[0].pageIndex).toBe(0);
+        });
+
+        it("should match when the query itself carries a leading bullet", () => {
+            const pageLayouts = new Map<number, LayoutPage>();
+            pageLayouts.set(0, createMockLayoutPage("Paragraph one"));
+
+            const result = executeSearch("• Paragraph", false, pageLayouts, 1, null, true);
+            expect(result).toHaveLength(1);
+        });
+
+        it("should handle a variety of unicode list-marker glyphs", () => {
+            const markers = ["•", "◦", "▪", "‣", "⁃", "●", "■"];
+            for (const marker of markers) {
+                const pageLayouts = new Map<number, LayoutPage>();
+                pageLayouts.set(0, createMockLayoutPage(`${marker} Item`));
+
+                const result = executeSearch("Item", false, pageLayouts, 1, null, true);
+                expect(result, `marker U+${marker.charCodeAt(0).toString(16)}`).toHaveLength(1);
+            }
+        });
+
+        it("should NOT strip ASCII dashes/asterisks (kept for prose correctness)", () => {
+            const pageLayouts = new Map<number, LayoutPage>();
+            pageLayouts.set(0, createMockLayoutPage("state-of-the-art"));
+
+            // Hyphens preserved — "stateoftheart" must not match
+            const result = executeSearch("stateoftheart", false, pageLayouts, 1, null, true);
+            expect(result).toHaveLength(0);
+        });
+
+        it("should map match rects back to original positions after bullet stripping", () => {
+            const pageLayouts = new Map<number, LayoutPage>();
+            pageLayouts.set(0, createMockLayoutPage("• Paragraph"));
+
+            const result = executeSearch("Paragraph", false, pageLayouts, 1, null, true);
+            expect(result).toHaveLength(1);
+            // "• Paragraph" — "Paragraph" starts at index 2 in the original text
+            expect(result[0].charOffset).toBe(2);
+            expect(result[0].length).toBe(9);
+        });
+    });
 });

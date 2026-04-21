@@ -6,6 +6,10 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+### Bug Fixes
+
+- Strip Unicode list-marker glyphs (•, ‣, ◦, ■, ●, ★, etc.) during fuzzy search so AI citations that include or drop a leading bullet still match the document
+
 ## [0.6.30] - 2026-04-18
 
 ### Features

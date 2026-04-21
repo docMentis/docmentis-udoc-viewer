@@ -325,6 +325,38 @@ function pushRect(
 // Text normalization for fuzzy (AI-citation) matching
 // ---------------------------------------------------------------------------
 
+/**
+ * Unicode characters commonly used as list-item markers. Stripped during fuzzy
+ * matching so that e.g. "• Paragraph" in a bullet list matches a query of
+ * "Paragraph" from an AI citation that dropped the bullet.
+ *
+ * Only includes unambiguous marker glyphs — ASCII characters like *, -, +, —, –
+ * are intentionally excluded because they appear in regular prose (compound
+ * words, em-dashes, math) and stripping them would cause surprise matches.
+ */
+const LIST_MARKER_CHARS = new Set([
+    "•", // • bullet
+    "‣", // ‣ triangular bullet
+    "⁃", // ⁃ hyphen bullet
+    "∙", // ∙ bullet operator
+    "▪", // ▪ black small square
+    "▫", // ▫ white small square
+    "■", // ■ black square
+    "□", // □ white square
+    "○", // ○ white circle
+    "●", // ● black circle
+    "◦", // ◦ white bullet
+    "◆", // ◆ black diamond
+    "◇", // ◇ white diamond
+    "▶", // ▶ black right-pointing triangle
+    "▷", // ▷ white right-pointing triangle
+    "★", // ★ black star
+    "☆", // ☆ white star
+    "❖", // ❖ black diamond minus white x
+    "⬥", // ⬥ black medium diamond
+    "⬦", // ⬦ white medium diamond
+]);
+
 /** Characters treated as whitespace/separators during fuzzy matching. */
 function isNormalizableChar(code: number, ch: string): boolean {
     return (
@@ -341,7 +373,8 @@ function isNormalizableChar(code: number, ch: string): boolean {
         ch === "\u200D" || // zero-width joiner
         ch === "\u2028" || // line separator
         ch === "\u2029" || // paragraph separator
-        code < 0x20 // other control characters
+        code < 0x20 || // other control characters
+        LIST_MARKER_CHARS.has(ch)
     );
 }
 
