@@ -6,9 +6,18 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+### Features
+
+- Render PDF Type 3 bitmap glyphs via tiny-skia (engine)
+
 ### Bug Fixes
 
 - Strip Unicode list-marker glyphs (•, ‣, ◦, ■, ●, ★, etc.) during fuzzy search so AI citations that include or drop a leading bullet still match the document
+- Handle new `PdfGraphicsContent::Group` variant in PDF rendering (engine)
+
+### Performance
+
+- Size page render cache by bytes instead of entry count for more accurate memory budgeting
 
 ## [0.6.30] - 2026-04-18
 
