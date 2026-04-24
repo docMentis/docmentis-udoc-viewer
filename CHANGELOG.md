@@ -6,6 +6,8 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+## [0.6.32] - 2026-04-23
+
 ### Bug Fixes
 
 - Match Word's built-in defaults for tblLook, paragraph spacing, vmerge, and color, including injecting Word 2013+ paragraph defaults when `pPrDefault` is absent (engine)
