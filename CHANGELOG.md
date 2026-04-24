@@ -6,6 +6,17 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+### Bug Fixes
+
+- Match Word's built-in defaults for tblLook, paragraph spacing, vmerge, and color, including injecting Word 2013+ paragraph defaults when `pPrDefault` is absent (engine)
+- Autofit oversize DOCX tables with no explicit width and preserve grid ratios when shrinking (engine)
+- Pin PPTX tables to a fixed layout so DOCX autofit rules don't shrink them (engine)
+- Accept CSS-style hex colors in DOCX with `#` prefix and 3-char shorthand (engine)
+- Parse DOCX decimal twips/half-points as native units instead of EMU (engine)
+- Base XLSX fit-to-page scaling on used cells rather than format-only rows/cols (engine)
+- Render PPTX literal `\n` list items and stop shrinking on trailing empty lines (engine)
+- Surface license log errors instead of silently wiping the log (engine)
+
 ## [0.6.31] - 2026-04-20
 
 ### Features
