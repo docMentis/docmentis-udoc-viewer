@@ -83,7 +83,6 @@ let memoryOverlayTimer: ReturnType<typeof setInterval> | null = null;
 let memoryOverlayUnsubOOM: (() => void) | null = null;
 let oomCount = 0;
 let lastOOMMessage: string | null = null;
-let hideAttribution = false;
 let enableTransitions = false;
 let disableViewTools = false;
 let disableAnnotateTools = false;
@@ -196,8 +195,6 @@ async function createViewer() {
     // Create new viewer
     if (!client) {
         client = await UDocClient.create({
-            license:
-                "eyJ2IjoxLCJpZCI6ImxpY19jOGNlZjE4ZiIsImQiOlsiZG9jbWVudGlzLmNvbSIsIiouZG9jbWVudGlzLmNvbSJdLCJmIjpbIm5vX2F0dHJpYnV0aW9uIl0sImUiOjE4MDU1MDA3OTksImkiOjE3NzM4ODU1MDYsIm8iOiJkb2NNZW50aXMifQ.E-Wef8w3LnFAbFgZBTrXa4uQ8VMFby59Fg8VLOrm0lNgI4BcLuDxpH_2NheFA89eW8QmKs_vGOdtG619XcOcCg",
             __experimentalGpu: gpuEnabled,
             fonts: [
                 {
@@ -229,7 +226,6 @@ async function createViewer() {
     }
     viewer = await client.createViewer({
         container: viewerContainer,
-        hideAttribution,
         enableTransitions,
         disableViewTools,
         disableAnnotateTools,
@@ -478,20 +474,6 @@ const LOCALES = [
 ];
 
 const OPTION_GROUPS: ToggleGroup[] = [
-    {
-        title: "Branding",
-        options: [
-            {
-                label: "Hide Attribution",
-                hint: "Requires license",
-                onChange: async (checked) => {
-                    hideAttribution = checked;
-                    // Attribution is set at viewer creation — must recreate
-                    await createViewer();
-                },
-            },
-        ],
-    },
     {
         title: "Toolbar",
         options: [
