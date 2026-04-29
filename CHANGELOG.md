@@ -6,6 +6,8 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+## [0.6.33] - 2026-04-28
+
 ### Bug Fixes
 
 - Inherit full stroke graphics state in PDF Form XObjects (engine)
