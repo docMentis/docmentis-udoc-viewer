@@ -6,6 +6,11 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+### Bug Fixes
+
+- Inherit full stroke graphics state in PDF Form XObjects (engine)
+- Fall back to xref scan-rebuild when `/Prev` points to garbage in damaged PDFs (engine)
+
 ## [0.6.32] - 2026-04-23
 
 ### Bug Fixes
