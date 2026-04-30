@@ -6,6 +6,8 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+## [0.6.34] - 2026-04-29
+
 ### Features
 
 - Full Adobe Glyph List coverage with reverse lookup for PDF glyph naming (engine)
