@@ -6,6 +6,21 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+### Features
+
+- Full Adobe Glyph List coverage with reverse lookup for PDF glyph naming (engine)
+
+### Bug Fixes
+
+- Fall back to standard PDF fonts and body metrics when bullet glyphs are missing (engine)
+- Adopt docmentis-pdf's PaintStyle bundling for PDF rendering (engine)
+- Restart DOCX/OOXML auto-numbering independently per `numId` (engine)
+- Recover from off-by-many `startxref` and shifted object offsets in damaged PDFs (engine)
+
+### Performance
+
+- Stream the PDF xref recovery scan instead of buffering the entire file (engine)
+
 ## [0.6.33] - 2026-04-28
 
 ### Bug Fixes
