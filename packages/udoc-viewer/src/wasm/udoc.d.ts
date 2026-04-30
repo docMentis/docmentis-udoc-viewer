@@ -1145,9 +1145,9 @@ export interface InitOutput {
   readonly wasm_set_visibility_group_visible: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
   readonly wasm_setup_telemetry: (a: number, b: number, c: number) => void;
   readonly wasm_viewer_preferences: (a: number, b: number, c: number, d: number) => void;
-  readonly __wasm_bindgen_func_elem_4194: (a: number, b: number, c: number) => void;
-  readonly __wasm_bindgen_func_elem_4178: (a: number, b: number) => void;
-  readonly __wasm_bindgen_func_elem_22494: (a: number, b: number, c: number, d: number) => void;
+  readonly __wasm_bindgen_func_elem_4195: (a: number, b: number, c: number) => void;
+  readonly __wasm_bindgen_func_elem_4179: (a: number, b: number) => void;
+  readonly __wasm_bindgen_func_elem_22523: (a: number, b: number, c: number, d: number) => void;
   readonly __wbindgen_export: (a: number, b: number) => number;
   readonly __wbindgen_export2: (a: number, b: number, c: number, d: number) => number;
   readonly __wbindgen_export3: (a: number) => void;
