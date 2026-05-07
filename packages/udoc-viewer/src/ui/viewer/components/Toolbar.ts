@@ -9,10 +9,13 @@ import type {
     LeftPanelTab,
     ThemeMode,
     ActiveTool,
-    SimpleTool,
+    ToolKind,
     DocumentFormat,
 } from "../state";
-import { isLeftPanelTab, isToolSet, ANNOTATION_FORMATS } from "../state";
+
+/** Simple-tool kinds — the subset of `ToolKind` that has no sub-toolbar. */
+type SimpleToolKind = "pointer" | "hand" | "zoom";
+import { isLeftPanelTab, ANNOTATION_FORMATS } from "../state";
 import type { Action } from "../actions";
 import { setupRovingTabindex } from "../a11y";
 import {
@@ -81,7 +84,7 @@ interface ToolbarSlice {
     zoomSteps: readonly number[];
     // Tools
     documentFormat: DocumentFormat | null;
-    disabledTools: ReadonlySet<ActiveTool>;
+    disabledTools: ReadonlySet<ToolKind>;
     activeTool: ActiveTool;
 }
 
@@ -463,14 +466,14 @@ export function createToolbar() {
         rovingTabindex = setupRovingTabindex(el, ".udoc-toolbar__btn, .udoc-toolbar__btn--nav, input");
 
         // --- Tool buttons ---
-        const SIMPLE_TOOLS: Array<{ tool: SimpleTool; icon: string; labelKey: string }> = [
+        const SIMPLE_TOOLS: Array<{ tool: SimpleToolKind; icon: string; labelKey: string }> = [
             { tool: "pointer", icon: ICON_TOOL_POINTER, labelKey: "tools.pointer" },
             { tool: "hand", icon: ICON_TOOL_HAND, labelKey: "tools.hand" },
             { tool: "zoom", icon: ICON_TOOL_ZOOM, labelKey: "tools.zoom" },
         ];
 
         // Track last-used simple tool for the split button icon
-        let lastSimpleTool: SimpleTool = "pointer";
+        let lastSimpleTool: SimpleToolKind = "pointer";
         let isPointerDropdownOpen = false;
 
         const openPointerDropdown = () => {
@@ -496,13 +499,13 @@ export function createToolbar() {
                 const item = document.createElement("button");
                 item.className = "udoc-toolbar__split-dropdown-item";
                 const state = store.getState();
-                const isActive = state.activeTool === st.tool;
+                const isActive = state.activeTool.kind === st.tool;
                 if (isActive) item.classList.add("udoc-toolbar__split-dropdown-item--active");
                 item.innerHTML = `<span class="udoc-toolbar__split-dropdown-icon">${st.icon}</span><span>${i18n.t(st.labelKey as keyof typeof i18n.t)}</span>`;
                 item.addEventListener("click", (e) => {
                     e.stopPropagation();
                     lastSimpleTool = st.tool;
-                    store.dispatch({ type: "SET_ACTIVE_TOOL", tool: st.tool });
+                    store.dispatch({ type: "SET_ACTIVE_TOOL", tool: { kind: st.tool } });
                     closePointerDropdown();
                 });
                 pointerDropdown.appendChild(item);
@@ -521,7 +524,7 @@ export function createToolbar() {
 
         // Pointer main button: activate last-used simple tool
         const onPointerMainClick = () => {
-            store.dispatch({ type: "SET_ACTIVE_TOOL", tool: lastSimpleTool });
+            store.dispatch({ type: "SET_ACTIVE_TOOL", tool: { kind: lastSimpleTool } });
         };
         pointerMainBtn.addEventListener("click", onPointerMainClick);
         unsubEvents.push(() => pointerMainBtn.removeEventListener("click", onPointerMainClick));
@@ -548,16 +551,18 @@ export function createToolbar() {
         document.addEventListener("click", handlePointerOutsideClick);
         unsubEvents.push(() => document.removeEventListener("click", handlePointerOutsideClick));
 
-        // Annotate button
+        // Annotate button — restore the last-used sub-tool
         const onAnnotateClick = () => {
-            store.dispatch({ type: "SET_ACTIVE_TOOL", tool: "annotate" });
+            const sub = store.getState().lastSubToolPerSet.annotate;
+            store.dispatch({ type: "SET_ACTIVE_TOOL", tool: { kind: "annotate", sub } });
         };
         annotateBtn.addEventListener("click", onAnnotateClick);
         unsubEvents.push(() => annotateBtn.removeEventListener("click", onAnnotateClick));
 
-        // Markup button
+        // Markup button — restore the last-used sub-tool
         const onMarkupClick = () => {
-            store.dispatch({ type: "SET_ACTIVE_TOOL", tool: "markup" });
+            const sub = store.getState().lastSubToolPerSet.markup;
+            store.dispatch({ type: "SET_ACTIVE_TOOL", tool: { kind: "markup", sub } });
         };
         markupBtn.addEventListener("click", onMarkupClick);
         unsubEvents.push(() => markupBtn.removeEventListener("click", onMarkupClick));
@@ -873,15 +878,15 @@ export function createToolbar() {
 
             // Tool button active states
             {
-                const tool = slice.activeTool;
+                const kind = slice.activeTool.kind;
                 // Pointer split button: active when any simple tool is active
-                const simpleActive = !isToolSet(tool);
+                const simpleActive = kind === "pointer" || kind === "hand" || kind === "zoom";
                 pointerSplitBtn.classList.toggle("udoc-toolbar__split-btn--active", simpleActive);
 
                 // Update pointer main button icon to reflect the active simple tool
                 if (simpleActive) {
-                    lastSimpleTool = tool as SimpleTool;
-                    const toolDef = SIMPLE_TOOLS.find((t) => t.tool === tool);
+                    lastSimpleTool = kind;
+                    const toolDef = SIMPLE_TOOLS.find((t) => t.tool === kind);
                     if (toolDef) {
                         pointerMainBtn.innerHTML = toolDef.icon;
                         pointerMainBtn.title = i18n.t(toolDef.labelKey as keyof typeof i18n.t);
@@ -890,8 +895,8 @@ export function createToolbar() {
                 }
 
                 // Annotate / Markup toggle
-                annotateBtn.classList.toggle("udoc-toolbar__btn--tool-active", tool === "annotate");
-                markupBtn.classList.toggle("udoc-toolbar__btn--tool-active", tool === "markup");
+                annotateBtn.classList.toggle("udoc-toolbar__btn--tool-active", kind === "annotate");
+                markupBtn.classList.toggle("udoc-toolbar__btn--tool-active", kind === "markup");
             }
 
             // Center section visibility (show when floating toolbar is hidden)

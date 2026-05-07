@@ -6,6 +6,15 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+### Features
+
+- New `setActiveTool(tool)` method and `activeTool` getter on `UDocViewer` for programmatic tool switching (e.g. `setActiveTool({ kind: "annotate", sub: "freehand" })`)
+- Tool types `ActiveTool`, `ToolKind`, `SubTool`, `AnnotateSubTool`, `MarkupSubTool` are exported from the package root
+
+### Refactor
+
+- Internal tool state is now a single tagged union (`{ kind, sub }`) instead of separate `activeTool` + `activeSubTool` slots, eliminating the unenforced "sub is null iff simple tool" invariant and ambiguity around the shared `"select"` sub-tool name
+
 ## [0.6.35] - 2026-05-06
 
 ### Features
@@ -27,7 +36,8 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ### Features
 
-- Full Adobe Glyph List coverage with reverse lookup for PDF glyph naming (engine)
+- Full Adobe Glyph List coverage with reverse lookup for PDF glyph naming (engine
+  )
 
 ### Bug Fixes
 

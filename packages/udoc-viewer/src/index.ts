@@ -48,6 +48,11 @@ export type {
     RightPanelTab,
     ThemeMode,
     SearchMatch,
+    ActiveTool,
+    ToolKind,
+    SubTool,
+    AnnotateSubTool,
+    MarkupSubTool,
 } from "./ui/viewer/state.js";
 
 // Worker internals (types only, for advanced usage)

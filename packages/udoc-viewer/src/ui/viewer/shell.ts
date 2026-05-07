@@ -1,6 +1,6 @@
 import { createStore } from "../framework/store";
 import type { Store } from "../framework/store";
-import type { ViewerState, PageInfo, ThemeMode, VisibilityGroup, ActiveTool } from "./state";
+import type { ViewerState, PageInfo, ThemeMode, VisibilityGroup, ToolKind } from "./state";
 import type { Action } from "./actions";
 import type { OutlineItem } from "./navigation";
 import type { Annotation } from "./annotation";
@@ -161,7 +161,7 @@ export function mountViewerShell(
         textLoading: new Set(),
         textFailed: new Set(),
         disabledPanels: new Set(),
-        disabledTools: new Set<ActiveTool>(["annotate", "markup"]),
+        disabledTools: new Set<ToolKind>(["annotate", "markup"]),
         ...overrides,
     };
 
@@ -288,9 +288,9 @@ export function mountViewerShell(
             if (state.showPrintDialog) {
                 e.preventDefault();
                 store.dispatch({ type: "HIDE_PRINT_DIALOG" });
-            } else if (state.activeTool !== "pointer") {
+            } else if (state.activeTool.kind !== "pointer") {
                 e.preventDefault();
-                store.dispatch({ type: "SET_ACTIVE_TOOL", tool: "pointer" });
+                store.dispatch({ type: "SET_ACTIVE_TOOL", tool: { kind: "pointer" } });
             } else if (state.activePanel !== null) {
                 e.preventDefault();
                 store.dispatch({ type: "CLOSE_PANEL" });

@@ -8,7 +8,7 @@
 
 import type { Store } from "../../framework/store";
 import type { ViewerState, ToolOptions, SubTool } from "../state";
-import { getPointsToPixels, isToolSet, DEFAULT_TOOL_OPTIONS, ANNOTATION_FORMATS } from "../state";
+import { getPointsToPixels, DEFAULT_TOOL_OPTIONS, ANNOTATION_FORMATS } from "../state";
 import type { Action } from "../actions";
 import { renderAnnotation } from "../annotation/render";
 import type {
@@ -239,11 +239,10 @@ export function createAnnotationDrawController(options: AnnotationDrawController
 
     function beginDrawOnSlot(e: PointerEvent): Point | null {
         const state = store.getState();
-        if (!isToolSet(state.activeTool)) return null;
-        if (!state.activeSubTool) return null;
-        if (state.activeTool === "markup") return null;
+        const at = state.activeTool;
+        if (at.kind !== "annotate") return null;
 
-        const tool = state.activeSubTool;
+        const tool = at.sub;
         const target = e.target as HTMLElement;
         const slotEl = target.closest<HTMLElement>("[data-page]");
         if (!slotEl) return null;
@@ -272,7 +271,8 @@ export function createAnnotationDrawController(options: AnnotationDrawController
         if (isDrawing && (drawSubTool === "polygon" || drawSubTool === "polyline")) return;
 
         const state = store.getState();
-        if (state.activeSubTool === "polygon" || state.activeSubTool === "polyline") return;
+        const sub = state.activeTool.kind === "annotate" ? state.activeTool.sub : null;
+        if (sub === "polygon" || sub === "polyline") return;
 
         const pt = beginDrawOnSlot(e);
         if (!pt) return;
@@ -324,7 +324,8 @@ export function createAnnotationDrawController(options: AnnotationDrawController
         if (e.button !== 0) return;
 
         const state = store.getState();
-        if (state.activeSubTool !== "polygon" && state.activeSubTool !== "polyline") return;
+        const sub = state.activeTool.kind === "annotate" ? state.activeTool.sub : null;
+        if (sub !== "polygon" && sub !== "polyline") return;
 
         if (!isDrawing) {
             // First click — start polygon
@@ -386,21 +387,24 @@ export function createAnnotationDrawController(options: AnnotationDrawController
     }
 
     function canDraw(s: ViewerState): boolean {
+        const at = s.activeTool;
         return (
             s.documentFormat !== null &&
             ANNOTATION_FORMATS.has(s.documentFormat) &&
-            isToolSet(s.activeTool) &&
-            s.activeTool === "annotate" &&
-            s.activeSubTool !== null &&
-            s.activeSubTool !== "select"
+            at.kind === "annotate" &&
+            at.sub !== "select"
         );
+    }
+
+    function annotateSub(s: ViewerState): string | null {
+        return s.activeTool.kind === "annotate" ? s.activeTool.sub : null;
     }
 
     // Subscribe to store for tool changes
     const unsub = store.subscribeRender((prev, next) => {
         if (canDraw(next)) {
             // If the sub-tool changed while drawing, finish the in-progress shape
-            if (isDrawing && prev.activeSubTool !== next.activeSubTool) {
+            if (isDrawing && annotateSub(prev) !== annotateSub(next)) {
                 finishDrawing();
             }
             activate();

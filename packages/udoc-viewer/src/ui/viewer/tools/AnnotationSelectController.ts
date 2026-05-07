@@ -11,7 +11,7 @@
 
 import type { Store } from "../../framework/store";
 import type { ViewerState } from "../state";
-import { getPointsToPixels, isToolSet, ANNOTATION_FORMATS } from "../state";
+import { getPointsToPixels, ANNOTATION_FORMATS } from "../state";
 import type { Action } from "../actions";
 import { offsetAnnotation, resizeAnnotation } from "../annotation/utils";
 import type { Rect } from "../annotation/types";
@@ -399,11 +399,12 @@ export function createAnnotationSelectController(options: AnnotationSelectContro
     }
 
     function isSelectMode(s: ViewerState): boolean {
+        const at = s.activeTool;
         return (
             s.documentFormat !== null &&
             ANNOTATION_FORMATS.has(s.documentFormat) &&
-            isToolSet(s.activeTool) &&
-            s.activeSubTool === "select"
+            (at.kind === "annotate" || at.kind === "markup") &&
+            at.sub === "select"
         );
     }
 

@@ -61,14 +61,8 @@ export type ThemeMode = "light" | "dark" | "system";
 // Tool types
 // -----------------------------------------------------------------------------
 
-/** Simple tools that live directly on the toolbar (no sub-toolbar needed) */
-export type SimpleTool = "pointer" | "hand" | "zoom";
-
-/** Tool sets that expand into a sub-toolbar with sub-tools and options */
-export type ToolSet = "annotate" | "markup";
-
-/** The active tool is either a simple tool or a tool set */
-export type ActiveTool = SimpleTool | ToolSet;
+/** Top-level tool category — the discriminant of `ActiveTool` and the key for `disabledTools`. */
+export type ToolKind = "pointer" | "hand" | "zoom" | "annotate" | "markup";
 
 /** Individual annotation sub-tools */
 export type AnnotateSubTool =
@@ -84,8 +78,20 @@ export type AnnotateSubTool =
 /** Individual markup sub-tools */
 export type MarkupSubTool = "select" | "highlight" | "underline" | "strikethrough" | "squiggly";
 
-/** Any sub-tool */
+/** Any sub-tool — used as a key for `toolOptions`. */
 export type SubTool = AnnotateSubTool | MarkupSubTool;
+
+/**
+ * The currently active tool, as a tagged union. Whether a variant has a `sub`
+ * is itself the simple-vs-tool-set distinction — pointer/hand/zoom carry no
+ * sub-tool, annotate/markup carry the sub for their family.
+ */
+export type ActiveTool =
+    | { kind: "pointer" }
+    | { kind: "hand" }
+    | { kind: "zoom" }
+    | { kind: "annotate"; sub: AnnotateSubTool }
+    | { kind: "markup"; sub: MarkupSubTool };
 
 /** Line dash style */
 export type LineStyle = "solid" | "dashed" | "dotted";
@@ -105,12 +111,6 @@ export interface ToolOptions {
     arrowHeadEnd: ArrowHeadStyle;
 }
 
-/** Default sub-tool for each tool set */
-export const DEFAULT_SUB_TOOL: Record<ToolSet, SubTool> = {
-    annotate: "freehand",
-    markup: "highlight",
-};
-
 /** Default tool options */
 export const DEFAULT_TOOL_OPTIONS: ToolOptions = {
     strokeColor: "#ff0000",
@@ -123,9 +123,9 @@ export const DEFAULT_TOOL_OPTIONS: ToolOptions = {
     arrowHeadEnd: "open",
 };
 
-/** Check if an active tool is a tool set (has sub-toolbar) */
-export function isToolSet(tool: ActiveTool): tool is ToolSet {
-    return tool === "annotate" || tool === "markup";
+/** Check if a tool kind has an associated sub-toolbar. */
+export function isToolSetKind(kind: ToolKind): kind is "annotate" | "markup" {
+    return kind === "annotate" || kind === "markup";
 }
 
 /** Document format as detected during loading */
@@ -402,14 +402,12 @@ export interface ViewerState {
     zoomAnchor: ZoomAnchor | null;
 
     // Tools
-    /** Set of tools/tool sets that are disabled (hidden from the UI). */
-    disabledTools: ReadonlySet<ActiveTool>;
-    /** Currently active tool (simple tool or tool set) */
+    /** Set of tool kinds that are disabled (hidden from the UI). */
+    disabledTools: ReadonlySet<ToolKind>;
+    /** Currently active tool — tagged union; sub is present iff kind is a tool set. */
     activeTool: ActiveTool;
-    /** Currently active sub-tool within a tool set (null for simple tools) */
-    activeSubTool: SubTool | null;
     /** Remembers the last-used sub-tool per tool set */
-    lastSubToolPerSet: Record<ToolSet, SubTool>;
+    lastSubToolPerSet: { annotate: AnnotateSubTool; markup: MarkupSubTool };
     /** Per-sub-tool persistent options */
     toolOptions: Record<string, ToolOptions>;
 }
@@ -513,9 +511,8 @@ export const initialState: ViewerState = {
 
     zoomAnchor: null,
 
-    disabledTools: new Set<ActiveTool>(["annotate", "markup"]),
-    activeTool: "pointer",
-    activeSubTool: null,
+    disabledTools: new Set<ToolKind>(["annotate", "markup"]),
+    activeTool: { kind: "pointer" },
     lastSubToolPerSet: { annotate: "freehand", markup: "highlight" },
     toolOptions: {},
 };

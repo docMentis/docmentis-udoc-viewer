@@ -1,5 +1,5 @@
-import type { ViewerState, ToolSet } from "./state";
-import { initialState, isLeftPanelTab, isToolSet, DEFAULT_TOOL_OPTIONS, ANNOTATION_FORMATS } from "./state";
+import type { ViewerState, ActiveTool, AnnotateSubTool, MarkupSubTool } from "./state";
+import { initialState, isLeftPanelTab, isToolSetKind, DEFAULT_TOOL_OPTIONS, ANNOTATION_FORMATS } from "./state";
 import type { Action } from "./actions";
 import { destinationToNavigationTarget } from "./navigation";
 
@@ -14,7 +14,7 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
             const vd = action.viewDefaults;
             const supportsAnnotations = ANNOTATION_FORMATS.has(action.documentFormat);
             // Reset tool to pointer if switching to a format that doesn't support annotations
-            const toolNowUnavailable = !supportsAnnotations && isToolSet(state.activeTool);
+            const toolNowUnavailable = !supportsAnnotations && isToolSetKind(state.activeTool.kind);
             return {
                 ...state,
                 doc: action.doc,
@@ -24,8 +24,7 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
                 pageInfos: action.pageInfos,
                 pageGroups: action.pageGroups,
                 activeGroupIndex: 0,
-                activeTool: toolNowUnavailable ? "pointer" : state.activeTool,
-                activeSubTool: toolNowUnavailable ? null : state.activeSubTool,
+                activeTool: toolNowUnavailable ? { kind: "pointer" } : state.activeTool,
                 // Reset view mode to defaults (format-specific if provided)
                 viewMode: vd?.viewMode ?? initialState.viewMode,
                 scrollMode: vd?.scrollMode ?? initialState.scrollMode,
@@ -626,38 +625,44 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
 
         // Tools
         case "SET_ACTIVE_TOOL": {
-            const tool = action.tool;
-            if (state.activeTool === tool) {
-                // Clicking the same tool set again → back to pointer
-                if (isToolSet(tool)) {
-                    return { ...state, activeTool: "pointer", activeSubTool: null };
-                }
-                return state;
+            const next = action.tool;
+            // Clicking the same tool-set kind again → back to pointer
+            if (state.activeTool.kind === next.kind && (next.kind === "annotate" || next.kind === "markup")) {
+                return { ...state, activeTool: { kind: "pointer" }, selectedAnnotation: null };
             }
-            if (isToolSet(tool)) {
-                // Activate tool set with last-used sub-tool
-                const subTool = state.lastSubToolPerSet[tool];
-                return {
-                    ...state,
-                    activeTool: tool,
-                    activeSubTool: subTool,
-                    selectedAnnotation: subTool === "select" ? state.selectedAnnotation : null,
-                };
-            }
-            // Simple tool
-            return { ...state, activeTool: tool, activeSubTool: null, selectedAnnotation: null };
-        }
-        case "SET_SUB_TOOL": {
-            const activeTool = state.activeTool;
-            if (!isToolSet(activeTool)) return state;
-            if (state.activeSubTool === action.subTool) return state;
+            // Update the per-set memory when landing on a tool set
+            const lastSubToolPerSet =
+                next.kind === "annotate" && state.lastSubToolPerSet.annotate !== next.sub
+                    ? { ...state.lastSubToolPerSet, annotate: next.sub }
+                    : next.kind === "markup" && state.lastSubToolPerSet.markup !== next.sub
+                      ? { ...state.lastSubToolPerSet, markup: next.sub }
+                      : state.lastSubToolPerSet;
+            const keepSelection = (next.kind === "annotate" || next.kind === "markup") && next.sub === "select";
             return {
                 ...state,
-                activeSubTool: action.subTool,
-                lastSubToolPerSet: {
-                    ...state.lastSubToolPerSet,
-                    [activeTool as ToolSet]: action.subTool,
-                },
+                activeTool: next,
+                lastSubToolPerSet,
+                selectedAnnotation: keepSelection ? state.selectedAnnotation : null,
+            };
+        }
+        case "SET_SUB_TOOL": {
+            const at = state.activeTool;
+            if (at.kind !== "annotate" && at.kind !== "markup") return state;
+            if (at.sub === action.subTool) return state;
+            // The toolbar dispatches the right sub-tool family for the active set;
+            // narrow by kind to keep the tagged shape sound.
+            const nextActive: ActiveTool =
+                at.kind === "annotate"
+                    ? { kind: "annotate", sub: action.subTool as AnnotateSubTool }
+                    : { kind: "markup", sub: action.subTool as MarkupSubTool };
+            const lastSubToolPerSet =
+                at.kind === "annotate"
+                    ? { ...state.lastSubToolPerSet, annotate: action.subTool as AnnotateSubTool }
+                    : { ...state.lastSubToolPerSet, markup: action.subTool as MarkupSubTool };
+            return {
+                ...state,
+                activeTool: nextActive,
+                lastSubToolPerSet,
                 // Clear selection when switching away from select tool
                 selectedAnnotation: action.subTool !== "select" ? null : state.selectedAnnotation,
             };

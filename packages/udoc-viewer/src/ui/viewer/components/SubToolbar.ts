@@ -2,7 +2,7 @@ import type { Store } from "../../framework/store";
 import { subscribeSelector } from "../../framework/selectors";
 import type { I18n } from "../i18n/index.js";
 import type { ViewerState, ActiveTool, SubTool, ToolOptions, LineStyle, ArrowHeadStyle } from "../state";
-import { isToolSet, DEFAULT_TOOL_OPTIONS } from "../state";
+import { DEFAULT_TOOL_OPTIONS } from "../state";
 import type { Action } from "../actions";
 import type { Annotation } from "../annotation/types";
 import {
@@ -101,6 +101,7 @@ const ARROW_HEAD_DEFS: { id: ArrowHeadStyle; icon: string; labelKey: string }[] 
 
 interface SubToolbarSlice {
     activeTool: ActiveTool;
+    /** Convenience: the sub-tool of `activeTool`, or null if it's a simple tool. */
     activeSubTool: SubTool | null;
     toolOptions: Record<string, ToolOptions>;
     selectedAnnotation: ViewerState["selectedAnnotation"];
@@ -117,9 +118,10 @@ function resolveAnnotation(s: ViewerState): Annotation | null {
 }
 
 function selectSlice(s: ViewerState): SubToolbarSlice {
+    const at = s.activeTool;
     return {
-        activeTool: s.activeTool,
-        activeSubTool: s.activeSubTool,
+        activeTool: at,
+        activeSubTool: at.kind === "annotate" || at.kind === "markup" ? at.sub : null,
         toolOptions: s.toolOptions,
         selectedAnnotation: s.selectedAnnotation,
         selectedAnnotationObj: resolveAnnotation(s),
@@ -311,14 +313,15 @@ export function createSubToolbar() {
         }
 
         const applyState = (slice: SubToolbarSlice) => {
-            const visible = isToolSet(slice.activeTool);
+            const kind = slice.activeTool.kind;
+            const visible = kind === "annotate" || kind === "markup";
             el.style.display = visible ? "flex" : "none";
             if (!visible) {
                 closeAllPanels();
                 return;
             }
 
-            const toolSet = slice.activeTool as string;
+            const toolSet = kind;
             const subTools = SUB_TOOLS_MAP[toolSet];
             if (!subTools) return;
 
@@ -334,8 +337,9 @@ export function createSubToolbar() {
                     btn.title = i18n.t(def.labelKey as keyof typeof i18n.t);
                     btn.setAttribute("aria-label", i18n.t(def.labelKey as keyof typeof i18n.t));
                     btn.addEventListener("click", () => {
-                        const state = store.getState();
-                        if (state.activeSubTool === def.id && (def.id === "polygon" || def.id === "polyline")) {
+                        const at = store.getState().activeTool;
+                        const currentSub = at.kind === "annotate" || at.kind === "markup" ? at.sub : null;
+                        if (currentSub === def.id && (def.id === "polygon" || def.id === "polyline")) {
                             document.dispatchEvent(new Event("udoc-finish-drawing"));
                         } else {
                             store.dispatch({ type: "SET_SUB_TOOL", subTool: def.id });

@@ -181,14 +181,14 @@ export function createViewToolController(options: ViewToolControllerOptions) {
     }
 
     // Subscribe to tool state changes
-    let prevTool: string = store.getState().activeTool;
+    let prevKind: string = store.getState().activeTool.kind;
     const unsub = store.subscribeRender((_prev, next) => {
-        const tool = next.activeTool;
-        if (tool !== prevTool) {
-            prevTool = tool;
+        const kind = next.activeTool.kind;
+        if (kind !== prevKind) {
+            prevKind = kind;
             // Only handle view tools; tool sets don't affect viewport interaction
-            if (tool === "pointer" || tool === "hand" || tool === "zoom") {
-                switchTool(tool);
+            if (kind === "pointer" || kind === "hand" || kind === "zoom") {
+                switchTool(kind);
             } else {
                 // For annotation/markup tool sets, revert to pointer behavior
                 switchTool("pointer");
@@ -197,9 +197,9 @@ export function createViewToolController(options: ViewToolControllerOptions) {
     });
 
     // Apply initial state
-    const initial = store.getState().activeTool;
-    if (initial === "hand" || initial === "zoom") {
-        switchTool(initial);
+    const initialKind = store.getState().activeTool.kind;
+    if (initialKind === "hand" || initialKind === "zoom") {
+        switchTool(initialKind);
     }
 
     function destroy(): void {

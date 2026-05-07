@@ -30,6 +30,7 @@ import {
     type VisibilityGroup,
     type SearchMatch,
     type ActiveTool,
+    type ToolKind,
 } from "./ui/viewer/state.js";
 import { PerformanceCounter, NoOpPerformanceCounter, type IPerformanceCounter } from "./performance/index.js";
 
@@ -447,7 +448,7 @@ export class UDocViewer {
 
         // Collect disabled tools into the internal Set
         // Default: all disabled. Only remove from the set when explicitly not disabled (false).
-        const disabledTools: ActiveTool[] = [];
+        const disabledTools: ToolKind[] = [];
         if (options.disableViewTools) {
             disabledTools.push("pointer", "hand", "zoom");
         }
@@ -1185,6 +1186,27 @@ export class UDocViewer {
         this.ensureNotDestroyed();
         this.ensureUiMode();
         this.uiShell!.dispatch({ type: "SET_FLOATING_TOOLBAR_VISIBLE", visible });
+    }
+
+    /**
+     * Currently active tool, as a tagged union. The `kind` is one of `"pointer"`,
+     * `"hand"`, `"zoom"`, `"annotate"`, `"markup"`; for `"annotate"` and `"markup"`
+     * a `sub` field carries the active sub-tool (`"freehand"`, `"highlight"`, etc.).
+     */
+    get activeTool(): ActiveTool {
+        return this.uiShell?.getState().activeTool ?? { kind: "pointer" };
+    }
+
+    /**
+     * Switch the currently active tool. Tool-set kinds (`"annotate"`, `"markup"`)
+     * require a `sub`, e.g. `{ kind: "annotate", sub: "freehand" }`. Calling
+     * this with the same tool-set kind that's already active toggles back to
+     * the pointer tool, matching the toolbar UI.
+     */
+    setActiveTool(tool: ActiveTool): void {
+        this.ensureNotDestroyed();
+        this.ensureUiMode();
+        this.uiShell!.dispatch({ type: "SET_ACTIVE_TOOL", tool });
     }
 
     /**
