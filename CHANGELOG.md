@@ -13,6 +13,14 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 - Ephemeral annotations: pass `ephemeral: true` to `addAnnotation` (or flip the flag via `updateAnnotation`) for viewer-only overlays that render but are excluded from saved PDF bytes and from print output
 - New `viewport:change` event with first/last visible page, zoom, and scrollTop — fires on scroll, zoom, layout, and scroll-mode changes (rAF-throttled and de-duped)
 
+### Bug Fixes
+
+- Pre-shrink images on heavy downscale to avoid blurring and excess work in the rasterizer (engine)
+- Treat untyped PPTX placeholders as body for master/layout inheritance (engine)
+- Map legacy Wingdings ASCII bullets and `0xA1` to their Unicode equivalents so symbol text renders correctly (engine)
+- Use the `a:sym` typeface for PUA → Unicode mapping in PPTX body runs (engine)
+- Inherit PPTX bullet sub-properties from level defaults so styled bullets match PowerPoint (engine)
+
 ## [0.6.34] - 2026-04-29
 
 ### Features
