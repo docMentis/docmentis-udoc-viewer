@@ -146,9 +146,28 @@ export interface ViewerEventMap {
     "panel:change": { panel: PanelTab | null; previousPanel: PanelTab | null };
     "font:usageChange": { entries: FontUsageEntry[] };
     "search:change": { matches: SearchMatch[]; activeIndex: number };
+    "annotation:add": { pageIndex: number; annotation: Annotation };
+    "annotation:update": { pageIndex: number; annotation: Annotation };
+    "annotation:remove": { pageIndex: number; annotation: Annotation };
+    "annotation:select": { pageIndex: number; annotation: Annotation } | null;
 }
 
 type EventHandler<K extends keyof ViewerEventMap> = (payload: ViewerEventMap[K]) => void;
+
+/**
+ * Generate a unique annotation identifier suitable for the PDF NM entry.
+ * Uses crypto.randomUUID() when available, falling back to a Math.random
+ * shim for environments (older Safari, Node < 19) without it.
+ */
+function generateAnnotationId(): string {
+    const cryptoObj = (globalThis as { crypto?: { randomUUID?: () => string } }).crypto;
+    if (cryptoObj?.randomUUID) return cryptoObj.randomUUID();
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+        const r = (Math.random() * 16) | 0;
+        const v = c === "x" ? r : (r & 0x3) | 0x8;
+        return v.toString(16);
+    });
+}
 
 /**
  * Document viewer component.
@@ -170,6 +189,7 @@ export class UDocViewer {
     private currentFormat: DocumentFormat | null = null;
     private sourceFilename: string | null = null;
     private storeUnsub: (() => void) | null = null;
+    private actionUnsub: (() => void) | null = null;
     private fontUsageUnsub: (() => void) | null = null;
     private sdkVersion: string;
 
@@ -304,6 +324,50 @@ export class UDocViewer {
                             this.emit("ui:visibilityChange", { component: panel, visible: !isDisabled });
                         }
                     }
+                }
+            });
+
+            // Forward annotation mutations as public events. Subscribing at the
+            // action layer (rather than diffing state) lets us include the
+            // exact affected annotation in the payload — including the removed
+            // one, which we look up in `prev` before the reducer dropped it.
+            this.actionUnsub = this.uiShell.store.subscribeAction((action, prev, next) => {
+                switch (action.type) {
+                    case "ADD_ANNOTATION":
+                        this.emit("annotation:add", {
+                            pageIndex: action.pageIndex,
+                            annotation: action.annotation,
+                        });
+                        break;
+                    case "UPDATE_ANNOTATION":
+                        this.emit("annotation:update", {
+                            pageIndex: action.pageIndex,
+                            annotation: action.annotation,
+                        });
+                        break;
+                    case "REMOVE_ANNOTATION": {
+                        const removed = prev.pageAnnotations.get(action.pageIndex)?.[action.annotationIndex];
+                        if (removed) {
+                            this.emit("annotation:remove", {
+                                pageIndex: action.pageIndex,
+                                annotation: removed,
+                            });
+                        }
+                        break;
+                    }
+                    case "SELECT_ANNOTATION": {
+                        const ann = next.pageAnnotations.get(action.pageIndex)?.[action.annotationIndex];
+                        if (ann) {
+                            this.emit("annotation:select", {
+                                pageIndex: action.pageIndex,
+                                annotation: ann,
+                            });
+                        }
+                        break;
+                    }
+                    case "DESELECT_ANNOTATION":
+                        this.emit("annotation:select", null);
+                        break;
                 }
             });
         }
@@ -686,12 +750,111 @@ export class UDocViewer {
 
     /**
      * Get annotations on a specific page.
+     *
+     * Returns the in-memory state if the page has been edited in this
+     * session; otherwise reads from the worker.
+     *
      * @param page - Page index (0-based)
      */
     async getPageAnnotations(page: number): Promise<Annotation[]> {
         this.ensureLoaded();
+        const fromState = this.uiShell?.store.getState().pageAnnotations.get(page);
+        if (fromState) return fromState;
         const raw = await this.workerClient.getPageAnnotations(this.documentId!, page);
         return raw as Annotation[];
+    }
+
+    /**
+     * Add a new annotation to a page.
+     *
+     * If `annotation.name` is omitted, a UUID is generated and assigned. The
+     * returned value is the annotation as inserted (with `name` populated),
+     * which is the same identifier the engine will write to the PDF's NM
+     * entry on save.
+     *
+     * Pass `ephemeral: true` to create a viewer-only annotation that renders
+     * but is excluded from saved PDF bytes and from print output. The same
+     * `updateAnnotation` / `removeAnnotation` calls work for both kinds, and
+     * `updateAnnotation` can flip the `ephemeral` flag to promote a preview
+     * into a saved annotation (or demote a saved one to viewer-only).
+     *
+     * Annotation editing currently requires UI mode (a `container` was passed
+     * to `client.createViewer`) and is supported on PDF documents only.
+     *
+     * @param page - Page index (0-based)
+     * @returns The inserted annotation (with `name` populated).
+     */
+    async addAnnotation(page: number, annotation: Annotation): Promise<Annotation> {
+        this.ensureLoaded();
+        this.ensureUiMode();
+        await this.ensurePageAnnotationsLoaded(page);
+        const withId: Annotation = annotation.name ? annotation : { ...annotation, name: generateAnnotationId() };
+        this.uiShell!.dispatch({ type: "ADD_ANNOTATION", pageIndex: page, annotation: withId });
+        return withId;
+    }
+
+    /**
+     * Update an existing annotation, identified by its `name` (NM).
+     *
+     * Looks up the annotation on the given page by `name` and replaces it
+     * with the supplied value. The replacement keeps the same `name` even
+     * if a different one is passed in `annotation.name`.
+     *
+     * @param page - Page index (0-based)
+     * @param name - The annotation's `name` (NM).
+     * @param annotation - The replacement annotation.
+     * @returns The updated annotation.
+     * @throws If no annotation with the given `name` is found on the page.
+     */
+    async updateAnnotation(page: number, name: string, annotation: Annotation): Promise<Annotation> {
+        this.ensureLoaded();
+        this.ensureUiMode();
+        const index = await this.findAnnotationIndex(page, name);
+        const updated: Annotation = { ...annotation, name };
+        this.uiShell!.dispatch({
+            type: "UPDATE_ANNOTATION",
+            pageIndex: page,
+            annotationIndex: index,
+            annotation: updated,
+        });
+        return updated;
+    }
+
+    /**
+     * Remove an annotation, identified by its `name` (NM).
+     *
+     * @param page - Page index (0-based)
+     * @param name - The annotation's `name` (NM).
+     * @throws If no annotation with the given `name` is found on the page.
+     */
+    async removeAnnotation(page: number, name: string): Promise<void> {
+        this.ensureLoaded();
+        this.ensureUiMode();
+        const index = await this.findAnnotationIndex(page, name);
+        this.uiShell!.dispatch({ type: "REMOVE_ANNOTATION", pageIndex: page, annotationIndex: index });
+    }
+
+    /**
+     * Ensure pageAnnotations is populated for a page so that mutator actions
+     * have a baseline list to operate on. The reducer's ADD path tolerates a
+     * missing page, but UPDATE/REMOVE need the existing annotations loaded
+     * so we don't silently lose what the worker has.
+     */
+    private async ensurePageAnnotationsLoaded(page: number): Promise<void> {
+        const state = this.uiShell!.store.getState();
+        if (state.pageAnnotations.has(page)) return;
+        const raw = (await this.workerClient.getPageAnnotations(this.documentId!, page)) as Annotation[];
+        this.uiShell!.dispatch({ type: "SET_PAGE_ANNOTATIONS", pageIndex: page, annotations: raw });
+    }
+
+    private async findAnnotationIndex(page: number, name: string): Promise<number> {
+        await this.ensurePageAnnotationsLoaded(page);
+        const list = this.uiShell!.store.getState().pageAnnotations.get(page) ?? [];
+        const index = list.findIndex((a) => a.name === name);
+        if (index < 0) {
+            throw new Error(`No annotation with name "${name}" on page ${page}`);
+        }
+        return index;
     }
 
     /**
@@ -1400,12 +1563,14 @@ export class UDocViewer {
     async toBytes(): Promise<Uint8Array> {
         this.ensureLoaded();
 
-        // If there are dirty annotation pages, save them into the PDF first
+        // If there are dirty annotation pages, save them into the PDF first.
+        // Ephemeral annotations are excluded — they're viewer-only and never persist.
         const state = this.uiShell?.store.getState();
         if (state && state.annotationsDirtyPages.size > 0 && this.currentFormat === "pdf") {
             const annotationsByPage: AnnotationsByPage = {};
             for (const [pageIndex, annotations] of state.pageAnnotations) {
-                annotationsByPage[String(pageIndex)] = annotations as AnnotationsByPage[string];
+                const persistable = annotations.filter((a) => !a.ephemeral);
+                annotationsByPage[String(pageIndex)] = persistable as AnnotationsByPage[string];
             }
             return this.workerClient.pdfSaveAnnotations(this.documentId!, annotationsByPage);
         }
@@ -1564,7 +1729,9 @@ export class UDocViewer {
                 // is sized in inches (1in = 96 CSS px), so we scale by 96/72 to convert
                 // PDF points to CSS pixels.
                 const state = this.uiShell?.store.getState();
-                const pageAnnotations = state?.pageAnnotations.get(pageIndex);
+                // Exclude ephemeral annotations from print output — they're
+                // viewer-only overlays.
+                const pageAnnotations = state?.pageAnnotations.get(pageIndex)?.filter((a) => !a.ephemeral);
                 let annotationLayer = "";
                 if (pageAnnotations && pageAnnotations.length > 0) {
                     const tempLayer = document.createElement("div");
@@ -1731,6 +1898,10 @@ img { display: block; }
         if (this.storeUnsub) {
             this.storeUnsub();
             this.storeUnsub = null;
+        }
+        if (this.actionUnsub) {
+            this.actionUnsub();
+            this.actionUnsub = null;
         }
         if (this.fontUsageUnsub) {
             this.fontUsageUnsub();

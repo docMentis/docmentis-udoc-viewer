@@ -671,23 +671,30 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
             };
         }
 
-        // Annotation editing
+        // Annotation editing.
+        // Ephemeral annotations live in the same map as real ones so they
+        // render through the same path, but they never mark the page dirty —
+        // the dirty set drives PDF write-back, and ephemeral annotations
+        // exist only in memory.
         case "ADD_ANNOTATION": {
             const existing = state.pageAnnotations.get(action.pageIndex) ?? [];
             const newAnnotations = new Map(state.pageAnnotations);
             newAnnotations.set(action.pageIndex, [...existing, action.annotation]);
-            const newDirty = new Set(state.annotationsDirtyPages);
-            newDirty.add(action.pageIndex);
+            const newDirty = action.annotation.ephemeral
+                ? state.annotationsDirtyPages
+                : new Set(state.annotationsDirtyPages).add(action.pageIndex);
             return { ...state, pageAnnotations: newAnnotations, annotationsDirtyPages: newDirty };
         }
         case "REMOVE_ANNOTATION": {
             const existing = state.pageAnnotations.get(action.pageIndex);
             if (!existing || action.annotationIndex >= existing.length) return state;
+            const removed = existing[action.annotationIndex];
             const newList = existing.filter((_, i) => i !== action.annotationIndex);
             const newAnnotations = new Map(state.pageAnnotations);
             newAnnotations.set(action.pageIndex, newList);
-            const newDirty = new Set(state.annotationsDirtyPages);
-            newDirty.add(action.pageIndex);
+            const newDirty = removed.ephemeral
+                ? state.annotationsDirtyPages
+                : new Set(state.annotationsDirtyPages).add(action.pageIndex);
             return {
                 ...state,
                 pageAnnotations: newAnnotations,
@@ -699,11 +706,17 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
         case "UPDATE_ANNOTATION": {
             const existing = state.pageAnnotations.get(action.pageIndex);
             if (!existing || action.annotationIndex >= existing.length) return state;
+            const prevAnn = existing[action.annotationIndex];
             const newList = existing.map((a, i) => (i === action.annotationIndex ? action.annotation : a));
             const newAnnotations = new Map(state.pageAnnotations);
             newAnnotations.set(action.pageIndex, newList);
-            const newDirty = new Set(state.annotationsDirtyPages);
-            newDirty.add(action.pageIndex);
+            // Mark dirty if either the prior or new annotation is non-ephemeral —
+            // promotion (ephemeral → real) or demotion (real → ephemeral)
+            // both change what gets written to the saved PDF.
+            const touchesReal = !prevAnn.ephemeral || !action.annotation.ephemeral;
+            const newDirty = touchesReal
+                ? new Set(state.annotationsDirtyPages).add(action.pageIndex)
+                : state.annotationsDirtyPages;
             return { ...state, pageAnnotations: newAnnotations, annotationsDirtyPages: newDirty };
         }
 

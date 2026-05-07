@@ -61,6 +61,32 @@ interface BaseAnnotation {
     replies?: Annotation[];
     /** Metadata for markup annotations. */
     metadata?: MarkupMetadata;
+    /**
+     * Unique annotation identifier (PDF NM entry). Stable across edits and
+     * round-trips through save. Use this as the key when looking up an
+     * annotation across calls to `getPageAnnotations`.
+     *
+     * For annotations created via `UDocViewer.addAnnotation` without an
+     * explicit name, the viewer assigns a UUID before insertion.
+     */
+    name?: string;
+    /**
+     * Last modification date (PDF M entry), in PDF date format
+     * (e.g. "D:20260506120000Z"). Updated automatically on save.
+     */
+    modificationDate?: string;
+    /**
+     * Marks this annotation as ephemeral. Ephemeral annotations:
+     * - render in the viewer like any other annotation,
+     * - are NOT written to the PDF when saving (`toBytes` / `download`),
+     * - are NOT included in print output.
+     *
+     * The UI drawing/markup tools never set this flag — it is API-only.
+     * Use `addAnnotation({ ..., ephemeral: true })` to create one and
+     * `updateAnnotation` to flip the flag (e.g. promote an ephemeral
+     * preview shape into a real annotation that gets saved).
+     */
+    ephemeral?: boolean;
 }
 
 // =============================================================================

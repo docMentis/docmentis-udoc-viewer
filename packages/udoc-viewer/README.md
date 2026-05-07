@@ -383,6 +383,100 @@ for (let i = 0; i < viewer.pageCount; i++) {
 const fullText = pages.join("\n\n");
 ```
 
+### Annotations
+
+Read, create, modify, and delete annotations on PDF documents. Each annotation has a stable `name` (the PDF NM identifier) that survives save/reload, so you can use it as a foreign key from your own data store.
+
+**Read.** `getPageAnnotations` returns every annotation on a page — including any in-memory edits and ephemeral overlays — so a single call always reflects what the user is currently seeing.
+
+```typescript
+const annotations = await viewer.getPageAnnotations(0); // 0-based page index
+
+for (const a of annotations) {
+    console.log(a.type, a.name, a.bounds, a.metadata?.author);
+}
+```
+
+**Add.** Pass any `Annotation` shape (highlight, underline, ink, freeText, square, etc.) along with a `bounds` rectangle in PDF points. If `name` is omitted the viewer assigns a UUID and returns it on the resolved annotation, so you can keep referencing the new annotation immediately.
+
+```typescript
+const created = await viewer.addAnnotation(0, {
+    type: "highlight",
+    bounds: { x: 100, y: 700, width: 200, height: 20 },
+    quads: [
+        {
+            points: [
+                { x: 100, y: 700 },
+                { x: 300, y: 700 },
+                { x: 300, y: 720 },
+                { x: 100, y: 720 },
+            ],
+        },
+    ],
+    color: { r: 1, g: 1, b: 0 },
+    metadata: { author: "Alice", contents: "Important" },
+});
+
+console.log(created.name); // generated UUID, stable across save/reload
+```
+
+**Update / remove.** Both are keyed by `name`. `updateAnnotation` replaces the whole annotation but preserves the `name` even if you accidentally pass a different one in the body.
+
+```typescript
+await viewer.updateAnnotation(0, created.name, {
+    ...created,
+    color: { r: 0, g: 1, b: 0 },
+    metadata: { ...created.metadata, contents: "Reviewed" },
+});
+
+await viewer.removeAnnotation(0, created.name);
+```
+
+**Save.** PDF write-back happens automatically on `toBytes()` and `download()` whenever there are pending edits — there is no separate save call.
+
+```typescript
+const bytes = await viewer.toBytes(); // pending edits flushed into the returned PDF
+await viewer.download("annotated.pdf");
+```
+
+**Ephemeral annotations.** Pass `ephemeral: true` to create a viewer-only annotation. Ephemeral annotations render in the canvas like any other, but are excluded from saved PDF bytes and from print output. Use them for live cursors, preview shapes, or transient review markers that shouldn't survive a reload.
+
+```typescript
+const cursor = await viewer.addAnnotation(0, {
+    type: "square",
+    bounds: { x: 50, y: 50, width: 30, height: 30 },
+    color: { r: 1, g: 0, b: 0 },
+    ephemeral: true, // not written on save, not printed
+});
+
+// Promote an ephemeral preview into a saved annotation:
+await viewer.updateAnnotation(0, cursor.name, { ...cursor, ephemeral: false });
+```
+
+**Events.** All four annotation events fire for both UI-driven changes (drawing/markup tools) and API-driven changes, so a single listener covers both.
+
+```typescript
+viewer.on("annotation:add", ({ pageIndex, annotation }) => {
+    if (annotation.ephemeral) return;
+    syncToBackend({ kind: "create", pageIndex, annotation });
+});
+
+viewer.on("annotation:update", ({ pageIndex, annotation }) => {
+    syncToBackend({ kind: "update", pageIndex, annotation });
+});
+
+viewer.on("annotation:remove", ({ pageIndex, annotation }) => {
+    syncToBackend({ kind: "delete", pageIndex, name: annotation.name });
+});
+
+viewer.on("annotation:select", (selection) => {
+    if (!selection) return; // null = deselect
+    showInspector(selection.annotation);
+});
+```
+
+> Annotation editing currently requires UI mode (a `container` was passed to `createViewer`) and is supported on PDF documents only.
+
 ### Programmatic Viewer Control
 
 Control zoom, view modes, and fullscreen programmatically — useful when toolbars are hidden:
@@ -632,6 +726,15 @@ viewer.on("download:progress", ({ loaded, total, percent }) => {
 // Search results changed (matches found or active match navigated)
 viewer.on("search:change", ({ matches, activeIndex }) => {
     console.log(`${matches.length} matches, active: ${activeIndex}`);
+});
+
+// Annotation lifecycle (fired for both UI- and API-driven changes; see the
+// Annotations section above for full payloads)
+viewer.on("annotation:add", ({ pageIndex, annotation }) => {});
+viewer.on("annotation:update", ({ pageIndex, annotation }) => {});
+viewer.on("annotation:remove", ({ pageIndex, annotation }) => {});
+viewer.on("annotation:select", (selection) => {
+    // null when the selection is cleared
 });
 
 // Error occurred

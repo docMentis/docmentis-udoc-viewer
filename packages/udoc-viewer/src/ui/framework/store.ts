@@ -17,6 +17,7 @@
  */
 export type Reducer<S, A> = (state: S, action: A) => S;
 export type Subscriber<S> = (prev: S, next: S) => void;
+export type ActionListener<S, A> = (action: A, prev: S, next: S) => void;
 
 export interface Store<S, A> {
     /** Current state snapshot. */
@@ -27,6 +28,12 @@ export interface Store<S, A> {
     subscribeRender(fn: Subscriber<S>): () => void;
     /** Effect-phase subscription (async allowed). */
     subscribeEffect(fn: Subscriber<S>): () => void;
+    /**
+     * Action-phase subscription: invoked synchronously after each dispatch
+     * that actually changed state, with the action plus prev/next snapshots.
+     * Use for emitting external events keyed to specific action types.
+     */
+    subscribeAction(fn: ActionListener<S, A>): () => void;
 }
 
 /**
@@ -41,6 +48,7 @@ export function createStore<S, A>(
     let state = initialState;
     const renderSubs = new Set<Subscriber<S>>();
     const effectSubs = new Set<Subscriber<S>>();
+    const actionSubs = new Set<ActionListener<S, A>>();
 
     const batched = options.batched ?? true;
     let pending = false;
@@ -85,6 +93,13 @@ export function createStore<S, A>(
         const next = reducer(prev, action);
         if (next === prev) return;
         state = next;
+        for (const fn of actionSubs) {
+            try {
+                fn(action, prev, next);
+            } catch (e) {
+                console.error("Action subscriber error:", e);
+            }
+        }
         scheduleNotify(prev, next);
     }
 
@@ -98,5 +113,10 @@ export function createStore<S, A>(
         return () => effectSubs.delete(fn);
     }
 
-    return { getState: () => state, dispatch, subscribeRender, subscribeEffect };
+    function subscribeAction(fn: ActionListener<S, A>): () => void {
+        actionSubs.add(fn);
+        return () => actionSubs.delete(fn);
+    }
+
+    return { getState: () => state, dispatch, subscribeRender, subscribeEffect, subscribeAction };
 }
