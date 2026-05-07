@@ -400,7 +400,7 @@ for (const a of annotations) {
 **Add.** Pass any `Annotation` shape (highlight, underline, ink, freeText, square, etc.) along with a `bounds` rectangle in PDF points. If `name` is omitted the viewer assigns a UUID and returns it on the resolved annotation, so you can keep referencing the new annotation immediately.
 
 ```typescript
-const created = await viewer.addAnnotation(0, {
+const created = await viewer.addPageAnnotation(0, {
     type: "highlight",
     bounds: { x: 100, y: 700, width: 200, height: 20 },
     quads: [
@@ -420,16 +420,16 @@ const created = await viewer.addAnnotation(0, {
 console.log(created.name); // generated UUID, stable across save/reload
 ```
 
-**Update / remove.** Both are keyed by `name`. `updateAnnotation` replaces the whole annotation but preserves the `name` even if you accidentally pass a different one in the body.
+**Update / remove.** Both are keyed by `name`. `updatePageAnnotation` replaces the whole annotation but preserves the `name` even if you accidentally pass a different one in the body.
 
 ```typescript
-await viewer.updateAnnotation(0, created.name, {
+await viewer.updatePageAnnotation(0, created.name, {
     ...created,
     color: { r: 0, g: 1, b: 0 },
     metadata: { ...created.metadata, contents: "Reviewed" },
 });
 
-await viewer.removeAnnotation(0, created.name);
+await viewer.removePageAnnotation(0, created.name);
 ```
 
 **Save.** PDF write-back happens automatically on `toBytes()` and `download()` whenever there are pending edits — there is no separate save call.
@@ -442,7 +442,7 @@ await viewer.download("annotated.pdf");
 **Ephemeral annotations.** Pass `ephemeral: true` to create a viewer-only annotation. Ephemeral annotations render in the canvas like any other, but are excluded from saved PDF bytes and from print output. Use them for live cursors, preview shapes, or transient review markers that shouldn't survive a reload.
 
 ```typescript
-const cursor = await viewer.addAnnotation(0, {
+const cursor = await viewer.addPageAnnotation(0, {
     type: "square",
     bounds: { x: 50, y: 50, width: 30, height: 30 },
     color: { r: 1, g: 0, b: 0 },
@@ -450,7 +450,7 @@ const cursor = await viewer.addAnnotation(0, {
 });
 
 // Promote an ephemeral preview into a saved annotation:
-await viewer.updateAnnotation(0, cursor.name, { ...cursor, ephemeral: false });
+await viewer.updatePageAnnotation(0, cursor.name, { ...cursor, ephemeral: false });
 ```
 
 **Events.** All four annotation events fire for both UI-driven changes (drawing/markup tools) and API-driven changes, so a single listener covers both.

@@ -791,8 +791,8 @@ export class UDocViewer {
      *
      * Pass `ephemeral: true` to create a viewer-only annotation that renders
      * but is excluded from saved PDF bytes and from print output. The same
-     * `updateAnnotation` / `removeAnnotation` calls work for both kinds, and
-     * `updateAnnotation` can flip the `ephemeral` flag to promote a preview
+     * `updatePageAnnotation` / `removePageAnnotation` calls work for both kinds, and
+     * `updatePageAnnotation` can flip the `ephemeral` flag to promote a preview
      * into a saved annotation (or demote a saved one to viewer-only).
      *
      * Annotation editing currently requires UI mode (a `container` was passed
@@ -801,7 +801,7 @@ export class UDocViewer {
      * @param page - Page index (0-based)
      * @returns The inserted annotation (with `name` populated).
      */
-    async addAnnotation(page: number, annotation: Annotation): Promise<Annotation> {
+    async addPageAnnotation(page: number, annotation: Annotation): Promise<Annotation> {
         this.ensureLoaded();
         this.ensureUiMode();
         await this.ensurePageAnnotationsLoaded(page);
@@ -823,7 +823,7 @@ export class UDocViewer {
      * @returns The updated annotation.
      * @throws If no annotation with the given `name` is found on the page.
      */
-    async updateAnnotation(page: number, name: string, annotation: Annotation): Promise<Annotation> {
+    async updatePageAnnotation(page: number, name: string, annotation: Annotation): Promise<Annotation> {
         this.ensureLoaded();
         this.ensureUiMode();
         const index = await this.findAnnotationIndex(page, name);
@@ -844,7 +844,7 @@ export class UDocViewer {
      * @param name - The annotation's `name` (NM).
      * @throws If no annotation with the given `name` is found on the page.
      */
-    async removeAnnotation(page: number, name: string): Promise<void> {
+    async removePageAnnotation(page: number, name: string): Promise<void> {
         this.ensureLoaded();
         this.ensureUiMode();
         const index = await this.findAnnotationIndex(page, name);

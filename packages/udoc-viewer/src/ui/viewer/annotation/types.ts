@@ -66,7 +66,7 @@ interface BaseAnnotation {
      * round-trips through save. Use this as the key when looking up an
      * annotation across calls to `getPageAnnotations`.
      *
-     * For annotations created via `UDocViewer.addAnnotation` without an
+     * For annotations created via `UDocViewer.addPageAnnotation` without an
      * explicit name, the viewer assigns a UUID before insertion.
      */
     name?: string;
@@ -82,8 +82,8 @@ interface BaseAnnotation {
      * - are NOT included in print output.
      *
      * The UI drawing/markup tools never set this flag — it is API-only.
-     * Use `addAnnotation({ ..., ephemeral: true })` to create one and
-     * `updateAnnotation` to flip the flag (e.g. promote an ephemeral
+     * Use `addPageAnnotation({ ..., ephemeral: true })` to create one and
+     * `updatePageAnnotation` to flip the flag (e.g. promote an ephemeral
      * preview shape into a real annotation that gets saved).
      */
     ephemeral?: boolean;
