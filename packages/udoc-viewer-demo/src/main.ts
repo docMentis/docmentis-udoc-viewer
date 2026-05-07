@@ -237,9 +237,11 @@ async function createViewer() {
         },
     });
 
-    // Expose viewer for devtools debugging
+    // Expose viewer and client for devtools debugging
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (window as any).__viewer = viewer;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (window as any).__client = client;
 
     // Reload current document if any
     if (currentDocSource) {
