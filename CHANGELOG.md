@@ -6,6 +6,8 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+## [0.6.35] - 2026-05-06
+
 ### Features
 
 - Public annotation editing API on `UDocViewer`: `addPageAnnotation`, `updatePageAnnotation`, `removePageAnnotation`, with `name` (PDF NM) as the stable identifier (use `toBytes()` to save edits)
