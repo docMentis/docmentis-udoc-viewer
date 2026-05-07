@@ -713,6 +713,17 @@ export function createViewport(showAttribution = true) {
     const spreadComponents = new Map<number, SpreadComponent>();
     let layoutDirty = false;
     let lastVisibleRange: { start: number; end: number } = { start: 0, end: -1 };
+    /** Last viewport:change payload fired, for de-duping. */
+    let lastEmittedViewport: {
+        firstVisiblePage: number;
+        lastVisiblePage: number;
+        zoom: number;
+        scrollTop: number;
+    } | null = null;
+    /** Caller-supplied callback for the public viewport:change event. */
+    let onViewportChangeCb:
+        | ((payload: { firstVisiblePage: number; lastVisiblePage: number; zoom: number; scrollTop: number }) => void)
+        | null = null;
     let containerSize = { width: 0, height: 0 };
     let lastOverflowX: boolean | null = null;
     let lastOverflowY: boolean | null = null;
@@ -738,11 +749,23 @@ export function createViewport(showAttribution = true) {
     let transitionShadow: HTMLElement | null = null;
     let previousSpreadIndex: number | null = null;
 
-    function mount(parent: HTMLElement, store: Store<ViewerState, Action>, wc: WorkerClient, i18n?: I18n): void {
+    function mount(
+        parent: HTMLElement,
+        store: Store<ViewerState, Action>,
+        wc: WorkerClient,
+        i18n?: I18n,
+        onViewportChange?: (payload: {
+            firstVisiblePage: number;
+            lastVisiblePage: number;
+            zoom: number;
+            scrollTop: number;
+        }) => void,
+    ): void {
         parent.appendChild(el);
         workerClient = wc;
         storeRef = store;
         i18nRef = i18n ?? null;
+        onViewportChangeCb = onViewportChange ?? null;
 
         if (i18n) {
             el.setAttribute("aria-label", i18n.t("viewport.documentContent"));
@@ -807,6 +830,7 @@ export function createViewport(showAttribution = true) {
                 }
                 // Keep viewport position tracking up to date on scroll (both modes)
                 updateViewportTopPosition(currentSlice, layoutState);
+                fireViewportChangeIfChanged();
             });
         });
 
@@ -977,6 +1001,52 @@ export function createViewport(showAttribution = true) {
 
             store.dispatch({ type: "CLEAR_NAVIGATION_TARGET" });
         });
+    }
+
+    /**
+     * Compute the public viewport:change payload from the current visible
+     * spread range and scroll position, then fire the bound callback when the
+     * payload differs from the last fire. Cheap — invoked from the scroll rAF
+     * tick and from the layout/range-update paths.
+     */
+    function fireViewportChangeIfChanged(): void {
+        if (!onViewportChangeCb || !currentSlice || !layoutState) return;
+        if (lastVisibleRange.start > lastVisibleRange.end) return;
+
+        let firstPage = Number.POSITIVE_INFINITY;
+        let lastPage = Number.NEGATIVE_INFINITY;
+        for (let i = lastVisibleRange.start; i <= lastVisibleRange.end; i++) {
+            const layout = layoutState.layouts[i];
+            if (!layout) continue;
+            const spread = layoutState.spreads[layout.index];
+            if (!spread) continue;
+            for (const slot of spread.slots) {
+                if (slot == null) continue;
+                const pageIndex = slot - 1;
+                if (pageIndex < firstPage) firstPage = pageIndex;
+                if (pageIndex > lastPage) lastPage = pageIndex;
+            }
+        }
+        if (firstPage === Number.POSITIVE_INFINITY) return;
+
+        const payload = {
+            firstVisiblePage: firstPage,
+            lastVisiblePage: lastPage,
+            zoom: currentSlice.zoom,
+            scrollTop: scrollArea.scrollTop,
+        };
+        const last = lastEmittedViewport;
+        if (
+            last !== null &&
+            last.firstVisiblePage === payload.firstVisiblePage &&
+            last.lastVisiblePage === payload.lastVisiblePage &&
+            last.zoom === payload.zoom &&
+            last.scrollTop === payload.scrollTop
+        ) {
+            return;
+        }
+        lastEmittedViewport = payload;
+        onViewportChangeCb(payload);
     }
 
     function updateVisibleSearchHighlights(): void {
@@ -1451,6 +1521,7 @@ export function createViewport(showAttribution = true) {
         }
 
         updateCurrentPageFromScroll(scrollTop, metrics.innerHeight, state);
+        fireViewportChangeIfChanged();
     }
 
     /**
@@ -1554,6 +1625,7 @@ export function createViewport(showAttribution = true) {
                 spreadComp.updateSearchHighlights(currentSearchMatches, currentSearchActiveIndex, layoutOptions);
             }
             lastVisibleRange = { start: spreadIndex, end: spreadIndex };
+            fireViewportChangeIfChanged();
             return;
         }
 
@@ -1713,6 +1785,7 @@ export function createViewport(showAttribution = true) {
         if (!rendersPaused) {
             layoutDirty = false;
         }
+        fireViewportChangeIfChanged();
     }
 
     /** Find the spread whose center is closest to a given Y position (used for render priority). */

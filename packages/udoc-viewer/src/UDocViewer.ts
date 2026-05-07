@@ -150,6 +150,22 @@ export interface ViewerEventMap {
     "annotation:update": { pageIndex: number; annotation: Annotation };
     "annotation:remove": { pageIndex: number; annotation: Annotation };
     "annotation:select": { pageIndex: number; annotation: Annotation } | null;
+    /**
+     * Fires when the user's view of the document changes — scroll position,
+     * zoom, layout, or scroll-mode changes that affect which pages are
+     * visible. Throttled to once per animation frame, and de-duped so
+     * adjacent identical payloads are coalesced.
+     */
+    "viewport:change": {
+        /** First page index (0-based) at least partially visible. */
+        firstVisiblePage: number;
+        /** Last page index (0-based) at least partially visible. */
+        lastVisiblePage: number;
+        /** Current zoom factor (1 = 100%). */
+        zoom: number;
+        /** Vertical scroll offset of the viewport in CSS pixels. */
+        scrollTop: number;
+    };
 }
 
 type EventHandler<K extends keyof ViewerEventMap> = (payload: ViewerEventMap[K]) => void;
@@ -250,6 +266,7 @@ export class UDocViewer {
                 onPasswordSubmit: (password: string) => this.handlePasswordSubmit(password),
                 onDownload: () => this.download(),
                 onPrint: (options) => this.print(options),
+                onViewportChange: (payload) => this.emit("viewport:change", payload),
             });
 
             // Subscribe to store state changes to emit public events

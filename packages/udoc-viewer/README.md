@@ -708,6 +708,13 @@ viewer.on("page:change", ({ page, previousPage }) => {
     console.log(`Page ${previousPage} -> ${page}`);
 });
 
+// Viewport changed (scroll, zoom, layout, or scroll-mode change).
+// Throttled to one fire per animation frame and de-duped — adjacent
+// identical payloads are coalesced. Page indices are 0-based.
+viewer.on("viewport:change", ({ firstVisiblePage, lastVisiblePage, zoom, scrollTop }) => {
+    console.log(`Visible: ${firstVisiblePage}–${lastVisiblePage} @ ${zoom}x, scrollTop=${scrollTop}`);
+});
+
 // Panel opened/closed
 viewer.on("panel:change", ({ panel, previousPanel }) => {
     console.log(`Panel: ${previousPanel} -> ${panel}`);

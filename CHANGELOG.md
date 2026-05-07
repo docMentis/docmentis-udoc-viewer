@@ -11,6 +11,7 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 - Public annotation editing API on `UDocViewer`: `addAnnotation`, `updateAnnotation`, `removeAnnotation`, with `name` (PDF NM) as the stable identifier (use `toBytes()` to save edits)
 - New `annotation:add` / `annotation:update` / `annotation:remove` / `annotation:select` events on `ViewerEventMap`
 - Ephemeral annotations: pass `ephemeral: true` to `addAnnotation` (or flip the flag via `updateAnnotation`) for viewer-only overlays that render but are excluded from saved PDF bytes and from print output
+- New `viewport:change` event with first/last visible page, zoom, and scrollTop — fires on scroll, zoom, layout, and scroll-mode changes (rAF-throttled and de-duped)
 
 ## [0.6.34] - 2026-04-29
 

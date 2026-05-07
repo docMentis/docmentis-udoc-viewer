@@ -33,10 +33,18 @@ export interface EngineAdapter {
     setVisibilityGroupVisible(doc: { id: string }, groupId: string, visible: boolean): Promise<boolean>;
 }
 
+export interface ViewportChangePayload {
+    firstVisiblePage: number;
+    lastVisiblePage: number;
+    zoom: number;
+    scrollTop: number;
+}
+
 export interface ViewerShellCallbacks {
     onPasswordSubmit?: (password: string) => void;
     onDownload?: () => void;
     onPrint?: (options: PrintDialogResult) => void;
+    onViewportChange?: (payload: ViewportChangePayload) => void;
 }
 
 export interface ViewerShell {
@@ -171,7 +179,7 @@ export function mountViewerShell(
     leftPanel.mount(leftPanelSlot, store, workerClient, i18n);
 
     const viewport = createViewport(showAttribution);
-    viewport.mount(viewportSlot, store, workerClient, i18n);
+    viewport.mount(viewportSlot, store, workerClient, i18n, (payload) => callbacks.onViewportChange?.(payload));
 
     const sheetTabBar = createSheetTabBar();
     sheetTabBar.mount(viewportSlot, store);
