@@ -511,6 +511,33 @@ viewer.setFullscreen(true);
 console.log(viewer.isFullscreen);
 ```
 
+### Tools
+
+Switch the active tool programmatically. The active tool is a tagged union: simple tools (`pointer`, `hand`, `zoom`) carry no sub-tool, while tool sets (`annotate`, `markup`) carry a `sub` for the active sub-tool.
+
+```typescript
+// Simple tools
+viewer.setActiveTool({ kind: "pointer" });
+viewer.setActiveTool({ kind: "hand" });
+viewer.setActiveTool({ kind: "zoom" });
+
+// Tool sets — sub-tool is required
+viewer.setActiveTool({ kind: "annotate", sub: "freehand" });
+viewer.setActiveTool({ kind: "annotate", sub: "rectangle" });
+viewer.setActiveTool({ kind: "markup", sub: "highlight" });
+
+// Calling with the same tool-set kind that's already active toggles back to pointer
+
+// Read current tool
+const t = viewer.activeTool;
+if (t.kind === "annotate") {
+    console.log("annotating with", t.sub); // "freehand" | "rectangle" | ...
+}
+```
+
+`AnnotateSubTool`: `select`, `freehand`, `line`, `arrow`, `rectangle`, `ellipse`, `polygon`, `polyline`.
+`MarkupSubTool`: `select`, `highlight`, `underline`, `strikethrough`, `squiggly`.
+
 ### UI Visibility Control
 
 Show, hide, or disable UI components at runtime:
