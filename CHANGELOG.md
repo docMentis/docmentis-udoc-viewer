@@ -6,6 +6,8 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+## [0.6.36] - 2026-05-08
+
 ### Features
 
 - New `setActiveTool(tool)` method and `activeTool` getter on `UDocViewer` for programmatic tool switching (e.g. `setActiveTool({ kind: "annotate", sub: "freehand" })`)
