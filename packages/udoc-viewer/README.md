@@ -735,6 +735,14 @@ viewer.on("page:change", ({ page, previousPage }) => {
     console.log(`Page ${previousPage} -> ${page}`);
 });
 
+// Tool changed
+viewer.on("tool:change", ({ tool, previousTool }) => {
+    console.log(`Tool: ${previousTool.kind} -> ${tool.kind}`);
+    if (tool.kind === "annotate" || tool.kind === "markup") {
+        console.log(`  Sub-tool: ${tool.sub}`);
+    }
+});
+
 // Viewport changed (scroll, zoom, layout, or scroll-mode change).
 // Throttled to one fire per animation frame and de-duped — adjacent
 // identical payloads are coalesced. Page indices are 0-based.

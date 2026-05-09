@@ -152,6 +152,15 @@ export interface ViewerEventMap {
     "annotation:remove": { pageIndex: number; annotation: Annotation };
     "annotation:select": { pageIndex: number; annotation: Annotation } | null;
     /**
+     * Fires when the active tool changes.
+     */
+    "tool:change": {
+        /** The newly active tool. */
+        tool: ActiveTool;
+        /** The previously active tool. */
+        previousTool: ActiveTool;
+    };
+    /**
      * Fires when the user's view of the document changes — scroll position,
      * zoom, layout, or scroll-mode changes that affect which pages are
      * visible. Throttled to once per animation frame, and de-duped so
@@ -321,6 +330,12 @@ export class UDocViewer {
                     this.emit("search:change", {
                         matches: next.searchMatches,
                         activeIndex: next.searchActiveIndex,
+                    });
+                }
+                if (prev.activeTool !== next.activeTool) {
+                    this.emit("tool:change", {
+                        tool: next.activeTool,
+                        previousTool: prev.activeTool,
                     });
                 }
                 if (prev.disabledPanels !== next.disabledPanels) {
