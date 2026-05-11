@@ -420,6 +420,17 @@ const created = await viewer.addPageAnnotation(0, {
 console.log(created.name); // generated UUID, stable across save/reload
 ```
 
+**Add many at once.** `addPageAnnotations` inserts a batch on a single page in one store update — one render and one dirty-page flip instead of N. Use it when importing or restoring annotations. The `annotation:add` event still fires once per annotation in input order, so existing listeners just work.
+
+```typescript
+const inserted = await viewer.addPageAnnotations(0, [
+    { type: "highlight", bounds: { x: 100, y: 700, width: 200, height: 20 }, color: { r: 1, g: 1, b: 0 } },
+    { type: "underline", bounds: { x: 100, y: 680, width: 200, height: 2 }, color: { r: 0, g: 0, b: 1 } },
+]);
+
+console.log(inserted.map((a) => a.name)); // generated UUIDs
+```
+
 **Update / remove.** Both are keyed by `name`. `updatePageAnnotation` replaces the whole annotation but preserves the `name` even if you accidentally pass a different one in the body.
 
 ```typescript

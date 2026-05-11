@@ -690,6 +690,17 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
                 : new Set(state.annotationsDirtyPages).add(action.pageIndex);
             return { ...state, pageAnnotations: newAnnotations, annotationsDirtyPages: newDirty };
         }
+        case "ADD_ANNOTATIONS": {
+            if (action.annotations.length === 0) return state;
+            const existing = state.pageAnnotations.get(action.pageIndex) ?? [];
+            const newAnnotations = new Map(state.pageAnnotations);
+            newAnnotations.set(action.pageIndex, [...existing, ...action.annotations]);
+            const hasReal = action.annotations.some((a) => !a.ephemeral);
+            const newDirty = hasReal
+                ? new Set(state.annotationsDirtyPages).add(action.pageIndex)
+                : state.annotationsDirtyPages;
+            return { ...state, pageAnnotations: newAnnotations, annotationsDirtyPages: newDirty };
+        }
         case "REMOVE_ANNOTATION": {
             const existing = state.pageAnnotations.get(action.pageIndex);
             if (!existing || action.annotationIndex >= existing.length) return state;

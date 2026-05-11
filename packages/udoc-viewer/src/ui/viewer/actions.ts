@@ -147,6 +147,7 @@ export type Action =
     | { type: "SET_TOOL_OPTION"; subTool: string; key: string; value: string | number | null }
     // Annotation editing
     | { type: "ADD_ANNOTATION"; pageIndex: number; annotation: Annotation }
+    | { type: "ADD_ANNOTATIONS"; pageIndex: number; annotations: Annotation[] }
     | { type: "REMOVE_ANNOTATION"; pageIndex: number; annotationIndex: number }
     | { type: "UPDATE_ANNOTATION"; pageIndex: number; annotationIndex: number; annotation: Annotation }
     | { type: "RESTORE_PAGE_ANNOTATIONS"; pageIndex: number; annotations: Annotation[] }

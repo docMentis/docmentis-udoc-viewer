@@ -9,6 +9,7 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 ### Features
 
 - New `renderRegion(page, rect, options)` method on `UDocViewer` to render a rectangular sub-region of a page; `rect` is in page points (top-left origin, same units as `getPageInfo`), and `options.scale` controls output resolution
+- New `addPageAnnotations(page, annotations)` method on `UDocViewer` for batched insertion — one store update / render per page instead of N, with `annotation:add` still emitted once per annotation in input order
 
 ## [0.6.36] - 2026-05-08
 

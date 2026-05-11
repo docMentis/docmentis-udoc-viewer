@@ -357,6 +357,14 @@ export class UDocViewer {
                             annotation: action.annotation,
                         });
                         break;
+                    case "ADD_ANNOTATIONS":
+                        for (const annotation of action.annotations) {
+                            this.emit("annotation:add", {
+                                pageIndex: action.pageIndex,
+                                annotation,
+                            });
+                        }
+                        break;
                     case "UPDATE_ANNOTATION":
                         this.emit("annotation:update", {
                             pageIndex: action.pageIndex,
@@ -809,6 +817,34 @@ export class UDocViewer {
         const withId: Annotation = annotation.name ? annotation : { ...annotation, name: generateAnnotationId() };
         this.uiShell!.dispatch({ type: "ADD_ANNOTATION", pageIndex: page, annotation: withId });
         return withId;
+    }
+
+    /**
+     * Add multiple annotations to a page in a single batch.
+     *
+     * Equivalent to calling {@link addPageAnnotation} once per item, but
+     * applied as a single store update — one render and one dirty-flag flip
+     * per page instead of N. Use this when importing or restoring many
+     * annotations on the same page.
+     *
+     * Each annotation gets a generated `name` (UUID) if one is not provided.
+     * The returned array preserves input order with `name` populated.
+     *
+     * `annotation:add` still fires once per annotation, in input order, so
+     * existing single-event listeners just work.
+     *
+     * @param page - Page index (0-based)
+     * @param annotations - Annotations to insert (may mix ephemeral and saved)
+     * @returns The inserted annotations (each with `name` populated).
+     */
+    async addPageAnnotations(page: number, annotations: Annotation[]): Promise<Annotation[]> {
+        this.ensureLoaded();
+        this.ensureUiMode();
+        if (annotations.length === 0) return [];
+        await this.ensurePageAnnotationsLoaded(page);
+        const withIds: Annotation[] = annotations.map((a) => (a.name ? a : { ...a, name: generateAnnotationId() }));
+        this.uiShell!.dispatch({ type: "ADD_ANNOTATIONS", pageIndex: page, annotations: withIds });
+        return withIds;
     }
 
     /**
