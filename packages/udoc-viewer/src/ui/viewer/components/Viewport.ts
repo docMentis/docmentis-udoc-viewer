@@ -33,6 +33,7 @@ import {
 } from "../layout/spreadLayout";
 import { createSpread, type SpreadComponent } from "./Spread";
 import { createFloatingToolbar } from "./FloatingToolbar";
+import { createBranding, type BrandingHandle } from "./Branding";
 import { on } from "../../framework/events";
 import { getDevicePixelRatio, getEffectiveDpr, snapToDevice, toCssPixels, toDevicePixels } from "../layout";
 import { runTransition, type TransitionHandle } from "../transition";
@@ -503,191 +504,15 @@ export function createViewport(showAttribution = true) {
     container.className = "udoc-viewport__container";
     scrollArea.appendChild(container);
 
-    // Attribution with tamper protection (skipped for licensed users)
-    let attrObserver: MutationObserver | null = null;
-    let attrIntegrityCheck: ReturnType<typeof setInterval> | null = null;
-
+    // Attribution branding (skipped for licensed users with the no_attribution feature).
+    // Visual content lives inside a closed shadow root for CSS-injection resistance;
+    // a runtime visibility tripwire fires `udoc:branding-suppressed` if anything
+    // does manage to hide it (host JS reaching across the shadow, etc.) so downstream
+    // code can engage a fallback such as a rasterized watermark.
+    let branding: BrandingHandle | null = null;
     if (showAttribution) {
-        const attrClass = "_" + Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 10);
-        const attrHref = "https://docmentis.com";
-        const attrHtml = `Powered by <span class="${attrClass}-doc">doc</span><span class="${attrClass}-mentis">Mentis</span>`;
-        const attrLinkAttrs = { target: "_blank", rel: "noopener" };
-
-        // Inject dynamic styles for the random class name
-        const attrStyle = document.createElement("style");
-        attrStyle.textContent = `
-            .${attrClass} {
-                position: absolute;
-                right: 18px;
-                bottom: 4px;
-                padding: 2px 6px;
-                font-size: 12px;
-                font-weight: 500;
-                color: #0f172a;
-                text-decoration: none;
-                text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
-                z-index: 10;
-                white-space: nowrap;
-                opacity: 0.35;
-                transition: opacity 0.15s ease;
-            }
-            .${attrClass}:hover {
-                opacity: 0.7;
-            }
-            .${attrClass}-doc {
-                color: #0f172a;
-                font-weight: 700;
-            }
-            .${attrClass}-mentis {
-                color: #4f46e5;
-                font-weight: 700;
-            }
-            .udoc-viewer-dark .${attrClass} {
-                color: rgba(255, 255, 255, 0.5);
-                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-            }
-            .udoc-viewer-dark .${attrClass}-doc {
-                color: #e2e8f0;
-            }
-            .udoc-viewer-dark .${attrClass}-mentis {
-                color: #818cf8;
-            }
-        `;
-        contentArea.appendChild(attrStyle);
-
-        function createAttribution(): HTMLAnchorElement {
-            const el2 = document.createElement("a");
-            el2.className = attrClass;
-            el2.href = attrHref;
-            el2.target = attrLinkAttrs.target;
-            el2.rel = attrLinkAttrs.rel;
-            el2.innerHTML = attrHtml;
-            return el2;
-        }
-
-        let attribution = createAttribution();
-        contentArea.appendChild(attribution);
-
-        // Protect attribution against removal and modification
-        attrObserver = new MutationObserver((mutations) => {
-            let needsRestore = false;
-
-            // Check if attribution was removed from DOM
-            if (!contentArea.contains(attribution)) {
-                needsRestore = true;
-            }
-
-            // Check if style element was removed
-            if (!contentArea.contains(attrStyle)) {
-                contentArea.appendChild(attrStyle);
-            }
-
-            // Check for attribute tampering on the attribution itself
-            for (const mutation of mutations) {
-                if (mutation.target === attribution) {
-                    if (mutation.type === "attributes") {
-                        needsRestore = true;
-                    } else if (mutation.type === "characterData" || mutation.type === "childList") {
-                        needsRestore = true;
-                    }
-                }
-                // Check if attribution's text content was changed
-                if (mutation.target.parentNode === attribution && mutation.type === "characterData") {
-                    needsRestore = true;
-                }
-            }
-
-            if (needsRestore) {
-                // Remove old attribution if still in DOM but corrupted
-                if (contentArea.contains(attribution)) {
-                    attribution.remove();
-                }
-                // Create fresh attribution
-                attribution = createAttribution();
-                contentArea.appendChild(attribution);
-            }
-        });
-
-        // Observe the parent for child removal and the attribution for attribute/content changes
-        attrObserver.observe(contentArea, { childList: true, subtree: false });
-        attrObserver.observe(attribution, {
-            attributes: true,
-            childList: true,
-            characterData: true,
-            subtree: true,
-        });
-
-        // Periodic integrity check (catches CSS-based hiding)
-        attrIntegrityCheck = setInterval(() => {
-            // Restore style element if removed
-            if (!contentArea.contains(attrStyle)) {
-                contentArea.appendChild(attrStyle);
-            }
-            // Restore attribution if removed
-            if (!contentArea.contains(attribution)) {
-                attribution = createAttribution();
-                contentArea.appendChild(attribution);
-                attrObserver!.observe(attribution, {
-                    attributes: true,
-                    childList: true,
-                    characterData: true,
-                    subtree: true,
-                });
-            }
-            // Reset any inline style tampering
-            attribution.style.cssText = "";
-            attribution.removeAttribute("hidden");
-            if (attribution.className !== attrClass) {
-                attribution.className = attrClass;
-            }
-
-            // Computed-visibility check: detect CSS-based hiding via ancestors or overlays
-            const cs = getComputedStyle(attribution);
-            const rect = attribution.getBoundingClientRect();
-            const hidden =
-                cs.display === "none" ||
-                cs.visibility === "hidden" ||
-                parseFloat(cs.opacity) < 0.1 ||
-                rect.width < 10 ||
-                rect.height < 5 ||
-                // Check if element is clipped out of view
-                rect.bottom < 0 ||
-                rect.right < 0 ||
-                rect.top > window.innerHeight ||
-                rect.left > window.innerWidth;
-
-            if (hidden) {
-                // Force visibility via inline styles as a last resort
-                attribution.style.cssText = [
-                    "display: block !important",
-                    "visibility: visible !important",
-                    "opacity: 1 !important",
-                    "position: absolute !important",
-                    "clip: auto !important",
-                    "clip-path: none !important",
-                    "transform: none !important",
-                    "pointer-events: auto !important",
-                    `z-index: ${2147483647} !important`,
-                ].join(";");
-            }
-
-            // Occlusion check: detect overlapping elements covering the attribution
-            if (!hidden) {
-                const cx = rect.left + rect.width / 2;
-                const cy = rect.top + rect.height / 2;
-                const topEl = document.elementFromPoint(cx, cy);
-                const viewerRoot = el.closest(".udoc-viewer-root");
-                if (
-                    topEl &&
-                    topEl !== attribution &&
-                    !attribution.contains(topEl) &&
-                    !(viewerRoot && viewerRoot.contains(topEl))
-                ) {
-                    // Something outside our viewer is covering the attribution — elevate z-index
-                    attribution.style.zIndex = `${2147483647}`;
-                }
-            }
-        }, 1000);
+        branding = createBranding({ variant: "viewport-corner" });
+        contentArea.appendChild(branding.el);
     }
 
     const floatingToolbar = createFloatingToolbar();
@@ -762,6 +587,9 @@ export function createViewport(showAttribution = true) {
         }) => void,
     ): void {
         parent.appendChild(el);
+        // Start branding protection once the host is in the document so the
+        // theme MutationObserver can find `.udoc-viewer-root`.
+        branding?.start();
         workerClient = wc;
         storeRef = store;
         i18nRef = i18n ?? null;
@@ -1949,8 +1777,7 @@ export function createViewport(showAttribution = true) {
         if (updateRaf) cancelAnimationFrame(updateRaf);
         if (scrollRaf) cancelAnimationFrame(scrollRaf);
         if (renderDebounceTimer) clearTimeout(renderDebounceTimer);
-        if (attrObserver) attrObserver.disconnect();
-        if (attrIntegrityCheck) clearInterval(attrIntegrityCheck);
+        if (branding) branding.destroy();
         if (viewToolController) viewToolController.destroy();
         viewToolController = null;
         if (annotationDrawController) annotationDrawController.destroy();

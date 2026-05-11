@@ -3038,22 +3038,8 @@
     text-align: center;
 }
 
-/* Logo path colors */
-.udoc-viewer-root .udoc-logo-doc {
-    fill: #0f172a;
-}
-
-.udoc-viewer-root .udoc-logo-mentis {
-    fill: #4f46e5;
-}
-
-.udoc-viewer-dark .udoc-logo-doc {
-    fill: #e2e8f0;
-}
-
-.udoc-viewer-dark .udoc-logo-mentis {
-    fill: #818cf8;
-}
+/* Logo path colors live inside the Branding component's shadow root (see
+   components/Branding.ts) so external CSS cannot select them. */
 
 /* =============================================================================
    Search Panel
