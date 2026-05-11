@@ -6,6 +6,10 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+### Features
+
+- New `renderRegion(page, rect, options)` method on `UDocViewer` to render a rectangular sub-region of a page; `rect` is in page points (top-left origin, same units as `getPageInfo`), and `options.scale` controls output resolution
+
 ## [0.6.36] - 2026-05-08
 
 ### Features

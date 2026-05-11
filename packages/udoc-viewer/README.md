@@ -957,6 +957,24 @@ const dataUrl = await viewer.renderPage(0, {
 
 // Render thumbnail
 const thumb = await viewer.renderThumbnail(0, { scale: 1 });
+
+// Render a sub-region of a page.
+// rect is in page points (1pt = 1/72 inch), top-left origin — same coordinate
+// space as getPageInfo(page).width / .height. Output pixel size is
+// rect.width * scale × rect.height * scale.
+const { width, height } = await viewer.getPageInfo(0);
+const regionImageData = await viewer.renderRegion(
+    0,
+    { x: 0, y: 0, width: width / 2, height: height / 2 },
+    { scale: 2 },
+);
+
+// Same crop as a PNG blob
+const regionBlob = await viewer.renderRegion(
+    0,
+    { x: 100, y: 100, width: 200, height: 150 },
+    { format: "blob", imageType: "image/png", scale: 2 },
+);
 ```
 
 ### Password-Protected Documents

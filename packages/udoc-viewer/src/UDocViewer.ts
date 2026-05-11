@@ -1509,6 +1509,85 @@ export class UDocViewer {
     }
 
     /**
+     * Render a rectangular sub-region of a page.
+     *
+     * The rect is expressed in **page points** (1 point = 1/72 inch), with the
+     * origin at the top-left of the page — the same coordinate space as
+     * `getPageInfo(page).width` / `.height`.
+     *
+     * Output pixel size is `rect.width * scale` × `rect.height * scale`.
+     *
+     * Internally this renders the full page at the requested scale (sharing the
+     * render cache with `renderPage`) and crops the result, so the underlying
+     * full-page render is bounded by the engine's max-render limits.
+     *
+     * @param page - Page index (0-based)
+     * @param rect - Region to render, in page points (top-left origin)
+     * @param options - Render options. `scale` controls resolution; `format`,
+     *   `imageType`, `quality`, `force`, and `boost` behave as in `renderPage`.
+     */
+    async renderRegion(
+        page: number,
+        rect: { x: number; y: number; width: number; height: number },
+        options: RenderOptions = {},
+    ): Promise<RenderedPage> {
+        this.ensureLoaded();
+
+        if (!(rect.width > 0) || !(rect.height > 0)) {
+            throw new Error("renderRegion: rect width and height must be positive");
+        }
+
+        const scale = options.scale ?? 1;
+        const format = options.format ?? "image-data";
+        const force = options.force ?? false;
+        const boost = options.boost ?? false;
+
+        const renderRequest = {
+            docId: this.documentId!,
+            page: page + 1,
+            type: "page" as RenderType,
+            scale,
+        };
+
+        let result;
+        if (force) {
+            result = await this.workerClient.forceRender(renderRequest);
+        } else {
+            if (boost) {
+                this.workerClient.boostPageRenderPriority(this.documentId!, page + 1);
+            }
+            result = await this.workerClient.requestRender(renderRequest);
+        }
+
+        const fullBitmap = result.bitmap;
+
+        let sx = Math.round(rect.x * scale);
+        let sy = Math.round(rect.y * scale);
+        let sw = Math.round(rect.width * scale);
+        let sh = Math.round(rect.height * scale);
+
+        // Clamp to the rendered bitmap so a rect that spills past the page edge
+        // returns the visible portion instead of failing.
+        if (sx < 0) {
+            sw += sx;
+            sx = 0;
+        }
+        if (sy < 0) {
+            sh += sy;
+            sy = 0;
+        }
+        sw = Math.min(sw, fullBitmap.width - sx);
+        sh = Math.min(sh, fullBitmap.height - sy);
+
+        if (sw <= 0 || sh <= 0) {
+            throw new Error("renderRegion: rect is outside the page bounds");
+        }
+
+        const regionBitmap = await createImageBitmap(fullBitmap, sx, sy, sw, sh);
+        return this.convertBitmapToFormat(regionBitmap, format, options);
+    }
+
+    /**
      * Internal method to render a page with a specific render type.
      */
     private async renderWithType(page: number, type: RenderType, options: RenderOptions = {}): Promise<RenderedPage> {
