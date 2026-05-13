@@ -23,9 +23,13 @@
  */
 
 // Capture `attachShadow` and `getComputedStyle` at module evaluation time so
-// later prototype patching by the host page does not affect us.
-const __attachShadow = Element.prototype.attachShadow;
-const __getComputedStyle = window.getComputedStyle.bind(window);
+// later prototype patching by the host page does not affect us. Guarded for
+// non-DOM environments (SSR/Node) where the module may be imported but
+// `createBranding` will never be invoked.
+const __attachShadow: typeof Element.prototype.attachShadow =
+    typeof Element !== "undefined" ? Element.prototype.attachShadow : (undefined as never);
+const __getComputedStyle: (typeof window)["getComputedStyle"] =
+    typeof window !== "undefined" ? window.getComputedStyle.bind(window) : (undefined as never);
 
 // "https://docmentis.com" — held base64 so `a[href*="docmentis.com"]` and
 // text-scans of the bundle do not find it on the rendered element.
