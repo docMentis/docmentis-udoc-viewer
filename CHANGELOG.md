@@ -6,6 +6,8 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+## [0.6.38] - 2026-05-13
+
 ### Bug Fixes
 
 - Guard `Element` / `window` captures in the branding module behind `typeof` checks so the package can be imported in non-DOM environments (Next.js prerender, SSR, tests). Previously caused `ReferenceError: Element is not defined` during static prerender of any page that pulled in `UDocClient`
