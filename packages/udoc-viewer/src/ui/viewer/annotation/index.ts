@@ -5,6 +5,7 @@
 // Types
 export type {
     Annotation,
+    AnnotationPatch,
     AnnotationType,
     Rect,
     Point,
@@ -51,6 +52,7 @@ export {
     boundsMatch,
     offsetAnnotation,
     resizeAnnotation,
+    applyAnnotationPatch,
 } from "./utils";
 
 // Render functions

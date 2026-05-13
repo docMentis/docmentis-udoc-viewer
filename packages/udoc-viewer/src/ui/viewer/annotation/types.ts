@@ -330,3 +330,15 @@ export type Annotation =
 
 /** Annotation type string. */
 export type AnnotationType = Annotation["type"];
+
+/**
+ * Partial annotation used by `patchPageAnnotation` / `patchPageAnnotations`.
+ *
+ * Only the listed fields are updated; everything else (including `type`,
+ * `name`, and any field not present in the patch) is preserved. `metadata`
+ * is shallow-merged one level deep, so patching `{ metadata: { contents } }`
+ * keeps the existing `author` / `subject`. `undefined` values are skipped,
+ * not treated as "clear this field" — use `updatePageAnnotation` for full
+ * replacement when you need to clear fields by omission.
+ */
+export type AnnotationPatch = Partial<Omit<Annotation, "type" | "name">>;

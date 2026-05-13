@@ -443,6 +443,24 @@ await viewer.updatePageAnnotation(0, created.name, {
 await viewer.removePageAnnotation(0, created.name);
 ```
 
+**Patch.** When you only want to change a few fields (a highlight's color, a markup's contents), `patchPageAnnotation` merges the patch into the existing annotation — everything you don't mention stays untouched. `type` and `name` in the patch are ignored, `metadata` is shallow-merged one level, and `undefined` values are skipped (use `updatePageAnnotation` if you need to clear a field by omission).
+
+```typescript
+await viewer.patchPageAnnotation(0, created.name, {
+    color: { r: 0, g: 1, b: 0 },
+    metadata: { contents: "Reviewed" }, // keeps existing author/subject
+});
+```
+
+**Batch update / patch.** `updatePageAnnotations` and `patchPageAnnotations` apply many changes to one page in a single store update — one render and one dirty-page flip instead of N. `annotation:update` still fires once per entry in input order. Validation is atomic: if any `name` is missing on the page the call throws before any change is applied.
+
+```typescript
+await viewer.patchPageAnnotations(0, [
+    { name: a.name, patch: { color: { r: 1, g: 0, b: 0 } } },
+    { name: b.name, patch: { opacity: 0.5 } },
+]);
+```
+
 **Save.** PDF write-back happens automatically on `toBytes()` and `download()` whenever there are pending edits — there is no separate save call.
 
 ```typescript

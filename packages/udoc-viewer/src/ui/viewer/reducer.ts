@@ -736,6 +736,26 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
             return { ...state, pageAnnotations: newAnnotations, annotationsDirtyPages: newDirty };
         }
 
+        case "UPDATE_ANNOTATIONS": {
+            if (action.updates.length === 0) return state;
+            const existing = state.pageAnnotations.get(action.pageIndex);
+            if (!existing) return state;
+            const newList = existing.slice();
+            let touchesReal = false;
+            for (const { annotationIndex, annotation } of action.updates) {
+                if (annotationIndex < 0 || annotationIndex >= newList.length) continue;
+                const prevAnn = newList[annotationIndex];
+                newList[annotationIndex] = annotation;
+                if (!prevAnn.ephemeral || !annotation.ephemeral) touchesReal = true;
+            }
+            const newAnnotations = new Map(state.pageAnnotations);
+            newAnnotations.set(action.pageIndex, newList);
+            const newDirty = touchesReal
+                ? new Set(state.annotationsDirtyPages).add(action.pageIndex)
+                : state.annotationsDirtyPages;
+            return { ...state, pageAnnotations: newAnnotations, annotationsDirtyPages: newDirty };
+        }
+
         case "RESTORE_PAGE_ANNOTATIONS": {
             const newAnnotations = new Map(state.pageAnnotations);
             newAnnotations.set(action.pageIndex, action.annotations);

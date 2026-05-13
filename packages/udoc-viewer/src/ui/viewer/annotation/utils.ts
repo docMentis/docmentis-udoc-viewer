@@ -1,7 +1,7 @@
 /**
  * Shared utilities for annotation rendering.
  */
-import type { Annotation, AnnotationColor, Point, Quad, Rect } from "./types";
+import type { Annotation, AnnotationColor, AnnotationPatch, Point, Quad, Rect } from "./types";
 
 /**
  * Convert annotation color to CSS rgba() string.
@@ -218,4 +218,30 @@ export function offsetAnnotation(annotation: Annotation, dx: number, dy: number)
             // square, circle, text, stamp, caret, link — only bounds
             return { ...annotation, ...base };
     }
+}
+
+/**
+ * Apply a partial patch to an annotation, returning a new annotation.
+ *
+ * - `type` and `name` in the patch are silently ignored (the existing values
+ *   are preserved) so callers can spread an annotation in without surprises.
+ * - `metadata` is shallow-merged one level so patching one field doesn't
+ *   wipe the others.
+ * - `undefined` values are skipped — they are not treated as "clear this
+ *   field". Use `updatePageAnnotation` for full replacement semantics.
+ */
+export function applyAnnotationPatch(existing: Annotation, patch: AnnotationPatch): Annotation {
+    const result: Record<string, unknown> = { ...existing };
+    const patchRecord = patch as Record<string, unknown>;
+    for (const key of Object.keys(patchRecord)) {
+        if (key === "type" || key === "name") continue;
+        const value = patchRecord[key];
+        if (value === undefined) continue;
+        if (key === "metadata" && value && typeof value === "object") {
+            result.metadata = { ...(existing.metadata ?? {}), ...(value as object) };
+        } else {
+            result[key] = value;
+        }
+    }
+    return result as unknown as Annotation;
 }

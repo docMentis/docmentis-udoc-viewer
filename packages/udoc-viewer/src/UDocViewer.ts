@@ -10,9 +10,14 @@ import type { ViewerOptions } from "./UDocClient.js";
 import { mountViewerShell, type ViewerShell, type InitialStateOverrides } from "./ui/viewer/shell.js";
 import type { PrintDialogResult, PrintPageRange, PrintQuality } from "./ui/viewer/components/PrintDialog.js";
 import type { Destination, OutlineItem, ScrollAlignment } from "./ui/viewer/navigation.js";
-import { renderAnnotationsToLayer, type Annotation } from "./ui/viewer/annotation/index.js";
+import {
+    renderAnnotationsToLayer,
+    applyAnnotationPatch,
+    type Annotation,
+    type AnnotationPatch,
+} from "./ui/viewer/annotation/index.js";
 import { extractPageText } from "./ui/viewer/search/index.js";
-export type { Annotation } from "./ui/viewer/annotation/index.js";
+export type { Annotation, AnnotationPatch } from "./ui/viewer/annotation/index.js";
 export type { SearchMatch } from "./ui/viewer/state.js";
 import type { LayoutPage } from "./worker/index.js";
 import {
@@ -370,6 +375,14 @@ export class UDocViewer {
                             pageIndex: action.pageIndex,
                             annotation: action.annotation,
                         });
+                        break;
+                    case "UPDATE_ANNOTATIONS":
+                        for (const { annotation } of action.updates) {
+                            this.emit("annotation:update", {
+                                pageIndex: action.pageIndex,
+                                annotation,
+                            });
+                        }
                         break;
                     case "REMOVE_ANNOTATION": {
                         const removed = prev.pageAnnotations.get(action.pageIndex)?.[action.annotationIndex];
@@ -875,6 +888,117 @@ export class UDocViewer {
     }
 
     /**
+     * Update multiple annotations on a page in a single batch.
+     *
+     * Equivalent to calling {@link updatePageAnnotation} once per item, but
+     * applied as a single store update — one render and one dirty-flag flip
+     * per page instead of N. Each entry's existing `name` is preserved even
+     * if a different one is set on its `annotation`.
+     *
+     * `annotation:update` still fires once per entry, in input order.
+     *
+     * Validation is atomic: if any `name` cannot be found on the page, the
+     * call throws *before* any annotation is updated.
+     *
+     * @param page - Page index (0-based)
+     * @param updates - Pairs of `{ name, annotation }` to replace.
+     * @returns The updated annotations, in input order.
+     * @throws If any `name` is not found on the page.
+     */
+    async updatePageAnnotations(
+        page: number,
+        updates: Array<{ name: string; annotation: Annotation }>,
+    ): Promise<Annotation[]> {
+        this.ensureLoaded();
+        this.ensureUiMode();
+        if (updates.length === 0) return [];
+        await this.ensurePageAnnotationsLoaded(page);
+        const resolved = updates.map(({ name, annotation }) => ({
+            annotationIndex: this.requireAnnotationIndex(page, name),
+            annotation: { ...annotation, name } as Annotation,
+        }));
+        this.uiShell!.dispatch({ type: "UPDATE_ANNOTATIONS", pageIndex: page, updates: resolved });
+        return resolved.map((r) => r.annotation);
+    }
+
+    /**
+     * Patch an existing annotation, identified by its `name` (NM).
+     *
+     * Unlike {@link updatePageAnnotation}, which replaces the entire
+     * annotation, this only overwrites the fields present in `patch`.
+     * Everything else (geometry, other style fields, contents, etc.) is
+     * preserved. Use this when you want to tweak one or two properties —
+     * for example, change a highlight's color — without round-tripping the
+     * full annotation.
+     *
+     * Semantics:
+     * - `type` and `name` in the patch are silently ignored.
+     * - `metadata` is shallow-merged one level deep, so patching
+     *   `{ metadata: { contents } }` keeps the existing `author`/`subject`.
+     * - `undefined` values are skipped, not treated as "clear this field".
+     *   Use `updatePageAnnotation` for full replacement when you need to
+     *   clear fields by omission.
+     *
+     * @param page - Page index (0-based)
+     * @param name - The annotation's `name` (NM).
+     * @param patch - Fields to merge into the existing annotation.
+     * @returns The patched annotation.
+     * @throws If no annotation with the given `name` is found on the page.
+     */
+    async patchPageAnnotation(page: number, name: string, patch: AnnotationPatch): Promise<Annotation> {
+        this.ensureLoaded();
+        this.ensureUiMode();
+        const index = await this.findAnnotationIndex(page, name);
+        const existing = this.uiShell!.store.getState().pageAnnotations.get(page)![index];
+        const updated = applyAnnotationPatch(existing, patch);
+        this.uiShell!.dispatch({
+            type: "UPDATE_ANNOTATION",
+            pageIndex: page,
+            annotationIndex: index,
+            annotation: updated,
+        });
+        return updated;
+    }
+
+    /**
+     * Patch multiple annotations on a page in a single batch.
+     *
+     * Equivalent to calling {@link patchPageAnnotation} once per item, but
+     * applied as a single store update — one render and one dirty-flag flip
+     * per page instead of N. Patches are resolved against the *current*
+     * annotation state (not against each other in sequence); patching the
+     * same `name` twice in one call applies both, with the second winning.
+     *
+     * `annotation:update` still fires once per entry, in input order.
+     *
+     * Validation is atomic: if any `name` cannot be found on the page, the
+     * call throws *before* any annotation is patched.
+     *
+     * @param page - Page index (0-based)
+     * @param patches - Pairs of `{ name, patch }` to apply.
+     * @returns The patched annotations, in input order.
+     * @throws If any `name` is not found on the page.
+     */
+    async patchPageAnnotations(
+        page: number,
+        patches: Array<{ name: string; patch: AnnotationPatch }>,
+    ): Promise<Annotation[]> {
+        this.ensureLoaded();
+        this.ensureUiMode();
+        if (patches.length === 0) return [];
+        await this.ensurePageAnnotationsLoaded(page);
+        const list = this.uiShell!.store.getState().pageAnnotations.get(page)!;
+        const resolved = patches.map(({ name, patch }) => {
+            const annotationIndex = this.requireAnnotationIndex(page, name);
+            const merged = applyAnnotationPatch(list[annotationIndex], patch);
+            const annotation: Annotation = { ...merged, name } as Annotation;
+            return { annotationIndex, annotation };
+        });
+        this.uiShell!.dispatch({ type: "UPDATE_ANNOTATIONS", pageIndex: page, updates: resolved });
+        return resolved.map((r) => r.annotation);
+    }
+
+    /**
      * Remove an annotation, identified by its `name` (NM).
      *
      * @param page - Page index (0-based)
@@ -903,6 +1027,15 @@ export class UDocViewer {
 
     private async findAnnotationIndex(page: number, name: string): Promise<number> {
         await this.ensurePageAnnotationsLoaded(page);
+        return this.requireAnnotationIndex(page, name);
+    }
+
+    /**
+     * Synchronous variant of `findAnnotationIndex` for callers that have
+     * already awaited `ensurePageAnnotationsLoaded` — used by the batch
+     * mutators so all per-item lookups happen against a stable, loaded list.
+     */
+    private requireAnnotationIndex(page: number, name: string): number {
         const list = this.uiShell!.store.getState().pageAnnotations.get(page) ?? [];
         const index = list.findIndex((a) => a.name === name);
         if (index < 0) {

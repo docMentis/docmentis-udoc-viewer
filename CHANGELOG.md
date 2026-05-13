@@ -10,6 +10,9 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 - New `renderRegion(page, rect, options)` method on `UDocViewer` to render a rectangular sub-region of a page; `rect` is in page points (top-left origin, same units as `getPageInfo`), and `options.scale` controls output resolution
 - New `addPageAnnotations(page, annotations)` method on `UDocViewer` for batched insertion — one store update / render per page instead of N, with `annotation:add` still emitted once per annotation in input order
+- New `patchPageAnnotation(page, name, patch)` method on `UDocViewer` for partial annotation updates — overwrites only the fields in `patch`, preserves everything else; `metadata` is shallow-merged and `undefined` values are skipped (use `updatePageAnnotation` for full replacement)
+- New `updatePageAnnotations(page, updates)` and `patchPageAnnotations(page, patches)` batch variants — one store update / render per page instead of N, with `annotation:update` still emitted once per entry in input order; validation is atomic (throws before any change if a `name` is missing)
+- New `AnnotationPatch` type exported from the package root
 
 ## [0.6.36] - 2026-05-08
 

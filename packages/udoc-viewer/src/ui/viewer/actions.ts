@@ -150,6 +150,11 @@ export type Action =
     | { type: "ADD_ANNOTATIONS"; pageIndex: number; annotations: Annotation[] }
     | { type: "REMOVE_ANNOTATION"; pageIndex: number; annotationIndex: number }
     | { type: "UPDATE_ANNOTATION"; pageIndex: number; annotationIndex: number; annotation: Annotation }
+    | {
+          type: "UPDATE_ANNOTATIONS";
+          pageIndex: number;
+          updates: Array<{ annotationIndex: number; annotation: Annotation }>;
+      }
     | { type: "RESTORE_PAGE_ANNOTATIONS"; pageIndex: number; annotations: Annotation[] }
     // Annotation selection
     | { type: "SELECT_ANNOTATION"; pageIndex: number; annotationIndex: number }
