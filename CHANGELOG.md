@@ -6,6 +6,11 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+### Features
+
+- New `annotation:hover` event on `ViewerEventMap` — fires when the pointer enters or leaves an annotation on any rendered page. Active in all tool modes (including normal viewing), deduped to only fire when the hovered annotation actually changes, and emits `null` when the pointer leaves without entering another
+- New `annotation:click` event on `ViewerEventMap` — fires when the user clicks an annotation on any rendered page, regardless of the active tool. Emitted before built-in link navigation or sticky-note popup handling, so consumers can observe (or augment) those interactions
+
 ## [0.6.38] - 2026-05-13
 
 ### Bug Fixes

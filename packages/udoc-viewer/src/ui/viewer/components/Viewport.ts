@@ -549,6 +549,12 @@ export function createViewport(showAttribution = true) {
     let onViewportChangeCb:
         | ((payload: { firstVisiblePage: number; lastVisiblePage: number; zoom: number; scrollTop: number }) => void)
         | null = null;
+    /** Caller-supplied callback for the public annotation:hover event. */
+    let onAnnotationHoverCb: ((payload: { pageIndex: number; annotation: Annotation } | null) => void) | null = null;
+    /** Caller-supplied callback for the public annotation:click event. */
+    let onAnnotationClickCb: ((payload: { pageIndex: number; annotation: Annotation }) => void) | null = null;
+    /** Currently hovered annotation, used to dedupe pointermove emissions. */
+    let lastHoveredAnnotation: { pageIndex: number; annotationIndex: number } | null = null;
     let containerSize = { width: 0, height: 0 };
     let lastOverflowX: boolean | null = null;
     let lastOverflowY: boolean | null = null;
@@ -585,6 +591,8 @@ export function createViewport(showAttribution = true) {
             zoom: number;
             scrollTop: number;
         }) => void,
+        onAnnotationHover?: (payload: { pageIndex: number; annotation: Annotation } | null) => void,
+        onAnnotationClick?: (payload: { pageIndex: number; annotation: Annotation }) => void,
     ): void {
         parent.appendChild(el);
         // Start branding protection once the host is in the document so the
@@ -594,6 +602,8 @@ export function createViewport(showAttribution = true) {
         storeRef = store;
         i18nRef = i18n ?? null;
         onViewportChangeCb = onViewportChange ?? null;
+        onAnnotationHoverCb = onAnnotationHover ?? null;
+        onAnnotationClickCb = onAnnotationClick ?? null;
 
         if (i18n) {
             el.setAttribute("aria-label", i18n.t("viewport.documentContent"));
@@ -704,6 +714,24 @@ export function createViewport(showAttribution = true) {
         const handleAnnotationClick = (e: MouseEvent) => {
             const target = e.target as HTMLElement;
 
+            // Emit annotation:click for any annotation, regardless of type or
+            // active tool. Runs before the built-in link/sticky handlers below
+            // so consumers can observe the click even if it triggers
+            // navigation or a popup.
+            const annotationEl = target.closest<HTMLElement>("[data-annotation-index]");
+            if (annotationEl && onAnnotationClickCb && storeRef) {
+                const slotEl = annotationEl.closest<HTMLElement>("[data-page]");
+                const pageNum = slotEl ? parseInt(slotEl.dataset.page!, 10) : NaN;
+                const annotationIndex = parseInt(annotationEl.getAttribute("data-annotation-index")!, 10);
+                if (!isNaN(pageNum) && !isNaN(annotationIndex)) {
+                    const pageIndex = pageNum - 1;
+                    const annotation = storeRef.getState().pageAnnotations.get(pageIndex)?.[annotationIndex];
+                    if (annotation) {
+                        onAnnotationClickCb({ pageIndex, annotation });
+                    }
+                }
+            }
+
             // Handle sticky note (text) annotation - show popup
             const textEl = target.closest(".udoc-annotation--text") as HTMLElement | null;
             if (textEl) {
@@ -751,6 +779,53 @@ export function createViewport(showAttribution = true) {
         };
         container.addEventListener("click", handleAnnotationClick);
         unsubEvents.push(() => container.removeEventListener("click", handleAnnotationClick));
+
+        // Emit annotation:hover events as the pointer moves over annotation
+        // elements. Active in all tool modes (not just the select tool) and
+        // deduped to fire only when the hovered annotation actually changes.
+        const emitHover = (next: { pageIndex: number; annotationIndex: number } | null): void => {
+            const last = lastHoveredAnnotation;
+            if (
+                last === next ||
+                (last !== null &&
+                    next !== null &&
+                    last.pageIndex === next.pageIndex &&
+                    last.annotationIndex === next.annotationIndex)
+            ) {
+                return;
+            }
+            lastHoveredAnnotation = next;
+            if (!onAnnotationHoverCb || !storeRef) return;
+            if (next === null) {
+                onAnnotationHoverCb(null);
+                return;
+            }
+            const annotations = storeRef.getState().pageAnnotations.get(next.pageIndex);
+            const annotation = annotations?.[next.annotationIndex];
+            if (!annotation) return;
+            onAnnotationHoverCb({ pageIndex: next.pageIndex, annotation });
+        };
+        const handleAnnotationPointerMove = (e: PointerEvent): void => {
+            const target = e.target as Element | null;
+            const annotationEl = target?.closest<HTMLElement>("[data-annotation-index]");
+            if (!annotationEl) {
+                emitHover(null);
+                return;
+            }
+            const slotEl = annotationEl.closest<HTMLElement>("[data-page]");
+            const pageNum = slotEl ? parseInt(slotEl.dataset.page!, 10) : NaN;
+            const annotationIndex = parseInt(annotationEl.getAttribute("data-annotation-index")!, 10);
+            if (isNaN(pageNum) || isNaN(annotationIndex)) {
+                emitHover(null);
+                return;
+            }
+            emitHover({ pageIndex: pageNum - 1, annotationIndex });
+        };
+        const handleAnnotationPointerLeave = (): void => emitHover(null);
+        container.addEventListener("pointermove", handleAnnotationPointerMove);
+        container.addEventListener("pointerleave", handleAnnotationPointerLeave);
+        unsubEvents.push(() => container.removeEventListener("pointermove", handleAnnotationPointerMove));
+        unsubEvents.push(() => container.removeEventListener("pointerleave", handleAnnotationPointerLeave));
 
         // Handle mouse wheel for page flip in spread mode
         let wheelCooldown = false;

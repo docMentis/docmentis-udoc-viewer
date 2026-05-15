@@ -482,7 +482,7 @@ const cursor = await viewer.addPageAnnotation(0, {
 await viewer.updatePageAnnotation(0, cursor.name, { ...cursor, ephemeral: false });
 ```
 
-**Events.** All four annotation events fire for both UI-driven changes (drawing/markup tools) and API-driven changes, so a single listener covers both.
+**Events.** The four lifecycle events (`add` / `update` / `remove` / `select`) fire for both UI-driven changes (drawing/markup tools) and API-driven changes, so a single listener covers both. `hover` and `click` are pointer-driven and fire in any tool mode, including normal viewing.
 
 ```typescript
 viewer.on("annotation:add", ({ pageIndex, annotation }) => {
@@ -501,6 +501,20 @@ viewer.on("annotation:remove", ({ pageIndex, annotation }) => {
 viewer.on("annotation:select", (selection) => {
     if (!selection) return; // null = deselect
     showInspector(selection.annotation);
+});
+
+// Pointer hover — fires when the pointer enters/leaves an annotation in any
+// tool mode. Deduped to only fire on actual hover changes. Payload is null
+// when the pointer leaves the currently hovered annotation.
+viewer.on("annotation:hover", (hover) => {
+    if (!hover) return hideTooltip();
+    showTooltip(hover.annotation);
+});
+
+// Pointer click — fires for any annotation click, regardless of active tool,
+// and before built-in handling (link navigation, sticky-note popups).
+viewer.on("annotation:click", ({ pageIndex, annotation }) => {
+    console.log("clicked", annotation.subtype, "on page", pageIndex);
 });
 ```
 
@@ -799,6 +813,10 @@ viewer.on("annotation:remove", ({ pageIndex, annotation }) => {});
 viewer.on("annotation:select", (selection) => {
     // null when the selection is cleared
 });
+viewer.on("annotation:hover", (hover) => {
+    // null when the pointer leaves without entering another annotation
+});
+viewer.on("annotation:click", ({ pageIndex, annotation }) => {});
 
 // Error occurred
 viewer.on("error", ({ error, phase }) => {

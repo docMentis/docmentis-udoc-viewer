@@ -157,6 +157,19 @@ export interface ViewerEventMap {
     "annotation:remove": { pageIndex: number; annotation: Annotation };
     "annotation:select": { pageIndex: number; annotation: Annotation } | null;
     /**
+     * Fires when the pointer enters or leaves an annotation element on a
+     * rendered page. Always emitted regardless of the active tool — including
+     * during normal viewing. Payload is `null` when the pointer leaves the
+     * currently hovered annotation without entering another.
+     */
+    "annotation:hover": { pageIndex: number; annotation: Annotation } | null;
+    /**
+     * Fires when the user clicks an annotation on a rendered page. Always
+     * emitted regardless of the active tool, in addition to (and before) any
+     * built-in click handling such as link navigation or sticky-note popups.
+     */
+    "annotation:click": { pageIndex: number; annotation: Annotation };
+    /**
      * Fires when the user's view of the document changes — scroll position,
      * zoom, layout, or scroll-mode changes that affect which pages are
      * visible. Throttled to once per animation frame, and de-duped so
@@ -273,6 +286,8 @@ export class UDocViewer {
                 onDownload: () => this.download(),
                 onPrint: (options) => this.print(options),
                 onViewportChange: (payload) => this.emit("viewport:change", payload),
+                onAnnotationHover: (payload) => this.emit("annotation:hover", payload),
+                onAnnotationClick: (payload) => this.emit("annotation:click", payload),
             });
 
             // Subscribe to store state changes to emit public events

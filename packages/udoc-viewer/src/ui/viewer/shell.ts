@@ -40,11 +40,16 @@ export interface ViewportChangePayload {
     scrollTop: number;
 }
 
+export type AnnotationHoverPayload = { pageIndex: number; annotation: Annotation } | null;
+export type AnnotationClickPayload = { pageIndex: number; annotation: Annotation };
+
 export interface ViewerShellCallbacks {
     onPasswordSubmit?: (password: string) => void;
     onDownload?: () => void;
     onPrint?: (options: PrintDialogResult) => void;
     onViewportChange?: (payload: ViewportChangePayload) => void;
+    onAnnotationHover?: (payload: AnnotationHoverPayload) => void;
+    onAnnotationClick?: (payload: AnnotationClickPayload) => void;
 }
 
 export interface ViewerShell {
@@ -179,7 +184,15 @@ export function mountViewerShell(
     leftPanel.mount(leftPanelSlot, store, workerClient, i18n);
 
     const viewport = createViewport(showAttribution);
-    viewport.mount(viewportSlot, store, workerClient, i18n, (payload) => callbacks.onViewportChange?.(payload));
+    viewport.mount(
+        viewportSlot,
+        store,
+        workerClient,
+        i18n,
+        (payload) => callbacks.onViewportChange?.(payload),
+        (payload) => callbacks.onAnnotationHover?.(payload),
+        (payload) => callbacks.onAnnotationClick?.(payload),
+    );
 
     const sheetTabBar = createSheetTabBar();
     sheetTabBar.mount(viewportSlot, store);
