@@ -11,6 +11,10 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 - New `annotation:hover` event on `ViewerEventMap` — fires when the pointer enters or leaves an annotation on any rendered page. Active in all tool modes (including normal viewing), deduped to only fire when the hovered annotation actually changes, and emits `null` when the pointer leaves without entering another
 - New `annotation:click` event on `ViewerEventMap` — fires when the user clicks an annotation on any rendered page, regardless of the active tool. Emitted before built-in link navigation or sticky-note popup handling, so consumers can observe (or augment) those interactions
 
+### Bug Fixes
+
+- Spec-complete PDF date parsing per §7.9.4: handles partial dates (`D:YYYY` through `D:YYYYMMDDHHmm`), `Z`/`z` UTC, and all four offset trailer forms (`+HH`, `+HH'`, `+HH'mm`, `+HH'mm'`); lenient on real-world quirks (missing `D:` prefix, trailing whitespace/NUL padding) but strict on field ranges and digit validation (engine)
+
 ## [0.6.38] - 2026-05-13
 
 ### Bug Fixes
