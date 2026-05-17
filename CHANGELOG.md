@@ -13,7 +13,8 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ### Bug Fixes
 
-- Spec-complete PDF date parsing per §7.9.4: handles partial dates (`D:YYYY` through `D:YYYYMMDDHHmm`), `Z`/`z` UTC, and all four offset trailer forms (`+HH`, `+HH'`, `+HH'mm`, `+HH'mm'`); lenient on real-world quirks (missing `D:` prefix, trailing whitespace/NUL padding) but strict on field ranges and digit validation (engine)
+- Spec-complete PDF date parsing per §7.9.4: handles partial dates (`D:YYYY` through `D:YYYYMMDDHHmm`), `Z`/`z` UTC, and all four offset trailer forms (`+HH`, `+HH'`, `+HH'mm`, `+HH'mm'`); also accepts real-world variants like unquoted `±HHmm` (PDFlib's default) and `.SSS` fractional seconds, missing `D:` prefix, and trailing whitespace/NUL padding, while staying strict on field ranges and digit validation (engine)
+- Isolate per-annotation parse failures from the page layer: a single malformed field on one annotation no longer drops the entire page's annotation list — the bad field is logged and the rest of the annotations still load (engine)
 
 ## [0.6.38] - 2026-05-13
 
