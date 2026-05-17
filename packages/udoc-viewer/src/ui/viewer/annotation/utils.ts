@@ -97,6 +97,34 @@ export function boundsMatch(a: Rect, b: Rect, epsilon = 0.1): boolean {
 }
 
 // =============================================================================
+// Page-rotation helpers
+// =============================================================================
+
+/** Effective page rotation, in degrees, as applied by Spread's CSS transform. */
+export type EffectiveRotation = 0 | 90 | 180 | 270;
+
+/**
+ * Inverse of the CSS `rotate(rotation deg)` applied to the annotation layer.
+ *
+ * Annotation bounds are stored in unrotated MediaBox space; the layer is then
+ * rotated by the viewer. Pointer events arrive in displayed (rotated) space,
+ * so deltas/points must be inverse-rotated before being written into the
+ * annotation model. Operates on screen-frame coordinates (y-down).
+ */
+export function invertPageRotation(dx: number, dy: number, rotation: EffectiveRotation): Point {
+    switch (rotation) {
+        case 0:
+            return { x: dx, y: dy };
+        case 90:
+            return { x: dy, y: -dx };
+        case 180:
+            return { x: -dx, y: -dy };
+        case 270:
+            return { x: -dy, y: dx };
+    }
+}
+
+// =============================================================================
 // Annotation geometry helpers
 // =============================================================================
 

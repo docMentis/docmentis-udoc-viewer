@@ -13,8 +13,15 @@ import type { Store } from "../../framework/store";
 import type { ViewerState } from "../state";
 import { getPointsToPixels, ANNOTATION_FORMATS } from "../state";
 import type { Action } from "../actions";
-import { offsetAnnotation, resizeAnnotation } from "../annotation/utils";
+import { offsetAnnotation, resizeAnnotation, invertPageRotation, type EffectiveRotation } from "../annotation/utils";
 import type { Rect } from "../annotation/types";
+
+/** Normalize a rotation value to one of 0/90/180/270. */
+function normalizeRotation(rotation: number | undefined): EffectiveRotation {
+    const v = (((rotation ?? 0) % 360) + 360) % 360;
+    if (v === 90 || v === 180 || v === 270) return v;
+    return 0;
+}
 
 export interface AnnotationSelectControllerOptions {
     scrollArea: HTMLElement;
@@ -55,6 +62,7 @@ export function createAnnotationSelectController(options: AnnotationSelectContro
     let isDragging = false;
     let dragMode: DragMode = "move";
     let dragScale = 1;
+    let dragRotation: EffectiveRotation = 0;
     let dragStartX = 0;
     let dragStartY = 0;
     let dragDx = 0;
@@ -264,6 +272,10 @@ export function createAnnotationSelectController(options: AnnotationSelectContro
         isDragging = true;
         dragMode = mode;
         dragScale = pointsToPixels * zoom;
+        const pageInfo = state.pageInfos[pageIndex];
+        const documentRotation = normalizeRotation(pageInfo?.rotation);
+        const userRotation = normalizeRotation(state.pageRotation);
+        dragRotation = normalizeRotation(documentRotation + userRotation);
         dragStartX = e.clientX;
         dragStartY = e.clientY;
         dragDx = 0;
@@ -285,10 +297,13 @@ export function createAnnotationSelectController(options: AnnotationSelectContro
     function onPointerMove(e: PointerEvent): void {
         if (!isDragging) return;
 
-        const pxDx = e.clientX - dragStartX;
-        const pxDy = e.clientY - dragStartY;
-        dragDx = pxDx / dragScale;
-        dragDy = pxDy / dragScale;
+        // Screen-space delta needs to be inverse-rotated into MediaBox space so
+        // that the move/resize math (and the eventual stored bounds) match the
+        // page's unrotated coordinate frame. Without this, on a rotated page a
+        // horizontal drag would shift the annotation vertically.
+        const rotated = invertPageRotation(e.clientX - dragStartX, e.clientY - dragStartY, dragRotation);
+        dragDx = rotated.x / dragScale;
+        dragDy = rotated.y / dragScale;
 
         if (dragMode === "move") {
             if (innerEl) {

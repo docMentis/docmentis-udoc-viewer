@@ -23,6 +23,14 @@ import type {
     Rect,
 } from "../annotation/types";
 import { parseHexColor, toLineEnding, toBorderStyle } from "../annotation/propertyUtils";
+import { invertPageRotation, type EffectiveRotation } from "../annotation/utils";
+
+/** Normalize a rotation value to one of 0/90/180/270. */
+function normalizeRotation(rotation: number | undefined): EffectiveRotation {
+    const v = (((rotation ?? 0) % 360) + 360) % 360;
+    if (v === 90 || v === 180 || v === 270) return v;
+    return 0;
+}
 
 export interface AnnotationDrawControllerOptions {
     /** The scroll container that holds all spread/page elements */
@@ -60,7 +68,11 @@ export function createAnnotationDrawController(options: AnnotationDrawController
     let isDrawing = false;
     let drawPageIndex = -1; // 0-based
     let drawSlot: HTMLElement | null = null; // The page slot container
+    let drawAnnotationLayer: HTMLElement | null = null; // Rotated layer that hosts the preview
     let drawScale = 1; // pixels-per-point for converting back to PDF coords
+    let drawRotation: EffectiveRotation = 0; // Combined document + user rotation
+    let drawPageWidthPx = 0; // Unrotated page width in pixels (MediaBox.width * drawScale)
+    let drawPageHeightPx = 0; // Unrotated page height in pixels
     let drawSubTool: SubTool | null = null;
     let drawOptions: ToolOptions = { ...DEFAULT_TOOL_OPTIONS };
 
@@ -72,13 +84,23 @@ export function createAnnotationDrawController(options: AnnotationDrawController
     // Committed vertices for polygon (click-to-add mode)
     let polygonVertices: Point[] = [];
 
-    /** Convert a client-space pointer event to PDF page coordinates. */
+    /** Convert a client-space pointer event to unrotated MediaBox page coordinates.
+     *
+     * The slot container's bounding box matches the rotated visual; the
+     * annotation layer inside it is unrotated and centered, with CSS rotate
+     * applied around the layer's center (== container center). To recover
+     * MediaBox coords we offset the pointer to that center, undo the
+     * rotation, then re-anchor to the unrotated layer's top-left. */
     function clientToPageCoords(e: PointerEvent): Point | null {
         if (!drawSlot) return null;
         const rect = drawSlot.getBoundingClientRect();
         const px = e.clientX - rect.left;
         const py = e.clientY - rect.top;
-        return { x: px / drawScale, y: py / drawScale };
+        const rel = invertPageRotation(px - rect.width / 2, py - rect.height / 2, drawRotation);
+        return {
+            x: (rel.x + drawPageWidthPx / 2) / drawScale,
+            y: (rel.y + drawPageHeightPx / 2) / drawScale,
+        };
     }
 
     /** Build an Annotation object from the current drawing state, or null if invalid. */
@@ -179,16 +201,21 @@ export function createAnnotationDrawController(options: AnnotationDrawController
         return null;
     }
 
-    /** Create the preview layer inside the page slot. */
+    /** Create the preview layer inside the rotated annotation layer.
+     *
+     * Placing the preview in the annotation layer (which is CSS-rotated to
+     * match the page's effective rotation) means the preview shares the same
+     * unrotated MediaBox coordinate space as committed annotations — both the
+     * mid-drag preview and the final render line up under any rotation. */
     function createPreviewLayer(): void {
-        if (!drawSlot) return;
+        if (!drawAnnotationLayer) return;
         previewLayer = document.createElement("div");
         previewLayer.style.position = "absolute";
         previewLayer.style.inset = "0";
         previewLayer.style.pointerEvents = "none";
         previewLayer.style.zIndex = "10";
         previewLayer.className = "udoc-annotation-draw-preview";
-        drawSlot.appendChild(previewLayer);
+        drawAnnotationLayer.appendChild(previewLayer);
     }
 
     /** Update the live preview using the same renderer as final annotations. */
@@ -252,12 +279,20 @@ export function createAnnotationDrawController(options: AnnotationDrawController
 
         drawPageIndex = pageNum - 1;
         drawSlot = slotEl;
+        drawAnnotationLayer = slotEl.querySelector<HTMLElement>(".udoc-spread__annotation-layer");
         drawSubTool = tool;
         drawOptions = state.toolOptions[tool] ?? { ...DEFAULT_TOOL_OPTIONS };
 
         const pointsToPixels = getPointsToPixels(state.dpi);
         const zoom = state.effectiveZoom ?? state.zoom;
         drawScale = pointsToPixels * zoom;
+
+        const pageInfo = state.pageInfos[drawPageIndex];
+        const documentRotation = normalizeRotation(pageInfo?.rotation);
+        const userRotation = normalizeRotation(state.pageRotation);
+        drawRotation = normalizeRotation(documentRotation + userRotation);
+        drawPageWidthPx = (pageInfo?.width ?? 0) * drawScale;
+        drawPageHeightPx = (pageInfo?.height ?? 0) * drawScale;
 
         return clientToPageCoords(e);
     }

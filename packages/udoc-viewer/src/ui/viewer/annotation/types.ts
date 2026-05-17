@@ -8,7 +8,31 @@
 // Common Types
 // =============================================================================
 
-/** Rectangle in page coordinates (points). */
+/**
+ * Coordinate convention used by every annotation geometry field in this file
+ * (`Rect`, `Point`, `Quad`, and the per-type vertex/path arrays):
+ *
+ * - **Origin:** top-left corner of the page's **unrotated MediaBox** — i.e.
+ *   the page in its natural orientation, *before* any `/Rotate` is applied.
+ *   `(0, 0)` is the MediaBox top-left even when the page is displayed
+ *   rotated 90°, 180°, or 270°.
+ * - **Units:** PDF points (1/72 inch).
+ * - **Axes:** `+x` to the right, `+y` downward (Y-flipped from PDF's native
+ *   bottom-up `/Rect`; the engine converts on load/save).
+ * - **Rotation:** the viewer applies `/Rotate` (combined with the user's
+ *   rotation toggle) as a display transform — callers should never
+ *   pre-rotate bounds. A horizontal line at any rotation is still a line
+ *   with `start.y === end.y` in this coordinate space.
+ * - **CropBox:** ignored. We render the full MediaBox and address overlays
+ *   in MediaBox coords, so annotations stay aligned even on PDFs whose
+ *   CropBox trims the visible area.
+ *
+ * The same convention is used by the worker (`getPageAnnotations`),
+ * `UDocViewer.addPageAnnotation(s)` / `updatePageAnnotation(s)`, and the
+ * Rust engine's `pdf_save_annotations`.
+ */
+
+/** Rectangle in unrotated MediaBox coordinates (points, origin top-left). */
 export interface Rect {
     x: number;
     y: number;
@@ -16,15 +40,17 @@ export interface Rect {
     height: number;
 }
 
-/** Point in page coordinates (points). */
+/** Point in unrotated MediaBox coordinates (points, origin top-left). */
 export interface Point {
     x: number;
     y: number;
 }
 
 /**
- * Quadrilateral defined by 4 corner points.
+ * Quadrilateral defined by 4 corner points in unrotated MediaBox coordinates.
  * Points are ordered: [bottom-left, bottom-right, top-right, top-left]
+ * (where "bottom"/"top" refer to the *unrotated* page, not the displayed
+ * orientation).
  */
 export interface Quad {
     points: [Point, Point, Point, Point];
@@ -55,7 +81,7 @@ export interface MarkupMetadata {
 
 /** Base annotation properties shared by all annotation types. */
 interface BaseAnnotation {
-    /** Bounding rectangle in page coordinates. */
+    /** Bounding rectangle in unrotated MediaBox coordinates (see {@link Rect}). */
     bounds: Rect;
     /** Reply annotations nested under this annotation. */
     replies?: Annotation[];

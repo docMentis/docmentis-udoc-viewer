@@ -808,6 +808,11 @@ export class UDocViewer {
      * Returns the in-memory state if the page has been edited in this
      * session; otherwise reads from the worker.
      *
+     * Returned `bounds` (and every other geometry field) are in the page's
+     * unrotated MediaBox coordinate space — origin top-left, units in PDF
+     * points, +y downward — regardless of the page's `/Rotate` value.
+     * See {@link Rect} for the full coordinate convention.
+     *
      * @param page - Page index (0-based)
      */
     async getPageAnnotations(page: number): Promise<Annotation[]> {
@@ -831,6 +836,16 @@ export class UDocViewer {
      * `updatePageAnnotation` / `removePageAnnotation` calls work for both kinds, and
      * `updatePageAnnotation` can flip the `ephemeral` flag to promote a preview
      * into a saved annotation (or demote a saved one to viewer-only).
+     *
+     * **Coordinate space:** `annotation.bounds` and all per-type geometry
+     * (line endpoints, polygon vertices, ink strokes, quads, callout lines,
+     * …) must be in the page's **unrotated MediaBox** coordinate space —
+     * origin top-left, PDF points, +y downward — *not* the displayed/rotated
+     * orientation. The viewer applies `/Rotate` (and the user's rotation
+     * toggle) as a display transform on top of MediaBox-space bounds. See
+     * {@link Rect} for the full convention. The {@link getPageAnnotations}
+     * round-trip uses the same space, so a value read out and added back is
+     * always in the right frame.
      *
      * Annotation editing currently requires UI mode (a `container` was passed
      * to `client.createViewer`) and is supported on PDF documents only.
@@ -861,6 +876,9 @@ export class UDocViewer {
      * `annotation:add` still fires once per annotation, in input order, so
      * existing single-event listeners just work.
      *
+     * Geometry coordinate space matches {@link addPageAnnotation} — unrotated
+     * MediaBox, origin top-left, PDF points, +y downward. See {@link Rect}.
+     *
      * @param page - Page index (0-based)
      * @param annotations - Annotations to insert (may mix ephemeral and saved)
      * @returns The inserted annotations (each with `name` populated).
@@ -881,6 +899,9 @@ export class UDocViewer {
      * Looks up the annotation on the given page by `name` and replaces it
      * with the supplied value. The replacement keeps the same `name` even
      * if a different one is passed in `annotation.name`.
+     *
+     * Geometry on the replacement must be in unrotated MediaBox coordinates
+     * — see {@link Rect}.
      *
      * @param page - Page index (0-based)
      * @param name - The annotation's `name` (NM).
