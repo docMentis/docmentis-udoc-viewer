@@ -6,6 +6,14 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+### Features
+
+- `annotation:hover` and `annotation:click` payloads now include `clientX` / `clientY` — the pointer's browser-viewport coordinates at the moment of the event. Rotation- and zoom-invariant, suitable for placing a tooltip (hover) or anchoring a context menu / popover (click) directly in screen space without a separate `mousemove` listener or inverse-rotate math
+
+### Bug Fixes
+
+- `annotation:hover` and `annotation:click` now fire on SVG shape annotations (ink, polygon, polyline, line, square, circle) in all tool modes, not just the select tool. Previously the SDK's `pointer-events: painted` rule was scoped to `.udoc-viewer--tool-select`, so consumers using the viewer in default mode never received hover/click events on painted shapes despite the documented "fires in any tool mode" contract. The annotation layer itself stays `pointer-events: none`, so PDF text under it remains selectable everywhere except over painted geometry; the `cursor: pointer` affordance stays scoped to the select tool
+
 ## [0.6.39] - 2026-05-16
 
 ### Features

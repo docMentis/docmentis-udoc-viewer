@@ -505,16 +505,21 @@ viewer.on("annotation:select", (selection) => {
 
 // Pointer hover — fires when the pointer enters/leaves an annotation in any
 // tool mode. Deduped to only fire on actual hover changes. Payload is null
-// when the pointer leaves the currently hovered annotation.
+// when the pointer leaves the currently hovered annotation. `clientX`/
+// `clientY` are browser-viewport coordinates at the moment of the hover
+// change (rotation- and zoom-invariant; use directly for screen-space
+// tooltip placement).
 viewer.on("annotation:hover", (hover) => {
     if (!hover) return hideTooltip();
-    showTooltip(hover.annotation);
+    showTooltip(hover.annotation, { x: hover.clientX, y: hover.clientY });
 });
 
 // Pointer click — fires for any annotation click, regardless of active tool,
-// and before built-in handling (link navigation, sticky-note popups).
-viewer.on("annotation:click", ({ pageIndex, annotation }) => {
-    console.log("clicked", annotation.subtype, "on page", pageIndex);
+// and before built-in handling (link navigation, sticky-note popups). `clientX`/
+// `clientY` are browser-viewport coordinates at the click (use directly to
+// anchor a context menu or popover in screen space).
+viewer.on("annotation:click", ({ pageIndex, annotation, clientX, clientY }) => {
+    console.log("clicked", annotation.subtype, "on page", pageIndex, "at", clientX, clientY);
 });
 ```
 
@@ -814,9 +819,13 @@ viewer.on("annotation:select", (selection) => {
     // null when the selection is cleared
 });
 viewer.on("annotation:hover", (hover) => {
-    // null when the pointer leaves without entering another annotation
+    // null when the pointer leaves without entering another annotation;
+    // otherwise `{ pageIndex, annotation, clientX, clientY }` — clientX/Y are
+    // viewport coords for tooltip placement
 });
-viewer.on("annotation:click", ({ pageIndex, annotation }) => {});
+viewer.on("annotation:click", ({ pageIndex, annotation, clientX, clientY }) => {
+    // clientX/Y are viewport coords for context-menu / popover anchoring
+});
 
 // Error occurred
 viewer.on("error", ({ error, phase }) => {

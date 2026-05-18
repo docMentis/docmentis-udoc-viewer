@@ -40,8 +40,18 @@ export interface ViewportChangePayload {
     scrollTop: number;
 }
 
-export type AnnotationHoverPayload = { pageIndex: number; annotation: Annotation } | null;
-export type AnnotationClickPayload = { pageIndex: number; annotation: Annotation };
+export type AnnotationHoverPayload = {
+    pageIndex: number;
+    annotation: Annotation;
+    clientX: number;
+    clientY: number;
+} | null;
+export type AnnotationClickPayload = {
+    pageIndex: number;
+    annotation: Annotation;
+    clientX: number;
+    clientY: number;
+};
 
 export interface ViewerShellCallbacks {
     onPasswordSubmit?: (password: string) => void;

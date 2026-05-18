@@ -550,9 +550,13 @@ export function createViewport(showAttribution = true) {
         | ((payload: { firstVisiblePage: number; lastVisiblePage: number; zoom: number; scrollTop: number }) => void)
         | null = null;
     /** Caller-supplied callback for the public annotation:hover event. */
-    let onAnnotationHoverCb: ((payload: { pageIndex: number; annotation: Annotation } | null) => void) | null = null;
+    let onAnnotationHoverCb:
+        | ((payload: { pageIndex: number; annotation: Annotation; clientX: number; clientY: number } | null) => void)
+        | null = null;
     /** Caller-supplied callback for the public annotation:click event. */
-    let onAnnotationClickCb: ((payload: { pageIndex: number; annotation: Annotation }) => void) | null = null;
+    let onAnnotationClickCb:
+        | ((payload: { pageIndex: number; annotation: Annotation; clientX: number; clientY: number }) => void)
+        | null = null;
     /** Currently hovered annotation, used to dedupe pointermove emissions. */
     let lastHoveredAnnotation: { pageIndex: number; annotationIndex: number } | null = null;
     let containerSize = { width: 0, height: 0 };
@@ -591,8 +595,15 @@ export function createViewport(showAttribution = true) {
             zoom: number;
             scrollTop: number;
         }) => void,
-        onAnnotationHover?: (payload: { pageIndex: number; annotation: Annotation } | null) => void,
-        onAnnotationClick?: (payload: { pageIndex: number; annotation: Annotation }) => void,
+        onAnnotationHover?: (
+            payload: { pageIndex: number; annotation: Annotation; clientX: number; clientY: number } | null,
+        ) => void,
+        onAnnotationClick?: (payload: {
+            pageIndex: number;
+            annotation: Annotation;
+            clientX: number;
+            clientY: number;
+        }) => void,
     ): void {
         parent.appendChild(el);
         // Start branding protection once the host is in the document so the
@@ -727,7 +738,7 @@ export function createViewport(showAttribution = true) {
                     const pageIndex = pageNum - 1;
                     const annotation = storeRef.getState().pageAnnotations.get(pageIndex)?.[annotationIndex];
                     if (annotation) {
-                        onAnnotationClickCb({ pageIndex, annotation });
+                        onAnnotationClickCb({ pageIndex, annotation, clientX: e.clientX, clientY: e.clientY });
                     }
                 }
             }
@@ -783,7 +794,12 @@ export function createViewport(showAttribution = true) {
         // Emit annotation:hover events as the pointer moves over annotation
         // elements. Active in all tool modes (not just the select tool) and
         // deduped to fire only when the hovered annotation actually changes.
-        const emitHover = (next: { pageIndex: number; annotationIndex: number } | null): void => {
+        // `coords` carries the pointer's browser-viewport position at the
+        // moment of the change, for placing tooltips in screen space.
+        const emitHover = (
+            next: { pageIndex: number; annotationIndex: number } | null,
+            coords: { clientX: number; clientY: number } | null,
+        ): void => {
             const last = lastHoveredAnnotation;
             if (
                 last === next ||
@@ -802,26 +818,31 @@ export function createViewport(showAttribution = true) {
             }
             const annotations = storeRef.getState().pageAnnotations.get(next.pageIndex);
             const annotation = annotations?.[next.annotationIndex];
-            if (!annotation) return;
-            onAnnotationHoverCb({ pageIndex: next.pageIndex, annotation });
+            if (!annotation || !coords) return;
+            onAnnotationHoverCb({
+                pageIndex: next.pageIndex,
+                annotation,
+                clientX: coords.clientX,
+                clientY: coords.clientY,
+            });
         };
         const handleAnnotationPointerMove = (e: PointerEvent): void => {
             const target = e.target as Element | null;
             const annotationEl = target?.closest<HTMLElement>("[data-annotation-index]");
             if (!annotationEl) {
-                emitHover(null);
+                emitHover(null, null);
                 return;
             }
             const slotEl = annotationEl.closest<HTMLElement>("[data-page]");
             const pageNum = slotEl ? parseInt(slotEl.dataset.page!, 10) : NaN;
             const annotationIndex = parseInt(annotationEl.getAttribute("data-annotation-index")!, 10);
             if (isNaN(pageNum) || isNaN(annotationIndex)) {
-                emitHover(null);
+                emitHover(null, null);
                 return;
             }
-            emitHover({ pageIndex: pageNum - 1, annotationIndex });
+            emitHover({ pageIndex: pageNum - 1, annotationIndex }, { clientX: e.clientX, clientY: e.clientY });
         };
-        const handleAnnotationPointerLeave = (): void => emitHover(null);
+        const handleAnnotationPointerLeave = (): void => emitHover(null, null);
         container.addEventListener("pointermove", handleAnnotationPointerMove);
         container.addEventListener("pointerleave", handleAnnotationPointerLeave);
         unsubEvents.push(() => container.removeEventListener("pointermove", handleAnnotationPointerMove));

@@ -160,15 +160,21 @@ export interface ViewerEventMap {
      * Fires when the pointer enters or leaves an annotation element on a
      * rendered page. Always emitted regardless of the active tool — including
      * during normal viewing. Payload is `null` when the pointer leaves the
-     * currently hovered annotation without entering another.
+     * currently hovered annotation without entering another. `clientX`/
+     * `clientY` are the pointer's browser-viewport coordinates at the moment
+     * of the hover change (rotation- and zoom-invariant; suitable for placing
+     * a tooltip in screen space).
      */
-    "annotation:hover": { pageIndex: number; annotation: Annotation } | null;
+    "annotation:hover": { pageIndex: number; annotation: Annotation; clientX: number; clientY: number } | null;
     /**
      * Fires when the user clicks an annotation on a rendered page. Always
      * emitted regardless of the active tool, in addition to (and before) any
      * built-in click handling such as link navigation or sticky-note popups.
+     * `clientX`/`clientY` are the pointer's browser-viewport coordinates at
+     * the click (rotation- and zoom-invariant; suitable for anchoring a
+     * context menu or popover in screen space).
      */
-    "annotation:click": { pageIndex: number; annotation: Annotation };
+    "annotation:click": { pageIndex: number; annotation: Annotation; clientX: number; clientY: number };
     /**
      * Fires when the user's view of the document changes — scroll position,
      * zoom, layout, or scroll-mode changes that affect which pages are

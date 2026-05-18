@@ -2377,9 +2377,18 @@
     user-select: none;
 }
 
-/* SVG shape annotations: make drawn strokes/fills clickable (not empty SVG space) */
-.udoc-viewer--tool-select .udoc-spread__annotation-layer svg[data-annotation-index] * {
+/* SVG shape annotations: make drawn strokes/fills (not empty SVG space) hit-
+   testable in all tool modes so `annotation:hover` and `annotation:click` fire
+   on painted geometry during normal viewing, not only in the select tool. The
+   annotation layer itself stays `pointer-events: none`, so PDF text under it
+   remains selectable everywhere except over the painted geometry. */
+.udoc-viewer-root .udoc-spread__annotation-layer svg[data-annotation-index] * {
     pointer-events: painted;
+}
+
+/* Cursor affordance stays scoped to the select tool — clicking a painted shape
+   only does something user-visible (selection) in that mode. */
+.udoc-viewer--tool-select .udoc-spread__annotation-layer svg[data-annotation-index] * {
     cursor: pointer;
 }
 
