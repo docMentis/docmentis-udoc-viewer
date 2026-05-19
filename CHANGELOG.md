@@ -12,7 +12,10 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ### Bug Fixes
 
+- Draw and select tools now apply the inverse effective rotation to pointer coordinates on pages with `/Rotate != 0`, so a horizontal drag stays horizontal after the stroke commits. Previously client-space coordinates were treated as already in unrotated MediaBox space; the canonical render layer then CSS-rotated the stored bounds a second time, turning a horizontal drag into a vertical stroke at drag end. The mid-drag preview now also lives inside the rotated annotation layer so the preview and the committed annotation share the same coordinate space. Annotation `bounds` (and the `addPageAnnotation`, `updatePageAnnotation`, `getPageAnnotations` entry points) are now documented as unrotated MediaBox coordinates so SDK consumers know not to pre-rotate
 - `annotation:hover` and `annotation:click` now fire on SVG shape annotations (ink, polygon, polyline, line, square, circle) in all tool modes, not just the select tool. Previously the SDK's `pointer-events: painted` rule was scoped to `.udoc-viewer--tool-select`, so consumers using the viewer in default mode never received hover/click events on painted shapes despite the documented "fires in any tool mode" contract. The annotation layer itself stays `pointer-events: none`, so PDF text under it remains selectable everywhere except over painted geometry; the `cursor: pointer` affordance stays scoped to the select tool
+- Fuzzy search now folds typographic punctuation — curly quotes (`’ “ ”`) and en/em dashes (`– —`) — to their ASCII equivalents, so a query like `investigator's` matches `investigator’s` in the document. PDFs typically contain typographic forms that users can't easily type from their keyboards
+- Fuzzy search now strips middle dot (`·`, U+00B7) as a leading list marker in addition to bullet (`•`, U+2022), so a query pasted with a list-item bullet like `· Patient assessment` matches the rest of the line
 
 ## [0.6.39] - 2026-05-16
 
