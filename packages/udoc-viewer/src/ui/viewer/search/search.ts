@@ -379,9 +379,35 @@ function isNormalizableChar(code: number, ch: string): boolean {
 }
 
 /**
- * Normalize text for fuzzy matching: strip all whitespace/control/separator
- * characters and return a mapping from each normalized character index back
- * to its original index in the source string.
+ * 1:1 fold for typographic punctuation that PDFs commonly contain but users
+ * type as ASCII. Keeps the normalized-to-original index mapping intact.
+ */
+const PUNCTUATION_FOLD: Record<string, string> = {
+    "\u2018": "'", // left single quotation mark
+    "\u2019": "'", // right single quotation mark (curly apostrophe)
+    "\u201A": "'", // single low-9 quotation mark
+    "\u201B": "'", // single high-reversed-9 quotation mark
+    "\u2032": "'", // prime
+    "\u201C": '"', // left double quotation mark
+    "\u201D": '"', // right double quotation mark
+    "\u201E": '"', // double low-9 quotation mark
+    "\u201F": '"', // double high-reversed-9 quotation mark
+    "\u2033": '"', // double prime
+    "\u2013": "-", // en dash
+    "\u2014": "-", // em dash
+    "\u2212": "-", // minus sign
+    "\u00AD": "-", // soft hyphen
+};
+
+function foldChar(ch: string): string {
+    return PUNCTUATION_FOLD[ch] ?? ch;
+}
+
+/**
+ * Normalize text for fuzzy matching: strip whitespace/control/separator
+ * characters and fold common typographic punctuation (curly quotes, en/em
+ * dashes) to their ASCII equivalents. Returns a mapping from each normalized
+ * character index back to its original index in the source string.
  */
 function normalizeText(text: string): { normalized: string; origIndices: number[] } {
     let normalized = "";
@@ -395,7 +421,7 @@ function normalizeText(text: string): { normalized: string; origIndices: number[
             continue;
         }
 
-        normalized += ch;
+        normalized += foldChar(ch);
         origIndices.push(i);
     }
 

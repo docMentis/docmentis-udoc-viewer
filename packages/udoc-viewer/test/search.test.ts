@@ -201,5 +201,32 @@ describe("executeSearch", () => {
             expect(result[0].charOffset).toBe(2);
             expect(result[0].length).toBe(9);
         });
+
+        it("should fold curly apostrophes to ASCII so straight-quote queries match", () => {
+            const pageLayouts = new Map<number, LayoutPage>();
+            pageLayouts.set(0, createMockLayoutPage("investigator’s assessment"));
+
+            const result = executeSearch("investigator's", false, pageLayouts, 1, null, true);
+            expect(result).toHaveLength(1);
+            expect(result[0].charOffset).toBe(0);
+            expect(result[0].length).toBe(14);
+        });
+
+        it("should fold curly double quotes and en/em dashes", () => {
+            const pageLayouts = new Map<number, LayoutPage>();
+            pageLayouts.set(0, createMockLayoutPage("“state—of–art”"));
+
+            const result = executeSearch('"state-of-art"', false, pageLayouts, 1, null, true);
+            expect(result).toHaveLength(1);
+        });
+
+        it("should NOT fold punctuation in exact (non-fuzzy) mode", () => {
+            const pageLayouts = new Map<number, LayoutPage>();
+            pageLayouts.set(0, createMockLayoutPage("investigator’s"));
+
+            // Exact mode preserves the curly/straight distinction
+            const result = executeSearch("investigator's", false, pageLayouts, 1, null, false);
+            expect(result).toHaveLength(0);
+        });
     });
 });
