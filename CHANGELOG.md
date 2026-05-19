@@ -6,6 +6,8 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+## [0.6.40] - 2026-05-18
+
 ### Features
 
 - `annotation:hover` and `annotation:click` payloads now include `clientX` / `clientY` — the pointer's browser-viewport coordinates at the moment of the event. Rotation- and zoom-invariant, suitable for placing a tooltip (hover) or anchoring a context menu / popover (click) directly in screen space without a separate `mousemove` listener or inverse-rotate math
