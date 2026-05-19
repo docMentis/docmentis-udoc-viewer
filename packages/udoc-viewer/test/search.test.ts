@@ -172,7 +172,7 @@ describe("executeSearch", () => {
         });
 
         it("should handle a variety of unicode list-marker glyphs", () => {
-            const markers = ["•", "◦", "▪", "‣", "⁃", "●", "■"];
+            const markers = ["•", "·", "◦", "▪", "‣", "⁃", "●", "■"];
             for (const marker of markers) {
                 const pageLayouts = new Map<number, LayoutPage>();
                 pageLayouts.set(0, createMockLayoutPage(`${marker} Item`));
@@ -180,6 +180,15 @@ describe("executeSearch", () => {
                 const result = executeSearch("Item", false, pageLayouts, 1, null, true);
                 expect(result, `marker U+${marker.charCodeAt(0).toString(16)}`).toHaveLength(1);
             }
+        });
+
+        it("should strip bullet/middle-dot characters from the query", () => {
+            const pageLayouts = new Map<number, LayoutPage>();
+            pageLayouts.set(0, createMockLayoutPage("Patient assessment complete"));
+
+            // Query carries a leading middle dot, e.g. pasted from a list
+            const result = executeSearch("· Patient assessment", false, pageLayouts, 1, null, true);
+            expect(result).toHaveLength(1);
         });
 
         it("should NOT strip ASCII dashes/asterisks (kept for prose correctness)", () => {

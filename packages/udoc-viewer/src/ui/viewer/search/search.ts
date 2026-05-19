@@ -335,7 +335,8 @@ function pushRect(
  * words, em-dashes, math) and stripping them would cause surprise matches.
  */
 const LIST_MARKER_CHARS = new Set([
-    "•", // • bullet
+    "•", // U+2022 bullet
+    "·", // U+00B7 middle dot (commonly pasted as a list marker)
     "‣", // ‣ triangular bullet
     "⁃", // ⁃ hyphen bullet
     "∙", // ∙ bullet operator
