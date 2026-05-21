@@ -6,6 +6,8 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+## [0.6.41] - 2026-05-20
+
 ### Features
 
 - New `customPageOverlay` option on `createViewer()` for rendering host UI (comment buttons, side toolbars, badges, signature placeholders, etc.) on top of every page. The renderer is invoked once per page slot with `(pageIndex, container, scale)` and may return a cleanup function that runs when the slot is destroyed. The overlay layer sits above the canvas, text, annotation, and search-highlight layers (class `udoc-spread__custom-page-overlay-layer`, `z-index: 3`), is sized and rotated to match the page, and is `pointer-events: none` by default so host elements opt into input without blocking text selection or annotation clicks underneath. New `CustomPageOverlayRenderer` type exported from the package root
