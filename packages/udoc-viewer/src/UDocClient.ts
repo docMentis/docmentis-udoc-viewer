@@ -28,6 +28,8 @@ import type {
 } from "./ui/viewer/state.js";
 import type { ScrollAlignment } from "./ui/viewer/navigation.js";
 import type { PerformanceLogCallback } from "./performance/index.js";
+import type { CustomPageOverlayRenderer } from "./ui/viewer/components/Spread.js";
+export type { CustomPageOverlayRenderer } from "./ui/viewer/components/Spread.js";
 
 /**
  * License information for the client.
@@ -441,6 +443,36 @@ export interface ViewerOptions {
      * See `TranslationKeys` for the full list.
      */
     translations?: Record<string, string>;
+
+    /**
+     * Render a Custom Page Overlay above every built-in page layer (canvas,
+     * text, annotations, search highlights).
+     *
+     * Invoked once per page slot when the slot mounts. The callback receives
+     * the 0-based page index, an overlay container element sized and rotated
+     * to match the page, and the current points-to-CSS-pixels scale. Append
+     * any DOM (buttons, floating toolbars, badges, …) to the container and
+     * optionally return a cleanup function — it runs when the slot is
+     * destroyed (e.g. when the page scrolls out of view in continuous mode).
+     *
+     * The container is `pointer-events: none` by default so it never blocks
+     * text selection or annotation interaction underneath. Set
+     * `pointer-events: auto` on individual children that need to receive
+     * input.
+     *
+     * @example
+     * ```ts
+     * customPageOverlay: (pageIndex, container) => {
+     *   const btn = document.createElement("button");
+     *   btn.textContent = "Comment";
+     *   btn.style.cssText = "position:absolute;top:8px;right:-40px;pointer-events:auto;";
+     *   btn.onclick = () => console.log("comment on page", pageIndex);
+     *   container.appendChild(btn);
+     *   return () => btn.remove();
+     * }
+     * ```
+     */
+    customPageOverlay?: CustomPageOverlayRenderer;
 }
 
 /**

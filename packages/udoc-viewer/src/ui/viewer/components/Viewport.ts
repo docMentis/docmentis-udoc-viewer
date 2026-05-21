@@ -31,7 +31,7 @@ import {
     type SpreadLayout,
     type ContinuousLayoutResult,
 } from "../layout/spreadLayout";
-import { createSpread, type SpreadComponent } from "./Spread";
+import { createSpread, type SpreadComponent, type CustomPageOverlayRenderer } from "./Spread";
 import { createFloatingToolbar } from "./FloatingToolbar";
 import { createBranding, type BrandingHandle } from "./Branding";
 import { on } from "../../framework/events";
@@ -482,7 +482,7 @@ function computeViewportUpdate(
     };
 }
 
-export function createViewport(showAttribution = true) {
+export function createViewport(showAttribution = true, customPageOverlay?: CustomPageOverlayRenderer) {
     const el = document.createElement("div");
     el.className = "udoc-viewport";
     el.setAttribute("role", "document");
@@ -1359,7 +1359,7 @@ export function createViewport(showAttribution = true) {
                     // look up the source spread by its global `.index`, not
                     // by the filtered array position.
                     const spreadData = state.spreads[layout.index];
-                    spreadComp = createSpread(spreadData, showAttribution, i18nRef ?? undefined);
+                    spreadComp = createSpread(spreadData, showAttribution, i18nRef ?? undefined, customPageOverlay);
                     spreadComp.mount(container);
                     spreadComponents.set(i, spreadComp);
                 }
@@ -1435,6 +1435,7 @@ export function createViewport(showAttribution = true) {
                 spreadComp.updateAnnotations(slice.pageAnnotations, layoutOptions, slice.highlightedAnnotation);
                 spreadComp.updateTextLayer(slice.pageText, layoutOptions);
                 spreadComp.updateSearchHighlights(currentSearchMatches, currentSearchActiveIndex, layoutOptions);
+                spreadComp.updateCustomPageOverlay(layoutOptions);
             }
         }
 
@@ -1547,6 +1548,7 @@ export function createViewport(showAttribution = true) {
                 spreadComp.updateAnnotations(slice.pageAnnotations, layoutOptions, slice.highlightedAnnotation);
                 spreadComp.updateTextLayer(slice.pageText, layoutOptions);
                 spreadComp.updateSearchHighlights(currentSearchMatches, currentSearchActiveIndex, layoutOptions);
+                spreadComp.updateCustomPageOverlay(layoutOptions);
             }
             lastVisibleRange = { start: spreadIndex, end: spreadIndex };
             fireViewportChangeIfChanged();
@@ -1605,6 +1607,7 @@ export function createViewport(showAttribution = true) {
         spreadComp.updateAnnotations(slice.pageAnnotations, layoutOptions, slice.highlightedAnnotation);
         spreadComp.updateTextLayer(slice.pageText, layoutOptions);
         spreadComp.updateSearchHighlights(currentSearchMatches, currentSearchActiveIndex, layoutOptions);
+        spreadComp.updateCustomPageOverlay(layoutOptions);
 
         // Layout values are pre-snapped
         const top = getCenteredOffset(containerSize.height, layout.height);

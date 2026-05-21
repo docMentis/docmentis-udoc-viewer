@@ -10,6 +10,7 @@ export type {
     ComposePick,
     FontEntry,
     FontInfo,
+    CustomPageOverlayRenderer,
 } from "./UDocClient.js";
 
 export { UDocViewer } from "./UDocViewer.js";

@@ -6,6 +6,10 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+### Features
+
+- New `customPageOverlay` option on `createViewer()` for rendering host UI (comment buttons, side toolbars, badges, signature placeholders, etc.) on top of every page. The renderer is invoked once per page slot with `(pageIndex, container, scale)` and may return a cleanup function that runs when the slot is destroyed. The overlay layer sits above the canvas, text, annotation, and search-highlight layers (class `udoc-spread__custom-page-overlay-layer`, `z-index: 3`), is sized and rotated to match the page, and is `pointer-events: none` by default so host elements opt into input without blocking text selection or annotation clicks underneath. New `CustomPageOverlayRenderer` type exported from the package root
+
 ### Bug Fixes
 
 - SVG shape annotations (ink, polygon, polyline, line, square, circle) no longer require a `pointer-events` CSS override in host applications for `annotation:hover` / `annotation:click` to fire on painted geometry. Each shape overlay now sets `pointer-events: painted` directly on the `<svg>` root, so painted strokes/fills are hit-testable out of the box while empty SVG space stays transparent to PDF text underneath. Previously the `<svg>` root carried `pointer-events: none` inline and relied on a CSS descendant rule to re-enable hits, which leaked through to consumers whose app-level CSS or style isolation prevented that rule from applying — those consumers had to carry their own copy of the override to get shape events at all

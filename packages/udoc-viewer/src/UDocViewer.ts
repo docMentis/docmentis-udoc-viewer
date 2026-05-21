@@ -284,6 +284,7 @@ export class UDocViewer {
                 showLoadingOverlay,
                 options.locale,
                 options.translations,
+                options.customPageOverlay,
             );
 
             // Set up callbacks for shell events

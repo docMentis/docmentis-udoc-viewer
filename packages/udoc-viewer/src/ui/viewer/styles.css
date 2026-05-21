@@ -3311,6 +3311,13 @@
     pointer-events: none;
 }
 
+.udoc-viewer-root .udoc-spread__custom-page-overlay-layer {
+    position: absolute;
+    pointer-events: none;
+    /* Above annotation layer (z-index: 2) so host overlays sit on top of every built-in layer. */
+    z-index: 3;
+}
+
 .udoc-viewer-root .udoc-search-highlight {
     background-color: var(--udoc-search-highlight);
     mix-blend-mode: multiply;

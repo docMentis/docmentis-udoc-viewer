@@ -13,6 +13,7 @@ import { createToolbar } from "./components/Toolbar";
 import { createSubToolbar } from "./components/SubToolbar";
 import { createLeftPanel } from "./components/LeftPanel";
 import { createViewport } from "./components/Viewport";
+import type { CustomPageOverlayRenderer } from "./components/Spread";
 import { createSheetTabBar } from "./components/SheetTabBar";
 import { createRightPanel } from "./components/RightPanel";
 import { createPasswordDialog } from "./components/PasswordDialog";
@@ -81,6 +82,7 @@ export function mountViewerShell(
     showLoadingOverlay = true,
     locale?: string,
     translations?: Record<string, string>,
+    customPageOverlay?: CustomPageOverlayRenderer,
 ): ViewerShell {
     const i18n = createI18n(locale, translations);
     const layout = document.createElement("div");
@@ -193,7 +195,7 @@ export function mountViewerShell(
     const leftPanel = createLeftPanel();
     leftPanel.mount(leftPanelSlot, store, workerClient, i18n);
 
-    const viewport = createViewport(showAttribution);
+    const viewport = createViewport(showAttribution, customPageOverlay);
     viewport.mount(
         viewportSlot,
         store,

@@ -38,6 +38,33 @@ export interface SpreadLayoutOptions {
     cropMode?: CropMode;
 }
 
+/**
+ * Render callback for the Custom Page Overlay layer.
+ *
+ * Invoked once per page slot lifetime, after the slot's layers have been
+ * created. The host appends DOM into `container` (which sits above every
+ * built-in layer — canvas, text, annotation, search highlight) and may
+ * return a cleanup function that runs when the slot is destroyed (e.g.
+ * when the page scrolls out of view in continuous mode).
+ *
+ * The layer is positioned and sized to match the page bounds, and rotates
+ * with the page. It has `pointer-events: none` by default; opt individual
+ * child elements into `pointer-events: auto` to receive input without
+ * blocking text selection elsewhere on the page.
+ *
+ * @param pageIndex 0-based page index.
+ * @param container The overlay layer element, sized to the page bounds.
+ * @param scale CSS pixels per PDF point at the current zoom. Use this to
+ *   place elements at PDF-point coordinates: `pixelX = pointX * scale`.
+ *   For page-bounds-relative placement (top-right of the page, etc.), use
+ *   plain CSS on `container` and ignore this argument.
+ */
+export type CustomPageOverlayRenderer = (
+    pageIndex: number,
+    container: HTMLElement,
+    scale: number,
+) => void | (() => void);
+
 interface PageSlotElement {
     container: HTMLDivElement;
     canvas: HTMLCanvasElement | null;
@@ -45,6 +72,7 @@ interface PageSlotElement {
     textLayer: HTMLDivElement | null;
     annotationLayer: HTMLDivElement | null;
     searchHighlightLayer: HTMLDivElement | null;
+    customPageOverlayLayer: HTMLDivElement | null;
     pageNumber: PageSlot;
     renderKey: string;
     pendingKey: string | null;
@@ -73,6 +101,10 @@ interface PageSlotElement {
     lastSearchActiveIndex: number;
     /** Last scale used for search highlight rendering */
     lastSearchScale: number;
+    /** Whether the host's custom page overlay renderer has been invoked for this slot. */
+    customPageOverlayInvoked: boolean;
+    /** Cleanup returned by the custom page overlay renderer (if any). */
+    cleanupCustomPageOverlay: (() => void) | null;
 }
 
 interface SlotSize {
@@ -116,7 +148,12 @@ function formatCssSize(value: number): string {
  * Spread component - renders one or two pages side by side.
  * Empty slots render as blank placeholders that preserve layout.
  */
-export function createSpread(data: SpreadData, showAttribution = true, i18n?: I18n) {
+export function createSpread(
+    data: SpreadData,
+    showAttribution = true,
+    i18n?: I18n,
+    customPageOverlay?: CustomPageOverlayRenderer,
+) {
     const el = document.createElement("div");
     el.className = "udoc-spread";
     el.dataset.spreadIndex = String(data.index);
@@ -200,6 +237,16 @@ export function createSpread(data: SpreadData, showAttribution = true, i18n?: I1
             searchHighlightLayer.style.pointerEvents = "none";
             container.appendChild(searchHighlightLayer);
 
+            // Custom page overlay layer (top-most — above every built-in layer).
+            // Host fills this via the `customPageOverlay` option; layer is
+            // pointer-events: none so individual host elements opt in.
+            const customPageOverlayLayer = document.createElement("div");
+            customPageOverlayLayer.className = "udoc-spread__custom-page-overlay-layer";
+            customPageOverlayLayer.style.position = "absolute";
+            customPageOverlayLayer.style.transformOrigin = "center";
+            customPageOverlayLayer.style.pointerEvents = "none";
+            container.appendChild(customPageOverlayLayer);
+
             // Rendering indicator with optional brand logo.
             // Outer wrapper handles positioning + slot-loading-state visibility
             // in light DOM (with a per-instance random class so it can't be
@@ -265,6 +312,7 @@ export function createSpread(data: SpreadData, showAttribution = true, i18n?: I1
                 textLayer,
                 annotationLayer,
                 searchHighlightLayer,
+                customPageOverlayLayer,
                 pageNumber,
                 renderKey: "",
                 pendingKey: null,
@@ -283,6 +331,8 @@ export function createSpread(data: SpreadData, showAttribution = true, i18n?: I1
                 lastSearchMatches: null,
                 lastSearchActiveIndex: -1,
                 lastSearchScale: 0,
+                customPageOverlayInvoked: false,
+                cleanupCustomPageOverlay: null,
             };
         }
 
@@ -294,6 +344,7 @@ export function createSpread(data: SpreadData, showAttribution = true, i18n?: I1
             textLayer: null,
             annotationLayer: null,
             searchHighlightLayer: null,
+            customPageOverlayLayer: null,
             pageNumber: null,
             renderKey: "",
             pendingKey: null,
@@ -312,6 +363,8 @@ export function createSpread(data: SpreadData, showAttribution = true, i18n?: I1
             lastSearchMatches: null,
             lastSearchActiveIndex: -1,
             lastSearchScale: 0,
+            customPageOverlayInvoked: false,
+            cleanupCustomPageOverlay: null,
         };
     }
 
@@ -522,6 +575,16 @@ export function createSpread(data: SpreadData, showAttribution = true, i18n?: I1
                 slotEl.searchHighlightLayer.style.transform =
                     effectiveRotation === 0 ? "none" : `rotate(${effectiveRotation}deg)`;
             }
+
+            // Update custom page overlay layer to match canvas position/transform
+            if (slotEl.customPageOverlayLayer) {
+                slotEl.customPageOverlayLayer.style.width = formatCssSize(slotEl.cssWidth);
+                slotEl.customPageOverlayLayer.style.height = formatCssSize(slotEl.cssHeight);
+                slotEl.customPageOverlayLayer.style.left = formatCssSize(centerLeft);
+                slotEl.customPageOverlayLayer.style.top = formatCssSize(centerTop);
+                slotEl.customPageOverlayLayer.style.transform =
+                    effectiveRotation === 0 ? "none" : `rotate(${effectiveRotation}deg)`;
+            }
         }
     }
 
@@ -670,6 +733,15 @@ export function createSpread(data: SpreadData, showAttribution = true, i18n?: I1
                 slotEl.cleanupAttrObserver();
                 slotEl.cleanupAttrObserver = null;
             }
+            if (slotEl.cleanupCustomPageOverlay) {
+                try {
+                    slotEl.cleanupCustomPageOverlay();
+                } catch (e) {
+                    console.error("Custom page overlay cleanup threw:", e);
+                }
+                slotEl.cleanupCustomPageOverlay = null;
+            }
+            slotEl.customPageOverlayInvoked = false;
         }
         el.remove();
     }
@@ -795,6 +867,31 @@ export function createSpread(data: SpreadData, showAttribution = true, i18n?: I1
         }
     }
 
+    /**
+     * Invoke the host's custom page overlay renderer for each newly-visible
+     * slot. Called once per slot lifetime; the cleanup function the host
+     * returns runs when the slot is destroyed.
+     */
+    function updateCustomPageOverlay(options: SpreadLayoutOptions): void {
+        if (!customPageOverlay) return;
+        const pointsToPixels = getPointsToPixels(options.dpi);
+        const scale = pointsToPixels * options.scale;
+
+        for (const slotEl of slotElements) {
+            if (!slotEl.customPageOverlayLayer || slotEl.pageNumber === null) continue;
+            if (slotEl.customPageOverlayInvoked) continue;
+
+            const pageIndex = slotEl.pageNumber - 1;
+            try {
+                const cleanup = customPageOverlay(pageIndex, slotEl.customPageOverlayLayer, scale);
+                slotEl.cleanupCustomPageOverlay = typeof cleanup === "function" ? cleanup : null;
+            } catch (e) {
+                console.error(`Custom page overlay renderer threw for page ${pageIndex}:`, e);
+            }
+            slotEl.customPageOverlayInvoked = true;
+        }
+    }
+
     function resetRenderKeys(): void {
         for (const slotEl of slotElements) {
             slotEl.renderKey = "";
@@ -815,6 +912,7 @@ export function createSpread(data: SpreadData, showAttribution = true, i18n?: I1
         updateAnnotations,
         updateTextLayer,
         updateSearchHighlights,
+        updateCustomPageOverlay,
         resetRenderKeys,
         getElement,
         getData,

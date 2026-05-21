@@ -291,6 +291,18 @@ const viewer = await client.createViewer({
     // Hide the loading overlay shown during document download and processing (default: false)
     // Requires a valid license with the "no_attribution" feature
     hideLoadingOverlay: true,
+
+    // --- Custom UI extension ---
+
+    // Render host UI (buttons, floating toolbars, badges) on top of each page.
+    // Called once per page slot; return an optional cleanup. See "Custom Page Overlay" below.
+    // `scale` is CSS pixels per PDF point at the current zoom.
+    customPageOverlay: (pageIndex, container, scale) => {
+        // append elements with pointer-events: auto to receive input
+        return () => {
+            /* cleanup on slot destroy */
+        };
+    },
 });
 ```
 
@@ -764,6 +776,60 @@ The viewer uses CSS custom properties (variables) for all colors, shadows, and b
 | `--udoc-progress-fill`           | Progress bar fill      | `#0066cc`                     | `#4da6ff`                    |
 
 > The full list of variables is defined in `src/ui/viewer/styles.css`. All viewer styles are scoped under `.udoc-viewer-root`, so your overrides won't leak into the rest of the page.
+
+### Custom Page Overlay
+
+The viewer renders each page with a stack of layers: page canvas → text → annotations → search highlights. The **Custom Page Overlay** sits on top of all of them, giving you a dedicated, page-aligned surface for your own UI — comment buttons, side toolbars, status badges, signature placeholders, anything that should follow the page as it scrolls, zooms, and rotates.
+
+Provide a `customPageOverlay` renderer when creating the viewer. It is invoked once per page slot when the slot mounts (lazily, only for pages near the viewport in continuous mode) and may return a cleanup function that runs when the slot is destroyed.
+
+```typescript
+const viewer = await client.createViewer({
+    container: "#viewer",
+    customPageOverlay: (pageIndex, container, scale) => {
+        const btn = document.createElement("button");
+        btn.textContent = "💬";
+        btn.style.cssText = "position:absolute;top:8px;right:-40px;pointer-events:auto;cursor:pointer;";
+        btn.onclick = () => openCommentDialog(pageIndex);
+        container.appendChild(btn);
+
+        // Optional: cleanup runs when the page scrolls out of view
+        return () => btn.remove();
+    },
+});
+```
+
+**Arguments**
+
+| Argument    | Type          | Description                                                                                                                                                            |
+| ----------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pageIndex` | `number`      | 0-based page index (matches `getPageAnnotations`, `getPageText`, etc.).                                                                                                |
+| `container` | `HTMLElement` | The overlay layer. Sized to the page bounds, rotated with the page, positioned absolutely inside the page slot. Append your DOM here.                                  |
+| `scale`     | `number`      | CSS pixels per PDF point at the current zoom. Use it to place elements at PDF-point coordinates: `pixelX = pointX * scale`. Ignore it for page-bounds-relative layout. |
+
+**Return value**
+
+Return a cleanup function (or `void` if you don't need cleanup). The cleanup runs when the slot is destroyed — for example when the page scrolls far out of view in continuous mode, when the document is closed, or when the viewer is destroyed. Use it to detach listeners, tear down React/Vue/Svelte roots, or remove externally-tracked state.
+
+**Positioning**
+
+- `container` is a child of `.udoc-spread__slot` and sized to the page's CSS bounds. Plain CSS (`position: absolute; top/right/bottom/left`) anchors elements relative to the page.
+- Elements placed _outside_ the container's bounds (e.g. `right: -40px` for a tab sticking out the right edge of the page) are clipped by `.udoc-spread__slot`'s `overflow: hidden`. If you need overflow, render into a sibling layer or use a portal at the viewport level.
+- The container rotates with the page. If your overlay should stay screen-aligned regardless of `pageRotation`, apply an inverse rotation to your children.
+
+**Pointer events**
+
+The container is `pointer-events: none` by default so it never blocks text selection or annotation clicks beneath it. Opt individual elements into input with `pointer-events: auto`.
+
+**Lifecycle notes**
+
+- The renderer is invoked **once** per slot mount. Subsequent zoom/rotation/scroll updates do not re-invoke it — the layer's CSS transform handles those automatically, so your buttons follow the page without effort.
+- If you need to react to zoom changes (e.g. to keep a button screen-sized while the page scales), attach a `ResizeObserver` to `container` inside the renderer.
+- For state that depends on the document (annotation counts, comment threads), subscribe to the relevant `viewer.on(...)` events from inside the renderer and unsubscribe in the cleanup.
+
+**Targeting the layer in CSS**
+
+The layer carries the class `udoc-spread__custom-page-overlay-layer` if you want to style your overlay container directly (e.g. set a `font-family`).
 
 ### Events
 
