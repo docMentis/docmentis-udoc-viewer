@@ -6,6 +6,10 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+### Bug Fixes
+
+- SVG shape annotations (ink, polygon, polyline, line, square, circle) no longer require a `pointer-events` CSS override in host applications for `annotation:hover` / `annotation:click` to fire on painted geometry. Each shape overlay now sets `pointer-events: painted` directly on the `<svg>` root, so painted strokes/fills are hit-testable out of the box while empty SVG space stays transparent to PDF text underneath. Previously the `<svg>` root carried `pointer-events: none` inline and relied on a CSS descendant rule to re-enable hits, which leaked through to consumers whose app-level CSS or style isolation prevented that rule from applying — those consumers had to carry their own copy of the override to get shape events at all
+
 ## [0.6.40] - 2026-05-18
 
 ### Features

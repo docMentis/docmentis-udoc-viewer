@@ -2377,22 +2377,21 @@
     user-select: none;
 }
 
-/* SVG shape annotations: make drawn strokes/fills (not empty SVG space) hit-
-   testable in all tool modes so `annotation:hover` and `annotation:click` fire
-   on painted geometry during normal viewing, not only in the select tool. The
-   annotation layer itself stays `pointer-events: none`, so PDF text under it
-   remains selectable everywhere except over the painted geometry. */
-.udoc-viewer-root .udoc-spread__annotation-layer svg[data-annotation-index] * {
-    pointer-events: painted;
-}
-
-/* Cursor affordance stays scoped to the select tool — clicking a painted shape
-   only does something user-visible (selection) in that mode. */
+/* SVG shape annotations: hit-testing is owned by `pointer-events: painted` set
+   inline on each `<svg>` overlay (see createSvgOverlay), so empty SVG space
+   stays transparent to PDF text underneath and painted geometry fires
+   `annotation:hover`/`annotation:click` in all tool modes. Cursor affordance
+   stays scoped to the select tool — clicking a painted shape only does
+   something user-visible (selection) in that mode. */
 .udoc-viewer--tool-select .udoc-spread__annotation-layer svg[data-annotation-index] * {
     cursor: pointer;
 }
 
-/* HTML-based annotations (markup quads, text icons, etc.): make children clickable */
+/* HTML-based annotations (markup quads, text icons, etc.): make children
+   clickable only in the select tool. The parent container keeps
+   `pointer-events: none` inline so the highlight/underline/etc. fill stays
+   transparent to text selection during normal reading; the `!important`
+   override here re-enables hits on the children for the select tool only. */
 .udoc-viewer--tool-select .udoc-spread__annotation-layer div[data-annotation-index] > * {
     pointer-events: auto !important;
     cursor: pointer;

@@ -72,7 +72,10 @@ export function createSvgOverlay(): SVGSVGElement {
     svg.style.left = "0";
     svg.style.width = "100%";
     svg.style.height = "100%";
-    svg.style.pointerEvents = "none";
+    // `painted` lets only the rendered geometry intercept events; empty SVG
+    // space stays transparent so PDF text under the annotation layer remains
+    // selectable.
+    svg.style.pointerEvents = "painted";
     svg.style.overflow = "visible";
     return svg;
 }
