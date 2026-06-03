@@ -116,7 +116,7 @@
     --udoc-text-label: #aaa;
     --udoc-text-subtle: #a0a0a0;
     --udoc-text-placeholder: #777;
-    --udoc-text-on-primary: #fff;
+    --udoc-text-on-primary: #1a1a1a;
 
     --udoc-primary: #e0e0e0;
     --udoc-primary-hover: #f0f0f0;
@@ -3109,6 +3109,7 @@
     font-size: 13px;
     min-width: 0;
     background: transparent;
+    color: var(--udoc-text-heading);
 }
 
 /* Suppress focus ring on the inner input — the wrapper handles :focus-within */
