@@ -3109,6 +3109,7 @@
     font-size: 13px;
     min-width: 0;
     background: transparent;
+    color: var(--udoc-text-heading);
 }
 
 /* Suppress focus ring on the inner input — the wrapper handles :focus-within */
