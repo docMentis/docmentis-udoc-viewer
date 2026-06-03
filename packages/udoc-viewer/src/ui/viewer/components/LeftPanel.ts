@@ -35,6 +35,7 @@ type LeftPanelSlice = {
     panelVisible: boolean;
     disabledPanels: ReadonlySet<PanelTab>;
     allDisabled: boolean;
+    singleEnabledTab: boolean;
     noTransition: boolean;
 };
 
@@ -105,6 +106,9 @@ export function createLeftPanel() {
         el.style.transition = slice.noTransition ? "none" : "";
 
         el.classList.toggle("udoc-left-panel--closed", !slice.open);
+
+        // Hide the tab strip when there's only one tab to choose between
+        tabBar.style.display = slice.singleEnabledTab ? "none" : "";
 
         // Apply width from state (only when open)
         if (slice.open && slice.width !== null) {
@@ -280,6 +284,7 @@ export function createLeftPanel() {
                 a.panelVisible === b.panelVisible &&
                 a.disabledPanels === b.disabledPanels &&
                 a.allDisabled === b.allDisabled &&
+                a.singleEnabledTab === b.singleEnabledTab &&
                 a.noTransition === b.noTransition,
         });
 
@@ -329,14 +334,15 @@ export function createLeftPanel() {
 function selectLeftPanel(state: ViewerState): LeftPanelSlice {
     const panel = state.activePanel;
     const isLeftTab = panel !== null && isLeftPanelTab(panel);
-    const allDisabled = TABS.every((tab) => state.disabledPanels.has(tab.id));
+    const enabledCount = TABS.reduce((n, tab) => (state.disabledPanels.has(tab.id) ? n : n + 1), 0);
     return {
         open: isLeftTab,
         activeTab: isLeftTab ? panel : null,
         width: state.leftPanelWidth,
         panelVisible: state.leftPanelVisible,
         disabledPanels: state.disabledPanels,
-        allDisabled,
+        allDisabled: enabledCount === 0,
+        singleEnabledTab: enabledCount === 1,
         noTransition: state.panelTransitionsDisabled,
     };
 }
