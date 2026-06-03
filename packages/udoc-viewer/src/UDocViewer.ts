@@ -146,6 +146,9 @@ export interface ViewerEventMap {
     "document:load": { pageCount: number };
     "document:close": Record<string, never>;
     "download:progress": DownloadProgress;
+    download: { filename: string };
+    /** Fires on the actual print, not when the print dialog opens. */
+    print: { pageCount: number };
     error: { error: Error; phase: "fetch" | "parse" | "render" };
     "page:change": { page: number; previousPage: number };
     "ui:visibilityChange": { component: UIComponent; visible: boolean };
@@ -1918,12 +1921,14 @@ export class UDocViewer {
         const blob = new Blob([bytes.buffer as ArrayBuffer], { type: mimeType });
         const url = URL.createObjectURL(blob);
 
+        const resolvedFilename = filename ?? this.getDefaultFilename();
         const a = document.createElement("a");
         a.href = url;
-        a.download = filename ?? this.getDefaultFilename();
+        a.download = resolvedFilename;
         a.click();
 
         URL.revokeObjectURL(url);
+        this.emit("download", { filename: resolvedFilename });
     }
 
     /**
@@ -1942,6 +1947,8 @@ export class UDocViewer {
 
         const pageIndices = this.resolvePageIndices(options.pageRange);
         const isAllPages = pageIndices.length === this._pageCount;
+
+        this.emit("print", { pageCount: pageIndices.length });
 
         // For PDF with all pages and standard quality, use native PDF printing (vector quality)
         if (this.currentFormat === "pdf" && isAllPages && options.quality === "standard") {
