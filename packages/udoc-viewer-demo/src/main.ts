@@ -522,6 +522,7 @@ const OPTION_GROUPS: ToggleGroup[] = [
             { label: "Disable Bookmarks", onChange: (c, v) => v.setPanelEnabled("bookmarks", !c) },
             { label: "Disable Layers", onChange: (c, v) => v.setPanelEnabled("layers", !c) },
             { label: "Disable Attachments", onChange: (c, v) => v.setPanelEnabled("attachments", !c) },
+            { label: "Disable Fonts", onChange: (c, v) => v.setPanelEnabled("fonts", !c) },
         ],
     },
     {
