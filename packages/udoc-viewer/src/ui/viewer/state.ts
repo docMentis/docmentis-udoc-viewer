@@ -40,9 +40,19 @@ export type LeftPanelTab = "thumbnail" | "outline" | "bookmarks" | "layers" | "a
 export type RightPanelTab = "search" | "comments";
 export type PanelTab = LeftPanelTab | RightPanelTab;
 
-const LEFT_TABS: Set<PanelTab> = new Set(["thumbnail", "outline", "bookmarks", "layers", "attachments", "fonts"]);
+/** Canonical render order for the left-panel tab strip. */
+export const LEFT_PANEL_TABS: readonly LeftPanelTab[] = [
+    "thumbnail",
+    "outline",
+    "bookmarks",
+    "layers",
+    "attachments",
+    "fonts",
+];
+
+const LEFT_TABS_SET: ReadonlySet<PanelTab> = new Set(LEFT_PANEL_TABS);
 export function isLeftPanelTab(tab: PanelTab): tab is LeftPanelTab {
-    return LEFT_TABS.has(tab);
+    return LEFT_TABS_SET.has(tab);
 }
 
 // -----------------------------------------------------------------------------
