@@ -1,7 +1,7 @@
 import type { Store } from "../../framework/store";
 import { subscribeSelector } from "../../framework/selectors";
 import type { ViewerState, LeftPanelTab, PanelTab } from "../state";
-import { isLeftPanelTab } from "../state";
+import { isLeftPanelTab, LEFT_PANEL_TABS } from "../state";
 import type { Action } from "../actions";
 import type { WorkerClient } from "../../../worker/index.js";
 import type { I18n } from "../i18n/index.js";
@@ -19,14 +19,16 @@ interface TabConfig {
     icon: string;
 }
 
-const TABS: TabConfig[] = [
-    { id: "thumbnail", label: "Thumbnails", icon: ICON_THUMBNAIL },
-    { id: "outline", label: "Outline", icon: ICON_OUTLINE },
-    { id: "bookmarks", label: "Bookmarks", icon: ICON_BOOKMARK },
-    { id: "layers", label: "Layers", icon: ICON_LAYERS },
-    { id: "attachments", label: "Attachments", icon: ICON_ATTACHMENT },
-    { id: "fonts", label: "Fonts", icon: ICON_FONTS },
-];
+const TAB_PRESENTATION: Record<LeftPanelTab, { label: string; icon: string }> = {
+    thumbnail: { label: "Thumbnails", icon: ICON_THUMBNAIL },
+    outline: { label: "Outline", icon: ICON_OUTLINE },
+    bookmarks: { label: "Bookmarks", icon: ICON_BOOKMARK },
+    layers: { label: "Layers", icon: ICON_LAYERS },
+    attachments: { label: "Attachments", icon: ICON_ATTACHMENT },
+    fonts: { label: "Fonts", icon: ICON_FONTS },
+};
+
+const TABS: TabConfig[] = LEFT_PANEL_TABS.map((id) => ({ id, ...TAB_PRESENTATION[id] }));
 
 type LeftPanelSlice = {
     open: boolean;

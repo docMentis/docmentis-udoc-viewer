@@ -115,9 +115,9 @@ export interface DocumentMetadata {
 export type { Destination, DestinationDisplay, OutlineItem, ScrollAlignment } from "./ui/viewer/navigation.js";
 
 /**
- * Download progress information.
+ * Document loading progress information.
  */
-export interface DownloadProgress {
+export interface LoadProgress {
     /** Bytes loaded so far. */
     loaded: number;
     /** Total bytes (may be 0 if Content-Length not available). */
@@ -143,9 +143,9 @@ export type UIComponent =
  * Event map for viewer events.
  */
 export interface ViewerEventMap {
+    "document:loading": LoadProgress;
     "document:load": { pageCount: number };
     "document:close": Record<string, never>;
-    "download:progress": DownloadProgress;
     download: { filename: string };
     /** Fires on the actual print, not when the print dialog opens. */
     print: { pageCount: number };
@@ -2335,7 +2335,7 @@ img { display: block; }
                 total: 0,
             });
         }
-        this.emit("download:progress", { loaded: 0, total: 0, percent: null });
+        this.emit("document:loading", { loaded: 0, total: 0, percent: null });
 
         const response = await fetch(url);
         if (!response.ok) {
@@ -2366,7 +2366,7 @@ img { display: block; }
                 total,
                 percent: total > 0 ? Math.round((currentLoaded / total) * 100) : null,
             };
-            this.emit("download:progress", progress);
+            this.emit("document:loading", progress);
             // Dispatch to UI shell for the loading overlay
             if (this.uiShell) {
                 this.uiShell.dispatch({

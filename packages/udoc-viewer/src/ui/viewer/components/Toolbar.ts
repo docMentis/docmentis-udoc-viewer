@@ -2,20 +2,11 @@ import type { Store } from "../../framework/store";
 import { subscribeSelector } from "../../framework/selectors";
 import { on } from "../../framework/events";
 import type { I18n } from "../i18n/index.js";
-import type {
-    ViewerState,
-    ZoomMode,
-    PanelTab,
-    LeftPanelTab,
-    ThemeMode,
-    ActiveTool,
-    ToolKind,
-    DocumentFormat,
-} from "../state";
+import type { ViewerState, ZoomMode, PanelTab, ThemeMode, ActiveTool, ToolKind, DocumentFormat } from "../state";
 
 /** Simple-tool kinds — the subset of `ToolKind` that has no sub-toolbar. */
 type SimpleToolKind = "pointer" | "hand" | "zoom";
-import { isLeftPanelTab, ANNOTATION_FORMATS } from "../state";
+import { isLeftPanelTab, ANNOTATION_FORMATS, LEFT_PANEL_TABS } from "../state";
 import type { Action } from "../actions";
 import { setupRovingTabindex } from "../a11y";
 import {
@@ -59,8 +50,6 @@ function formatZoomPercent(zoom: number): string {
     const percent = Math.round(zoom * 1000) / 10;
     return percent % 1 === 0 ? `${percent}%` : `${percent.toFixed(1)}%`;
 }
-
-const LEFT_TABS: LeftPanelTab[] = ["thumbnail", "outline", "bookmarks", "layers", "attachments"];
 
 interface ToolbarSlice {
     toolbarVisible: boolean;
@@ -576,7 +565,7 @@ export function createToolbar() {
                 return;
             }
             // Find first non-disabled left tab
-            const firstTab = LEFT_TABS.find((t) => !state.disabledPanels.has(t));
+            const firstTab = LEFT_PANEL_TABS.find((t) => !state.disabledPanels.has(t));
             if (firstTab) {
                 store.dispatch({ type: "TOGGLE_PANEL", panel: firstTab });
             }
@@ -775,7 +764,7 @@ export function createToolbar() {
             el.style.display = slice.toolbarVisible ? "" : "none";
 
             // Menu button: hidden when left panel disabled or all left tabs disabled
-            const allLeftDisabled = LEFT_TABS.every((t) => slice.disabledPanels.has(t));
+            const allLeftDisabled = LEFT_PANEL_TABS.every((t) => slice.disabledPanels.has(t));
             menuBtn.style.display = !slice.leftPanelVisible || allLeftDisabled ? "none" : "";
 
             // Search button: hidden when right panel disabled or search individually disabled

@@ -24,7 +24,7 @@ export type {
     ScrollAlignment,
     Annotation,
     ViewerEventMap,
-    DownloadProgress,
+    LoadProgress,
     UIComponent,
 } from "./UDocViewer.js";
 

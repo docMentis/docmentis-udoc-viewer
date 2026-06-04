@@ -867,9 +867,9 @@ viewer.on("ui:visibilityChange", ({ component, visible }) => {
     console.log(`${component} is now ${visible ? "visible" : "hidden"}`);
 });
 
-// Download progress
-viewer.on("download:progress", ({ loaded, total, percent }) => {
-    console.log(`Downloaded ${loaded}/${total} bytes (${percent}%)`);
+// Document loading progress (fetching/parsing the document for display)
+viewer.on("document:loading", ({ loaded, total, percent }) => {
+    console.log(`Loaded ${loaded}/${total} bytes (${percent}%)`);
 });
 
 // Search results changed (matches found or active match navigated)
