@@ -6,6 +6,13 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-06-09
+
+### Features
+
+- Free-tier permit notices are now surfaced in the viewer: when a document open is blocked by the free-tier quota, or the usage permit can't be verified, an explanatory overlay is shown over the viewer area instead of a blank screen.
+- Free/unlicensed document opens are now gated behind a server-signed, single-use online permit verified inside the WASM runtime. Commercial-licensed usage skips the permit entirely and stays fully offline (engine)
+
 ## [0.6.43] - 2026-06-03
 
 ### Breaking Changes

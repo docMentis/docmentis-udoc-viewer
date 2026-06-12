@@ -9,6 +9,7 @@ import type { WorkerClient, PageInfo, RenderType, FontUsageEntry, AnnotationsByP
 import type { ViewerOptions } from "./UDocClient.js";
 import { mountViewerShell, type ViewerShell, type InitialStateOverrides } from "./ui/viewer/shell.js";
 import type { PrintDialogResult, PrintPageRange, PrintQuality } from "./ui/viewer/components/PrintDialog.js";
+import { PERMIT_BLOCKED_NOTICE, PERMIT_UNAVAILABLE_NOTICE } from "./ui/viewer/components/PermitNoticeOverlay.js";
 import type { Destination, OutlineItem, ScrollAlignment } from "./ui/viewer/navigation.js";
 import {
     renderAnnotationsToLayer,
@@ -149,7 +150,7 @@ export interface ViewerEventMap {
     download: { filename: string };
     /** Fires on the actual print, not when the print dialog opens. */
     print: { pageCount: number };
-    error: { error: Error; phase: "fetch" | "parse" | "render" };
+    error: { error: Error; phase: "fetch" | "parse" | "render" | "permit" };
     "page:change": { page: number; previousPage: number };
     "ui:visibilityChange": { component: UIComponent; visible: boolean };
     "panel:change": { panel: PanelTab | null; previousPanel: PanelTab | null };
@@ -551,6 +552,9 @@ export class UDocViewer {
             this.close();
         }
 
+        // Clear any prior permit notice before attempting a new open.
+        this.uiShell?.dispatch({ type: "SET_PERMIT_NOTICE", notice: null });
+
         try {
             // Track download phase
             const downloadId = this._performanceCounter.markStart("download");
@@ -622,6 +626,22 @@ export class UDocViewer {
             this.emit("document:load", { pageCount: this._pageCount });
         } catch (error) {
             this.uiShell?.dispatch({ type: "SET_PROCESSING", processing: false });
+
+            // Free-tier permit failures are surfaced via a dedicated phase and an
+            // explicit in-viewer overlay (no blank screen). Markers come from the
+            // WASM runtime (the single trust point), not from JS.
+            const message = error instanceof Error ? error.message : String(error);
+            if (message.includes("[@docMentis/udoc-viewer] permit blocked")) {
+                this.uiShell?.dispatch({ type: "SET_PERMIT_NOTICE", notice: PERMIT_BLOCKED_NOTICE });
+                this.emit("error", { error: error as Error, phase: "permit" });
+                throw error;
+            }
+            if (message.includes("[@docMentis/udoc-viewer] permit unavailable")) {
+                this.uiShell?.dispatch({ type: "SET_PERMIT_NOTICE", notice: PERMIT_UNAVAILABLE_NOTICE });
+                this.emit("error", { error: error as Error, phase: "permit" });
+                throw error;
+            }
+
             const phase = error instanceof TypeError ? "fetch" : "parse";
             this.emit("error", { error: error as Error, phase });
             throw error;

@@ -739,61 +739,15 @@ export class Wasm {
      *
      * # Returns
      * A unique document ID that can be used to reference this document.
+     *
+     * # Permit enforcement
+     * This is the single, gated document-open entry point. For
+     * free/unlicensed usage it requires a valid server-signed permit (fetched
+     * and verified inside WASM) before the document is opened; commercial
+     * licensed usage skips the permit entirely. The per-format loaders are
+     * private so there is no ungated open path.
      */
-    load(bytes: Uint8Array): string;
-    /**
-     * Load a DOCX document and return its ID.
-     *
-     * # Arguments
-     * * `bytes` - Raw DOCX file data
-     *
-     * # Returns
-     * A unique document ID that can be used to reference this document.
-     */
-    load_docx(bytes: Uint8Array): string;
-    /**
-     * Load an image file and return its ID.
-     *
-     * Supports various image formats: JPEG, PNG, GIF, BMP, TIFF, WebP, etc.
-     * Multi-page TIFF files will create a document with multiple pages.
-     *
-     * # Arguments
-     * * `bytes` - Raw image file data
-     *
-     * # Returns
-     * A unique document ID that can be used to reference this document.
-     */
-    load_image(bytes: Uint8Array): string;
-    /**
-     * Load a PDF document and return its ID.
-     *
-     * # Arguments
-     * * `bytes` - Raw PDF file data
-     *
-     * # Returns
-     * A unique document ID that can be used to reference this document.
-     */
-    load_pdf(bytes: Uint8Array): string;
-    /**
-     * Load a PPTX (PowerPoint) document and return its ID.
-     *
-     * # Arguments
-     * * `bytes` - Raw PPTX file data
-     *
-     * # Returns
-     * A unique document ID that can be used to reference this document.
-     */
-    load_pptx(bytes: Uint8Array): string;
-    /**
-     * Load an XLSX document and return its ID.
-     *
-     * # Arguments
-     * * `bytes` - Raw XLSX file data
-     *
-     * # Returns
-     * A unique document ID that can be used to reference this document.
-     */
-    load_xlsx(bytes: Uint8Array): string;
+    load(bytes: Uint8Array): Promise<string>;
     /**
      * Check if a document requires a password to open.
      *
@@ -1150,12 +1104,7 @@ export interface InitOutput {
     readonly wasm_has_gpu: (a: number) => number;
     readonly wasm_init_gpu: (a: number) => number;
     readonly wasm_license_status: (a: number) => number;
-    readonly wasm_load: (a: number, b: number, c: number, d: number) => void;
-    readonly wasm_load_docx: (a: number, b: number, c: number, d: number) => void;
-    readonly wasm_load_image: (a: number, b: number, c: number, d: number) => void;
-    readonly wasm_load_pdf: (a: number, b: number, c: number, d: number) => void;
-    readonly wasm_load_pptx: (a: number, b: number, c: number, d: number) => void;
-    readonly wasm_load_xlsx: (a: number, b: number, c: number, d: number) => void;
+    readonly wasm_load: (a: number, b: number, c: number) => number;
     readonly wasm_needs_password: (a: number, b: number, c: number, d: number) => void;
     readonly wasm_new: (a: number, b: number, c: number, d: number) => number;
     readonly wasm_page_count: (a: number, b: number, c: number, d: number) => void;
@@ -1177,9 +1126,9 @@ export interface InitOutput {
     readonly wasm_set_visibility_group_visible: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
     readonly wasm_setup_telemetry: (a: number, b: number, c: number) => void;
     readonly wasm_viewer_preferences: (a: number, b: number, c: number, d: number) => void;
-    readonly __wasm_bindgen_func_elem_22721: (a: number, b: number, c: number, d: number) => void;
-    readonly __wasm_bindgen_func_elem_22734: (a: number, b: number, c: number, d: number) => void;
-    readonly __wasm_bindgen_func_elem_3565: (a: number, b: number, c: number) => void;
+    readonly __wasm_bindgen_func_elem_22803: (a: number, b: number, c: number, d: number) => void;
+    readonly __wasm_bindgen_func_elem_22816: (a: number, b: number, c: number, d: number) => void;
+    readonly __wasm_bindgen_func_elem_3624: (a: number, b: number, c: number) => void;
     readonly __wbindgen_export: (a: number, b: number) => number;
     readonly __wbindgen_export2: (a: number, b: number, c: number, d: number) => number;
     readonly __wbindgen_export3: (a: number) => void;

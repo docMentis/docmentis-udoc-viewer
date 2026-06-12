@@ -223,6 +223,14 @@ export interface ZoomAnchor {
     scrollHeight: number;
 }
 
+/** A message shown over the viewer area when a free-tier permit blocks rendering. */
+export interface PermitNotice {
+    /** Short heading. */
+    title: string;
+    /** Explanatory body text. */
+    body: string;
+}
+
 // -----------------------------------------------------------------------------
 // Viewer state
 // -----------------------------------------------------------------------------
@@ -247,6 +255,10 @@ export interface ViewerState {
     passwordError: string | null;
     /** Whether authentication is currently in progress */
     isAuthenticating: boolean;
+
+    // Free-tier usage permit
+    /** Permit notice shown over the viewer area (quota block or verification error); null = none. */
+    permitNotice: PermitNotice | null;
 
     // Outline (loaded on-demand)
     /** Document outline/bookmarks (null = not loaded yet) */
@@ -435,6 +447,8 @@ export const initialState: ViewerState = {
     needsPassword: false,
     passwordError: null,
     isAuthenticating: false,
+
+    permitNotice: null,
 
     outline: null,
     outlineLoading: false,

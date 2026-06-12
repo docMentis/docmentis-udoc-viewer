@@ -15,6 +15,7 @@ import type {
     SubTool,
     DocumentFormat,
     ZoomAnchor,
+    PermitNotice,
 } from "./state";
 import type { Destination, OutlineItem, ScrollAlignment } from "./navigation";
 import type { Annotation } from "./annotation";
@@ -43,6 +44,8 @@ export type Action =
     | { type: "AUTHENTICATE_SUCCESS" }
     | { type: "AUTHENTICATE_FAILURE"; error: string }
     | { type: "CLEAR_PASSWORD_ERROR" }
+    // Free-tier usage permit
+    | { type: "SET_PERMIT_NOTICE"; notice: PermitNotice | null }
     // Outline (on-demand loading)
     | { type: "LOAD_OUTLINE" }
     | { type: "SET_OUTLINE"; outline: OutlineItem[] }

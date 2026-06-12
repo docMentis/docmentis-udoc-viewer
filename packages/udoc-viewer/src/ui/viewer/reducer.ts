@@ -96,6 +96,10 @@ export function reducer(state: ViewerState, action: Action): ViewerState {
             if (state.needsPassword === action.needsPassword) return state;
             return { ...state, needsPassword: action.needsPassword, passwordError: null };
         }
+        // Free-tier usage permit
+        case "SET_PERMIT_NOTICE": {
+            return { ...state, permitNotice: action.notice };
+        }
         case "AUTHENTICATE_START": {
             if (state.isAuthenticating) return state;
             return { ...state, isAuthenticating: true, passwordError: null };

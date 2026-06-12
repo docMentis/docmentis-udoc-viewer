@@ -17,6 +17,7 @@ import type { CustomPageOverlayRenderer } from "./components/Spread";
 import { createSheetTabBar } from "./components/SheetTabBar";
 import { createRightPanel } from "./components/RightPanel";
 import { createPasswordDialog } from "./components/PasswordDialog";
+import { createPermitNoticeOverlay } from "./components/PermitNoticeOverlay";
 import { createPrintDialog } from "./components/PrintDialog";
 import type { PrintDialogResult } from "./components/PrintDialog";
 import { createLoadingOverlay } from "./components/LoadingOverlay";
@@ -228,6 +229,10 @@ export function mountViewerShell(
             callbacks.onPasswordSubmit?.(password);
         },
     });
+
+    // Free-tier permit-notice overlay (covers only the viewer area)
+    const permitNoticeOverlay = createPermitNoticeOverlay();
+    permitNoticeOverlay.mount(viewportSlot, store);
 
     // Handle panel overlay click to close panels (for mobile)
     const handleOverlayClick = () => {
@@ -471,6 +476,7 @@ export function mountViewerShell(
         rightPanel.destroy();
         loadingOverlay?.destroy();
         passwordDialog.destroy();
+        permitNoticeOverlay.destroy();
         printDialog.destroy();
         layout.remove();
     }

@@ -463,222 +463,21 @@ export class Wasm {
      *
      * # Returns
      * A unique document ID that can be used to reference this document.
+     *
+     * # Permit enforcement
+     * This is the single, gated document-open entry point. For
+     * free/unlicensed usage it requires a valid server-signed permit (fetched
+     * and verified inside WASM) before the document is opened; commercial
+     * licensed usage skips the permit entirely. The per-format loaders are
+     * private so there is no ungated open path.
      * @param {Uint8Array} bytes
-     * @returns {string}
+     * @returns {Promise<string>}
      */
     load(bytes) {
-        let deferred3_0;
-        let deferred3_1;
-        try {
-            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-            const ptr0 = passArray8ToWasm0(bytes, wasm.__wbindgen_export);
-            const len0 = WASM_VECTOR_LEN;
-            wasm.wasm_load(retptr, this.__wbg_ptr, ptr0, len0);
-            var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
-            var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
-            var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
-            var r3 = getDataViewMemory0().getInt32(retptr + 4 * 3, true);
-            var ptr2 = r0;
-            var len2 = r1;
-            if (r3) {
-                ptr2 = 0; len2 = 0;
-                throw takeObject(r2);
-            }
-            deferred3_0 = ptr2;
-            deferred3_1 = len2;
-            return getStringFromWasm0(ptr2, len2);
-        } finally {
-            wasm.__wbindgen_add_to_stack_pointer(16);
-            wasm.__wbindgen_export4(deferred3_0, deferred3_1, 1);
-        }
-    }
-    /**
-     * Load a DOCX document and return its ID.
-     *
-     * # Arguments
-     * * `bytes` - Raw DOCX file data
-     *
-     * # Returns
-     * A unique document ID that can be used to reference this document.
-     * @param {Uint8Array} bytes
-     * @returns {string}
-     */
-    load_docx(bytes) {
-        let deferred3_0;
-        let deferred3_1;
-        try {
-            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-            const ptr0 = passArray8ToWasm0(bytes, wasm.__wbindgen_export);
-            const len0 = WASM_VECTOR_LEN;
-            wasm.wasm_load_docx(retptr, this.__wbg_ptr, ptr0, len0);
-            var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
-            var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
-            var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
-            var r3 = getDataViewMemory0().getInt32(retptr + 4 * 3, true);
-            var ptr2 = r0;
-            var len2 = r1;
-            if (r3) {
-                ptr2 = 0; len2 = 0;
-                throw takeObject(r2);
-            }
-            deferred3_0 = ptr2;
-            deferred3_1 = len2;
-            return getStringFromWasm0(ptr2, len2);
-        } finally {
-            wasm.__wbindgen_add_to_stack_pointer(16);
-            wasm.__wbindgen_export4(deferred3_0, deferred3_1, 1);
-        }
-    }
-    /**
-     * Load an image file and return its ID.
-     *
-     * Supports various image formats: JPEG, PNG, GIF, BMP, TIFF, WebP, etc.
-     * Multi-page TIFF files will create a document with multiple pages.
-     *
-     * # Arguments
-     * * `bytes` - Raw image file data
-     *
-     * # Returns
-     * A unique document ID that can be used to reference this document.
-     * @param {Uint8Array} bytes
-     * @returns {string}
-     */
-    load_image(bytes) {
-        let deferred3_0;
-        let deferred3_1;
-        try {
-            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-            const ptr0 = passArray8ToWasm0(bytes, wasm.__wbindgen_export);
-            const len0 = WASM_VECTOR_LEN;
-            wasm.wasm_load_image(retptr, this.__wbg_ptr, ptr0, len0);
-            var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
-            var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
-            var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
-            var r3 = getDataViewMemory0().getInt32(retptr + 4 * 3, true);
-            var ptr2 = r0;
-            var len2 = r1;
-            if (r3) {
-                ptr2 = 0; len2 = 0;
-                throw takeObject(r2);
-            }
-            deferred3_0 = ptr2;
-            deferred3_1 = len2;
-            return getStringFromWasm0(ptr2, len2);
-        } finally {
-            wasm.__wbindgen_add_to_stack_pointer(16);
-            wasm.__wbindgen_export4(deferred3_0, deferred3_1, 1);
-        }
-    }
-    /**
-     * Load a PDF document and return its ID.
-     *
-     * # Arguments
-     * * `bytes` - Raw PDF file data
-     *
-     * # Returns
-     * A unique document ID that can be used to reference this document.
-     * @param {Uint8Array} bytes
-     * @returns {string}
-     */
-    load_pdf(bytes) {
-        let deferred3_0;
-        let deferred3_1;
-        try {
-            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-            const ptr0 = passArray8ToWasm0(bytes, wasm.__wbindgen_export);
-            const len0 = WASM_VECTOR_LEN;
-            wasm.wasm_load_pdf(retptr, this.__wbg_ptr, ptr0, len0);
-            var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
-            var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
-            var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
-            var r3 = getDataViewMemory0().getInt32(retptr + 4 * 3, true);
-            var ptr2 = r0;
-            var len2 = r1;
-            if (r3) {
-                ptr2 = 0; len2 = 0;
-                throw takeObject(r2);
-            }
-            deferred3_0 = ptr2;
-            deferred3_1 = len2;
-            return getStringFromWasm0(ptr2, len2);
-        } finally {
-            wasm.__wbindgen_add_to_stack_pointer(16);
-            wasm.__wbindgen_export4(deferred3_0, deferred3_1, 1);
-        }
-    }
-    /**
-     * Load a PPTX (PowerPoint) document and return its ID.
-     *
-     * # Arguments
-     * * `bytes` - Raw PPTX file data
-     *
-     * # Returns
-     * A unique document ID that can be used to reference this document.
-     * @param {Uint8Array} bytes
-     * @returns {string}
-     */
-    load_pptx(bytes) {
-        let deferred3_0;
-        let deferred3_1;
-        try {
-            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-            const ptr0 = passArray8ToWasm0(bytes, wasm.__wbindgen_export);
-            const len0 = WASM_VECTOR_LEN;
-            wasm.wasm_load_pptx(retptr, this.__wbg_ptr, ptr0, len0);
-            var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
-            var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
-            var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
-            var r3 = getDataViewMemory0().getInt32(retptr + 4 * 3, true);
-            var ptr2 = r0;
-            var len2 = r1;
-            if (r3) {
-                ptr2 = 0; len2 = 0;
-                throw takeObject(r2);
-            }
-            deferred3_0 = ptr2;
-            deferred3_1 = len2;
-            return getStringFromWasm0(ptr2, len2);
-        } finally {
-            wasm.__wbindgen_add_to_stack_pointer(16);
-            wasm.__wbindgen_export4(deferred3_0, deferred3_1, 1);
-        }
-    }
-    /**
-     * Load an XLSX document and return its ID.
-     *
-     * # Arguments
-     * * `bytes` - Raw XLSX file data
-     *
-     * # Returns
-     * A unique document ID that can be used to reference this document.
-     * @param {Uint8Array} bytes
-     * @returns {string}
-     */
-    load_xlsx(bytes) {
-        let deferred3_0;
-        let deferred3_1;
-        try {
-            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-            const ptr0 = passArray8ToWasm0(bytes, wasm.__wbindgen_export);
-            const len0 = WASM_VECTOR_LEN;
-            wasm.wasm_load_xlsx(retptr, this.__wbg_ptr, ptr0, len0);
-            var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
-            var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
-            var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
-            var r3 = getDataViewMemory0().getInt32(retptr + 4 * 3, true);
-            var ptr2 = r0;
-            var len2 = r1;
-            if (r3) {
-                ptr2 = 0; len2 = 0;
-                throw takeObject(r2);
-            }
-            deferred3_0 = ptr2;
-            deferred3_1 = len2;
-            return getStringFromWasm0(ptr2, len2);
-        } finally {
-            wasm.__wbindgen_add_to_stack_pointer(16);
-            wasm.__wbindgen_export4(deferred3_0, deferred3_1, 1);
-        }
+        const ptr0 = passArray8ToWasm0(bytes, wasm.__wbindgen_export);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.wasm_load(this.__wbg_ptr, ptr0, len0);
+        return takeObject(ret);
     }
     /**
      * Check if a document requires a password to open.
@@ -1705,6 +1504,16 @@ function __wbg_get_imports() {
             const ret = result;
             return ret;
         },
+        __wbg_instanceof_Response_cb984bd66d7bd408: function(arg0) {
+            let result;
+            try {
+                result = getObject(arg0) instanceof Response;
+            } catch (_) {
+                result = false;
+            }
+            const ret = result;
+            return ret;
+        },
         __wbg_instanceof_Uint8Array_86f30649f63ef9c2: function(arg0) {
             let result;
             try {
@@ -1788,7 +1597,7 @@ function __wbg_get_imports() {
                     const a = state0.a;
                     state0.a = 0;
                     try {
-                        return __wasm_bindgen_func_elem_22734(a, state0.b, arg0, arg1);
+                        return __wasm_bindgen_func_elem_22816(a, state0.b, arg0, arg1);
                     } finally {
                         state0.a = a;
                     }
@@ -1822,7 +1631,7 @@ function __wbg_get_imports() {
                     const a = state0.a;
                     state0.a = 0;
                     try {
-                        return __wasm_bindgen_func_elem_22734(a, state0.b, arg0, arg1);
+                        return __wasm_bindgen_func_elem_22816(a, state0.b, arg0, arg1);
                     } finally {
                         state0.a = a;
                     }
@@ -2243,6 +2052,10 @@ function __wbg_get_imports() {
         __wbg_submit_fc5b9a1154201a58: function(arg0, arg1) {
             getObject(arg0).submit(getObject(arg1));
         },
+        __wbg_text_a17febec76d36501: function() { return handleError(function (arg0) {
+            const ret = getObject(arg0).text();
+            return addHeapObject(ret);
+        }, arguments); },
         __wbg_then_18f476d590e58992: function(arg0, arg1, arg2) {
             const ret = getObject(arg0).then(getObject(arg1), getObject(arg2));
             return addHeapObject(ret);
@@ -2277,13 +2090,13 @@ function __wbg_get_imports() {
             getObject(arg0).writeTexture(getObject(arg1), getObject(arg2), getObject(arg3), getObject(arg4));
         }, arguments); },
         __wbindgen_cast_0000000000000001: function(arg0, arg1) {
-            // Cast intrinsic for `Closure(Closure { owned: true, function: Function { arguments: [Externref], shim_idx: 1839, ret: Result(Unit), inner_ret: Some(Result(Unit)) }, mutable: true }) -> Externref`.
-            const ret = makeMutClosure(arg0, arg1, __wasm_bindgen_func_elem_22721);
+            // Cast intrinsic for `Closure(Closure { owned: true, function: Function { arguments: [Externref], shim_idx: 1846, ret: Result(Unit), inner_ret: Some(Result(Unit)) }, mutable: true }) -> Externref`.
+            const ret = makeMutClosure(arg0, arg1, __wasm_bindgen_func_elem_22803);
             return addHeapObject(ret);
         },
         __wbindgen_cast_0000000000000002: function(arg0, arg1) {
-            // Cast intrinsic for `Closure(Closure { owned: true, function: Function { arguments: [Externref], shim_idx: 248, ret: Unit, inner_ret: Some(Unit) }, mutable: true }) -> Externref`.
-            const ret = makeMutClosure(arg0, arg1, __wasm_bindgen_func_elem_3565);
+            // Cast intrinsic for `Closure(Closure { owned: true, function: Function { arguments: [Externref], shim_idx: 256, ret: Unit, inner_ret: Some(Unit) }, mutable: true }) -> Externref`.
+            const ret = makeMutClosure(arg0, arg1, __wasm_bindgen_func_elem_3624);
             return addHeapObject(ret);
         },
         __wbindgen_cast_0000000000000003: function(arg0) {
@@ -2332,14 +2145,14 @@ function __wbg_get_imports() {
     };
 }
 
-function __wasm_bindgen_func_elem_3565(arg0, arg1, arg2) {
-    wasm.__wasm_bindgen_func_elem_3565(arg0, arg1, addHeapObject(arg2));
+function __wasm_bindgen_func_elem_3624(arg0, arg1, arg2) {
+    wasm.__wasm_bindgen_func_elem_3624(arg0, arg1, addHeapObject(arg2));
 }
 
-function __wasm_bindgen_func_elem_22721(arg0, arg1, arg2) {
+function __wasm_bindgen_func_elem_22803(arg0, arg1, arg2) {
     try {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-        wasm.__wasm_bindgen_func_elem_22721(retptr, arg0, arg1, addHeapObject(arg2));
+        wasm.__wasm_bindgen_func_elem_22803(retptr, arg0, arg1, addHeapObject(arg2));
         var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
         var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
         if (r1) {
@@ -2350,8 +2163,8 @@ function __wasm_bindgen_func_elem_22721(arg0, arg1, arg2) {
     }
 }
 
-function __wasm_bindgen_func_elem_22734(arg0, arg1, arg2, arg3) {
-    wasm.__wasm_bindgen_func_elem_22734(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
+function __wasm_bindgen_func_elem_22816(arg0, arg1, arg2, arg3) {
+    wasm.__wasm_bindgen_func_elem_22816(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
 }
 
 

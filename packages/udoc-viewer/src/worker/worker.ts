@@ -296,7 +296,9 @@ async function handleMessage(event: MessageEvent<WorkerRequest & { _id?: number 
 
             case "load": {
                 ensureInitialized();
-                const documentId = wasm!.load(request.bytes);
+                // `load` is async: for free/unlicensed usage it fetches and
+                // verifies a server-signed permit (inside WASM) before opening.
+                const documentId = await wasm!.load(request.bytes);
                 respond({ type: "load", success: true, documentId });
                 break;
             }
@@ -308,37 +310,40 @@ async function handleMessage(event: MessageEvent<WorkerRequest & { _id?: number 
                 break;
             }
 
+            // The format-specific load entry points all route through the single
+            // permit-gated async `load` (format is auto-detected in WASM); there
+            // is intentionally no ungated open path.
             case "loadPdf": {
                 ensureInitialized();
-                const documentId = wasm!.load_pdf(request.bytes);
+                const documentId = await wasm!.load(request.bytes);
                 respond({ type: "loadPdf", success: true, documentId });
                 break;
             }
 
             case "loadImage": {
                 ensureInitialized();
-                const documentId = wasm!.load_image(request.bytes);
+                const documentId = await wasm!.load(request.bytes);
                 respond({ type: "loadImage", success: true, documentId });
                 break;
             }
 
             case "loadPptx": {
                 ensureInitialized();
-                const documentId = wasm!.load_pptx(request.bytes);
+                const documentId = await wasm!.load(request.bytes);
                 respond({ type: "loadPptx", success: true, documentId });
                 break;
             }
 
             case "loadDocx": {
                 ensureInitialized();
-                const documentId = wasm!.load_docx(request.bytes);
+                const documentId = await wasm!.load(request.bytes);
                 respond({ type: "loadDocx", success: true, documentId });
                 break;
             }
 
             case "loadXlsx": {
                 ensureInitialized();
-                const documentId = wasm!.load_xlsx(request.bytes);
+                const documentId = await wasm!.load(request.bytes);
                 respond({ type: "loadXlsx", success: true, documentId });
                 break;
             }

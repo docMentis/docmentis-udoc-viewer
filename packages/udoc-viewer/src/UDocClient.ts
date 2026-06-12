@@ -602,7 +602,7 @@ export class UDocClient {
             client.licenseInfo = licenseResultToInfo(result);
 
             if (!result.valid) {
-                console.warn(`[udoc-viewer] License validation failed: ${result.error}`);
+                console.warn(`[@docMentis/udoc-viewer] License validation failed: ${result.error}`);
             }
         }
 
@@ -611,7 +611,9 @@ export class UDocClient {
         if (options.disableTelemetry) {
             telemetryDisabled = await workerClient.disableTelemetry();
             if (!telemetryDisabled) {
-                console.warn("[udoc-viewer] disableTelemetry requires a license with the 'no_telemetry' feature.");
+                console.warn(
+                    "[@docMentis/udoc-viewer] disableTelemetry requires a license with the 'no_telemetry' feature.",
+                );
             } else {
                 removeDistinctId();
             }
@@ -1168,7 +1170,7 @@ function checkForUpdates(currentVersion: string): void {
             if (!data?.version) return;
             if (data.version !== currentVersion) {
                 console.warn(
-                    `[udoc-viewer] A newer version is available: ${data.version} (current: ${currentVersion}). ` +
+                    `[@docMentis/udoc-viewer] A newer version is available: ${data.version} (current: ${currentVersion}). ` +
                         `Update with: npm install @docmentis/udoc-viewer@latest\n` +
                         `To disable this check, set { disableUpdateCheck: true } in UDocClient.create() options.`,
                 );

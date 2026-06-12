@@ -2672,6 +2672,57 @@
     z-index: 80;
 }
 
+.udoc-viewer-root .udoc-permit-notice-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--udoc-bg-overlay);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 85;
+}
+
+.udoc-viewer-root .udoc-permit-notice-dialog {
+    background: var(--udoc-bg-surface);
+    border-radius: 12px;
+    box-shadow: var(--udoc-shadow-dialog);
+    padding: 24px;
+    max-width: 420px;
+    width: 90%;
+    text-align: left;
+}
+
+.udoc-viewer-root .udoc-permit-notice-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.udoc-viewer-root .udoc-permit-notice-icon {
+    width: 32px;
+    height: 32px;
+    color: var(--udoc-text-label);
+    flex-shrink: 0;
+}
+
+.udoc-viewer-root .udoc-permit-notice-title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--udoc-text-heading);
+}
+
+.udoc-viewer-root .udoc-permit-notice-body {
+    margin: 0;
+    font-size: 14px;
+    color: var(--udoc-text-label);
+    line-height: 1.5;
+}
+
 .udoc-viewer-root .udoc-password-dialog {
     background: var(--udoc-bg-surface);
     border-radius: 12px;
