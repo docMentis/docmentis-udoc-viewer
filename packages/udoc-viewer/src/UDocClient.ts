@@ -584,7 +584,13 @@ export class UDocClient {
             wasmUrls.push(cdnUrl);
         }
 
-        const domain = typeof window !== "undefined" ? window.location.hostname : "localhost";
+        // Outside a browser (Node, SSR) there is no page origin to report. Say so
+        // rather than claiming "localhost": a self-declared local origin would
+        // otherwise ask the permit service for the unmetered free-tier treatment
+        // that real local development gets, and it would file every server-side
+        // embedder under localhost in usage analytics. Licenses still validate —
+        // the runtime treats this placeholder like localhost when domain-matching.
+        const domain = typeof window !== "undefined" ? window.location.hostname : "unknown";
 
         let lastError: unknown;
         for (const wasmUrl of wasmUrls) {

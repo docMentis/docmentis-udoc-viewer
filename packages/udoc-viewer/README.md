@@ -1136,12 +1136,12 @@ Requires WebAssembly support.
 
 ## Free-tier usage & verification
 
-udoc-viewer is free to use, but **free/unlicensed usage requires online verification**. Before opening each document, the WebAssembly runtime requests a short-lived, signed permit from the docMentis permit service and verifies it cryptographically — inside WASM — before rendering. This caps free usage at a set number of document opens per domain per rolling 24 hours.
+udoc-viewer is free to use, but **free/unlicensed usage requires online verification**. Before opening each document, the WebAssembly runtime requests a short-lived, signed permit from the docMentis permit service and verifies it cryptographically — inside WASM — before rendering. This caps free usage at a set number of document opens per domain, and per IP address, per rolling 24 hours.
 
 **A commercial license removes this entirely.** Licensed usage skips the permit check, never contacts docMentis servers, and renders fully offline with no usage limit. To obtain a license, contact [licensing@docmentis.com](mailto:licensing@docmentis.com).
 
 ```typescript
-// Free tier: each document open is verified online (limited per domain)
+// Free tier: each document open is verified online (limited per domain and per IP)
 const client = await UDocClient.create();
 
 // Licensed: unlimited, fully offline, no permit check
@@ -1151,16 +1151,17 @@ const client = await UDocClient.create({ license: "eyJ2Ijox..." });
 Notes for free-tier usage:
 
 - **Network is required.** If the permit service can't be reached, free/unlicensed documents won't render. (Licensed usage is always offline.)
-- **Local development is unmetered.** `localhost`, `*.localhost`, loopback/private IP ranges are not counted against the limit.
-- **No document data is sent.** The permit request contains only a random per-open nonce, the embedding hostname, and the SDK version — never document content, filenames, or URLs.
+- **Local development in a browser is unmetered.** `localhost`, `*.localhost` and loopback/private IP ranges are not counted against either limit, as long as the browser identifies the origin.
+- **Server-side usage is metered by IP.** Running the viewer outside a browser (for example under Node) has no page origin to report — the viewer reports the host as `unknown` — so those opens count against the per-IP limit rather than a domain limit. A commercial license still validates there: `unknown` is accepted by domain matching, exactly as `localhost` is.
+- **No document data is sent.** The permit request contains only a random per-open nonce, the embedding hostname, the SDK version, and an anonymous install id — never document content, filenames, or URLs. Your IP address is used to enforce the per-IP limit; it is not stored in raw form.
 - **The decision is enforced in WASM**, not JavaScript, so it cannot be bypassed by editing client code.
 
-When the limit is exceeded — or a permit can't be obtained — the document does not render: the viewer shows an in-area notice, and an `error` event fires with `phase: "permit"`:
+When either limit is exceeded — or a permit can't be obtained — the document does not render: the viewer shows an in-area notice, and an `error` event fires with `phase: "permit"`:
 
 ```typescript
 viewer.on("error", ({ error, phase }) => {
     if (phase === "permit") {
-        // Free-tier limit reached, or verification was unavailable.
+        // A free-tier limit was reached, or verification was unavailable.
         // Prompt the user to retry, or upgrade to a commercial license.
     }
 });
