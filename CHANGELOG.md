@@ -6,6 +6,14 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+### Bug Fixes
+
+- Fixed the viewer reporting `localhost` as its host when running outside a browser (for example under Node), where there is no page origin to read. `localhost` is treated as local development and served unmetered, so server-side rendering was silently taking unlimited free usage and every non-browser embedder was filed under localhost in usage analytics. Such hosts now report `unknown` and are metered by client IP like any other server-side usage; licences continue to validate there, since a non-browser host has no domain to lock a licence to. Requires the engine shipped in this release
+- The free-tier quota notice named only the per-domain limit; free usage is capped per domain and per IP address, and the notice now covers both
+- Fixed bullets that use a symbol font such as Wingdings rendering as a literal letter or an empty box instead of the symbol the font draws — square, arrow and similar bullets in presentations and documents are now resolved correctly across a much wider range of characters (engine)
+- Fixed a PowerPoint presentation with a single damaged embedded font failing to open at all. The unreadable font is now skipped and its text falls back to a system font, matching how PowerPoint behaves (engine)
+- Fixed escaped characters in Word, PowerPoint and Excel markup being read literally rather than decoded, which could select the wrong bullet character and corrupted web links whose address contains an ampersand (engine)
+
 ## [0.7.16] - 2026-08-23
 
 ### Bug Fixes
