@@ -6,6 +6,8 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+## [0.7.17] - 2026-09-04
+
 ### Bug Fixes
 
 - Fixed the viewer reporting `localhost` as its host when running outside a browser (for example under Node), where there is no page origin to read. `localhost` is treated as local development and served unmetered, so server-side rendering was silently taking unlimited free usage and every non-browser embedder was filed under localhost in usage analytics. Such hosts now report `unknown` and are metered by client IP like any other server-side usage; licences continue to validate there, since a non-browser host has no domain to lock a licence to. Requires the engine shipped in this release
