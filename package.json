@@ -13,6 +13,7 @@
         "format": "prettier --write .",
         "format:check": "prettier --check .",
         "typecheck": "tsc --noEmit --project packages/udoc-viewer/tsconfig.json",
+        "test": "npm run test --workspaces --if-present",
         "release": "npm run typecheck && npm run lint && npm run format:check && npm run clean --workspace packages/udoc-viewer && npm run build --workspace packages/udoc-viewer && sh -c 'npm version \"$0\" --workspace packages/udoc-viewer --no-git-tag-version && VERSION=$(node -p \"require(\\\"./packages/udoc-viewer/package.json\\\").version\") && sh scripts/release-changelog.sh \"${VERSION}\" && git add packages/udoc-viewer/package.json package-lock.json CHANGELOG.md && git commit -m \"v${VERSION}\" && git tag \"v${VERSION}\" && git push && git push --tags'",
         "release-patch": "npm run release -- patch",
         "release-minor": "npm run release -- minor",
@@ -27,5 +28,8 @@
         "husky": "^9.1.7",
         "prettier": "^3.8.1",
         "typescript-eslint": "^8.56.1"
+    },
+    "dependencies": {
+        "rollup": "^4.53.3"
     }
 }

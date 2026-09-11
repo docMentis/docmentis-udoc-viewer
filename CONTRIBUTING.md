@@ -54,6 +54,9 @@ npm run build
 # Build only the SDK
 npm run build -w @docmentis/udoc-viewer
 
+# Run unit tests
+npm test
+
 # Run the demo app
 npm run dev
 
