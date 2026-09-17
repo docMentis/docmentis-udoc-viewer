@@ -6,6 +6,8 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+## [0.7.18] - 2026-09-17
+
 ### Features
 
 - Damaged PDFs whose internal object index is unusable now open instead of failing outright. Previously a file could only be salvaged when part of that index was still readable and written in the older of the two layouts PDFs use; a file missing the index pointer entirely, or one using the newer layout with an unusable pointer, refused to load. Such files are now reconstructed by scanning the document for its objects, and the four corruption patterns tested recover to output identical to the intact originals. Well-formed files take the normal path and are unaffected (engine)
