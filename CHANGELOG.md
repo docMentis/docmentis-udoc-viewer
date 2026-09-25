@@ -13,6 +13,13 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 ### Bug Fixes
 
 - Fixed CSV files failing to open with "Failed to detect document format: Unsupported file format" unless they were loaded from a file or URL whose name ends in `.csv`. CSV has no signature bytes for the engine to recognise, and the viewer only looked at that name, so CSV passed as raw bytes, from a `blob:` URL or from a download link without an extension could not be opened at all. A CSV is now also recognised from the `filename` load option, the file's type or the response's `Content-Type` (`text/csv`), or the file name in the response's `Content-Disposition` header. Cross-origin servers must list `Content-Disposition` in `Access-Control-Expose-Headers` for the browser to reveal it
+- Fixed saving a PDF leaving out part of the document when the file carries two object indexes: one in the older of the two layouts PDFs use, for older readers, and one in the newer layout listing the objects the first leaves out. Only the older index was read, so objects listed solely in the newer one — such as the document's accessibility tags — were missing from the file produced by `toBytes()` after editing annotations, or by `compress()` (engine)
+- Fixed PDFs whose object index sends the reader to the wrong object failing when that object was read, whether to display a page or to save the file. The engine now looks for the object elsewhere in the file, and treats it as missing if it isn't there, as the PDF specification requires (engine)
+- Fixed saving edited annotations reordering the inner insets of square, circle, free-text and caret annotations that came from the original file. These insets set how far the drawn shape or text box sits inside the annotation's bounds; whenever the top inset was larger than the bottom one they were swapped, and likewise left and right, so other PDF readers could draw those annotations out of place. Annotations with equal insets on opposite sides, the common case, were unaffected (engine)
+
+### Performance
+
+- The engine download is about 1 MB smaller: 6.0 MB → 5.0 MB with brotli compression and 8.4 MB → 7.7 MB with gzip, from packaging the built-in standard fonts more compactly. Word and PowerPoint text that falls back to these fonts because its named font isn't available may shift very slightly (engine)
 
 ## [0.7.18] - 2026-09-17
 
