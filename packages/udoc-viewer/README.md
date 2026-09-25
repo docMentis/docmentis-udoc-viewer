@@ -326,6 +326,15 @@ await viewer.load(new Uint8Array(buffer));
 viewer.close();
 ```
 
+The format of PDF, Word, PowerPoint, Excel and image files is detected from their contents. CSV has no signature to detect, so the viewer recognises it from the file name or URL ending in `.csv`, the `filename` option, a `text/csv` file type or `Content-Type` response header, or the file name in a `Content-Disposition` response header. When none of those apply (for example raw bytes, or a download link without an extension), name the format explicitly:
+
+```typescript
+await viewer.load(bytes, { format: "csv" });
+
+// or give it a name, which is also the default for download()
+await viewer.load(bytes, { filename: "export.csv" });
+```
+
 ### Navigation
 
 ```typescript

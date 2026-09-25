@@ -116,6 +116,29 @@ export interface DocumentMetadata {
 export type { Destination, DestinationDisplay, OutlineItem, ScrollAlignment } from "./ui/viewer/navigation.js";
 
 /**
+ * Options for {@link UDocViewer.load}.
+ */
+export interface LoadOptions {
+    /**
+     * Default filename used by `download()` when called with no argument.
+     * A `.csv` extension here also identifies the document as CSV.
+     */
+    filename?: string;
+
+    /**
+     * Document format. When set it is authoritative: the matching loader is
+     * used without inspecting the file contents.
+     *
+     * Only needed for formats with no signature bytes (CSV) whose source does
+     * not identify them. When omitted, a CSV is recognised from the File name
+     * or URL extension, `filename`, the File's type or response
+     * `Content-Type`, or the response `Content-Disposition` file name; every
+     * other format is detected from the file contents.
+     */
+    format?: DocumentFormat;
+}
+
+/**
  * Document loading progress information.
  */
 export interface LoadProgress {
@@ -215,16 +238,80 @@ function generateAnnotationId(): string {
 }
 
 /**
- * Derive an explicit format hint from a filename extension.
+ * Document bytes plus what their source said about them.
+ */
+interface ResolvedSource {
+    bytes: Uint8Array;
+    /** `File.name` or the URL string; also the fallback download name. */
+    filename?: string;
+    /** `File.type`, or the response's `Content-Type` for URL sources. */
+    mimeType?: string;
+    /** File name from the response's `Content-Disposition` header. */
+    dispositionFilename?: string;
+}
+
+/**
+ * MIME types that name CSV. `text/csv` is the registered type (RFC 4180); the
+ * others are aliases some servers send instead.
+ */
+const CSV_MIME_TYPES: ReadonlySet<string> = new Set([
+    "text/csv",
+    "application/csv",
+    "text/comma-separated-values",
+    "text/x-csv",
+    "application/x-csv",
+]);
+
+/**
+ * Derive an explicit format hint from what the source says about itself.
  *
  * WASM auto-detects most formats from magic bytes, so a hint is only needed
- * for formats that have none — currently CSV. Returning `undefined` lets WASM
- * fall back to content-based detection.
+ * for formats that have none — currently CSV. The source's own name (File name
+ * or URL), the caller's `filename` option, the MIME type and the
+ * Content-Disposition file name are consulted in that order; the first that
+ * names a format wins. Returning `undefined` lets WASM fall back to
+ * content-based detection.
  */
-function detectFormatHint(filename: string | undefined): DocumentFormat | undefined {
+function detectFormatHint(source: ResolvedSource, filename: string | undefined): DocumentFormat | undefined {
+    return (
+        formatHintFromFilename(source.filename) ??
+        formatHintFromFilename(filename) ??
+        formatHintFromMimeType(source.mimeType) ??
+        formatHintFromFilename(source.dispositionFilename)
+    );
+}
+
+function formatHintFromFilename(filename: string | undefined): DocumentFormat | undefined {
     if (!filename) return undefined;
     const ext = filename.split(/[?#]/)[0].split(".").pop()?.toLowerCase();
     return ext === "csv" ? "csv" : undefined;
+}
+
+function formatHintFromMimeType(mimeType: string | undefined): DocumentFormat | undefined {
+    if (!mimeType) return undefined;
+    // Drop parameters such as `; charset=utf-8`.
+    const essence = mimeType.split(";")[0].trim().toLowerCase();
+    return CSV_MIME_TYPES.has(essence) ? "csv" : undefined;
+}
+
+/**
+ * Extract the file name from a `Content-Disposition` header (RFC 6266),
+ * preferring the RFC 5987 `filename*=charset'lang'value` form over `filename=`.
+ */
+function filenameFromContentDisposition(header: string | null): string | undefined {
+    if (!header) return undefined;
+    const extended = /(?:^|;)\s*filename\*\s*=\s*[^']*'[^']*'([^;]+)/i.exec(header);
+    if (extended) {
+        try {
+            return decodeURIComponent(extended[1].trim());
+        } catch {
+            // Malformed percent-encoding — fall back to the plain parameter.
+        }
+    }
+    const plain = /(?:^|;)\s*filename\s*=\s*(?:"((?:[^"\\]|\\.)*)"|([^;]*))/i.exec(header);
+    if (!plain) return undefined;
+    const name = plain[1] !== undefined ? plain[1].replace(/\\(.)/g, "$1") : plain[2].trim();
+    return name || undefined;
 }
 
 /**
@@ -552,9 +639,9 @@ export class UDocViewer {
      * Load a document.
      *
      * @param source - URL string, File object, or raw bytes
-     * @param options.filename - Default filename used by `download()` when called with no argument.
+     * @param options - See {@link LoadOptions}.
      */
-    async load(source: string | File | Uint8Array, options?: { filename?: string }): Promise<void> {
+    async load(source: string | File | Uint8Array, options?: LoadOptions): Promise<void> {
         this.ensureNotDestroyed();
 
         // Reset performance counter and start timing
@@ -572,8 +659,8 @@ export class UDocViewer {
         try {
             // Track download phase
             const downloadId = this._performanceCounter.markStart("download");
-            const { bytes, filename } = await this.resolveSourceWithFilename(source);
-            this.sourceFilename = filename ?? null;
+            const resolved = await this.resolveSourceWithFilename(source);
+            this.sourceFilename = resolved.filename ?? null;
             this.documentDefaultFilename = options?.filename ?? null;
             this._performanceCounter.markEnd(downloadId);
 
@@ -581,11 +668,12 @@ export class UDocViewer {
             this.uiShell?.dispatch({ type: "SET_PROCESSING", processing: true });
 
             // Load document — WASM auto-detects format from file contents, but
-            // formats without magic bytes (e.g. CSV) need an explicit hint
-            // derived from the filename extension.
+            // formats without magic bytes (e.g. CSV) need an explicit hint:
+            // the caller's `format`, else one derived from the source's name,
+            // `filename`, MIME type or Content-Disposition.
             const loadId = this._performanceCounter.markStart("load");
-            const formatHint = detectFormatHint(filename);
-            this.documentId = await this.workerClient.loadDocument(bytes, formatHint);
+            const formatHint = options?.format ?? detectFormatHint(resolved, options?.filename);
+            this.documentId = await this.workerClient.loadDocument(resolved.bytes, formatHint);
             this._performanceCounter.markEnd(loadId);
 
             // Get the detected format from WASM for UI defaults
@@ -2357,24 +2445,29 @@ img { display: block; }
         return container;
     }
 
-    private async resolveSourceWithFilename(
-        source: string | File | Uint8Array,
-    ): Promise<{ bytes: Uint8Array; filename?: string }> {
+    private async resolveSourceWithFilename(source: string | File | Uint8Array): Promise<ResolvedSource> {
         if (source instanceof Uint8Array) {
             return { bytes: source };
         }
 
         if (source instanceof File) {
             const buffer = await source.arrayBuffer();
-            return { bytes: new Uint8Array(buffer), filename: source.name };
+            return { bytes: new Uint8Array(buffer), filename: source.name, mimeType: source.type || undefined };
         }
 
         // URL string - use streaming to report progress
-        const bytes = await this.fetchWithProgress(source);
-        return { bytes, filename: source };
+        const { bytes, headers } = await this.fetchWithProgress(source);
+        return {
+            bytes,
+            filename: source,
+            mimeType: headers.get("Content-Type") ?? undefined,
+            // Cross-origin responses expose this only when the server lists it
+            // in Access-Control-Expose-Headers; otherwise it reads as null.
+            dispositionFilename: filenameFromContentDisposition(headers.get("Content-Disposition")),
+        };
     }
 
-    private async fetchWithProgress(url: string): Promise<Uint8Array> {
+    private async fetchWithProgress(url: string): Promise<{ bytes: Uint8Array; headers: Headers }> {
         // Show progress bar immediately before sending the request
         if (this.uiShell) {
             this.uiShell.dispatch({
@@ -2400,7 +2493,7 @@ img { display: block; }
             if (this.uiShell) {
                 this.uiShell.dispatch({ type: "CLEAR_DOWNLOAD_PROGRESS" });
             }
-            return new Uint8Array(buffer);
+            return { bytes: new Uint8Array(buffer), headers: response.headers };
         }
 
         const reader = response.body.getReader();
@@ -2450,7 +2543,7 @@ img { display: block; }
             offset += chunk.length;
         }
 
-        return result;
+        return { bytes: result, headers: response.headers };
     }
 
     private emit<K extends keyof ViewerEventMap>(event: K, payload: ViewerEventMap[K]): void {

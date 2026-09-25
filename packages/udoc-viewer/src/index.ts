@@ -18,6 +18,7 @@ export type {
     RenderOptions,
     RenderedPage,
     DocumentMetadata,
+    LoadOptions,
     OutlineItem,
     Destination,
     DestinationDisplay,
@@ -39,6 +40,7 @@ export { createI18n } from "./ui/viewer/i18n/index.js";
 // View mode and panel types
 export type {
     ViewMode,
+    DocumentFormat,
     ScrollMode,
     LayoutMode,
     ZoomMode,
