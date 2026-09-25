@@ -6,6 +6,14 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+### Features
+
+- `load()` takes a new `format` option (`"pdf"`, `"docx"`, `"pptx"`, `"xlsx"`, `"csv"` or `"image"`) that names the document's format outright, for callers that know it and whose source doesn't say. `LoadOptions` and `DocumentFormat` are now exported types
+
+### Bug Fixes
+
+- Fixed CSV files failing to open with "Failed to detect document format: Unsupported file format" unless they were loaded from a file or URL whose name ends in `.csv`. CSV has no signature bytes for the engine to recognise, and the viewer only looked at that name, so CSV passed as raw bytes, from a `blob:` URL or from a download link without an extension could not be opened at all. A CSV is now also recognised from the `filename` load option, the file's type or the response's `Content-Type` (`text/csv`), or the file name in the response's `Content-Disposition` header. Cross-origin servers must list `Content-Disposition` in `Access-Control-Expose-Headers` for the browser to reveal it
+
 ## [0.7.18] - 2026-09-17
 
 ### Features
