@@ -6,6 +6,8 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+## [0.7.19] - 2026-09-25
+
 ### Features
 
 - `load()` takes a new `format` option (`"pdf"`, `"docx"`, `"pptx"`, `"xlsx"`, `"csv"` or `"image"`) that names the document's format outright, for callers that know it and whose source doesn't say. `LoadOptions` and `DocumentFormat` are now exported types
