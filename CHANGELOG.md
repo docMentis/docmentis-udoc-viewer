@@ -6,6 +6,8 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+## [0.7.20] - 2026-10-01
+
 ### Bug Fixes
 
 - Fixed some encrypted PDFs failing to open even though they need no password to view, such as documents that only restrict permissions. Files using 128-bit encryption that leave the document's metadata unencrypted had their encryption key computed wrongly, so not even the empty password was accepted and nothing in the file could be decrypted (engine)
