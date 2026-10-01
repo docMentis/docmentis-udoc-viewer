@@ -6,6 +6,11 @@ This project includes changes from both the **viewer** (this repo) and the **eng
 
 ## [Unreleased]
 
+### Bug Fixes
+
+- Fixed some encrypted PDFs failing to open even though they need no password to view, such as documents that only restrict permissions. Files using 128-bit encryption that leave the document's metadata unencrypted had their encryption key computed wrongly, so not even the empty password was accepted and nothing in the file could be decrypted (engine)
+- Fixed PDFs that were edited after they were created showing the document as it was before the edit. When the original file used the older of the two object index layouts PDFs use and the edit was appended with the newer layout, the edit's index was skipped, so pages, annotations and content added or changed by the edit did not appear (engine)
+
 ## [0.7.19] - 2026-09-25
 
 ### Features
