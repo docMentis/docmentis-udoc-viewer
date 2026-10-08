@@ -225,10 +225,10 @@ npm run dev -w @docmentis/udoc-viewer-demo
 
 ### Updating the WASM engine
 
-The WASM binary is pre-built from the private `docmentis-udoc` repository and checked into this repo. To update it after a new Rust build:
+The WASM binary is pre-built from the private engine repository and checked into this repo. To update it after a new Rust build:
 
 ```bash
-# In the docmentis-udoc repo
+# In the engine repo
 just push-wasm
 ```
 

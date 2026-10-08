@@ -2,7 +2,7 @@
 
 All notable changes to the udoc-viewer project will be documented in this file.
 
-This project includes changes from both the **viewer** (this repo) and the **engine** (docmentis-udoc core).
+This project includes changes from both the **viewer** (this repo) and the **engine** (the private Rust core).
 
 ## [Unreleased]
 

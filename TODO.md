@@ -2,7 +2,7 @@
 
 ## Pending
 
-- [ ] **Stamp `name` collision in WASM** — `JsAnnotation.name` (NM identifier) and `StampAnnotation.name` (icon name like "Approved") both serialize to the JSON key `name`, so for stamp annotations the two values clobber each other across a round-trip. Fix in the Rust WASM layer (`docmentis-udoc/libs/docmentis-udoc-wasm/src/annotation.rs`) by renaming the stamp variant's `name` field to `icon_name` (serde rename) and propagating to the public TS `StampAnnotation` type.
+- [ ] **Stamp `name` collision in WASM** — `JsAnnotation.name` (NM identifier) and `StampAnnotation.name` (icon name like "Approved") both serialize to the JSON key `name`, so for stamp annotations the two values clobber each other across a round-trip. Fix in the Rust WASM layer (engine repo, `libs/docmentis-udoc-wasm/src/annotation.rs`) by renaming the stamp variant's `name` field to `icon_name` (serde rename) and propagating to the public TS `StampAnnotation` type.
 - [ ] **Headless annotation editing** — `addAnnotation` / `updateAnnotation` / `removeAnnotation` currently require UI mode because the editing state lives in the UI shell store. Either lift the editing state up so it works without a container, or document headless as read-only.
 
 ## Done
