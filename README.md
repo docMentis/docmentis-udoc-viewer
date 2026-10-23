@@ -1,3 +1,22 @@
+> **We've moved!** 🚀
+>
+> docMentis has grown beyond document viewing into a comprehensive document platform. Active development has moved to our new repository: **[docMentis udoc](https://github.com/docMentis/docmentis-udoc)**.
+>
+> What started as a universal document viewer has evolved into a broader platform for working with documents, including:
+>
+> - **Viewer** — A full-featured document viewer for web applications.
+> - **Editor** — A document editor for web applications.
+> - **Node SDK** — Process, render, and save documents programmatically.
+> - **Document Server** — Host documents, serve pages over HTTP, and support collaboration.
+> - **CLI** — Work with documents from the command line.
+>
+> This repository remains available with the original viewer implementation, examples, and documentation. All new development takes place in the new repository.
+>
+> **[Explore docMentis udoc →](https://github.com/docMentis/docmentis-udoc)**
+
+> [!IMPORTANT]
+> Everything below documents **`@docmentis/udoc-viewer` 0.7.20**, the last version released from this repository. **0.8.0 and later** are developed and released from [docMentis udoc](https://github.com/docMentis/docmentis-udoc); see the documentation there for the current version. To use the version described here, install it with `npm install @docmentis/udoc-viewer@0.7.20`.
+
 # @docmentis/udoc-viewer
 
 Universal document viewer for the web.
